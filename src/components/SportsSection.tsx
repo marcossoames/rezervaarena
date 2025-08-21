@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import tennisImage from "@/assets/tennis-court.jpg";
 import footballImage from "@/assets/football-field.jpg";
 import padelImage from "@/assets/padel-court.jpg";
@@ -85,9 +86,11 @@ const SportsSection = () => {
                     </div>
                   </div>
                   
-                  <Button className="w-full" variant="default">
-                    Vezi Terenurile
-                  </Button>
+                  <Link to="/facilities">
+                    <Button className="w-full" variant="default">
+                      Vezi Terenurile
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

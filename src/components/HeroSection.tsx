@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Search, Calendar, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-sports.jpg";
 
 const HeroSection = () => {
@@ -59,12 +60,16 @@ const HeroSection = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="text-lg px-8 py-6">
-              Explorează Terenurile
-            </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-              Adaugă Baza Ta Sportivă
-            </Button>
+            <Link to="/facilities">
+              <Button variant="hero" size="lg" className="text-lg px-8 py-6">
+                Explorează Terenurile
+              </Button>
+            </Link>
+            <Link to="/facility/login">
+              <Button variant="outline" size="lg" className="text-lg px-8 py-6 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                Adaugă Baza Ta Sportivă
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
