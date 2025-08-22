@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, CreditCard, MapPin, Clock, Shield, Users } from "lucide-react";
+import { Calendar, CreditCard, Clock, Shield } from "lucide-react";
 
 const features = [
   {
@@ -13,11 +13,6 @@ const features = [
     description: "Sistem de plăți securizat cu confirmarea rezervării în timp real"
   },
   {
-    icon: MapPin,
-    title: "Localizare Precisă",
-    description: "Găsește cele mai apropiate facilități sportive de tine"
-  },
-  {
     icon: Clock,
     title: "Program Flexibil",
     description: "Rezervă pe intervale de 30 de minute, adaptate programului tău"
@@ -26,11 +21,6 @@ const features = [
     icon: Shield,
     title: "Garantie & Suport",
     description: "Echipa noastră te ajută 24/7 pentru orice problemă"
-  },
-  {
-    icon: Users,
-    title: "Comunitate Activă",
-    description: "Conectează-te cu alți sportivi și formează echipe"
   }
 ];
 
