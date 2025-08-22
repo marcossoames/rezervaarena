@@ -55,12 +55,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="h-5 w-5 text-primary" />
-                <a 
-                  href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara,+Timis" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-smooth"
-                >
+                <a href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara,+Timis" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-smooth">
                   Str. Magnoliei nr. 21, Timișoara
                 </a>
               </div>
@@ -70,9 +65,7 @@ const Footer = () => {
 
         <div className="border-t border-border mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-muted-foreground text-sm">
-              © 2024 SportBook. Toate drepturile rezervate.
-            </p>
+            <p className="text-muted-foreground text-sm">© 2025 SportBook. Toate drepturile rezervate.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/about" className="text-muted-foreground hover:text-primary text-sm transition-smooth">
                 Termeni și Condiții
