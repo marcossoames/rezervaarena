@@ -84,6 +84,39 @@ const UserManagement = () => {
     }
   };
 
+  const deleteUser = async (userId: string, userEmail: string) => {
+    try {
+      const { data, error } = await supabase.rpc('delete_user_account_secure', {
+        _user_id: userId
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        toast({
+          title: "Succes",
+          description: `Contul utilizatorului ${userEmail} a fost șters.`,
+        });
+        fetchUsers(); // Refresh the list
+      } else {
+        toast({
+          title: "Eroare",
+          description: "Utilizatorul nu a fost găsit.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut șterge utilizatorul. Doar administratorii pot șterge utilizatori.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
@@ -216,6 +249,33 @@ const UserManagement = () => {
                               </AlertDialogContent>
                             </AlertDialog>
                           )}
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Șterge
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Ștergere Cont Utilizator</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Ești sigur că vrei să ștergi contul utilizatorului <strong>{user.full_name}</strong>? 
+                                  Această acțiune este permanentă și nu poate fi anulată. Toate datele asociate acestui utilizator vor fi șterse.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Anulează</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteUser(user.user_id, user.email)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Șterge Definitiv
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>
