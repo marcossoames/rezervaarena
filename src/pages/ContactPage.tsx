@@ -42,78 +42,7 @@ const ContactPage = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
-          {/* Contact Form */}
-          <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl">Trimite-ne un mesaj</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">Prenume</Label>
-                    <Input
-                      id="firstName"
-                      placeholder="Prenumele tău"
-                      className="bg-background/50"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Nume</Label>
-                    <Input
-                      id="lastName"
-                      placeholder="Numele tău"
-                      className="bg-background/50"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="adresa@email.com"
-                    className="bg-background/50"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subiect</Label>
-                  <Input
-                    id="subject"
-                    placeholder="Subiectul mesajului"
-                    className="bg-background/50"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="message">Mesaj</Label>
-                  <Textarea
-                    id="message"
-                    placeholder="Scrie-ne mesajul tău aici..."
-                    className="min-h-32 bg-background/50"
-                    required
-                  />
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  size="lg"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Se trimite..." : "Trimite Mesaj"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
+        <div className="max-w-2xl mx-auto">
           {/* Contact Information */}
           <div className="space-y-8">
             <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
