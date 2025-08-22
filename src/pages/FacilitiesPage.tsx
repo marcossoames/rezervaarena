@@ -126,7 +126,7 @@ const FacilitiesPage = () => {
         } else {
           // Non-authenticated users get public facility data for browsing
           const { data, error: rpcError } = await supabase
-            .rpc('get_facilities_for_booking');
+            .rpc('get_facilities_for_public_browsing');
           allFacilities = data;
           error = rpcError;
         }
