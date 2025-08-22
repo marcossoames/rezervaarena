@@ -10,6 +10,8 @@ import AdminLogin from "./pages/AdminLogin";
 import FacilitiesPage from "./pages/FacilitiesPage";
 import BookingPage from "./pages/BookingPage";
 import FacilityRegister from "./pages/FacilityRegister";
+import AddFacilityPage from "./pages/AddFacilityPage";
+import ManageFacilitiesPage from "./pages/ManageFacilitiesPage";
 import ClientRegister from "./pages/ClientRegister";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
@@ -31,6 +33,8 @@ const App = () => (
           <Route path="/client/register" element={<ClientRegister />} />
           <Route path="/facility/login" element={<SportsFacilityLogin />} />
           <Route path="/facility/register" element={<FacilityRegister />} />
+          <Route path="/add-facility" element={<AddFacilityPage />} />
+          <Route path="/manage-facilities" element={<ManageFacilitiesPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/facilities" element={<FacilitiesPage />} />

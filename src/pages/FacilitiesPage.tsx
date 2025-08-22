@@ -2,9 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn } from "lucide-react";
+import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn, Plus, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import Header from "@/components/Header";
@@ -227,13 +227,33 @@ const FacilitiesPage = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            Facilități <span className="text-primary">Sportive</span>
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Descoperă cele mai bune baze sportive din București și rezervă acum
-          </p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              Facilități <span className="text-primary">Sportive</span>
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Descoperă cele mai bune baze sportive din București și rezervă acum
+            </p>
+          </div>
+          
+          {/* Show management button for facility owners */}
+          {userProfile?.role === 'facility_owner' && (
+            <div className="flex gap-2">
+              <Link to="/manage-facilities">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Gestionează Facilitățile
+                </Button>
+              </Link>
+              <Link to="/add-facility">
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Adaugă Facilitate
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Search and Filters */}
