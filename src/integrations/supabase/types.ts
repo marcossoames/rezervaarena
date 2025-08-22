@@ -300,11 +300,11 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
       }
-      promote_self_to_facility_owner: {
-        Args: Record<PropertyKey, never>
+      promote_user_to_admin_secure: {
+        Args: { _user_id: string }
         Returns: boolean
       }
-      promote_user_to_admin_secure: {
+      promote_user_to_facility_owner_secure: {
         Args: { _user_id: string }
         Returns: boolean
       }
