@@ -123,21 +123,17 @@ const FacilitiesPage = () => {
 
         // Use different functions based on user authentication status
         if (session && userProfile?.role === 'client') {
-          // Authenticated clients get exact data through the booking function
-          // If that fails, fallback to public browsing with exact data
-          const { data: clientData, error: clientError } = await supabase
-            .rpc('get_facilities_for_booking');
+          // Authenticated clients get exact data directly from facilities table
+          const { data, error: rpcError } = await supabase
+            .from('facilities')
+            .select('id, name, facility_type, city, description, price_per_hour, capacity, amenities, images')
+            .eq('is_active', true);
           
-          if (clientData && clientData.length > 0) {
-            allFacilities = clientData;
-            error = clientError;
-          } else {
-            // Fallback to public browsing for clients
-            const { data, error: rpcError } = await supabase
-              .rpc('get_facilities_for_public_browsing');
-            allFacilities = data;
-            error = rpcError;
-          }
+          allFacilities = data?.map(f => ({
+            ...f,
+            area_info: `${f.city} area` // Add area_info field for consistency
+          }));
+          error = rpcError;
         } else if (session && userProfile?.role === 'admin') {
           // Admins get full data
           const { data, error: rpcError } = await supabase
@@ -370,24 +366,16 @@ const FacilitiesPage = () => {
                         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                          <div className="flex items-center">
                            <span className="text-muted-foreground">
-                             {/* For authenticated clients, show exact capacity */}
-                             Capacitate: {
-                               session && userProfile?.role === 'client' && facility.capacity ? 
-                                 `${facility.capacity} persoane` :
-                                 facility.capacity ? `${facility.capacity} persoane` :
-                                 facility.capacity_info || 'Disponibil'
-                             }
+                             Capacitate: {facility.capacity ? `${facility.capacity} persoane` : 
+                                         facility.capacity_info || 'Disponibil'}
                            </span>
                          </div>
                        </div>
                       
                        <div className="flex justify-between items-center">
                          <div className="text-2xl font-bold text-primary">
-                           {/* For authenticated clients, show exact pricing */}
-                           {session && userProfile?.role === 'client' && facility.price_per_hour ? 
-                             `${facility.price_per_hour} RON/oră` :
-                             facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : 
-                             facility.price_range || facility.base_price_info || 'Preț disponibil la rezervare'}
+                           {facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : 
+                            facility.price_range || facility.base_price_info || 'Preț disponibil la rezervare'}
                          </div>
                          {session ? (
                            <Button variant="sport" asChild>
