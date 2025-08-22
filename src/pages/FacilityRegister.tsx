@@ -827,14 +827,6 @@ const FacilityRegister = () => {
         </Card>
       ))}
 
-      <div className="bg-muted/30 p-4 rounded-lg border border-dashed border-muted-foreground/20">
-        <p className="text-sm text-muted-foreground mb-2">
-          📸 <strong>Pas final:</strong> După înregistrare, vei putea adăuga imagini pentru fiecare facilitate în parte.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Fiecare facilitate poate avea până la 8 imagini și o imagine principală.
-        </p>
-      </div>
 
       <Button 
         onClick={handleFinalSubmit}
