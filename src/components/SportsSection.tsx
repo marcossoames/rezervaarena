@@ -7,6 +7,8 @@ import tennisImage from "@/assets/tennis-court.jpg";
 import footballImage from "@/assets/football-field.jpg";
 import padelImage from "@/assets/padel-court.jpg";
 import swimmingImage from "@/assets/swimming-pool.jpg";
+import basketballImage from "@/assets/basketball-court.jpg";
+import volleyballImage from "@/assets/volleyball-court.jpg";
 
 interface SportData {
   id: number;
@@ -52,6 +54,24 @@ const initialSportsData = [
     type: "swimming",
     image: swimmingImage,
     description: "Piscine profesionale pentru antrenament și relaxare",
+    facilities: 0,
+    minPrice: "0 RON/oră"
+  },
+  {
+    id: 5,
+    name: "Baschet",
+    type: "basketball",
+    image: basketballImage,
+    description: "Terenuri moderne de baschet cu echipament profesional",
+    facilities: 0,
+    minPrice: "0 RON/oră"
+  },
+  {
+    id: 6,
+    name: "Volei",
+    type: "volleyball",
+    image: volleyballImage,
+    description: "Terenuri de volei pentru competiții și antrenamente",
     facilities: 0,
     minPrice: "0 RON/oră"
   }
@@ -114,7 +134,7 @@ const SportsSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {sportsData.map((sport) => (
             <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none">
               <CardContent className="p-0">

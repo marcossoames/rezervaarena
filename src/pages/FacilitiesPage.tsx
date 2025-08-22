@@ -313,6 +313,20 @@ const FacilitiesPage = () => {
                 >
                   Înot
                 </Badge>
+                <Badge 
+                  variant={selectedType === "basketball" ? "default" : "outline"} 
+                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => handleTypeFilter("basketball")}
+                >
+                  Baschet
+                </Badge>
+                <Badge 
+                  variant={selectedType === "volleyball" ? "default" : "outline"} 
+                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => handleTypeFilter("volleyball")}
+                >
+                  Volei
+                </Badge>
               </div>
             </CardContent>
           </Card>
