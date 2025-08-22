@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ImageCarousel from "@/components/ImageCarousel";
 
 interface Facility {
   id: string;
@@ -23,6 +24,7 @@ interface Facility {
   capacity: number;
   amenities: string[];
   images: string[];
+  main_image_url?: string;
   created_at?: string; // Optional for clients
 }
 
@@ -339,12 +341,12 @@ const FacilitiesPage = () => {
                 <CardContent className="p-0">
                   <div className="flex flex-col md:flex-row">
                     <div className="md:w-1/3 relative overflow-hidden">
-                      <img 
-                        src={facility.images?.[0] || "/placeholder.svg"} 
-                        alt={facility.name}
-                        className="w-full h-48 md:h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      <ImageCarousel
+                        images={facility.images || []}
+                        facilityName={facility.name}
+                        className="w-full h-48 md:h-full"
                       />
-                      <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">
+                      <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground z-10">
                         {getFacilityTypeLabel(facility.facility_type)}
                       </Badge>
                     </div>

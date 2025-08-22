@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Plus, Edit, Trash2, MapPin, Users, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ImageCarousel from "@/components/ImageCarousel";
 
 interface Facility {
   id: string;
@@ -17,6 +18,8 @@ interface Facility {
   price_per_hour: number;
   capacity: number;
   amenities: string[];
+  images: string[];
+  main_image_url?: string;
   is_active: boolean;
   created_at: string;
 }
@@ -187,7 +190,24 @@ const ManageFacilitiesPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {facilities.map((facility) => (
               <Card key={facility.id} className="relative overflow-hidden hover:shadow-lg transition-shadow">
-                <CardHeader>
+                {/* Image Section */}
+                {facility.images && facility.images.length > 0 && (
+                  <div className="relative h-48">
+                    <ImageCarousel
+                      images={facility.images}
+                      facilityName={facility.name}
+                      className="w-full h-full"
+                    />
+                    <Badge 
+                      variant={facility.is_active ? "default" : "secondary"}
+                      className="absolute top-3 right-3 z-10"
+                    >
+                      {facility.is_active ? "Activ" : "Inactiv"}
+                    </Badge>
+                  </div>
+                )}
+                
+                <CardHeader className={facility.images && facility.images.length > 0 ? "pb-2" : ""}>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-lg">{facility.name}</CardTitle>
@@ -196,9 +216,11 @@ const ManageFacilitiesPage = () => {
                         {facility.city}
                       </CardDescription>
                     </div>
-                    <Badge variant={facility.is_active ? "default" : "secondary"}>
-                      {facility.is_active ? "Activ" : "Inactiv"}
-                    </Badge>
+                    {(!facility.images || facility.images.length === 0) && (
+                      <Badge variant={facility.is_active ? "default" : "secondary"}>
+                        {facility.is_active ? "Activ" : "Inactiv"}
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
                 

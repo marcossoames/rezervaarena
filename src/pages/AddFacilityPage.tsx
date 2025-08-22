@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, ArrowLeft } from "lucide-react";
+import { X, Plus, ArrowLeft, Upload, Image as ImageIcon, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,6 +27,10 @@ const AddFacilityPage = () => {
   const [newAmenity, setNewAmenity] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [images, setImages] = useState<File[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [mainImageIndex, setMainImageIndex] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -83,13 +87,76 @@ const AddFacilityPage = () => {
     setAmenities(amenities.filter(a => a !== amenity));
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const maxImages = 8;
+    
+    if (images.length + files.length > maxImages) {
+      toast({
+        title: "Prea multe imagini",
+        description: `Poți adăuga maximum ${maxImages} imagini per facilitate`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newImages = [...images, ...files];
+    setImages(newImages);
+
+    // Create preview URLs
+    const newUrls = files.map(file => URL.createObjectURL(file));
+    setImageUrls([...imageUrls, ...newUrls]);
+  };
+
+  const removeImage = (index: number) => {
+    URL.revokeObjectURL(imageUrls[index]);
+    setImages(images.filter((_, i) => i !== index));
+    setImageUrls(imageUrls.filter((_, i) => i !== index));
+    
+    // Adjust main image index if needed
+    if (mainImageIndex >= index && mainImageIndex > 0) {
+      setMainImageIndex(mainImageIndex - 1);
+    }
+  };
+
+  const uploadImages = async (facilityId: string) => {
+    if (images.length === 0) return [];
+
+    const uploadedUrls = [];
+    
+    for (let i = 0; i < images.length; i++) {
+      const file = images[i];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${facilityId}/${Date.now()}-${i}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('facility-images')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('facility-images')
+        .getPublicUrl(fileName);
+
+      uploadedUrls.push(publicUrl);
+    }
+
+    return uploadedUrls;
+  };
+
   const onSubmit = async (data: FacilityFormData) => {
     if (!userProfile) return;
 
     setIsLoading(true);
+    setUploading(true);
 
     try {
-      const { error: facilityError } = await supabase
+      // First create the facility
+      const { data: facilityData, error: facilityError } = await supabase
         .from('facilities')
         .insert({
           owner_id: userProfile.user_id,
@@ -101,11 +168,36 @@ const AddFacilityPage = () => {
           price_per_hour: data.pricePerHour,
           capacity: data.capacity,
           amenities: amenities
-        });
+        })
+        .select()
+        .single();
 
       if (facilityError) {
         console.error('Facility creation error:', facilityError);
         throw new Error(`Eroare la crearea facilității: ${facilityError.message}`);
+      }
+
+      // Upload images if any
+      let uploadedImageUrls: string[] = [];
+      let mainImageUrl = null;
+
+      if (images.length > 0) {
+        uploadedImageUrls = await uploadImages(facilityData.id);
+        mainImageUrl = uploadedImageUrls[mainImageIndex];
+
+        // Update facility with images and main image
+        const { error: updateError } = await supabase
+          .from('facilities')
+          .update({
+            images: uploadedImageUrls,
+            main_image_url: mainImageUrl
+          })
+          .eq('id', facilityData.id);
+
+        if (updateError) {
+          console.error('Error updating facility with images:', updateError);
+          throw updateError;
+        }
       }
 
       toast({
@@ -123,6 +215,7 @@ const AddFacilityPage = () => {
       });
     } finally {
       setIsLoading(false);
+      setUploading(false);
     }
   };
 
@@ -278,6 +371,73 @@ const AddFacilityPage = () => {
                   )}
                 </div>
 
+                {/* Images */}
+                <div className="space-y-4">
+                  <Label>Imagini Facilitate (max 8)</Label>
+                  <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="imageUpload"
+                    />
+                    <label htmlFor="imageUpload" className="cursor-pointer">
+                      <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Apasă pentru a încărca imagini sau trage fișierele aici
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Format acceptat: JPG, PNG, WEBP (max 8 imagini)
+                      </p>
+                    </label>
+                  </div>
+
+                  {/* Image Preview Grid */}
+                  {imageUrls.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {imageUrls.map((url, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={url}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImage(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={mainImageIndex === index ? "default" : "outline"}
+                            size="sm"
+                            className="absolute bottom-1 left-1 h-6 text-xs"
+                            onClick={() => setMainImageIndex(index)}
+                          >
+                            {mainImageIndex === index ? (
+                              <Star className="h-3 w-3 fill-current" />
+                            ) : (
+                              <Star className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {imageUrls.length > 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Imaginea cu ⭐ va fi imaginea principală a facilității
+                    </p>
+                  )}
+                </div>
+
                 {/* Amenities */}
                 <div className="space-y-2">
                   <Label>Facilități & Servicii</Label>
@@ -317,9 +477,9 @@ const AddFacilityPage = () => {
               <Button 
                 type="submit" 
                 className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300"
-                disabled={isLoading}
+                disabled={isLoading || uploading}
               >
-                {isLoading ? "Se adaugă..." : "Adaugă Facilitatea"}
+                {uploading ? "Se încarcă imaginile..." : isLoading ? "Se adaugă..." : "Adaugă Facilitatea"}
               </Button>
             </form>
           </CardContent>

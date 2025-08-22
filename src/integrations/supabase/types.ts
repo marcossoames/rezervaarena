@@ -127,6 +127,7 @@ export type Database = {
           id: string
           images: string[] | null
           is_active: boolean
+          main_image_url: string | null
           name: string
           owner_id: string
           price_per_hour: number
@@ -143,6 +144,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_active?: boolean
+          main_image_url?: string | null
           name: string
           owner_id: string
           price_per_hour: number
@@ -159,6 +161,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_active?: boolean
+          main_image_url?: string | null
           name?: string
           owner_id?: string
           price_per_hour?: number
