@@ -87,13 +87,15 @@ const FacilityRegister = () => {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Update profile with facility owner role
+        // Use secure function to upgrade to facility owner role
+        const { data: roleUpdated, error: roleError } = await supabase.rpc('promote_self_to_facility_owner');
+        
+        if (roleError) throw roleError;
+        
+        // Update phone separately
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({
-            role: 'facility_owner',
-            phone: data.phone
-          })
+          .update({ phone: data.phone })
           .eq('user_id', authData.user.id);
 
         if (profileError) throw profileError;

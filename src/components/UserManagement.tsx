@@ -51,10 +51,10 @@ const UserManagement = () => {
     }
   };
 
-  const promoteToAdmin = async (userEmail: string) => {
+  const promoteToAdmin = async (userId: string) => {
     try {
-      const { data, error } = await supabase.rpc('promote_user_to_admin', {
-        user_email: userEmail
+      const { data, error } = await supabase.rpc('promote_user_to_admin_secure', {
+        _user_id: userId
       });
 
       if (error) {
@@ -209,7 +209,7 @@ const UserManagement = () => {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Anulează</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => promoteToAdmin(user.email)}>
+                                  <AlertDialogAction onClick={() => promoteToAdmin(user.user_id)}>
                                     Promovează
                                   </AlertDialogAction>
                                 </AlertDialogFooter>

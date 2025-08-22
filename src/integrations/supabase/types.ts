@@ -227,8 +227,12 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
       }
-      promote_user_to_admin: {
-        Args: { user_email: string }
+      promote_self_to_facility_owner: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      promote_user_to_admin_secure: {
+        Args: { _user_id: string }
         Returns: boolean
       }
     }
