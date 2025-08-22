@@ -54,8 +54,9 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-medium">Email</h3>
-                    <p className="text-muted-foreground">contact@sportbook.ro</p>
-                    <p className="text-muted-foreground">support@sportbook.ro</p>
+                    <a href="mailto:soamespaul@gmail.com" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                      soamespaul@gmail.com
+                    </a>
                   </div>
                 </div>
 
@@ -65,8 +66,9 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-medium">Telefon</h3>
-                    <p className="text-muted-foreground">+40 721 234 567</p>
-                    <p className="text-muted-foreground">+40 31 123 4567</p>
+                    <a href="tel:+40720059535" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                      +40720059535
+                    </a>
                   </div>
                 </div>
 
@@ -76,11 +78,16 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-medium">Adresă</h3>
-                    <p className="text-muted-foreground">
-                      Strada Sportului nr. 123<br />
-                      Sector 1, București<br />
+                    <a 
+                      href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara,+Timis" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                    >
+                      Str. Magnoliei nr. 21<br />
+                      Timișoara, Timiș<br />
                       România
-                    </p>
+                    </a>
                   </div>
                 </div>
 
