@@ -387,6 +387,23 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      register_facility_with_profile: {
+        Args: {
+          p_address: string
+          p_amenities: string[]
+          p_capacity: number
+          p_city: string
+          p_description: string
+          p_email: string
+          p_facility_name: string
+          p_facility_type: Database["public"]["Enums"]["facility_type"]
+          p_full_name: string
+          p_phone: string
+          p_price_per_hour: number
+          p_user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       booking_status: "pending" | "confirmed" | "cancelled" | "completed"

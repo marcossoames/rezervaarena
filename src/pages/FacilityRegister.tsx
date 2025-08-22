@@ -256,36 +256,12 @@ const FacilityRegister = () => {
       console.log('User signed up successfully:', authData.user?.id);
 
       if (authData.user) {
-        // Wait for user to be properly authenticated and profile to be created
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Wait for user to be properly authenticated
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        console.log('Creating/updating profile...');
-        
-        // Create profile with client role but mark as facility owner in comment
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            user_id: authData.user.id,
-            email: accountData.email,
-            full_name: accountData.fullName,
-            phone: accountData.phone,
-            role: 'client',
-            user_type_comment: 'Proprietar bază sportivă - înregistrat prin sistem'
-          }, {
-            onConflict: 'user_id'
-          });
+        console.log('User authenticated, proceeding with facility creation...');
 
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          throw new Error(`Eroare la crearea profilului: ${profileError.message}`);
-        }
-
-        console.log('Profile created/updated successfully');
-
-        // Wait a bit more to ensure role is properly set
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Create all facilities with images
+        // Create all facilities using the secure function
         console.log(`Creating ${facilities.length} facilities...`);
         
         for (let i = 0; i < facilities.length; i++) {
@@ -293,41 +269,41 @@ const FacilityRegister = () => {
           
           console.log(`Creating facility ${i + 1}: ${facility.name}`);
           
-          // Create facility first
-          const { data: facilityData, error: facilityError } = await supabase
-            .from('facilities')
-            .insert({
-              owner_id: authData.user.id,
-              name: facility.name,
-              description: facility.description,
-              facility_type: facility.facilityType as "tennis" | "football" | "padel" | "swimming" | "basketball" | "volleyball",
-              address: accountData.address,
-              city: accountData.city,
-              price_per_hour: facility.pricePerHour,
-              capacity: facility.capacity,
-              amenities: facility.amenities
-            })
-            .select()
-            .single();
+          // Use the secure function to create facility and update profile
+          const { data: facilityId, error: facilityError } = await supabase
+            .rpc('register_facility_with_profile', {
+              p_user_id: authData.user.id,
+              p_email: accountData.email,
+              p_full_name: accountData.fullName,
+              p_phone: accountData.phone || '',
+              p_facility_name: facility.name,
+              p_description: facility.description || '',
+              p_facility_type: facility.facilityType as "tennis" | "football" | "padel" | "swimming" | "basketball" | "volleyball",
+              p_address: accountData.address,
+              p_city: accountData.city,
+              p_price_per_hour: facility.pricePerHour,
+              p_capacity: facility.capacity,
+              p_amenities: facility.amenities
+            });
 
           if (facilityError) {
             console.error('Facility creation error:', facilityError);
             throw new Error(`Eroare la crearea facilității ${i + 1}: ${facilityError.message}`);
           }
 
-          console.log(`Facility ${i + 1} created successfully:`, facilityData.id);
+          console.log(`Facility ${i + 1} created successfully:`, facilityId);
 
           // Upload images for this facility
-          if (facility.images.length > 0 && facilityData) {
+          if (facility.images.length > 0 && facilityId) {
             for (let j = 0; j < facility.images.length; j++) {
               try {
-                const imageUrl = await uploadImage(facility.images[j], facilityData.id, j === facility.mainImageIndex);
+                const imageUrl = await uploadImage(facility.images[j], facilityId, j === facility.mainImageIndex);
                 
                 // Save image record in facility_images table
                 const { error: imageError } = await supabase
                   .from('facility_images')
                   .insert({
-                    facility_id: facilityData.id,
+                    facility_id: facilityId,
                     image_url: imageUrl,
                     is_main: j === facility.mainImageIndex,
                     display_order: j
@@ -343,12 +319,12 @@ const FacilityRegister = () => {
           }
 
           // Add general services as facility services
-          if (accountData.generalServices.length > 0 && facilityData) {
+          if (accountData.generalServices.length > 0 && facilityId) {
             for (const service of accountData.generalServices) {
               const { error: serviceError } = await supabase
                 .from('facility_services')
                 .insert({
-                  facility_id: facilityData.id,
+                  facility_id: facilityId,
                   service_name: service,
                   is_included: true
                 });
