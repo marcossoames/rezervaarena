@@ -154,7 +154,50 @@ const EditFacilityPage = () => {
     setAmenities(amenities.filter(a => a !== amenity));
   };
 
-  const handleNewImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const resizeImage = (file: File, maxWidth: number = 800, maxHeight: number = 600, quality: number = 0.8): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const resizedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            resolve(resizedFile);
+          }
+        }, 'image/jpeg', quality);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleNewImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const totalImages = existingImages.length + newImages.length + files.length;
     const maxImages = 8;
@@ -168,11 +211,16 @@ const EditFacilityPage = () => {
       return;
     }
 
-    const newImagesArray = [...newImages, ...files];
+    // Resize images before adding them
+    const resizedFiles = await Promise.all(
+      files.map(file => resizeImage(file))
+    );
+
+    const newImagesArray = [...newImages, ...resizedFiles];
     setNewImages(newImagesArray);
 
     // Create preview URLs
-    const newUrls = files.map(file => URL.createObjectURL(file));
+    const newUrls = resizedFiles.map(file => URL.createObjectURL(file));
     setNewImageUrls([...newImageUrls, ...newUrls]);
   };
 
