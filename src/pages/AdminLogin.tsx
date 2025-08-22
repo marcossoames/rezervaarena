@@ -10,6 +10,28 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// Temporary function to create admin user
+const createAdminUser = async () => {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email: 'soamespaul@gmail.com',
+      password: 'Bunicuion3!',
+      options: {
+        emailRedirectTo: `${window.location.origin}/admin/dashboard`,
+        data: {
+          full_name: 'Paul Admin'
+        }
+      }
+    });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error creating admin user:', error);
+    throw error;
+  }
+};
+
 interface AdminLoginData {
   email: string;
   password: string;
@@ -65,6 +87,25 @@ const AdminLogin = () => {
       toast({
         title: "Eroare la autentificare",
         description: error.message || "Credențiale invalide sau eroare de sistem",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateAdmin = async () => {
+    try {
+      setIsLoading(true);
+      await createAdminUser();
+      toast({
+        title: "Utilizator admin creat!",
+        description: "Contul de administrator a fost creat cu succes.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Eroare la crearea admin-ului",
+        description: error.message,
         variant: "destructive"
       });
     } finally {
@@ -153,6 +194,20 @@ const AdminLogin = () => {
                 {isLoading ? "Se autentifică..." : "Acces Administrator"}
               </Button>
             </form>
+
+            {/* Temporary admin creation button */}
+            <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-dashed">
+              <p className="text-xs text-muted-foreground mb-2">Doar pentru setup inițial:</p>
+              <Button 
+                onClick={handleCreateAdmin}
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                disabled={isLoading}
+              >
+                Creează utilizator admin
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
