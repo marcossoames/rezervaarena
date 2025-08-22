@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 const Footer = () => {
   return <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-12">
@@ -21,20 +22,20 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold text-foreground mb-6">Pentru Clienți</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-smooth">Caută Terenuri</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-smooth">Rezervările Mele</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-smooth">Profil</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-smooth">Ajutor</a></li>
+              <li><Link to="/facilities" className="text-muted-foreground hover:text-primary transition-smooth">Caută Terenuri</Link></li>
+              <li><Link to="/booking" className="text-muted-foreground hover:text-primary transition-smooth">Rezervările Mele</Link></li>
+              <li><Link to="/client-login" className="text-muted-foreground hover:text-primary transition-smooth">Profil</Link></li>
+              <li><Link to="/contact" className="text-muted-foreground hover:text-primary transition-smooth">Ajutor</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-lg font-semibold text-foreground mb-6">Pentru Baze Sportive</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-smooth">Înregistrează Baza</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-smooth">Dashboard</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-smooth">Gestionare Rezervări</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-smooth">Statistici</a></li>
+              <li><Link to="/facility-register" className="text-muted-foreground hover:text-primary transition-smooth">Înregistrează Baza</Link></li>
+              <li><Link to="/sports-facility-login" className="text-muted-foreground hover:text-primary transition-smooth">Dashboard</Link></li>
+              <li><Link to="/admin-dashboard" className="text-muted-foreground hover:text-primary transition-smooth">Gestionare Rezervări</Link></li>
+              <li><Link to="/admin-login" className="text-muted-foreground hover:text-primary transition-smooth">Statistici</Link></li>
             </ul>
           </div>
 
@@ -74,15 +75,15 @@ const Footer = () => {
               © 2024 SportBook. Toate drepturile rezervate.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-muted-foreground hover:text-primary text-sm transition-smooth">
+              <Link to="/about" className="text-muted-foreground hover:text-primary text-sm transition-smooth">
                 Termeni și Condiții
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary text-sm transition-smooth">
+              </Link>
+              <Link to="/about" className="text-muted-foreground hover:text-primary text-sm transition-smooth">
                 Politica de Confidențialitate
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary text-sm transition-smooth">
+              </Link>
+              <Link to="/about" className="text-muted-foreground hover:text-primary text-sm transition-smooth">
                 GDPR
-              </a>
+              </Link>
             </div>
           </div>
         </div>
