@@ -314,14 +314,14 @@ export type Database = {
         Returns: {
           amenities: string[]
           area_info: string
-          base_price_info: string
-          capacity_info: string
+          capacity: number
           city: string
           description: string
           facility_type: Database["public"]["Enums"]["facility_type"]
           id: string
           images: string[]
           name: string
+          price_per_hour: number
         }[]
       }
       get_facilities_for_public_browsing: {

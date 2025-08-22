@@ -360,15 +360,24 @@ const FacilitiesPage = () => {
                         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                          <div className="flex items-center">
                            <span className="text-muted-foreground">
-                             Capacitate: {facility.capacity_info || facility.capacity || 'Disponibil'}
+                             {/* For authenticated clients, show exact capacity */}
+                             Capacitate: {
+                               session && userProfile?.role === 'client' && facility.capacity ? 
+                                 `${facility.capacity} persoane` :
+                                 facility.capacity ? `${facility.capacity} persoane` :
+                                 facility.capacity_info || 'Disponibil'
+                             }
                            </span>
                          </div>
                        </div>
                       
                        <div className="flex justify-between items-center">
                          <div className="text-2xl font-bold text-primary">
-                           {facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : 
-                            facility.price_range || facility.base_price_info || 'Preț disponibil la rezervare'}
+                           {/* For authenticated clients, show exact pricing */}
+                           {session && userProfile?.role === 'client' && facility.price_per_hour ? 
+                             `${facility.price_per_hour} RON/oră` :
+                             facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : 
+                             facility.price_range || facility.base_price_info || 'Preț disponibil la rezervare'}
                          </div>
                          {session ? (
                            <Button variant="sport" asChild>
