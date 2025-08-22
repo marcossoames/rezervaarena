@@ -209,11 +209,9 @@ const FacilityRegister = () => {
     
     if (uploadError) throw uploadError;
     
-    const { data: { publicUrl } } = supabase.storage
-      .from('facility-images')
-      .getPublicUrl(fileName);
-    
-    return publicUrl;
+    // Since bucket is now private, return the path instead of public URL
+    // The application will generate signed URLs when needed for display
+    return fileName;
   };
 
   const handleFinalSubmit = async () => {
