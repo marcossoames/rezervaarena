@@ -8,40 +8,40 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 99%;
+    --foreground: 210 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 210 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 210 15% 15%;
 
-    --primary: 142 76% 36%;
+    --primary: 210 100% 12%;
     --primary-foreground: 0 0% 98%;
-    --primary-light: 142 76% 46%;
+    --primary-light: 210 60% 25%;
 
-    --secondary: 214 95% 93%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 15% 96%;
+    --secondary-foreground: 210 15% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 15% 97%;
+    --muted-foreground: 210 10% 45%;
 
-    --accent: 25 95% 53%;
+    --accent: 210 60% 25%;
     --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 142 76% 36%;
+    --border: 210 15% 90%;
+    --input: 210 15% 92%;
+    --ring: 210 100% 12%;
 
-    --sport-blue: 214 95% 50%;
-    --sport-orange: 25 95% 53%;
+    --sport-blue: 210 100% 12%;
+    --sport-orange: 210 60% 25%;
     
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--sport-blue)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
     --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(var(--secondary)));
     --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary-light)));
     
@@ -74,39 +74,39 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 210 20% 8%;
+    --foreground: 210 15% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 210 20% 10%;
+    --card-foreground: 210 15% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 210 20% 10%;
+    --popover-foreground: 210 15% 95%;
 
-    --primary: 142 76% 46%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --primary-light: 142 76% 56%;
+    --primary: 210 60% 60%;
+    --primary-foreground: 210 20% 8%;
+    --primary-light: 210 60% 70%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 15% 15%;
+    --secondary-foreground: 210 15% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 210 15% 12%;
+    --muted-foreground: 210 10% 60%;
 
-    --accent: 25 95% 63%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 60% 60%;
+    --accent-foreground: 210 20% 8%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 210 15% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 142 76% 46%;
+    --border: 210 15% 20%;
+    --input: 210 15% 18%;
+    --ring: 210 60% 60%;
 
-    --sport-blue: 214 95% 60%;
-    --sport-orange: 25 95% 63%;
+    --sport-blue: 210 60% 60%;
+    --sport-orange: 210 60% 60%;
     
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--sport-blue)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
     --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(var(--secondary)));
     --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary-light)));
     
