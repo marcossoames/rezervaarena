@@ -123,18 +123,21 @@ const FacilitiesPage = () => {
             .rpc('get_facilities_for_booking');
           allFacilities = data;
           error = rpcError;
+          console.log('Client data:', data);
         } else if (session && userProfile?.role === 'admin') {
           // Admins get full data
           const { data, error: rpcError } = await supabase
             .rpc('get_public_facilities');
           allFacilities = data;
           error = rpcError;
+          console.log('Admin data:', data);
         } else {
           // Non-authenticated users get public facility data for browsing
           const { data, error: rpcError } = await supabase
             .rpc('get_facilities_for_public_browsing');
           allFacilities = data;
           error = rpcError;
+          console.log('Public browsing data:', data);
         }
 
         if (error) {
@@ -142,11 +145,15 @@ const FacilitiesPage = () => {
           throw error;
         }
 
+        console.log('All facilities before filtering:', allFacilities);
+        console.log('Selected type:', selectedType);
+
         // Apply client-side filtering if type is selected
         const data = selectedType 
           ? allFacilities?.filter(f => f.facility_type === selectedType)
           : allFacilities;
 
+        console.log('Filtered facilities:', data);
         setFacilities(data || []);
       } catch (error) {
         console.error('Error:', error);
