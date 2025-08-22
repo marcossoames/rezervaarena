@@ -100,13 +100,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "bookings_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "public_facilities"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_bookings_client_id"
             columns: ["client_id"]
             isOneToOne: false
@@ -118,13 +111,6 @@ export type Database = {
             columns: ["facility_id"]
             isOneToOne: false
             referencedRelation: "facilities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_bookings_facility_id"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "public_facilities"
             referencedColumns: ["id"]
           },
         ]
@@ -230,51 +216,7 @@ export type Database = {
       }
     }
     Views: {
-      public_facilities: {
-        Row: {
-          address: string | null
-          amenities: string[] | null
-          capacity: number | null
-          city: string | null
-          created_at: string | null
-          description: string | null
-          facility_type: Database["public"]["Enums"]["facility_type"] | null
-          id: string | null
-          images: string[] | null
-          is_active: boolean | null
-          name: string | null
-          price_per_hour: number | null
-        }
-        Insert: {
-          address?: string | null
-          amenities?: string[] | null
-          capacity?: number | null
-          city?: string | null
-          created_at?: string | null
-          description?: string | null
-          facility_type?: Database["public"]["Enums"]["facility_type"] | null
-          id?: string | null
-          images?: string[] | null
-          is_active?: boolean | null
-          name?: string | null
-          price_per_hour?: number | null
-        }
-        Update: {
-          address?: string | null
-          amenities?: string[] | null
-          capacity?: number | null
-          city?: string | null
-          created_at?: string | null
-          description?: string | null
-          facility_type?: Database["public"]["Enums"]["facility_type"] | null
-          id?: string | null
-          images?: string[] | null
-          is_active?: boolean | null
-          name?: string | null
-          price_per_hour?: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       delete_user_account_secure: {
