@@ -63,11 +63,10 @@ const SportsSection = () => {
   useEffect(() => {
     const fetchSportsData = async () => {
       try {
-        // Fetch facilities grouped by type with count and average price
+        // Use the public view to get facility data without exposing owner information
         const { data: facilities, error } = await supabase
-          .from('facilities')
-          .select('facility_type, price_per_hour')
-          .eq('is_active', true);
+          .from('public_facilities')
+          .select('facility_type, price_per_hour');
 
         if (error) {
           console.error('Error fetching facilities:', error);

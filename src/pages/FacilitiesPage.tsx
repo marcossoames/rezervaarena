@@ -38,10 +38,10 @@ const FacilitiesPage = () => {
   useEffect(() => {
     const fetchFacilities = async () => {
       try {
+        // Use the public view to get facilities without exposing owner data
         let query = supabase
-          .from('facilities')
-          .select('*')
-          .eq('is_active', true);
+          .from('public_facilities')
+          .select('*');
 
         // Add type filter if selected
         if (selectedType) {
