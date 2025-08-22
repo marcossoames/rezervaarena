@@ -47,11 +47,11 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-primary" />
-                <span className="text-muted-foreground">+40 21 123 4567</span>
+                <span className="text-muted-foreground">© 2025 SportBook. Toate drepturile rezervate.</span>
               </div>
               <div className="flex items-center space-x-3">
-                <MapPin className="h-5 w-5 text-primary" />
-                <span className="text-muted-foreground">București, România</span>
+                
+                
               </div>
             </div>
           </div>
