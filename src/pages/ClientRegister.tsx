@@ -79,7 +79,7 @@ const ClientRegister = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       {/* Back Button */}
-      <div className="container mx-auto max-w-md mb-4">
+      <div className="container mx-auto max-w-md mb-4 text-center">
         <Link to="/client/login" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
           <ArrowLeft className="h-4 w-4" />
           Înapoi la autentificare
