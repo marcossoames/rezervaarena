@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
-import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 
 interface AdminLoginData {
@@ -20,32 +19,18 @@ interface AdminLoginData {
 
 const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const { register, handleSubmit, formState: { errors } } = useForm<AdminLoginData>();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const captchaRef = useRef<HCaptcha>(null);
 
   const onSubmit = async (data: AdminLoginData) => {
-    if (!captchaToken) {
-      toast({
-        title: "Verificare CAPTCHA necesară",
-        description: "Te rog completează verificarea CAPTCHA înainte de a continua.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      // Sign in with Supabase including CAPTCHA token
+      // Sign in with Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
-        password: data.password,
-        options: {
-          captchaToken: captchaToken
-        }
+        password: data.password
       });
 
       if (authError) {
@@ -80,12 +65,6 @@ const AdminLogin = () => {
     } catch (error: any) {
       console.error('Error during admin login:', error);
       
-      // Reset CAPTCHA on error
-      if (captchaRef.current) {
-        captchaRef.current.resetCaptcha();
-        setCaptchaToken(null);
-      }
-      
       toast({
         title: "Eroare la autentificare",
         description: error.message || "Credențiale invalide sau eroare de sistem",
@@ -93,35 +72,6 @@ const AdminLogin = () => {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const onCaptchaVerify = (token: string) => {
-    setCaptchaToken(token);
-    console.log('CAPTCHA verified successfully');
-  };
-
-  const onCaptchaExpire = () => {
-    setCaptchaToken(null);
-    console.log('CAPTCHA expired, please verify again');
-  };
-
-  const onCaptchaError = (err: string) => {
-    console.error('CAPTCHA error:', err);
-    setCaptchaToken(null);
-    
-    if (err.includes('rate-limited')) {
-      toast({
-        title: "Rate limit atins",
-        description: "Ai încercat prea des. Te rog așteaptă câteva minute înainte să încerci din nou.",
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Eroare CAPTCHA",
-        description: "A apărut o problemă cu verificarea CAPTCHA. Te rog reîncearcă.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -196,29 +146,13 @@ const AdminLogin = () => {
                 )}
               </div>
 
-              {/* CAPTCHA Section */}
-              <div className="space-y-2">
-                <Label>Verificare securitate</Label>
-                <div className="flex justify-center">
-                  <HCaptcha
-                    ref={captchaRef}
-                    sitekey="a5d5b844-32fe-4d4b-97c8-4e94b6b8b8b8"
-                    onVerify={onCaptchaVerify}
-                    onExpire={onCaptchaExpire}
-                    onError={onCaptchaError}
-                    theme="light"
-                    size="normal"
-                    reCaptchaCompat={false}
-                  />
-                </div>
-              </div>
 
               <Button 
                 type="submit" 
                 className="w-full" 
                 size="lg" 
                 variant="premium"
-                disabled={isLoading || !captchaToken}
+                disabled={isLoading}
               >
                 <Shield className="h-4 w-4 mr-2" />
                 {isLoading ? "Se autentifică..." : "Acces Administrator"}
