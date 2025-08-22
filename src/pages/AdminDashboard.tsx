@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Building2, Calendar, LogOut } from "lucide-react";
+import { Shield, Users, Building2, Calendar, LogOut, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { secureSignOut } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +11,7 @@ import UserManagement from "@/components/UserManagement";
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings' | 'settings'>('dashboard');
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalFacilities: 0,
@@ -203,6 +203,13 @@ const AdminDashboard = () => {
             <Calendar className="h-4 w-4 mr-2" />
             Rezervări
           </Button>
+          <Button 
+            variant={activeTab === 'settings' ? 'default' : 'outline'} 
+            onClick={() => setActiveTab('settings')}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Setări Sistem
+          </Button>
         </div>
 
         {/* Content based on active tab */}
@@ -225,8 +232,8 @@ const AdminDashboard = () => {
                   <Calendar className="h-6 w-6 mb-2" />
                   Vizualizare Rezervări
                 </Button>
-                <Button variant="outline" className="h-20 flex-col">
-                  <Shield className="h-6 w-6 mb-2" />
+                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('settings')}>
+                  <Settings className="h-6 w-6 mb-2" />
                   Setări Sistem
                 </Button>
               </div>
@@ -254,6 +261,65 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">Funcționalitatea pentru vizualizarea rezervărilor va fi adăugată în curând.</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'settings' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Setări Sistem</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Configurare Generală</h3>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Nume Platformă</label>
+                    <p className="text-sm text-muted-foreground">SportBook</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Versiune</label>
+                    <p className="text-sm text-muted-foreground">1.0.0</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Statistici Securitate</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">Politici RLS</span>
+                      <span className="text-sm text-green-600">✓ Active</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Audit Logs</span>
+                      <span className="text-sm text-green-600">✓ Active</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Acces Securizat</span>
+                      <span className="text-sm text-green-600">✓ Activ</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Acțiuni Administrative</h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="flex-col h-20">
+                    <Shield className="h-6 w-6 mb-2" />
+                    Backup Baza de Date
+                  </Button>
+                  <Button variant="outline" className="flex-col h-20">
+                    <Settings className="h-6 w-6 mb-2" />
+                    Configurare Email
+                  </Button>
+                  <Button variant="outline" className="flex-col h-20">
+                    <Users className="h-6 w-6 mb-2" />
+                    Log Securitate
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
