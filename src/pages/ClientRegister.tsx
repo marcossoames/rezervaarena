@@ -55,14 +55,25 @@ const ClientRegister = () => {
         throw authError;
       }
 
-      if (authData.user) {
+      if (authData.user && !authData.session) {
+        // User was created but needs email confirmation
         toast({
           title: "Cont creat cu succes!",
-          description: "Te-ai înregistrat cu succes. Verifică-ți emailul pentru confirmarea contului.",
+          description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul. Apoi te poți conecta.",
+          duration: 8000
         });
         
         // Redirect to login page
         navigate("/client/login");
+      } else if (authData.user && authData.session) {
+        // User was created and automatically logged in
+        toast({
+          title: "Cont creat cu succes!",
+          description: "Te-ai înregistrat și conectat cu succes!",
+        });
+        
+        // Redirect to home page
+        navigate("/");
       }
     } catch (error: any) {
       console.error('Error creating account:', error);
