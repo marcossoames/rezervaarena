@@ -1,0 +1,219 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Search, MapPin, Calendar as CalendarIcon, Filter } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { ro } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+
+const SearchSection = () => {
+  const [location, setLocation] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [facilityType, setFacilityType] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  const facilityTypes = [
+    { value: "", label: "Toate tipurile" },
+    { value: "tennis", label: "Tenis" },
+    { value: "football", label: "Fotbal" },
+    { value: "padel", label: "Padel" },
+    { value: "swimming", label: "Înot" },
+    { value: "basketball", label: "Baschet" },
+    { value: "volleyball", label: "Volei" }
+  ];
+
+  const handleSearch = () => {
+    // Build query parameters
+    const params = new URLSearchParams();
+    
+    if (facilityType) {
+      params.set('type', facilityType);
+    }
+    if (location.trim()) {
+      params.set('location', location.trim());
+    }
+    if (selectedDate) {
+      params.set('date', format(selectedDate, 'yyyy-MM-dd'));
+    }
+    if (searchQuery.trim()) {
+      params.set('search', searchQuery.trim());
+    }
+
+    // Navigate to facilities page with search parameters
+    const queryString = params.toString();
+    navigate(`/facilities${queryString ? `?${queryString}` : ''}`);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  return (
+    <section className="py-16 bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-foreground mb-4">
+            Găsește <span className="text-primary">Terenul Perfect</span>
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Caută și rezervă cele mai bune facilități sportive din România în câțiva pași simpli
+          </p>
+        </div>
+
+        <Card className="max-w-5xl mx-auto shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              {/* Search Query */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Caută facilități</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Nume facilitate sau bază sportivă..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="pl-10 bg-background/50 border-border/50 focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Locația</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Oraș, sector, zonă..."
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="pl-10 bg-background/50 border-border/50 focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Date */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Data rezervării</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal bg-background/50 border-border/50 hover:border-primary",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "dd MMM yyyy", { locale: ro }) : "Selectează data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Facility Type */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Tipul facilității</label>
+                <Select value={facilityType} onValueChange={setFacilityType}>
+                  <SelectTrigger className="bg-background/50 border-border/50 focus:border-primary">
+                    <SelectValue placeholder="Toate tipurile" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {facilityTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Search Button */}
+            <div className="flex justify-center">
+              <Button 
+                onClick={handleSearch}
+                size="lg" 
+                className="px-12 py-3 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Search className="mr-2 h-5 w-5" />
+                Caută Facilități
+              </Button>
+            </div>
+
+            {/* Quick Filters */}
+            <div className="mt-6 pt-6 border-t border-border/30">
+              <p className="text-sm text-muted-foreground mb-3 text-center">Căutări populare:</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFacilityType("tennis");
+                    setLocation("București");
+                  }}
+                  className="bg-background/30 hover:bg-primary/10 hover:border-primary/50"
+                >
+                  Tenis în București
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFacilityType("football");
+                    setSelectedDate(new Date());
+                  }}
+                  className="bg-background/30 hover:bg-primary/10 hover:border-primary/50"
+                >
+                  Fotbal astăzi
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFacilityType("swimming");
+                  }}
+                  className="bg-background/30 hover:bg-primary/10 hover:border-primary/50"
+                >
+                  Piscine
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFacilityType("padel");
+                    setLocation("Cluj");
+                  }}
+                  className="bg-background/30 hover:bg-primary/10 hover:border-primary/50"
+                >
+                  Padel în Cluj
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  );
+};
+
+export default SearchSection;
