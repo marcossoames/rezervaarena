@@ -8,27 +8,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-
 const ContactPage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // Simulate form submission
     setTimeout(() => {
       toast({
         title: "Mesaj trimis cu succes!",
-        description: "Vă vom răspunde în cel mai scurt timp posibil.",
+        description: "Vă vom răspunde în cel mai scurt timp posibil."
       });
       setIsLoading(false);
     }, 1000);
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Header />
       
       <main className="container mx-auto px-4 py-16">
@@ -56,12 +54,8 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-medium">Email</h3>
-                    <a 
-                      href="mailto:soamespaul@gmail.com" 
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      soamespaul@gmail.com
-                    </a>
+                    <p className="text-muted-foreground">contact@sportbook.ro</p>
+                    <p className="text-muted-foreground">support@sportbook.ro</p>
                   </div>
                 </div>
 
@@ -71,12 +65,8 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-medium">Telefon</h3>
-                    <a 
-                      href="tel:+40720059535" 
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      +40 720 059 535
-                    </a>
+                    <p className="text-muted-foreground">+40 721 234 567</p>
+                    <p className="text-muted-foreground">+40 31 123 4567</p>
                   </div>
                 </div>
 
@@ -86,47 +76,36 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-medium">Adresă</h3>
-                    <a 
-                      href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara+Timis" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      Str. Magnoliei nr. 21<br />
-                      Timișoara, Timiș<br />
+                    <p className="text-muted-foreground">
+                      Strada Sportului nr. 123<br />
+                      Sector 1, București<br />
                       România
-                    </a>
+                    </p>
                   </div>
                 </div>
 
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-5 h-5 text-destructive" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Program</h3>
+                    <p className="text-muted-foreground">
+                      Luni - Vineri: 09:00 - 18:00<br />
+                      Sâmbătă: 10:00 - 16:00<br />
+                      Duminică: Închis
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-xl">Suport rapid</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  Pentru probleme urgente sau suport tehnic, ne puteți contacta direct pe WhatsApp.
-                </p>
-                <Button 
-                  variant="default" 
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => window.open("https://wa.me/40720059535", "_blank")}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  WhatsApp Support
-                </Button>
-              </CardContent>
-            </Card>
+            
           </div>
         </div>
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default ContactPage;
