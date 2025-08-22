@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, ArrowLeft, ArrowRight } from "lucide-react";
+import { X, Plus, ArrowLeft, ArrowRight, Upload, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,6 +23,7 @@ interface AccountFormData {
   address: string;
   city: string;
   numberOfFacilities: number;
+  generalServices: string[];
 }
 
 interface FacilityInfo {
@@ -32,6 +33,8 @@ interface FacilityInfo {
   pricePerHour: number;
   capacity: number;
   amenities: string[];
+  images: File[];
+  mainImageIndex: number;
 }
 
 const FacilityRegister = () => {
@@ -40,12 +43,28 @@ const FacilityRegister = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [accountData, setAccountData] = useState<AccountFormData | null>(null);
   const [amenityInputs, setAmenityInputs] = useState<string[]>([]);
+  const [generalServices, setGeneralServices] = useState<string[]>([]);
+  const [generalServiceInput, setGeneralServiceInput] = useState("");
 
-  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<AccountFormData>();
+  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<AccountFormData>({
+    defaultValues: accountData || {}
+  });
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const password = watch("password");
+
+  // Update form values when accountData changes (when going back)
+  useEffect(() => {
+    if (accountData) {
+      Object.entries(accountData).forEach(([key, value]) => {
+        if (key !== 'generalServices') {
+          setValue(key as keyof AccountFormData, value);
+        }
+      });
+      setGeneralServices(accountData.generalServices || []);
+    }
+  }, [accountData, setValue]);
 
   const facilityTypes = [
     { value: "tennis", label: "Tenis" },
@@ -95,12 +114,58 @@ const FacilityRegister = () => {
         facilityType: '',
         pricePerHour: 0,
         capacity: 1,
-        amenities: []
+        amenities: [],
+        images: [],
+        mainImageIndex: 0
       });
       newInputs.push('');
     }
     setFacilities(newFacilities);
     setAmenityInputs(newInputs);
+  };
+
+  const addGeneralService = (service: string) => {
+    if (!service.trim() || generalServices.includes(service.trim())) return;
+    
+    setGeneralServices([...generalServices, service.trim()]);
+    setGeneralServiceInput('');
+  };
+
+  const removeGeneralService = (serviceToRemove: string) => {
+    setGeneralServices(generalServices.filter(service => service !== serviceToRemove));
+  };
+
+  const handleImageUpload = (facilityIndex: number, files: FileList) => {
+    const newFiles = Array.from(files);
+    const updatedFacilities = [...facilities];
+    
+    // Limit to 8 images total per facility
+    const currentImages = updatedFacilities[facilityIndex].images;
+    const availableSlots = 8 - currentImages.length;
+    const filesToAdd = newFiles.slice(0, availableSlots);
+    
+    updatedFacilities[facilityIndex].images = [...currentImages, ...filesToAdd];
+    setFacilities(updatedFacilities);
+    
+    if (newFiles.length > availableSlots) {
+      toast({
+        title: "Prea multe imagini",
+        description: `Poți adăuga maximum 8 imagini per facilitate. S-au adăugat ${filesToAdd.length} imagini.`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const removeImage = (facilityIndex: number, imageIndex: number) => {
+    const updatedFacilities = [...facilities];
+    updatedFacilities[facilityIndex].images.splice(imageIndex, 1);
+    
+    // Adjust main image index if necessary
+    if (updatedFacilities[facilityIndex].mainImageIndex >= imageIndex) {
+      updatedFacilities[facilityIndex].mainImageIndex = Math.max(0, updatedFacilities[facilityIndex].mainImageIndex - 1);
+    }
+    
+    setFacilities(updatedFacilities);
   };
 
   const handleStep1Submit = (data: AccountFormData) => {
@@ -113,7 +178,8 @@ const FacilityRegister = () => {
       return;
     }
 
-    setAccountData(data);
+    const formDataWithServices = { ...data, generalServices };
+    setAccountData(formDataWithServices);
     initializeFacilities(data.numberOfFacilities);
     setCurrentStep(2);
   };
@@ -133,13 +199,30 @@ const FacilityRegister = () => {
     return true;
   };
 
+  const uploadImage = async (file: File, facilityId: string, isMain: boolean = false): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${facilityId}/${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('facility-images')
+      .upload(fileName, file);
+    
+    if (uploadError) throw uploadError;
+    
+    // Since bucket is now private, return the path instead of public URL
+    // The application will generate signed URLs when needed for display
+    return fileName;
+  };
+
   const handleFinalSubmit = async () => {
     if (!accountData || !validateFacilities()) return;
 
     setIsLoading(true);
 
     try {
-      // Sign up the user
+      console.log('Starting registration process...');
+      
+      // Sign up the user directly as facility_owner
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: accountData.email,
         password: accountData.password,
@@ -153,40 +236,52 @@ const FacilityRegister = () => {
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Auth signup error:', authError);
+        throw authError;
+      }
+
+      console.log('User signed up successfully:', authData.user?.id);
 
       if (authData.user) {
-        // Wait for user to be properly authenticated
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait for user to be properly authenticated and profile to be created
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Update user role manually in profiles table
-        const { error: roleError } = await supabase
-          .from('profiles')
-          .update({ role: 'facility_owner' })
-          .eq('user_id', authData.user.id);
+        console.log('Creating/updating profile...');
         
-        if (roleError) {
-          console.error('Role update error:', roleError);
-          throw new Error('Eroare la actualizarea rolului utilizatorului');
-        }
-        
-        // Update phone separately
+        // Create profile directly with facility_owner role
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ phone: accountData.phone })
-          .eq('user_id', authData.user.id);
+          .upsert({
+            user_id: authData.user.id,
+            email: accountData.email,
+            full_name: accountData.fullName,
+            phone: accountData.phone,
+            role: 'facility_owner'
+          }, {
+            onConflict: 'user_id'
+          });
 
         if (profileError) {
-          console.error('Profile update error:', profileError);
-          throw new Error('Eroare la actualizarea profilului');
+          console.error('Profile creation error:', profileError);
+          throw new Error(`Eroare la crearea profilului: ${profileError.message}`);
         }
+
+        console.log('Profile created/updated successfully');
 
         // Wait a bit more to ensure role is properly set
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Create all facilities
-        for (const facility of facilities) {
-          const { error: facilityError } = await supabase
+        // Create all facilities with images
+        console.log(`Creating ${facilities.length} facilities...`);
+        
+        for (let i = 0; i < facilities.length; i++) {
+          const facility = facilities[i];
+          
+          console.log(`Creating facility ${i + 1}: ${facility.name}`);
+          
+          // Create facility first
+          const { data: facilityData, error: facilityError } = await supabase
             .from('facilities')
             .insert({
               owner_id: authData.user.id,
@@ -198,20 +293,66 @@ const FacilityRegister = () => {
               price_per_hour: facility.pricePerHour,
               capacity: facility.capacity,
               amenities: facility.amenities
-            });
+            })
+            .select()
+            .single();
 
           if (facilityError) {
             console.error('Facility creation error:', facilityError);
-            throw new Error(`Eroare la crearea facilității: ${facilityError.message}`);
+            throw new Error(`Eroare la crearea facilității ${i + 1}: ${facilityError.message}`);
+          }
+
+          console.log(`Facility ${i + 1} created successfully:`, facilityData.id);
+
+          // Upload images for this facility
+          if (facility.images.length > 0 && facilityData) {
+            for (let j = 0; j < facility.images.length; j++) {
+              try {
+                const imageUrl = await uploadImage(facility.images[j], facilityData.id, j === facility.mainImageIndex);
+                
+                // Save image record in facility_images table
+                const { error: imageError } = await supabase
+                  .from('facility_images')
+                  .insert({
+                    facility_id: facilityData.id,
+                    image_url: imageUrl,
+                    is_main: j === facility.mainImageIndex,
+                    display_order: j
+                  });
+
+                if (imageError) {
+                  console.error('Image record creation error:', imageError);
+                }
+              } catch (uploadError) {
+                console.error('Image upload error:', uploadError);
+              }
+            }
+          }
+
+          // Add general services as facility services
+          if (accountData.generalServices.length > 0 && facilityData) {
+            for (const service of accountData.generalServices) {
+              const { error: serviceError } = await supabase
+                .from('facility_services')
+                .insert({
+                  facility_id: facilityData.id,
+                  service_name: service,
+                  is_included: true
+                });
+
+              if (serviceError) {
+                console.error('Service creation error:', serviceError);
+              }
+            }
           }
         }
 
         toast({
           title: "Cont creat cu succes!",
-          description: `Ai adăugat ${facilities.length} facilități. Acum poți adăuga imagini pentru fiecare.`
+          description: `Ai adăugat ${facilities.length} facilități cu imagini și servicii.`
         });
 
-        // Redirect to manage facilities page where they can add images
+        // Redirect to manage facilities page
         navigate("/manage-facilities");
       }
     } catch (error: any) {
@@ -357,22 +498,22 @@ const FacilityRegister = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="numberOfFacilities">Numărul de Facilități *</Label>
+            <Label htmlFor="numberOfFacilities">Numărul de terenuri *</Label>
             <Input
               id="numberOfFacilities"
               type="number"
               min="1"
               max="10"
               {...register("numberOfFacilities", { 
-                required: "Numărul de facilități este obligatoriu",
+                required: "Numărul de terenuri este obligatoriu",
                 valueAsNumber: true,
                 min: {
                   value: 1,
-                  message: "Trebuie să aveți cel puțin o facilitate"
+                  message: "Trebuie să aveți cel puțin un teren"
                 },
                 max: {
                   value: 10,
-                  message: "Maxim 10 facilități"
+                  message: "Maxim 10 terenuri"
                 }
               })}
               className="bg-background/50"
@@ -398,12 +539,62 @@ const FacilityRegister = () => {
           )}
         </div>
 
+        {/* General Services Section */}
+        <div className="space-y-4">
+          <h4 className="text-md font-semibold text-foreground">Servicii Generale</h4>
+          <p className="text-sm text-muted-foreground">
+            Adaugă servicii generale disponibile la baza ta sportivă (parcare, bar, vestiar general, etc.)
+          </p>
+          
+          <div className="flex gap-2">
+            <Input
+              value={generalServiceInput}
+              onChange={(e) => setGeneralServiceInput(e.target.value)}
+              placeholder="ex: Parcare gratuită, Bar, Vestiar"
+              className="bg-background/50"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addGeneralService(generalServiceInput);
+                }
+              }}
+            />
+            <Button 
+              type="button" 
+              onClick={() => addGeneralService(generalServiceInput)} 
+              size="icon" 
+              variant="outline"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {generalServices.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {generalServices.map((service) => (
+                <Badge key={service} variant="secondary" className="flex items-center gap-1">
+                  {service}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 hover:bg-transparent"
+                    onClick={() => removeGeneralService(service)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="bg-muted/30 p-4 rounded-lg border border-dashed border-muted-foreground/20">
           <p className="text-sm text-muted-foreground mb-2">
-            📋 <strong>Pas următor:</strong> Vei completa detaliile pentru fiecare facilitate în parte.
+            📋 <strong>Pas următor:</strong> Vei completa detaliile pentru fiecare teren în parte.
           </p>
           <p className="text-xs text-muted-foreground">
-            Fiecare facilitate va avea propriile imagini, preț și amenități.
+            Fiecare teren va avea propriile imagini, preț și facilități specifice.
           </p>
         </div>
       </div>
@@ -425,7 +616,15 @@ const FacilityRegister = () => {
           Detalii Facilități ({facilities.length} facilități)
         </h3>
         <Button 
-          onClick={() => setCurrentStep(1)} 
+          onClick={() => {
+            // Get current form data and update account data before going back
+            const currentFormData = {
+              ...accountData!,
+              generalServices
+            };
+            setAccountData(currentFormData);
+            setCurrentStep(1);
+          }} 
           variant="outline" 
           size="sm"
         >
@@ -554,18 +753,91 @@ const FacilityRegister = () => {
                 </div>
               )}
             </div>
+
+            {/* Image Upload */}
+            <div className="space-y-2">
+              <Label>Imagini Facilitate (max 8)</Label>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        handleImageUpload(index, e.target.files);
+                      }
+                    }}
+                    className="hidden"
+                    id={`images-${index}`}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById(`images-${index}`)?.click()}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Adaugă Imagini
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {facility.images.length}/8 imagini
+                  </span>
+                </div>
+                
+                {facility.images.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {facility.images.map((image, imageIndex) => (
+                      <div key={imageIndex} className="relative group">
+                        <div className="aspect-square bg-muted rounded-lg overflow-hidden">
+                          <img
+                            src={URL.createObjectURL(image)}
+                            alt={`Preview ${imageIndex + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeImage(index, imageIndex)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                        {imageIndex === facility.mainImageIndex && (
+                          <Badge className="absolute bottom-1 left-1 text-xs">Principal</Badge>
+                        )}
+                        {imageIndex !== facility.mainImageIndex && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            className="absolute bottom-1 right-1 h-6 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => updateFacilityField(index, 'mainImageIndex', imageIndex)}
+                          >
+                            Setează ca principal
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {facility.images.length === 0 && (
+                  <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg p-8 text-center">
+                    <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Nicio imagine adăugată încă
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       ))}
 
-      <div className="bg-muted/30 p-4 rounded-lg border border-dashed border-muted-foreground/20">
-        <p className="text-sm text-muted-foreground mb-2">
-          📸 <strong>Pas final:</strong> După înregistrare, vei putea adăuga imagini pentru fiecare facilitate în parte.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Fiecare facilitate poate avea până la 8 imagini și o imagine principală.
-        </p>
-      </div>
 
       <Button 
         onClick={handleFinalSubmit}

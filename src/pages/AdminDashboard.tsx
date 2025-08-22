@@ -14,6 +14,9 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings' | 'settings'>('dashboard');
   const [stats, setStats] = useState({
     totalUsers: 0,
+    clients: 0,
+    facilityOwners: 0,
+    admins: 0,
     totalFacilities: 0,
     todayBookings: 0
   });
@@ -70,10 +73,10 @@ const AdminDashboard = () => {
 
   const loadStats = async () => {
     try {
-      // Get total users
-      const { count: usersCount } = await supabase
+      // Get all users with roles
+      const { data: usersData } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true });
+        .select('role');
 
       // Get total facilities
       const { count: facilitiesCount } = await supabase
@@ -87,11 +90,17 @@ const AdminDashboard = () => {
         .select('*', { count: 'exact', head: true })
         .eq('booking_date', today);
 
-      setStats({
-        totalUsers: usersCount || 0,
+      // Calculate user stats by role
+      const userStats = {
+        totalUsers: usersData?.length || 0,
+        clients: usersData?.filter(user => user.role === 'client').length || 0,
+        facilityOwners: usersData?.filter(user => user.role === 'facility_owner').length || 0,
+        admins: usersData?.filter(user => user.role === 'admin').length || 0,
         totalFacilities: facilitiesCount || 0,
         todayBookings: bookingsCount || 0
-      });
+      };
+
+      setStats(userStats);
     } catch (error) {
       console.error('Error loading stats:', error);
     }
@@ -139,10 +148,43 @@ const AdminDashboard = () => {
         </div>
 
         {/* Dashboard Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm border-l-4 border-l-green-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Clienți</CardTitle>
+              <Users className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.clients}</div>
+              <p className="text-xs text-muted-foreground">Utilizatori care fac rezervări</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm border-l-4 border-l-blue-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Baze Sportive</CardTitle>
+              <Building2 className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{stats.facilityOwners}</div>
+              <p className="text-xs text-muted-foreground">Proprietari de facilități</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm border-l-4 border-l-red-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Administratori</CardTitle>
+              <Shield className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.admins}</div>
+              <p className="text-xs text-muted-foreground">Administratori platformei</p>
+            </CardContent>
+          </Card>
+
           <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Utilizatori</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Utilizatori</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -150,7 +192,10 @@ const AdminDashboard = () => {
               <p className="text-xs text-muted-foreground">Utilizatori înregistrați</p>
             </CardContent>
           </Card>
+        </div>
 
+        {/* Additional Stats Row */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Facilități</CardTitle>
