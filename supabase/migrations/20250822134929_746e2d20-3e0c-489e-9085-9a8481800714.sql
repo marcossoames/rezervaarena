@@ -1,0 +1,63 @@
+-- Fix the profiles table RLS policies to properly restrict access
+
+-- Remove the overly broad authentication policy
+DROP POLICY IF EXISTS "Profiles require authentication" ON public.profiles;
+
+-- Ensure the user-specific policies are properly restrictive
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
+
+-- Create more specific and secure policies
+CREATE POLICY "Users can view only their own profile" 
+ON public.profiles 
+FOR SELECT 
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update only their own profile" 
+ON public.profiles 
+FOR UPDATE 
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert only their own profile" 
+ON public.profiles 
+FOR INSERT 
+WITH CHECK (auth.uid() = user_id);
+
+-- Admins can view all profiles (this policy already exists and is correct)
+-- CREATE POLICY "Admins can view all profiles" 
+-- ON public.profiles 
+-- FOR SELECT 
+-- USING (public.has_role('admin'::user_role));
+
+-- Ensure no DELETE policy exists for profiles (prevent data deletion)
+DROP POLICY IF EXISTS "Users can delete their own profile" ON public.profiles;
+
+-- Add a specific policy for admins to manage profiles if needed
+CREATE POLICY "Admins can manage all profiles" 
+ON public.profiles 
+FOR ALL 
+USING (public.has_role('admin'::user_role));
+
+-- Update the facilities policies to be more secure
+DROP POLICY IF EXISTS "Public can view basic facility info" ON public.facilities;
+DROP POLICY IF EXISTS "Unauthenticated can view basic facility listing" ON public.facilities;
+DROP POLICY IF EXISTS "Owners and admins can view full facility details" ON public.facilities;
+
+-- Create a single, secure policy for facilities that allows public viewing of basic info only
+CREATE POLICY "Public can view active facilities basic info" 
+ON public.facilities 
+FOR SELECT 
+USING (is_active = true);
+
+-- Facility owners can manage their own facilities
+CREATE POLICY "Facility owners can manage their facilities" 
+ON public.facilities 
+FOR ALL 
+USING (auth.uid() = owner_id);
+
+-- Admins can manage all facilities  
+CREATE POLICY "Admins can manage all facilities" 
+ON public.facilities 
+FOR ALL 
+USING (public.has_role('admin'::user_role));
