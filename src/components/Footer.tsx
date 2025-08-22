@@ -24,8 +24,8 @@ const Footer = () => {
             <ul className="space-y-3">
               <li><Link to="/facilities" className="text-muted-foreground hover:text-primary transition-smooth">Caută Terenuri</Link></li>
               <li><Link to="/booking" className="text-muted-foreground hover:text-primary transition-smooth">Rezervările Mele</Link></li>
-              <li><Link to="/client-login" className="text-muted-foreground hover:text-primary transition-smooth">Profil</Link></li>
-              <li><Link to="/contact" className="text-muted-foreground hover:text-primary transition-smooth">Ajutor</Link></li>
+              <li><Link to="/client-register" className="text-muted-foreground hover:text-primary transition-smooth">Profil</Link></li>
+              <li><Link to="/about" className="text-muted-foreground hover:text-primary transition-smooth">Ajutor</Link></li>
             </ul>
           </div>
 
@@ -33,9 +33,8 @@ const Footer = () => {
             <h4 className="text-lg font-semibold text-foreground mb-6">Pentru Baze Sportive</h4>
             <ul className="space-y-3">
               <li><Link to="/facility-register" className="text-muted-foreground hover:text-primary transition-smooth">Înregistrează Baza</Link></li>
-              <li><Link to="/sports-facility-login" className="text-muted-foreground hover:text-primary transition-smooth">Dashboard</Link></li>
-              <li><Link to="/admin-dashboard" className="text-muted-foreground hover:text-primary transition-smooth">Gestionare Rezervări</Link></li>
-              <li><Link to="/admin-login" className="text-muted-foreground hover:text-primary transition-smooth">Statistici</Link></li>
+              <li><Link to="/admin-dashboard" className="text-muted-foreground hover:text-primary transition-smooth">Dashboard</Link></li>
+              <li><Link to="/booking" className="text-muted-foreground hover:text-primary transition-smooth">Gestionare Rezervări</Link></li>
             </ul>
           </div>
 
