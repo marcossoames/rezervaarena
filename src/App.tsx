@@ -9,6 +9,7 @@ import SportsFacilityLogin from "./pages/SportsFacilityLogin";
 import AdminLogin from "./pages/AdminLogin";
 import FacilitiesPage from "./pages/FacilitiesPage";
 import BookingPage from "./pages/BookingPage";
+import FacilityRegister from "./pages/FacilityRegister";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/client/login" element={<ClientLogin />} />
           <Route path="/facility/login" element={<SportsFacilityLogin />} />
+          <Route path="/facility/register" element={<FacilityRegister />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/facilities" element={<FacilitiesPage />} />
           <Route path="/booking/:facilityId" element={<BookingPage />} />
