@@ -400,10 +400,10 @@ const FacilityRegister = () => {
 
         <div className="bg-muted/30 p-4 rounded-lg border border-dashed border-muted-foreground/20">
           <p className="text-sm text-muted-foreground mb-2">
-            📋 <strong>Pas următor:</strong> Vei completa detaliile pentru fiecare facilitate în parte.
+            📋 <strong>Pas următor:</strong> Vei completa detaliile pentru fiecare teren în parte.
           </p>
           <p className="text-xs text-muted-foreground">
-            Fiecare facilitate va avea propriile imagini, preț și amenități.
+            Fiecare teren va avea propriile imagini, preț și facilități.
           </p>
         </div>
       </div>
