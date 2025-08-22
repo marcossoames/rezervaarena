@@ -274,20 +274,21 @@ const ManageFacilitiesPage = () => {
 
                   <div className="flex gap-2 pt-2">
                     <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => navigate(`/facility-calendar/${facility.id}`)}
+                      className="flex-1"
+                    >
+                      <Clock className="h-3 w-3 mr-1" />
+                      Calendar
+                    </Button>
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigate(`/edit-facility/${facility.id}`)}
-                      className="flex-1"
                     >
                       <Edit className="h-3 w-3 mr-1" />
                       Editează
-                    </Button>
-                    <Button
-                      variant={facility.is_active ? "outline" : "default"}
-                      size="sm"
-                      onClick={() => toggleFacilityStatus(facility.id, facility.is_active)}
-                    >
-                      {facility.is_active ? "Dezactivează" : "Activează"}
                     </Button>
                     <Button
                       variant="outline"
