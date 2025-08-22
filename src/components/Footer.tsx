@@ -66,17 +66,7 @@ const Footer = () => {
         <div className="border-t border-border mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-muted-foreground text-sm">© 2025 SportBook. Toate drepturile rezervate.</p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link to="/about" className="text-muted-foreground hover:text-primary text-sm transition-smooth">
-                Termeni și Condiții
-              </Link>
-              <Link to="/about" className="text-muted-foreground hover:text-primary text-sm transition-smooth">
-                Politica de Confidențialitate
-              </Link>
-              <Link to="/about" className="text-muted-foreground hover:text-primary text-sm transition-smooth">
-                GDPR
-              </Link>
-            </div>
+            
           </div>
         </div>
       </div>
