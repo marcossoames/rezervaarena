@@ -98,10 +98,31 @@ const AdminLogin = () => {
 
   const onCaptchaVerify = (token: string) => {
     setCaptchaToken(token);
+    console.log('CAPTCHA verified successfully');
   };
 
   const onCaptchaExpire = () => {
     setCaptchaToken(null);
+    console.log('CAPTCHA expired, please verify again');
+  };
+
+  const onCaptchaError = (err: string) => {
+    console.error('CAPTCHA error:', err);
+    setCaptchaToken(null);
+    
+    if (err.includes('rate-limited')) {
+      toast({
+        title: "Rate limit atins",
+        description: "Ai încercat prea des. Te rog așteaptă câteva minute înainte să încerci din nou.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Eroare CAPTCHA",
+        description: "A apărut o problemă cu verificarea CAPTCHA. Te rog reîncearcă.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -181,10 +202,13 @@ const AdminLogin = () => {
                 <div className="flex justify-center">
                   <HCaptcha
                     ref={captchaRef}
-                    sitekey="a5d5b844-32fe-4d4b-97c8-4e94b6b8b8b8" // Replace with your real hCaptcha site key
+                    sitekey="a5d5b844-32fe-4d4b-97c8-4e94b6b8b8b8"
                     onVerify={onCaptchaVerify}
                     onExpire={onCaptchaExpire}
+                    onError={onCaptchaError}
                     theme="light"
+                    size="normal"
+                    reCaptchaCompat={false}
                   />
                 </div>
               </div>
