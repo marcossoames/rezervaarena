@@ -105,23 +105,35 @@ const FacilityRegister = () => {
   };
 
   const initializeFacilities = (count: number) => {
-    const newFacilities: FacilityInfo[] = [];
-    const newInputs: string[] = [];
-    for (let i = 0; i < count; i++) {
-      newFacilities.push({
-        name: '',
-        description: '',
-        facilityType: '',
-        pricePerHour: 0,
-        capacity: 1,
-        amenities: [],
-        images: [],
-        mainImageIndex: 0
-      });
-      newInputs.push('');
+    // Only initialize if facilities array is empty or count changed significantly
+    if (facilities.length === 0 || Math.abs(facilities.length - count) > 0) {
+      const newFacilities: FacilityInfo[] = [];
+      const newInputs: string[] = [];
+      
+      // Preserve existing facility data if any
+      for (let i = 0; i < count; i++) {
+        if (i < facilities.length) {
+          // Keep existing facility data
+          newFacilities.push(facilities[i]);
+          newInputs.push(amenityInputs[i] || '');
+        } else {
+          // Add new empty facility
+          newFacilities.push({
+            name: '',
+            description: '',
+            facilityType: '',
+            pricePerHour: 0,
+            capacity: 1,
+            amenities: [],
+            images: [],
+            mainImageIndex: 0
+          });
+          newInputs.push('');
+        }
+      }
+      setFacilities(newFacilities);
+      setAmenityInputs(newInputs);
     }
-    setFacilities(newFacilities);
-    setAmenityInputs(newInputs);
   };
 
   const addGeneralService = (service: string) => {
@@ -222,19 +234,19 @@ const FacilityRegister = () => {
     try {
       console.log('Starting registration process...');
       
-      // Sign up the user directly as facility_owner
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: accountData.email,
-        password: accountData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: accountData.fullName,
-            phone: accountData.phone,
-            role: 'facility_owner'
+        // Sign up the user as client with facility owner type comment
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: accountData.email,
+          password: accountData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: accountData.fullName,
+              phone: accountData.phone,
+              role: 'client'
+            }
           }
-        }
-      });
+        });
 
       if (authError) {
         console.error('Auth signup error:', authError);
@@ -249,7 +261,7 @@ const FacilityRegister = () => {
         
         console.log('Creating/updating profile...');
         
-        // Create profile directly with facility_owner role
+        // Create profile with client role but mark as facility owner in comment
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({
@@ -257,7 +269,8 @@ const FacilityRegister = () => {
             email: accountData.email,
             full_name: accountData.fullName,
             phone: accountData.phone,
-            role: 'facility_owner'
+            role: 'client',
+            user_type_comment: 'Proprietar bază sportivă - înregistrat prin sistem'
           }, {
             onConflict: 'user_id'
           });

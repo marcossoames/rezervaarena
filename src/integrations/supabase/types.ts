@@ -270,6 +270,7 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           user_id: string
+          user_type_comment: string | null
         }
         Insert: {
           created_at?: string
@@ -280,6 +281,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id: string
+          user_type_comment?: string | null
         }
         Update: {
           created_at?: string
@@ -290,6 +292,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
+          user_type_comment?: string | null
         }
         Relationships: []
       }
