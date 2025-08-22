@@ -2,10 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock, Star, Filter, Search } from "lucide-react";
+import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -28,6 +29,27 @@ const FacilitiesPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [session, setSession] = useState<Session | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check authentication status
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthChecked(true);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setAuthChecked(true);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     // Get the type parameter from URL
@@ -36,13 +58,24 @@ const FacilitiesPage = () => {
   }, [searchParams]);
 
   useEffect(() => {
+    // Only fetch facilities if user is authenticated
+    if (!authChecked) return;
+    
+    if (!session) {
+      setLoading(false);
+      return;
+    }
+
     const fetchFacilities = async () => {
       try {
-        // Use secure RPC to get facilities without exposing owner data
+        // Use secure RPC to get facilities
         const { data: allFacilities, error } = await supabase
           .rpc('get_public_facilities');
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching facilities:', error);
+          throw error;
+        }
 
         // Apply client-side filtering if type is selected
         const data = selectedType 
@@ -52,13 +85,14 @@ const FacilitiesPage = () => {
         setFacilities(data || []);
       } catch (error) {
         console.error('Error:', error);
+        setFacilities([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchFacilities();
-  }, [selectedType]);
+  }, [selectedType, session, authChecked]);
 
   const getFacilityTypeLabel = (type: string) => {
     const typeMap: { [key: string]: string } = {
@@ -81,13 +115,59 @@ const FacilitiesPage = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !authChecked) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <p className="text-lg text-muted-foreground">Se încarcă facilitățile...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-lg text-muted-foreground">Se încarcă...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Show login prompt if user is not authenticated
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="bg-card border border-border rounded-lg p-8">
+              <LogIn className="h-16 w-16 text-primary mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-foreground mb-4">
+                Autentificare Necesară
+              </h1>
+              <p className="text-muted-foreground mb-6">
+                Pentru a vizualiza facilitățile sportive disponibile și a face rezervări, 
+                trebuie să te autentifici în aplicație.
+              </p>
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => navigate('/client/login')} 
+                  className="w-full" 
+                  size="lg"
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Autentifică-te
+                </Button>
+                <Button 
+                  onClick={() => navigate('/client/register')} 
+                  variant="outline" 
+                  className="w-full" 
+                  size="lg"
+                >
+                  Creează cont nou
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground mt-4">
+                Această măsură protejează informațiile sensibile ale facilităților sportive.
+              </p>
+            </div>
           </div>
         </main>
         <Footer />
