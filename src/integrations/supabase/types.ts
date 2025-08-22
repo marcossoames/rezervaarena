@@ -230,8 +230,8 @@ export type Database = {
       get_facilities_for_booking: {
         Args: Record<PropertyKey, never>
         Returns: {
-          address_preview: string
           amenities: string[]
+          area_info: string
           capacity: number
           city: string
           description: string

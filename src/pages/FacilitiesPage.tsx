@@ -16,7 +16,8 @@ interface Facility {
   description: string;
   facility_type: string;
   address?: string; // Optional for clients
-  address_preview?: string; // For clients only
+  address_preview?: string; // For clients only  
+  area_info?: string; // New minimal location info for clients
   city: string;
   price_per_hour: number;
   capacity: number;
@@ -332,14 +333,14 @@ const FacilitiesPage = () => {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="text-xl font-bold text-foreground mb-1">{facility.name}</h3>
-                          <div className="flex items-center text-muted-foreground text-sm">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {/* Show appropriate address based on user role */}
-                            {userProfile?.role === 'client' 
-                              ? `${facility.address_preview}, ${facility.city}`
-                              : `${facility.address}, ${facility.city}`
-                            }
-                          </div>
+                           <div className="flex items-center text-muted-foreground text-sm">
+                             <MapPin className="h-4 w-4 mr-1" />
+                             {/* Show different location info based on user role for security */}
+                             {userProfile?.role === 'client' 
+                               ? facility.area_info || `${facility.city} area`
+                               : `${facility.address}, ${facility.city}`
+                             }
+                           </div>
                         </div>
                       </div>
                       
