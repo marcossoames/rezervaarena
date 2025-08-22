@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Shield, Mail, Lock, ArrowLeft, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { cleanupAuthState } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
 
 

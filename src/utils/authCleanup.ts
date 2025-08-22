@@ -1,7 +1,6 @@
-import { supabase } from "@/integrations/supabase/client";
-
 /**
- * Comprehensive auth state cleanup utility to prevent authentication limbo states
+ * Critical auth cleanup utility to prevent authentication limbo states
+ * Always call this before sign-in/sign-up operations
  */
 export const cleanupAuthState = () => {
   try {
@@ -11,8 +10,8 @@ export const cleanupAuthState = () => {
         localStorage.removeItem(key);
       }
     });
-
-    // Remove from sessionStorage if in use
+    
+    // Remove from sessionStorage if it exists
     if (typeof sessionStorage !== 'undefined') {
       Object.keys(sessionStorage).forEach((key) => {
         if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
@@ -20,20 +19,22 @@ export const cleanupAuthState = () => {
         }
       });
     }
+    
+    console.log('Auth state cleaned up');
   } catch (error) {
-    console.warn('Error cleaning up auth state:', error);
+    console.warn('Error cleaning auth state:', error);
   }
 };
 
 /**
- * Robust sign out with complete state cleanup
+ * Secure sign-out with complete state cleanup
  */
-export const robustSignOut = async () => {
+export const secureSignOut = async (supabase: any) => {
   try {
-    // Clean up auth state first
+    // Clean up first
     cleanupAuthState();
     
-    // Attempt global sign out (continue even if it fails)
+    // Attempt global sign out
     try {
       await supabase.auth.signOut({ scope: 'global' });
     } catch (err) {
@@ -41,44 +42,10 @@ export const robustSignOut = async () => {
     }
     
     // Force page reload for clean state
-    window.location.href = '/auth';
+    window.location.href = '/';
   } catch (error) {
-    console.error('Error during sign out:', error);
+    console.error('Secure sign out error:', error);
     // Force reload anyway
-    window.location.href = '/auth';
-  }
-};
-
-/**
- * Safe sign in with state cleanup
- */
-export const safeSignIn = async (email: string, password: string) => {
-  try {
-    // Clean up existing state
-    cleanupAuthState();
-    
-    // Attempt global sign out first
-    try {
-      await supabase.auth.signOut({ scope: 'global' });
-    } catch (err) {
-      // Continue even if this fails
-    }
-    
-    // Sign in with email/password
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) throw error;
-    
-    // Force page reload for clean state
-    if (data.user) {
-      window.location.href = '/';
-    }
-    
-    return { data, error: null };
-  } catch (error) {
-    return { data: null, error };
+    window.location.href = '/';
   }
 };

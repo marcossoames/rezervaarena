@@ -51,7 +51,7 @@ const UserManagement = () => {
     }
   };
 
-  const promoteToAdmin = async (userId: string) => {
+  const promoteToAdmin = async (userId: string, userEmail: string) => {
     try {
       const { data, error } = await supabase.rpc('promote_user_to_admin_secure', {
         _user_id: userId
@@ -64,22 +64,22 @@ const UserManagement = () => {
       if (data) {
         toast({
           title: "Succes",
-          description: "Utilizatorul a fost promovat la admin"
+          description: `Utilizatorul ${userEmail} a fost promovat ca administrator.`,
         });
         fetchUsers(); // Refresh the list
       } else {
         toast({
           title: "Eroare",
-          description: "Nu s-a găsit utilizatorul",
-          variant: "destructive"
+          description: "Utilizatorul nu a fost găsit.",
+          variant: "destructive",
         });
       }
     } catch (error: any) {
       console.error('Error promoting user:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-a putut promova utilizatorul",
-        variant: "destructive"
+        description: "Nu s-a putut promova utilizatorul. Doar administratorii pot promova utilizatori.",
+        variant: "destructive",
       });
     }
   };
@@ -209,7 +209,7 @@ const UserManagement = () => {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Anulează</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => promoteToAdmin(user.user_id)}>
+                                  <AlertDialogAction onClick={() => promoteToAdmin(user.user_id, user.email)}>
                                     Promovează
                                   </AlertDialogAction>
                                 </AlertDialogFooter>

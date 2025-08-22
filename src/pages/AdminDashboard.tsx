@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Users, Building2, Calendar, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { secureSignOut } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
 import UserManagement from "@/components/UserManagement";
 
@@ -64,16 +65,7 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: "Deconectare reușită",
-        description: "Ați fost deconectat din panoul de administrare",
-      });
-      navigate('/admin/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
+    await secureSignOut(supabase);
   };
 
   const loadStats = async () => {
