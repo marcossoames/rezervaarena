@@ -5,15 +5,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Users, Building2, Calendar, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import UserManagement from "@/components/UserManagement";
 
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings'>('dashboard');
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalFacilities: 0,
+    todayBookings: 0
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     checkAdminAccess();
+    loadStats();
   }, []);
 
   const checkAdminAccess = async () => {
@@ -43,6 +51,10 @@ const AdminDashboard = () => {
       }
 
       setUserRole(profile.role);
+      toast({
+        title: "Bun venit!",
+        description: "Bun venit în panoul de administrare.",
+      });
     } catch (error) {
       console.error('Error checking admin access:', error);
       navigate('/admin/login');
@@ -61,6 +73,35 @@ const AdminDashboard = () => {
       navigate('/admin/login');
     } catch (error) {
       console.error('Error logging out:', error);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      // Get total users
+      const { count: usersCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      // Get total facilities
+      const { count: facilitiesCount } = await supabase
+        .from('facilities')
+        .select('*', { count: 'exact', head: true });
+
+      // Get today's bookings
+      const today = new Date().toISOString().split('T')[0];
+      const { count: bookingsCount } = await supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('booking_date', today);
+
+      setStats({
+        totalUsers: usersCount || 0,
+        totalFacilities: facilitiesCount || 0,
+        todayBookings: bookingsCount || 0
+      });
+    } catch (error) {
+      console.error('Error loading stats:', error);
     }
   };
 
@@ -113,7 +154,7 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">--</div>
+              <div className="text-2xl font-bold">{stats.totalUsers}</div>
               <p className="text-xs text-muted-foreground">Utilizatori înregistrați</p>
             </CardContent>
           </Card>
@@ -124,7 +165,7 @@ const AdminDashboard = () => {
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">--</div>
+              <div className="text-2xl font-bold">{stats.totalFacilities}</div>
               <p className="text-xs text-muted-foreground">Facilități active</p>
             </CardContent>
           </Card>
@@ -135,38 +176,95 @@ const AdminDashboard = () => {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">--</div>
+              <div className="text-2xl font-bold">{stats.todayBookings}</div>
               <p className="text-xs text-muted-foreground">Rezervări astăzi</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>Acțiuni rapide</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Button variant="outline" className="h-20 flex-col">
-                <Users className="h-6 w-6 mb-2" />
-                Gestionare Utilizatori
-              </Button>
-              <Button variant="outline" className="h-20 flex-col">
-                <Building2 className="h-6 w-6 mb-2" />
-                Gestionare Facilități
-              </Button>
-              <Button variant="outline" className="h-20 flex-col">
-                <Calendar className="h-6 w-6 mb-2" />
-                Vizualizare Rezervări
-              </Button>
-              <Button variant="outline" className="h-20 flex-col">
-                <Shield className="h-6 w-6 mb-2" />
-                Setări Sistem
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Navigation Tabs */}
+        <div className="flex gap-4 mb-6">
+          <Button 
+            variant={activeTab === 'dashboard' ? 'default' : 'outline'} 
+            onClick={() => setActiveTab('dashboard')}
+          >
+            Dashboard
+          </Button>
+          <Button 
+            variant={activeTab === 'users' ? 'default' : 'outline'} 
+            onClick={() => setActiveTab('users')}
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Utilizatori
+          </Button>
+          <Button 
+            variant={activeTab === 'facilities' ? 'default' : 'outline'} 
+            onClick={() => setActiveTab('facilities')}
+          >
+            <Building2 className="h-4 w-4 mr-2" />
+            Facilități
+          </Button>
+          <Button 
+            variant={activeTab === 'bookings' ? 'default' : 'outline'} 
+            onClick={() => setActiveTab('bookings')}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Rezervări
+          </Button>
+        </div>
+
+        {/* Content based on active tab */}
+        {activeTab === 'dashboard' && (
+          <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Acțiuni rapide</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('users')}>
+                  <Users className="h-6 w-6 mb-2" />
+                  Gestionare Utilizatori
+                </Button>
+                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('facilities')}>
+                  <Building2 className="h-6 w-6 mb-2" />
+                  Gestionare Facilități
+                </Button>
+                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('bookings')}>
+                  <Calendar className="h-6 w-6 mb-2" />
+                  Vizualizare Rezervări
+                </Button>
+                <Button variant="outline" className="h-20 flex-col">
+                  <Shield className="h-6 w-6 mb-2" />
+                  Setări Sistem
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'users' && <UserManagement />}
+        
+        {activeTab === 'facilities' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Gestionare Facilități</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Funcționalitatea pentru gestionarea facilităților va fi adăugată în curând.</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'bookings' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Vizualizare Rezervări</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Funcționalitatea pentru vizualizarea rezervărilor va fi adăugată în curând.</p>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );
