@@ -15,7 +15,7 @@ interface SportData {
   image: string;
   description: string;
   facilities: number;
-  avgPrice: string;
+  minPrice: string;
 }
 
 const initialSportsData = [
@@ -26,7 +26,7 @@ const initialSportsData = [
     image: tennisImage,
     description: "Terenuri profesionale de tenis cu suprafețe moderne",
     facilities: 0,
-    avgPrice: "0 RON/oră"
+    minPrice: "0 RON/oră"
   },
   {
     id: 2,
@@ -35,7 +35,7 @@ const initialSportsData = [
     image: footballImage,
     description: "Terenuri de fotbal cu gazon sintetic și natural",
     facilities: 0,
-    avgPrice: "0 RON/oră"
+    minPrice: "0 RON/oră"
   },
   {
     id: 3,
@@ -44,7 +44,7 @@ const initialSportsData = [
     image: padelImage,
     description: "Terenuri moderne de padel cu echipament complet",
     facilities: 0,
-    avgPrice: "0 RON/oră"
+    minPrice: "0 RON/oră"
   },
   {
     id: 4,
@@ -53,7 +53,7 @@ const initialSportsData = [
     image: swimmingImage,
     description: "Piscine profesionale pentru antrenament și relaxare",
     facilities: 0,
-    avgPrice: "0 RON/oră"
+    minPrice: "0 RON/oră"
   }
 ];
 
@@ -73,26 +73,26 @@ const SportsSection = () => {
         }
 
         // Group by facility type and calculate stats
-        const stats: Record<string, { count: number; totalPrice: number }> = {};
+        const stats: Record<string, { count: number; prices: number[] }> = {};
         
         facilities?.forEach(facility => {
           const type = facility.facility_type;
           if (!stats[type]) {
-            stats[type] = { count: 0, totalPrice: 0 };
+            stats[type] = { count: 0, prices: [] };
           }
           stats[type].count += 1;
-          stats[type].totalPrice += Number(facility.price_per_hour);
+          stats[type].prices.push(Number(facility.price_per_hour));
         });
 
         // Update sports data with real stats
         const updatedSportsData = initialSportsData.map(sport => {
           const sportStats = stats[sport.type];
-          if (sportStats) {
-            const avgPrice = Math.round(sportStats.totalPrice / sportStats.count);
+          if (sportStats && sportStats.prices.length > 0) {
+            const minPrice = Math.min(...sportStats.prices);
             return {
               ...sport,
               facilities: sportStats.count,
-              avgPrice: `${avgPrice} RON/oră`
+              minPrice: `${minPrice} RON/oră`
             };
           }
           return sport;
@@ -145,8 +145,8 @@ const SportsSection = () => {
                       <span className="font-semibold text-primary">{sport.facilities}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Preț mediu:</span>
-                      <span className="font-semibold text-accent">{sport.avgPrice}</span>
+                      <span className="text-sm text-muted-foreground">De la:</span>
+                      <span className="font-semibold text-accent">{sport.minPrice}</span>
                     </div>
                   </div>
                   
