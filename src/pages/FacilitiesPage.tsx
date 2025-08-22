@@ -357,13 +357,13 @@ const FacilitiesPage = () => {
                         <div>
                           <h3 className="text-xl font-bold text-foreground mb-1">{facility.name}</h3>
                            <div className="flex items-center text-muted-foreground text-sm">
-                             <MapPin className="h-4 w-4 mr-1" />
-                             {/* Show different location info based on user role for security */}
-                             {userProfile?.role === 'client' 
-                               ? facility.area_info || `${facility.city} area`
-                               : `${facility.address}, ${facility.city}`
-                             }
-                           </div>
+                              <MapPin className="h-4 w-4 mr-1" />
+                              {/* Show secure location info for clients, full address for admins/owners */}
+                              {userProfile?.role === 'client' 
+                                ? facility.area_info || `${facility.city} area`
+                                : `${facility.address}, ${facility.city}`
+                              }
+                            </div>
                         </div>
                       </div>
                       
