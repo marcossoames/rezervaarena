@@ -10,6 +10,7 @@ import AdminLogin from "./pages/AdminLogin";
 import FacilitiesPage from "./pages/FacilitiesPage";
 import BookingPage from "./pages/BookingPage";
 import FacilityRegister from "./pages/FacilityRegister";
+import ClientRegister from "./pages/ClientRegister";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/client/login" element={<ClientLogin />} />
+          <Route path="/client/register" element={<ClientRegister />} />
           <Route path="/facility/login" element={<SportsFacilityLogin />} />
           <Route path="/facility/register" element={<FacilityRegister />} />
           <Route path="/admin/login" element={<AdminLogin />} />
