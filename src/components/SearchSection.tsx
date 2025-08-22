@@ -19,7 +19,7 @@ const SearchSection = () => {
   const navigate = useNavigate();
 
   const facilityTypes = [
-    { value: "", label: "Toate tipurile" },
+    { value: "all", label: "Toate tipurile" },
     { value: "tennis", label: "Tenis" },
     { value: "football", label: "Fotbal" },
     { value: "padel", label: "Padel" },
@@ -32,7 +32,7 @@ const SearchSection = () => {
     // Build query parameters
     const params = new URLSearchParams();
     
-    if (facilityType) {
+    if (facilityType && facilityType !== "all") {
       params.set('type', facilityType);
     }
     if (location.trim()) {
