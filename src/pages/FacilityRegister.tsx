@@ -147,10 +147,11 @@ const FacilityRegister = () => {
 
         toast({
           title: "Cont creat cu succes!",
-          description: "Verifică-ți emailul pentru a confirma contul."
+          description: "Acum poți adăuga imagini pentru facilitatea ta."
         });
 
-        navigate("/facility/login");
+        // Redirect to add facility page to add images
+        navigate("/add-facility");
       }
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -431,9 +432,18 @@ const FacilityRegister = () => {
                         </Button>
                       </Badge>
                     ))}
-                  </div>
-                )}
+                </div>
+              )}
+              
+              <div className="bg-muted/30 p-4 rounded-lg border border-dashed border-muted-foreground/20">
+                <p className="text-sm text-muted-foreground mb-2">
+                  📸 <strong>Pas următor:</strong> După înregistrare, vei putea adăuga imagini pentru facilitatea ta (până la 8 poze) și să alegi una principală.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Imaginile ajută clienții să vadă mai bine facilitatea și să facă rezervări.
+                </p>
               </div>
+            </div>
             </div>
 
             <Button 
