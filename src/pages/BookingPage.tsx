@@ -17,6 +17,9 @@ import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import tennisImage from "@/assets/tennis-court.jpg";
+import { useState } from "react";
+import { addDays, format, isSameDay, isAfter, isBefore } from "date-fns";
+import { ro } from "date-fns/locale";
 
 const timeSlots = [
   { time: "08:00", available: true, price: 120 },
@@ -38,9 +41,11 @@ const timeSlots = [
 ];
 
 const BookingPage = () => {
-  const selectedDate = new Date();
-  const tomorrow = new Date(selectedDate);
-  tomorrow.setDate(selectedDate.getDate() + 1);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  
+  // Restricții temporale pentru clienți: doar următoarele 2 săptămâni
+  const today = new Date();
+  const maxBookingDate = addDays(today, 14); // 2 săptămâni de la astăzi
 
   return (
     <div className="min-h-screen bg-background">
@@ -119,7 +124,17 @@ const BookingPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between mb-4">
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      const newDate = addDays(selectedDate, -1);
+                      if (!isBefore(newDate, today)) {
+                        setSelectedDate(newDate);
+                      }
+                    }}
+                    disabled={isSameDay(selectedDate, today)}
+                  >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <h3 className="text-lg font-semibold">
@@ -130,33 +145,55 @@ const BookingPage = () => {
                       day: 'numeric'
                     })}
                   </h3>
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      const newDate = addDays(selectedDate, 1);
+                      if (!isAfter(newDate, maxBookingDate)) {
+                        setSelectedDate(newDate);
+                      }
+                    }}
+                    disabled={isSameDay(selectedDate, maxBookingDate)}
+                  >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
                 
                 <div className="grid grid-cols-7 gap-2">
                   {Array.from({ length: 14 }, (_, i) => {
-                    const date = new Date(selectedDate);
-                    date.setDate(selectedDate.getDate() + i);
-                    const isToday = date.toDateString() === selectedDate.toDateString();
+                    const date = addDays(today, i);
+                    const isSelectedDate = isSameDay(date, selectedDate);
+                    const isToday = isSameDay(date, today);
                     
                     return (
                       <Button
                         key={i}
-                        variant={isToday ? "default" : "outline"}
+                        variant={isSelectedDate ? "default" : "outline"}
                         size="sm"
                         className="h-16 flex flex-col"
+                        onClick={() => setSelectedDate(date)}
                       >
                         <span className="text-xs">
-                          {date.toLocaleDateString('ro-RO', { weekday: 'short' })}
+                          {format(date, 'EEE', { locale: ro })}
                         </span>
                         <span className="text-lg font-bold">
                           {date.getDate()}
                         </span>
+                        {isToday && (
+                          <span className="text-xs font-medium text-primary">
+                            Azi
+                          </span>
+                        )}
                       </Button>
                     );
                   })}
+                </div>
+                
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground text-center">
+                    📅 Poți rezerva pentru următoarele 14 zile
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -203,7 +240,9 @@ const BookingPage = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Data:</span>
-                    <span className="font-medium">Astăzi</span>
+                    <span className="font-medium">
+                      {format(selectedDate, 'dd MMM yyyy', { locale: ro })}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Ora:</span>

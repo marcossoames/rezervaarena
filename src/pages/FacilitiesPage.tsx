@@ -365,11 +365,13 @@ const FacilitiesPage = () => {
                            {facility.price_range || facility.base_price_info || 
                             (facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : 'Preț disponibil la rezervare')}
                          </div>
-                        {session ? (
-                          <Button variant="sport">
-                            Rezervă Acum
-                          </Button>
-                        ) : (
+                         {session ? (
+                           <Button variant="sport" asChild>
+                             <Link to={`/booking?facility=${facility.id}`}>
+                               Rezervă Acum
+                             </Link>
+                           </Button>
+                         ) : (
                           <Button variant="outline" onClick={() => navigate('/client/login')}>
                             <LogIn className="h-4 w-4 mr-2" />
                             Autentifică-te

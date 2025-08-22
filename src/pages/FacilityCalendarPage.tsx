@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Calendar as CalendarIcon, Ban, Edit, Eye, Clock, Users, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format, addDays, startOfDay, endOfDay } from "date-fns";
+import { format, addDays, startOfDay, endOfDay, isAfter, isBefore, isSameDay } from "date-fns";
 import { ro } from "date-fns/locale";
 
 interface Facility {
@@ -54,6 +54,9 @@ const FacilityCalendarPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [blockReason, setBlockReason] = useState("");
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
+  
+  // Restricții pentru proprietarii de facilități: modificări doar de la astăzi înainte
+  const today = startOfDay(new Date());
 
   useEffect(() => {
     const loadData = async () => {
@@ -116,6 +119,16 @@ const FacilityCalendarPage = () => {
 
   const blockDate = async () => {
     if (!selectedDate || !blockReason.trim()) return;
+    
+    // Verifică că data este de la astăzi înainte
+    if (isBefore(selectedDate, today)) {
+      toast({
+        title: "Eroare",
+        description: "Nu poți bloca date din trecut",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     
@@ -138,6 +151,15 @@ const FacilityCalendarPage = () => {
   };
 
   const unblockDate = (date: Date) => {
+    // Verifică că data este de la astăzi înainte
+    if (isBefore(date, today)) {
+      toast({
+        title: "Eroare", 
+        description: "Nu poți debloca date din trecut",
+        variant: "destructive"
+      });
+      return;
+    }
     const dateStr = format(date, 'yyyy-MM-dd');
     setBlockedDates(blockedDates.filter(blocked => blocked.date !== dateStr));
     
@@ -232,13 +254,16 @@ const FacilityCalendarPage = () => {
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 className="rounded-md border p-3 pointer-events-auto"
+                disabled={(date) => isBefore(date, today)} // Dezactivează datele din trecut
                 modifiers={{
                   booked: (date) => getBookingsForDate(date).length > 0,
-                  blocked: (date) => isDateBlocked(date)
+                  blocked: (date) => isDateBlocked(date),
+                  past: (date) => isBefore(date, today)
                 }}
                 modifiersClassNames={{
                   booked: "bg-primary/20 text-primary-foreground font-semibold",
-                  blocked: "bg-destructive/20 text-destructive-foreground line-through"
+                  blocked: "bg-destructive/20 text-destructive-foreground line-through",
+                  past: "text-muted-foreground opacity-50"
                 }}
               />
               
@@ -250,6 +275,11 @@ const FacilityCalendarPage = () => {
                 <div className="flex items-center gap-2 text-sm">
                   <div className="w-3 h-3 bg-destructive/20 rounded border"></div>
                   <span>Zile blocate</span>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground text-center">
+                    ⚠️ Poți modifica calendarul doar de la data curentă înainte
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -275,17 +305,18 @@ const FacilityCalendarPage = () => {
             <CardContent className="space-y-4">
               {selectedDate && (
                 <>
-                  {/* Block/Unblock Date */}
-                  {isDateBlocked(selectedDate) ? (
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => unblockDate(selectedDate)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Deblochează Data
-                    </Button>
-                  ) : (
+                  {/* Block/Unblock Date - doar pentru datele de astăzi înainte */}
+                  {selectedDate && !isBefore(selectedDate, today) ? (
+                    isDateBlocked(selectedDate) ? (
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => unblockDate(selectedDate)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Deblochează Data
+                      </Button>
+                    ) : (
                     <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
                       <DialogTrigger asChild>
                         <Button variant="outline" className="w-full">
@@ -321,7 +352,13 @@ const FacilityCalendarPage = () => {
                         </div>
                       </DialogContent>
                     </Dialog>
-                  )}
+                  )) : selectedDate && isBefore(selectedDate, today) ? (
+                    <div className="p-3 bg-muted/50 rounded-lg text-center">
+                      <p className="text-sm text-muted-foreground">
+                        Nu poți modifica datele din trecut
+                      </p>
+                    </div>
+                  ) : null}
 
                   {/* Bookings for selected date */}
                   {selectedDateBookings.length > 0 && (
