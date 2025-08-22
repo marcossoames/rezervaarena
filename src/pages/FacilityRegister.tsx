@@ -46,11 +46,25 @@ const FacilityRegister = () => {
   const [generalServices, setGeneralServices] = useState<string[]>([]);
   const [generalServiceInput, setGeneralServiceInput] = useState("");
 
-  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<AccountFormData>();
+  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<AccountFormData>({
+    defaultValues: accountData || {}
+  });
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const password = watch("password");
+
+  // Update form values when accountData changes (when going back)
+  useEffect(() => {
+    if (accountData) {
+      Object.entries(accountData).forEach(([key, value]) => {
+        if (key !== 'generalServices') {
+          setValue(key as keyof AccountFormData, value);
+        }
+      });
+      setGeneralServices(accountData.generalServices || []);
+    }
+  }, [accountData, setValue]);
 
   const facilityTypes = [
     { value: "tennis", label: "Tenis" },
@@ -591,7 +605,15 @@ const FacilityRegister = () => {
           Detalii Facilități ({facilities.length} facilități)
         </h3>
         <Button 
-          onClick={() => setCurrentStep(1)} 
+          onClick={() => {
+            // Get current form data and update account data before going back
+            const currentFormData = {
+              ...accountData!,
+              generalServices
+            };
+            setAccountData(currentFormData);
+            setCurrentStep(1);
+          }} 
           variant="outline" 
           size="sm"
         >
