@@ -220,6 +220,8 @@ const FacilityRegister = () => {
     setIsLoading(true);
 
     try {
+      console.log('Starting registration process...');
+      
       // Sign up the user directly as facility_owner
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: accountData.email,
@@ -234,11 +236,18 @@ const FacilityRegister = () => {
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Auth signup error:', authError);
+        throw authError;
+      }
+
+      console.log('User signed up successfully:', authData.user?.id);
 
       if (authData.user) {
         // Wait for user to be properly authenticated and profile to be created
         await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        console.log('Creating/updating profile...');
         
         // Create profile directly with facility_owner role
         const { error: profileError } = await supabase
@@ -255,15 +264,21 @@ const FacilityRegister = () => {
 
         if (profileError) {
           console.error('Profile creation error:', profileError);
-          throw new Error('Eroare la crearea profilului');
+          throw new Error(`Eroare la crearea profilului: ${profileError.message}`);
         }
+
+        console.log('Profile created/updated successfully');
 
         // Wait a bit more to ensure role is properly set
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // Create all facilities with images
+        console.log(`Creating ${facilities.length} facilities...`);
+        
         for (let i = 0; i < facilities.length; i++) {
           const facility = facilities[i];
+          
+          console.log(`Creating facility ${i + 1}: ${facility.name}`);
           
           // Create facility first
           const { data: facilityData, error: facilityError } = await supabase
@@ -284,8 +299,10 @@ const FacilityRegister = () => {
 
           if (facilityError) {
             console.error('Facility creation error:', facilityError);
-            throw new Error(`Eroare la crearea facilității: ${facilityError.message}`);
+            throw new Error(`Eroare la crearea facilității ${i + 1}: ${facilityError.message}`);
           }
+
+          console.log(`Facility ${i + 1} created successfully:`, facilityData.id);
 
           // Upload images for this facility
           if (facility.images.length > 0 && facilityData) {
