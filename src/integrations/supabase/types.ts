@@ -184,6 +184,82 @@ export type Database = {
           },
         ]
       }
+      facility_images: {
+        Row: {
+          caption: string | null
+          created_at: string
+          display_order: number | null
+          facility_id: string
+          id: string
+          image_url: string
+          is_main: boolean | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number | null
+          facility_id: string
+          id?: string
+          image_url: string
+          is_main?: boolean | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number | null
+          facility_id?: string
+          id?: string
+          image_url?: string
+          is_main?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_images_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facility_services: {
+        Row: {
+          created_at: string
+          description: string | null
+          facility_id: string
+          id: string
+          is_included: boolean | null
+          price: number | null
+          service_name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          facility_id: string
+          id?: string
+          is_included?: boolean | null
+          price?: number | null
+          service_name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          facility_id?: string
+          id?: string
+          is_included?: boolean | null
+          price?: number | null
+          service_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_services_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
