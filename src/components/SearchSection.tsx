@@ -7,7 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Search, MapPin, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { ro } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +17,10 @@ const SearchSection = () => {
   const [facilityType, setFacilityType] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
+  // Restricții pentru căutare: doar următoarele 2 săptămâni (ca la booking)
+  const today = startOfDay(new Date());
+  const maxSearchDate = addDays(today, 14);
 
   const facilityTypes = [
     { value: "all", label: "Toate tipurile" },
@@ -114,7 +118,7 @@ const SearchSection = () => {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, "dd MMM yyyy", { locale: ro }) : "Selectează data"}
+                      {selectedDate ? format(selectedDate, "dd MMM yyyy", { locale: ro }) : "Selectează data (astăzi - 14 zile)"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -122,10 +126,18 @@ const SearchSection = () => {
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}
-                      disabled={(date) => date < new Date()}
+                      disabled={(date) => 
+                        isBefore(date, today) || // Nu permite datele din trecut
+                        isBefore(maxSearchDate, date) // Nu permite datele peste 2 săptămâni
+                      }
                       initialFocus
-                      className="pointer-events-auto"
+                      className="p-3 pointer-events-auto"
                     />
+                    <div className="p-3 border-t bg-muted/30">
+                      <p className="text-xs text-muted-foreground text-center">
+                        📅 Poți căuta rezervări pentru următoarele 14 zile
+                      </p>
+                    </div>
                   </PopoverContent>
                 </Popover>
               </div>

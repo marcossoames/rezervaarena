@@ -94,9 +94,14 @@ const FacilitiesPage = () => {
   };
 
   useEffect(() => {
-    // Get the type parameter from URL
+    // Get search parameters from URL
     const typeParam = searchParams.get('type');
+    const dateParam = searchParams.get('date');
+    const locationParam = searchParams.get('location');
+    const searchParam = searchParams.get('search');
+    
     setSelectedType(typeParam);
+    // TODO: Handle other search parameters (date, location, search) for filtering
   }, [searchParams]);
 
   useEffect(() => {
