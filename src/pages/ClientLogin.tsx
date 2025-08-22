@@ -74,8 +74,8 @@ const ClientLogin = () => {
               </div>
             </div>
 
-            <Button variant="outline" className="w-full">
-              Continuă ca vizitator
+            <Button variant="outline" className="w-full" asChild>
+              <Link to="/">Continuă ca vizitator</Link>
             </Button>
           </CardContent>
         </Card>
