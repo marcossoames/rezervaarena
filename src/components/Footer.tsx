@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
-
 const Footer = () => {
-  return (
-    <footer className="bg-card border-t border-border">
+  return <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
@@ -17,17 +15,7 @@ const Footer = () => {
               Platforma numărul 1 din România pentru rezervarea terenurilor sportive. 
               Conectăm pasionații de sport cu cele mai bune facilități.
             </p>
-            <div className="flex space-x-4">
-              <Button variant="ghost" size="icon">
-                <Facebook className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Instagram className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Twitter className="h-5 w-5" />
-              </Button>
-            </div>
+            
           </div>
 
           <div>
@@ -55,32 +43,15 @@ const Footer = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-primary" />
-                <a 
-                  href="mailto:soamespaul@gmail.com" 
-                  className="text-muted-foreground hover:text-primary transition-smooth"
-                >
-                  soamespaul@gmail.com
-                </a>
+                <span className="text-muted-foreground">contact@sportbook.ro</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-primary" />
-                <a 
-                  href="tel:+40720059535" 
-                  className="text-muted-foreground hover:text-primary transition-smooth"
-                >
-                  +40 720 059 535
-                </a>
+                <span className="text-muted-foreground">+40 21 123 4567</span>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="h-5 w-5 text-primary" />
-                <a 
-                  href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara+Timis" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-smooth"
-                >
-                  Str. Magnoliei nr. 21, Timișoara
-                </a>
+                <span className="text-muted-foreground">București, România</span>
               </div>
             </div>
           </div>
@@ -105,8 +76,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
