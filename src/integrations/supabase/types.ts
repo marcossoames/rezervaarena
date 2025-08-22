@@ -235,14 +235,49 @@ export type Database = {
         Returns: {
           amenities: string[]
           area_info: string
-          capacity: number
+          base_price_info: string
+          capacity_info: string
           city: string
           description: string
           facility_type: Database["public"]["Enums"]["facility_type"]
           id: string
           images: string[]
           name: string
-          price_per_hour: number
+        }[]
+      }
+      get_facilities_for_public_browsing: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          available_amenities: string[]
+          basic_description: string
+          city: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          general_area: string
+          has_images: boolean
+          id: string
+          name: string
+          price_range: string
+          rating_display: string
+        }[]
+      }
+      get_owner_facility_details: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amenities: string[]
+          city: string
+          created_at: string
+          description: string
+          exact_capacity: number
+          exact_price_per_hour: number
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          full_address: string
+          id: string
+          images: string[]
+          is_active: boolean
+          main_image_url: string
+          name: string
+          owner_id: string
+          updated_at: string
         }[]
       }
       get_public_facilities: {

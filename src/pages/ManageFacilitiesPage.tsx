@@ -10,18 +10,20 @@ import ImageCarousel from "@/components/ImageCarousel";
 
 interface Facility {
   id: string;
+  owner_id: string;
   name: string;
   description: string;
   facility_type: string;
-  address: string;
+  full_address: string; // Renamed from address to match RPC return
   city: string;
-  price_per_hour: number;
-  capacity: number;
+  exact_price_per_hour: number; // Renamed to match RPC return
+  exact_capacity: number; // Renamed to match RPC return
   amenities: string[];
   images: string[];
   main_image_url?: string;
   is_active: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 const ManageFacilitiesPage = () => {
@@ -57,12 +59,9 @@ const ManageFacilitiesPage = () => {
 
       setUserProfile(profile);
 
-      // Load facilities owned by this user
+      // Load facilities owned by this user using secure RPC
       const { data: facilitiesData, error } = await supabase
-        .from('facilities')
-        .select('*')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false });
+        .rpc('get_owner_facility_details');
 
       if (error) {
         console.error('Error fetching facilities:', error);
@@ -213,7 +212,7 @@ const ManageFacilitiesPage = () => {
                       <CardTitle className="text-lg">{facility.name}</CardTitle>
                       <CardDescription className="flex items-center gap-1 mt-1">
                         <MapPin className="h-3 w-3" />
-                        {facility.city}
+                        {facility.full_address}, {facility.city}
                       </CardDescription>
                     </div>
                     {(!facility.images || facility.images.length === 0) && (
@@ -232,11 +231,11 @@ const ManageFacilitiesPage = () => {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
-                        {facility.capacity}
+                        {facility.exact_capacity}
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {facility.price_per_hour} RON/h
+                        {facility.exact_price_per_hour} RON/h
                       </div>
                     </div>
                   </div>

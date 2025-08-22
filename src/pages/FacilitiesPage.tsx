@@ -16,12 +16,13 @@ interface Facility {
   name: string;
   description: string;
   facility_type: string;
-  address?: string; // Optional for clients
-  address_preview?: string; // For clients only  
-  area_info?: string; // New minimal location info for clients
+  address?: string; // For admin/owner view
+  area_info?: string; // For client view - general area only
   city: string;
-  price_per_hour: number;
-  capacity: number;
+  price_per_hour?: number; // For admin/owner view
+  base_price_info?: string; // For client view - generic pricing
+  capacity?: number; // For admin/owner view
+  capacity_info?: string; // For client view - generic capacity
   amenities: string[];
   images: string[];
   main_image_url?: string;
@@ -380,16 +381,17 @@ const FacilitiesPage = () => {
                         </div>
                       )}
                       
-                      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                       <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                         <div className="flex items-center">
-                          <span className="text-muted-foreground">Capacitate: {facility.capacity}</span>
+                          <span className="text-muted-foreground">
+                            Capacitate: {facility.capacity_info || facility.capacity}
+                          </span>
                         </div>
                       </div>
                       
                       <div className="flex justify-between items-center">
                         <div className="text-2xl font-bold text-primary">
-                          {facility.price_per_hour} RON
-                          <span className="text-sm font-normal text-muted-foreground">/oră</span>
+                          {facility.base_price_info || `${facility.price_per_hour} RON/oră`}
                         </div>
                         <Button variant="sport">
                           Rezervă Acum
