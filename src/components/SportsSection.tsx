@@ -63,10 +63,9 @@ const SportsSection = () => {
   useEffect(() => {
     const fetchSportsData = async () => {
       try {
-        // Use the public view to get facility data without exposing owner information
+        // Use secure RPC to get facility data without exposing owner information
         const { data: facilities, error } = await supabase
-          .from('public_facilities')
-          .select('facility_type, price_per_hour');
+          .rpc('get_public_facilities');
 
         if (error) {
           console.error('Error fetching facilities:', error);

@@ -12,15 +12,15 @@ import Footer from "@/components/Footer";
 interface Facility {
   id: string;
   name: string;
-  description: string | null;
+  description: string;
   facility_type: string;
   address: string;
   city: string;
   price_per_hour: number;
   capacity: number;
-  amenities: string[] | null;
-  images: string[] | null;
-  is_active: boolean;
+  amenities: string[];
+  images: string[];
+  created_at: string;
 }
 
 const FacilitiesPage = () => {
@@ -38,23 +38,18 @@ const FacilitiesPage = () => {
   useEffect(() => {
     const fetchFacilities = async () => {
       try {
-        // Use the public view to get facilities without exposing owner data
-        let query = supabase
-          .from('public_facilities')
-          .select('*');
+        // Use secure RPC to get facilities without exposing owner data
+        const { data: allFacilities, error } = await supabase
+          .rpc('get_public_facilities');
 
-        // Add type filter if selected
-        if (selectedType) {
-          query = query.eq('facility_type', selectedType as any);
-        }
+        if (error) throw error;
 
-        const { data, error } = await query;
+        // Apply client-side filtering if type is selected
+        const data = selectedType 
+          ? allFacilities?.filter(f => f.facility_type === selectedType)
+          : allFacilities;
 
-        if (error) {
-          console.error('Error fetching facilities:', error);
-        } else {
-          setFacilities(data || []);
-        }
+        setFacilities(data || []);
       } catch (error) {
         console.error('Error:', error);
       } finally {

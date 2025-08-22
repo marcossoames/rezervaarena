@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          target_user_email: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_user_email?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_user_email?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -76,6 +106,27 @@ export type Database = {
             referencedRelation: "public_facilities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_bookings_client_id"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_bookings_facility_id"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_bookings_facility_id"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "public_facilities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       facilities: {
@@ -130,6 +181,13 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "facilities_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_facilities_owner_id"
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -226,6 +284,22 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_public_facilities: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address: string
+          amenities: string[]
+          capacity: number
+          city: string
+          created_at: string
+          description: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          id: string
+          images: string[]
+          name: string
+          price_per_hour: number
+        }[]
       }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["user_role"] }
