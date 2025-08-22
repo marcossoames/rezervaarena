@@ -55,15 +55,32 @@ const Footer = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-primary" />
-                <span className="text-muted-foreground">contact@sportbook.ro</span>
+                <a 
+                  href="mailto:soamespaul@gmail.com" 
+                  className="text-muted-foreground hover:text-primary transition-smooth"
+                >
+                  soamespaul@gmail.com
+                </a>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-primary" />
-                <span className="text-muted-foreground">+40 21 123 4567</span>
+                <a 
+                  href="tel:+40720059535" 
+                  className="text-muted-foreground hover:text-primary transition-smooth"
+                >
+                  +40 720 059 535
+                </a>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="h-5 w-5 text-primary" />
-                <span className="text-muted-foreground">București, România</span>
+                <a 
+                  href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara+Timis" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-smooth"
+                >
+                  Str. Magnoliei nr. 21, Timișoara
+                </a>
               </div>
             </div>
           </div>
