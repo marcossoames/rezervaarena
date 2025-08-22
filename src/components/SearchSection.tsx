@@ -113,15 +113,15 @@ const SearchSection = () => {
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal bg-background/50 border-border/50 hover:border-primary",
+                        "w-full justify-start text-left font-normal bg-background/50 border-border/50 hover:border-primary text-sm truncate",
                         !selectedDate && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, "dd MMM yyyy", { locale: ro }) : "Selectează data (astăzi - 14 zile)"}
+                      {selectedDate ? format(selectedDate, "dd MMM yyyy", { locale: ro }) : "Selectează data"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0 z-50 bg-popover border shadow-lg" align="start">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
@@ -131,11 +131,11 @@ const SearchSection = () => {
                         isBefore(maxSearchDate, date) // Nu permite datele peste 2 săptămâni
                       }
                       initialFocus
-                      className="p-3 pointer-events-auto"
+                      className="p-3 pointer-events-auto bg-background rounded-md"
                     />
-                    <div className="p-3 border-t bg-muted/30">
+                    <div className="p-3 border-t bg-muted/50">
                       <p className="text-xs text-muted-foreground text-center">
-                        📅 Poți căuta rezervări pentru următoarele 14 zile
+                        📅 Poți căuta pentru următoarele 14 zile
                       </p>
                     </div>
                   </PopoverContent>
