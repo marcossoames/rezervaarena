@@ -97,10 +97,16 @@ const FacilityRegister = () => {
       if (authError) throw authError;
 
       if (authData.user) {
+        // Wait for user to be properly authenticated
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Use secure function to upgrade to facility owner role
         const { data: roleUpdated, error: roleError } = await supabase.rpc('promote_self_to_facility_owner');
         
-        if (roleError) throw roleError;
+        if (roleError) {
+          console.error('Role update error:', roleError);
+          throw new Error('Eroare la actualizarea rolului utilizatorului');
+        }
         
         // Update phone separately
         const { error: profileError } = await supabase
@@ -108,9 +114,15 @@ const FacilityRegister = () => {
           .update({ phone: data.phone })
           .eq('user_id', authData.user.id);
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Profile update error:', profileError);
+          throw new Error('Eroare la actualizarea profilului');
+        }
 
-        // Create the facility
+        // Wait a bit more to ensure role is properly set
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Create the facility with proper authentication context
         const { error: facilityError } = await supabase
           .from('facilities')
           .insert({
@@ -125,7 +137,10 @@ const FacilityRegister = () => {
             amenities: amenities
           });
 
-        if (facilityError) throw facilityError;
+        if (facilityError) {
+          console.error('Facility creation error:', facilityError);
+          throw new Error(`Eroare la crearea facilității: ${facilityError.message}`);
+        }
 
         toast({
           title: "Cont creat cu succes!",
