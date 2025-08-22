@@ -222,7 +222,7 @@ const FacilityRegister = () => {
     setIsLoading(true);
 
     try {
-      // Sign up the user
+      // Sign up the user directly as facility_owner
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: accountData.email,
         password: accountData.password,
@@ -239,29 +239,25 @@ const FacilityRegister = () => {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Wait for user to be properly authenticated
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait for user to be properly authenticated and profile to be created
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Update user role manually in profiles table
-        const { error: roleError } = await supabase
-          .from('profiles')
-          .update({ role: 'facility_owner' })
-          .eq('user_id', authData.user.id);
-        
-        if (roleError) {
-          console.error('Role update error:', roleError);
-          throw new Error('Eroare la actualizarea rolului utilizatorului');
-        }
-        
-        // Update phone separately
+        // Create profile directly with facility_owner role
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ phone: accountData.phone })
-          .eq('user_id', authData.user.id);
+          .upsert({
+            user_id: authData.user.id,
+            email: accountData.email,
+            full_name: accountData.fullName,
+            phone: accountData.phone,
+            role: 'facility_owner'
+          }, {
+            onConflict: 'user_id'
+          });
 
         if (profileError) {
-          console.error('Profile update error:', profileError);
-          throw new Error('Eroare la actualizarea profilului');
+          console.error('Profile creation error:', profileError);
+          throw new Error('Eroare la crearea profilului');
         }
 
         // Wait a bit more to ensure role is properly set
