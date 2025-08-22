@@ -339,6 +339,14 @@ export type Database = {
           rating_display: string
         }[]
       }
+      get_facility_stats_by_type: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          facility_count: number
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          min_price: number
+        }[]
+      }
       get_owner_facility_details: {
         Args: Record<PropertyKey, never>
         Returns: {

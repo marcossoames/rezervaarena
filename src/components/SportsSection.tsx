@@ -63,36 +63,32 @@ const SportsSection = () => {
   useEffect(() => {
     const fetchSportsData = async () => {
       try {
-        // Use secure RPC to get facility data without exposing owner information
-        const { data: facilities, error } = await supabase
-          .rpc('get_public_facilities');
+        // Use the new public function to get aggregated facility stats
+        const { data: facilityStats, error } = await supabase
+          .rpc('get_facility_stats_by_type');
 
         if (error) {
-          console.error('Error fetching facilities:', error);
+          console.error('Error fetching facility stats:', error);
           return;
         }
 
-        // Group by facility type and calculate stats
-        const stats: Record<string, { count: number; prices: number[] }> = {};
-        
-        facilities?.forEach(facility => {
-          const type = facility.facility_type;
-          if (!stats[type]) {
-            stats[type] = { count: 0, prices: [] };
-          }
-          stats[type].count += 1;
-          stats[type].prices.push(Number(facility.price_per_hour));
+        // Create a map for easy lookup
+        const statsMap: Record<string, { count: number; minPrice: number }> = {};
+        facilityStats?.forEach(stat => {
+          statsMap[stat.facility_type] = {
+            count: Number(stat.facility_count),
+            minPrice: Number(stat.min_price)
+          };
         });
 
         // Update sports data with real stats
         const updatedSportsData = initialSportsData.map(sport => {
-          const sportStats = stats[sport.type];
-          if (sportStats && sportStats.prices.length > 0) {
-            const minPrice = Math.min(...sportStats.prices);
+          const sportStats = statsMap[sport.type];
+          if (sportStats) {
             return {
               ...sport,
               facilities: sportStats.count,
-              minPrice: `${minPrice} RON/oră`
+              minPrice: `${sportStats.minPrice} RON/oră`
             };
           }
           return sport;
