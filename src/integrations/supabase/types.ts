@@ -69,6 +69,13 @@ export type Database = {
             referencedRelation: "facilities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "bookings_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "public_facilities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       facilities: {
@@ -165,7 +172,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_facilities: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          capacity: number | null
+          city: string | null
+          created_at: string | null
+          description: string | null
+          facility_type: Database["public"]["Enums"]["facility_type"] | null
+          id: string | null
+          images: string[] | null
+          is_active: boolean | null
+          name: string | null
+          price_per_hour: number | null
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          capacity?: number | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          facility_type?: Database["public"]["Enums"]["facility_type"] | null
+          id?: string | null
+          images?: string[] | null
+          is_active?: boolean | null
+          name?: string | null
+          price_per_hour?: number | null
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          capacity?: number | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          facility_type?: Database["public"]["Enums"]["facility_type"] | null
+          id?: string | null
+          images?: string[] | null
+          is_active?: boolean | null
+          name?: string | null
+          price_per_hour?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_current_user_role: {
