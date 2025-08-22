@@ -94,6 +94,12 @@ const FacilitiesPage = () => {
   }, [searchParams]);
 
   useEffect(() => {
+    // If user is facility owner, redirect to management page
+    if (userProfile?.role === 'facility_owner') {
+      navigate('/manage-facilities');
+      return;
+    }
+
     // Only fetch facilities if user is authenticated and profile is loaded
     if (!authChecked || !session || !userProfile) {
       if (authChecked && !session) {
@@ -114,12 +120,16 @@ const FacilitiesPage = () => {
             .rpc('get_facilities_for_booking');
           allFacilities = data;
           error = rpcError;
-        } else {
-          // Admins and facility owners get full data
+        } else if (userProfile.role === 'admin') {
+          // Admins get full data
           const { data, error: rpcError } = await supabase
             .rpc('get_public_facilities');
           allFacilities = data;
           error = rpcError;
+        } else {
+          // Facility owners shouldn't reach this point (redirected above)
+          allFacilities = [];
+          error = null;
         }
 
         if (error) {
@@ -142,7 +152,7 @@ const FacilitiesPage = () => {
     };
 
     fetchFacilities();
-  }, [selectedType, session, authChecked, userProfile]);
+  }, [selectedType, session, authChecked, userProfile, navigate]);
 
   const getFacilityTypeLabel = (type: string) => {
     const typeMap: { [key: string]: string } = {
@@ -239,90 +249,74 @@ const FacilitiesPage = () => {
               Descoperă cele mai bune baze sportive din București și rezervă acum
             </p>
           </div>
-          
-          {/* Show management button for facility owners */}
-          {userProfile?.role === 'facility_owner' && (
-            <div className="flex gap-2">
-              <Link to="/manage-facilities">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Gestionează Facilitățile
-                </Button>
-              </Link>
-              <Link to="/add-facility">
-                <Button className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Adaugă Facilitate
-                </Button>
-              </Link>
-            </div>
-          )}
         </div>
 
-        {/* Search and Filters */}
-        <Card className="mb-8 animate-fade-in">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Caută facilități..." className="pl-10" />
+        {/* Search and Filters - Only for clients and admins */}
+        {userProfile?.role !== 'facility_owner' && (
+          <Card className="mb-8 animate-fade-in">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Caută facilități..." className="pl-10" />
+                </div>
+                
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Locație..." className="pl-10" />
+                </div>
+                
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input type="date" className="pl-10" />
+                </div>
+                
+                <Button variant="sport" className="w-full">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filtrează
+                </Button>
               </div>
               
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Locație..." className="pl-10" />
+              <div className="flex flex-wrap gap-2">
+                <Badge 
+                  variant={selectedType === null ? "default" : "outline"} 
+                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => handleTypeFilter(null)}
+                >
+                  Toate
+                </Badge>
+                <Badge 
+                  variant={selectedType === "tennis" ? "default" : "outline"} 
+                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => handleTypeFilter("tennis")}
+                >
+                  Tenis
+                </Badge>
+                <Badge 
+                  variant={selectedType === "football" ? "default" : "outline"} 
+                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => handleTypeFilter("football")}
+                >
+                  Fotbal
+                </Badge>
+                <Badge 
+                  variant={selectedType === "padel" ? "default" : "outline"} 
+                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => handleTypeFilter("padel")}
+                >
+                  Padel
+                </Badge>
+                <Badge 
+                  variant={selectedType === "swimming" ? "default" : "outline"} 
+                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => handleTypeFilter("swimming")}
+                >
+                  Înot
+                </Badge>
               </div>
-              
-              <div className="relative">
-                <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input type="date" className="pl-10" />
-              </div>
-              
-              <Button variant="sport" className="w-full">
-                <Filter className="h-4 w-4 mr-2" />
-                Filtrează
-              </Button>
-            </div>
-            
-            <div className="flex flex-wrap gap-2">
-              <Badge 
-                variant={selectedType === null ? "default" : "outline"} 
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                onClick={() => handleTypeFilter(null)}
-              >
-                Toate
-              </Badge>
-              <Badge 
-                variant={selectedType === "tennis" ? "default" : "outline"} 
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                onClick={() => handleTypeFilter("tennis")}
-              >
-                Tenis
-              </Badge>
-              <Badge 
-                variant={selectedType === "football" ? "default" : "outline"} 
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                onClick={() => handleTypeFilter("football")}
-              >
-                Fotbal
-              </Badge>
-              <Badge 
-                variant={selectedType === "padel" ? "default" : "outline"} 
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                onClick={() => handleTypeFilter("padel")}
-              >
-                Padel
-              </Badge>
-              <Badge 
-                variant={selectedType === "swimming" ? "default" : "outline"} 
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                onClick={() => handleTypeFilter("swimming")}
-              >
-                Înot
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Facilities Grid */}
         {facilities.length === 0 ? (
