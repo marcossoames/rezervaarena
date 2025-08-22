@@ -123,11 +123,21 @@ const FacilitiesPage = () => {
 
         // Use different functions based on user authentication status
         if (session && userProfile?.role === 'client') {
-          // Authenticated clients get limited data through the secure function
-          const { data, error: rpcError } = await supabase
+          // Authenticated clients get exact data through the booking function
+          // If that fails, fallback to public browsing with exact data
+          const { data: clientData, error: clientError } = await supabase
             .rpc('get_facilities_for_booking');
-          allFacilities = data;
-          error = rpcError;
+          
+          if (clientData && clientData.length > 0) {
+            allFacilities = clientData;
+            error = clientError;
+          } else {
+            // Fallback to public browsing for clients
+            const { data, error: rpcError } = await supabase
+              .rpc('get_facilities_for_public_browsing');
+            allFacilities = data;
+            error = rpcError;
+          }
         } else if (session && userProfile?.role === 'admin') {
           // Admins get full data
           const { data, error: rpcError } = await supabase
