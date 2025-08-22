@@ -161,7 +161,7 @@ const FacilitiesPage = () => {
     }
   };
 
-  if (loading || !authChecked) {
+  if (loading || !authChecked || (session && !userProfile)) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
