@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 
 interface AdminLoginData {
@@ -19,18 +20,32 @@ interface AdminLoginData {
 
 const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const { register, handleSubmit, formState: { errors } } = useForm<AdminLoginData>();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const captchaRef = useRef<HCaptcha>(null);
 
   const onSubmit = async (data: AdminLoginData) => {
+    if (!captchaToken) {
+      toast({
+        title: "Verificare CAPTCHA necesară",
+        description: "Te rog completează verificarea CAPTCHA înainte de a continua.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Sign in with Supabase
+      // Sign in with Supabase including CAPTCHA token
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
+        options: {
+          captchaToken: captchaToken
+        }
       });
 
       if (authError) {
@@ -64,6 +79,13 @@ const AdminLogin = () => {
       }
     } catch (error: any) {
       console.error('Error during admin login:', error);
+      
+      // Reset CAPTCHA on error
+      if (captchaRef.current) {
+        captchaRef.current.resetCaptcha();
+        setCaptchaToken(null);
+      }
+      
       toast({
         title: "Eroare la autentificare",
         description: error.message || "Credențiale invalide sau eroare de sistem",
@@ -72,6 +94,14 @@ const AdminLogin = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const onCaptchaVerify = (token: string) => {
+    setCaptchaToken(token);
+  };
+
+  const onCaptchaExpire = () => {
+    setCaptchaToken(null);
   };
 
   return (
@@ -145,12 +175,26 @@ const AdminLogin = () => {
                 )}
               </div>
 
+              {/* CAPTCHA Section */}
+              <div className="space-y-2">
+                <Label>Verificare securitate</Label>
+                <div className="flex justify-center">
+                  <HCaptcha
+                    ref={captchaRef}
+                    sitekey="10000000-ffff-ffff-ffff-000000000001" // Test site key for development
+                    onVerify={onCaptchaVerify}
+                    onExpire={onCaptchaExpire}
+                    theme="light"
+                  />
+                </div>
+              </div>
+
               <Button 
                 type="submit" 
                 className="w-full" 
                 size="lg" 
                 variant="premium"
-                disabled={isLoading}
+                disabled={isLoading || !captchaToken}
               >
                 <Shield className="h-4 w-4 mr-2" />
                 {isLoading ? "Se autentifică..." : "Acces Administrator"}
