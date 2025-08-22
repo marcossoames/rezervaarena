@@ -14,18 +14,24 @@ import ImageCarousel from "@/components/ImageCarousel";
 interface Facility {
   id: string;
   name: string;
-  description: string;
+  description?: string;
+  basic_description?: string; // For public browsing
   facility_type: string;
   address?: string; // For admin/owner view
   area_info?: string; // For client view - general area only
+  general_area?: string; // For public browsing
   city: string;
   price_per_hour?: number; // For admin/owner view
   base_price_info?: string; // For client view - generic pricing
+  price_range?: string; // For public browsing
   capacity?: number; // For admin/owner view
   capacity_info?: string; // For client view - generic capacity
-  amenities: string[];
-  images: string[];
+  amenities?: string[];
+  available_amenities?: string[]; // For public browsing
+  images?: string[];
   main_image_url?: string;
+  has_images?: boolean; // For public browsing
+  rating_display?: string; // For public browsing
   created_at?: string; // Optional for clients
 }
 
@@ -320,42 +326,45 @@ const FacilitiesPage = () => {
                         <div>
                           <h3 className="text-xl font-bold text-foreground mb-1">{facility.name}</h3>
                            <div className="flex items-center text-muted-foreground text-sm">
-                              <MapPin className="h-4 w-4 mr-1" />
-                              {/* Show secure location info for clients, full address for admins/owners */}
-                              {userProfile?.role === 'client' 
-                                ? facility.area_info || `${facility.city} area`
-                                : `${facility.address}, ${facility.city}`
-                              }
-                            </div>
+                               <MapPin className="h-4 w-4 mr-1" />
+                               {/* Show appropriate location info based on data structure */}
+                               {facility.general_area || facility.area_info || 
+                                (facility.address ? `${facility.address}, ${facility.city}` : `${facility.city} area`)
+                               }
+                             </div>
                         </div>
                       </div>
                       
-                      {facility.description && (
-                        <p className="text-sm text-muted-foreground mb-4">{facility.description}</p>
-                      )}
+                       {(facility.description || facility.basic_description) && (
+                         <p className="text-sm text-muted-foreground mb-4">
+                           {facility.description || facility.basic_description}
+                         </p>
+                       )}
                       
-                      {facility.amenities && facility.amenities.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-4">
-                          {facility.amenities.map((amenity) => (
-                            <Badge key={amenity} variant="secondary" className="text-xs">
-                              {amenity}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
+                       {(facility.amenities || facility.available_amenities) && 
+                        (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && (
+                         <div className="flex flex-wrap gap-1 mb-4">
+                           {(facility.amenities || facility.available_amenities)?.map((amenity) => (
+                             <Badge key={amenity} variant="secondary" className="text-xs">
+                               {amenity}
+                             </Badge>
+                           ))}
+                         </div>
+                       )}
                       
-                       <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                        <div className="flex items-center">
-                          <span className="text-muted-foreground">
-                            Capacitate: {facility.capacity_info || facility.capacity}
-                          </span>
-                        </div>
-                      </div>
+                        <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                         <div className="flex items-center">
+                           <span className="text-muted-foreground">
+                             Capacitate: {facility.capacity_info || facility.capacity || 'Disponibil'}
+                           </span>
+                         </div>
+                       </div>
                       
-                      <div className="flex justify-between items-center">
-                        <div className="text-2xl font-bold text-primary">
-                          {facility.base_price_info || `${facility.price_per_hour} RON/oră`}
-                        </div>
+                       <div className="flex justify-between items-center">
+                         <div className="text-2xl font-bold text-primary">
+                           {facility.price_range || facility.base_price_info || 
+                            (facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : 'Preț disponibil la rezervare')}
+                         </div>
                         {session ? (
                           <Button variant="sport">
                             Rezervă Acum
