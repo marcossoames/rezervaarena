@@ -181,7 +181,7 @@ const AdminLogin = () => {
                 <div className="flex justify-center">
                   <HCaptcha
                     ref={captchaRef}
-                    sitekey="10000000-ffff-ffff-ffff-000000000001" // Test site key for development
+                    sitekey="a5d5b844-32fe-4d4b-97c8-4e94b6b8b8b8" // Replace with your real hCaptcha site key
                     onVerify={onCaptchaVerify}
                     onExpire={onCaptchaExpire}
                     theme="light"
