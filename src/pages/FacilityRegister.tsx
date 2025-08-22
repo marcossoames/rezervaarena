@@ -135,18 +135,17 @@ const FacilityRegister = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       {/* Back Button */}
-      <div className="absolute top-4 left-4 z-10">
-        <Link to="/">
-          <Button variant="ghost" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" />
-            Înapoi la pagina principală
-          </Button>
+      <div className="container mx-auto max-w-2xl mb-4">
+        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
+          <ArrowLeft className="h-4 w-4" />
+          Înapoi la pagina principală
         </Link>
       </div>
       
-      <Card className="w-full max-w-2xl shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
+      <div className="flex items-center justify-center">
+        <Card className="w-full max-w-2xl shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
             <div className="w-8 h-8 bg-primary rounded-full"></div>
@@ -428,7 +427,8 @@ const FacilityRegister = () => {
             </p>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };
