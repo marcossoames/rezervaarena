@@ -227,6 +227,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_facilities_for_booking: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address_preview: string
+          amenities: string[]
+          capacity: number
+          city: string
+          description: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          id: string
+          images: string[]
+          name: string
+          price_per_hour: number
+        }[]
+      }
       get_public_facilities: {
         Args: Record<PropertyKey, never>
         Returns: {

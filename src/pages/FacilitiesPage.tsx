@@ -15,13 +15,18 @@ interface Facility {
   name: string;
   description: string;
   facility_type: string;
-  address: string;
+  address?: string; // Optional for clients
+  address_preview?: string; // For clients only
   city: string;
   price_per_hour: number;
   capacity: number;
   amenities: string[];
   images: string[];
-  created_at: string;
+  created_at?: string; // Optional for clients
+}
+
+interface UserProfile {
+  role: 'client' | 'facility_owner' | 'admin';
 }
 
 const FacilitiesPage = () => {
@@ -31,6 +36,7 @@ const FacilitiesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [session, setSession] = useState<Session | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,6 +44,11 @@ const FacilitiesPage = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setAuthChecked(true);
+      
+      // Get user profile if authenticated
+      if (session) {
+        fetchUserProfile(session.user.id);
+      }
     });
 
     // Listen for auth changes
@@ -45,11 +56,32 @@ const FacilitiesPage = () => {
       (event, session) => {
         setSession(session);
         setAuthChecked(true);
+        
+        if (session) {
+          fetchUserProfile(session.user.id);
+        } else {
+          setUserProfile(null);
+        }
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) throw error;
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   useEffect(() => {
     // Get the type parameter from URL
@@ -58,19 +90,33 @@ const FacilitiesPage = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    // Only fetch facilities if user is authenticated
-    if (!authChecked) return;
-    
-    if (!session) {
-      setLoading(false);
+    // Only fetch facilities if user is authenticated and profile is loaded
+    if (!authChecked || !session || !userProfile) {
+      if (authChecked && !session) {
+        setLoading(false);
+      }
       return;
     }
 
     const fetchFacilities = async () => {
       try {
-        // Use secure RPC to get facilities
-        const { data: allFacilities, error } = await supabase
-          .rpc('get_public_facilities');
+        let allFacilities;
+        let error;
+
+        // Use different functions based on user role
+        if (userProfile.role === 'client') {
+          // Clients get limited data through the secure function
+          const { data, error: rpcError } = await supabase
+            .rpc('get_facilities_for_booking');
+          allFacilities = data;
+          error = rpcError;
+        } else {
+          // Admins and facility owners get full data
+          const { data, error: rpcError } = await supabase
+            .rpc('get_public_facilities');
+          allFacilities = data;
+          error = rpcError;
+        }
 
         if (error) {
           console.error('Error fetching facilities:', error);
@@ -92,7 +138,7 @@ const FacilitiesPage = () => {
     };
 
     fetchFacilities();
-  }, [selectedType, session, authChecked]);
+  }, [selectedType, session, authChecked, userProfile]);
 
   const getFacilityTypeLabel = (type: string) => {
     const typeMap: { [key: string]: string } = {
@@ -288,7 +334,11 @@ const FacilitiesPage = () => {
                           <h3 className="text-xl font-bold text-foreground mb-1">{facility.name}</h3>
                           <div className="flex items-center text-muted-foreground text-sm">
                             <MapPin className="h-4 w-4 mr-1" />
-                            {facility.address}, {facility.city}
+                            {/* Show appropriate address based on user role */}
+                            {userProfile?.role === 'client' 
+                              ? `${facility.address_preview}, ${facility.city}`
+                              : `${facility.address}, ${facility.city}`
+                            }
                           </div>
                         </div>
                       </div>
