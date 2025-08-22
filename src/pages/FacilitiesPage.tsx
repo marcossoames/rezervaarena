@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Clock, Star, Filter, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -25,14 +26,29 @@ interface Facility {
 const FacilitiesPage = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Get the type parameter from URL
+    const typeParam = searchParams.get('type');
+    setSelectedType(typeParam);
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchFacilities = async () => {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('facilities')
           .select('*')
           .eq('is_active', true);
+
+        // Add type filter if selected
+        if (selectedType) {
+          query = query.eq('facility_type', selectedType as any);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
           console.error('Error fetching facilities:', error);
@@ -47,7 +63,7 @@ const FacilitiesPage = () => {
     };
 
     fetchFacilities();
-  }, []);
+  }, [selectedType]);
 
   const getFacilityTypeLabel = (type: string) => {
     const typeMap: { [key: string]: string } = {
@@ -59,6 +75,15 @@ const FacilitiesPage = () => {
       volleyball: "Volei"
     };
     return typeMap[type] || type;
+  };
+
+  const handleTypeFilter = (type: string | null) => {
+    setSelectedType(type);
+    if (type) {
+      setSearchParams({ type });
+    } else {
+      setSearchParams({});
+    }
   };
 
   if (loading) {
@@ -115,11 +140,41 @@ const FacilitiesPage = () => {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">Toate</Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">Tenis</Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">Fotbal</Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">Padel</Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">Înot</Badge>
+              <Badge 
+                variant={selectedType === null ? "default" : "outline"} 
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                onClick={() => handleTypeFilter(null)}
+              >
+                Toate
+              </Badge>
+              <Badge 
+                variant={selectedType === "tennis" ? "default" : "outline"} 
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                onClick={() => handleTypeFilter("tennis")}
+              >
+                Tenis
+              </Badge>
+              <Badge 
+                variant={selectedType === "football" ? "default" : "outline"} 
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                onClick={() => handleTypeFilter("football")}
+              >
+                Fotbal
+              </Badge>
+              <Badge 
+                variant={selectedType === "padel" ? "default" : "outline"} 
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                onClick={() => handleTypeFilter("padel")}
+              >
+                Padel
+              </Badge>
+              <Badge 
+                variant={selectedType === "swimming" ? "default" : "outline"} 
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                onClick={() => handleTypeFilter("swimming")}
+              >
+                Înot
+              </Badge>
             </div>
           </CardContent>
         </Card>
