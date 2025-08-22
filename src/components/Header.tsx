@@ -18,12 +18,12 @@ const Header = () => {
             <Link to="/facilities" className="text-muted-foreground hover:text-primary transition-smooth">
               Terenuri
             </Link>
-            <a href="#despre" className="text-muted-foreground hover:text-primary transition-smooth">
+            <Link to="/about" className="text-muted-foreground hover:text-primary transition-smooth">
               Despre noi
-            </a>
-            <a href="#contact" className="text-muted-foreground hover:text-primary transition-smooth">
+            </Link>
+            <Link to="/contact" className="text-muted-foreground hover:text-primary transition-smooth">
               Contact
-            </a>
+            </Link>
           </nav>
 
           <div className="flex items-center space-x-3">

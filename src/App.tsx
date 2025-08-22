@@ -11,6 +11,8 @@ import FacilitiesPage from "./pages/FacilitiesPage";
 import BookingPage from "./pages/BookingPage";
 import FacilityRegister from "./pages/FacilityRegister";
 import ClientRegister from "./pages/ClientRegister";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,8 @@ const App = () => (
           <Route path="/facility/register" element={<FacilityRegister />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/facilities" element={<FacilitiesPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/booking/:facilityId" element={<BookingPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
