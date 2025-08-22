@@ -15,23 +15,23 @@ interface Facility {
   id: string;
   name: string;
   description?: string;
-  basic_description?: string; // For public browsing
+  basic_description?: string; // For older public browsing data
   facility_type: string;
   address?: string; // For admin/owner view
-  area_info?: string; // For client view - general area only
-  general_area?: string; // For public browsing
+  area_info?: string; // For client/public view - general area only
+  general_area?: string; // For legacy public browsing
   city: string;
-  price_per_hour?: number; // For admin/owner view
+  price_per_hour?: number; // Now available for public browsing too
   base_price_info?: string; // For client view - generic pricing
-  price_range?: string; // For public browsing
-  capacity?: number; // For admin/owner view
+  price_range?: string; // For legacy public browsing
+  capacity?: number; // Now available for public browsing too
   capacity_info?: string; // For client view - generic capacity
-  amenities?: string[];
-  available_amenities?: string[]; // For public browsing
-  images?: string[];
+  amenities?: string[]; // Now available for public browsing too
+  available_amenities?: string[]; // For legacy public browsing
+  images?: string[]; // Now available for public browsing too
   main_image_url?: string;
-  has_images?: boolean; // For public browsing
-  rating_display?: string; // For public browsing
+  has_images?: boolean; // For legacy public browsing
+  rating_display?: string; // For legacy public browsing
   created_at?: string; // Optional for clients
 }
 
@@ -328,7 +328,7 @@ const FacilitiesPage = () => {
                            <div className="flex items-center text-muted-foreground text-sm">
                                <MapPin className="h-4 w-4 mr-1" />
                                {/* Show appropriate location info based on data structure */}
-                               {facility.general_area || facility.area_info || 
+                               {facility.area_info || facility.general_area || 
                                 (facility.address ? `${facility.address}, ${facility.city}` : `${facility.city} area`)
                                }
                              </div>
@@ -351,7 +351,7 @@ const FacilitiesPage = () => {
                            ))}
                          </div>
                        )}
-                      
+                       
                         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                          <div className="flex items-center">
                            <span className="text-muted-foreground">
@@ -362,8 +362,8 @@ const FacilitiesPage = () => {
                       
                        <div className="flex justify-between items-center">
                          <div className="text-2xl font-bold text-primary">
-                           {facility.price_range || facility.base_price_info || 
-                            (facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : 'Preț disponibil la rezervare')}
+                           {facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : 
+                            facility.price_range || facility.base_price_info || 'Preț disponibil la rezervare'}
                          </div>
                          {session ? (
                            <Button variant="sport" asChild>

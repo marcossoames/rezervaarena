@@ -327,16 +327,16 @@ export type Database = {
       get_facilities_for_public_browsing: {
         Args: Record<PropertyKey, never>
         Returns: {
-          available_amenities: string[]
-          basic_description: string
+          amenities: string[]
+          area_info: string
+          capacity: number
           city: string
+          description: string
           facility_type: Database["public"]["Enums"]["facility_type"]
-          general_area: string
-          has_images: boolean
           id: string
+          images: string[]
           name: string
-          price_range: string
-          rating_display: string
+          price_per_hour: number
         }[]
       }
       get_facility_stats_by_type: {
