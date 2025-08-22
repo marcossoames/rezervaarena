@@ -379,7 +379,7 @@ const FacilitiesPage = () => {
                          </div>
                          {session ? (
                            <Button variant="sport" asChild>
-                             <Link to={`/booking?facility=${facility.id}`}>
+                             <Link to={`/booking/${facility.id}`}>
                                Rezervă Acum
                              </Link>
                            </Button>
