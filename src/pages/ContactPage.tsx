@@ -61,8 +61,8 @@ const ContactPage = () => {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-5 h-5 text-secondary" />
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-5 h-5 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-medium">Telefon</h3>
@@ -88,20 +88,6 @@ const ContactPage = () => {
                       Timișoara, Timiș<br />
                       România
                     </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-5 h-5 text-destructive" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Program</h3>
-                    <p className="text-muted-foreground">
-                      Luni - Vineri: 09:00 - 18:00<br />
-                      Sâmbătă: 10:00 - 16:00<br />
-                      Duminică: Închis
-                    </p>
                   </div>
                 </div>
               </CardContent>
