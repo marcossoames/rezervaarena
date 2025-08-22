@@ -11,6 +11,7 @@ import FacilitiesPage from "./pages/FacilitiesPage";
 import BookingPage from "./pages/BookingPage";
 import FacilityRegister from "./pages/FacilityRegister";
 import AddFacilityPage from "./pages/AddFacilityPage";
+import EditFacilityPage from "./pages/EditFacilityPage";
 import ManageFacilitiesPage from "./pages/ManageFacilitiesPage";
 import ClientRegister from "./pages/ClientRegister";
 import AboutPage from "./pages/AboutPage";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/facility/login" element={<SportsFacilityLogin />} />
           <Route path="/facility/register" element={<FacilityRegister />} />
           <Route path="/add-facility" element={<AddFacilityPage />} />
+          <Route path="/edit-facility/:id" element={<EditFacilityPage />} />
           <Route path="/manage-facilities" element={<ManageFacilitiesPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />

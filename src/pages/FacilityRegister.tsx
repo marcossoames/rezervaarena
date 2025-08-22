@@ -100,8 +100,11 @@ const FacilityRegister = () => {
         // Wait for user to be properly authenticated
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Use secure function to upgrade to facility owner role
-        const { data: roleUpdated, error: roleError } = await supabase.rpc('promote_self_to_facility_owner');
+        // Update user role manually in profiles table
+        const { error: roleError } = await supabase
+          .from('profiles')
+          .update({ role: 'facility_owner' })
+          .eq('user_id', authData.user.id);
         
         if (roleError) {
           console.error('Role update error:', roleError);
