@@ -48,7 +48,17 @@ const ManageFacilitiesPage = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (!profile || profile.role !== 'facility_owner') {
+      // Check if user has facilities or is marked as facility owner
+      const { data: facilities, error: facilityError } = await supabase
+        .from('facilities')
+        .select('id')
+        .eq('owner_id', user.id)
+        .limit(1);
+
+      const hasFacilities = facilities && facilities.length > 0;
+      const isFacilityOwner = profile?.user_type_comment?.includes('Proprietar bază sportivă');
+
+      if (!hasFacilities && !isFacilityOwner) {
         toast({
           title: "Acces restricționat",
           description: "Doar proprietarii de baze sportive pot accesa această pagină",

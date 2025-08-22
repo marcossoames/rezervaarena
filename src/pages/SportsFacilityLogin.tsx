@@ -1,11 +1,91 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Building2, Mail, Lock, ArrowLeft, Phone, MapPin } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const SportsFacilityLogin = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Eroare",
+        description: "Te rog completează toate câmpurile",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Attempt login
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Check if user has facilities (indicating they are a facility owner)
+        const { data: facilities, error: facilityError } = await supabase
+          .from('facilities')
+          .select('id')
+          .eq('owner_id', data.user.id)
+          .limit(1);
+
+        if (facilityError) {
+          console.error('Error checking facilities:', facilityError);
+        }
+
+        if (facilities && facilities.length > 0) {
+          // User has facilities, redirect to management page
+          navigate('/manage-facilities');
+        } else {
+          // User doesn't have facilities, check their profile comment
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('user_type_comment')
+            .eq('user_id', data.user.id)
+            .single();
+
+          if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+            // They are supposed to be facility owners but have no facilities
+            navigate('/manage-facilities');
+          } else {
+            toast({
+              title: "Acces restricționat",
+              description: "Acest cont nu este înregistrat ca proprietar de bază sportivă",
+              variant: "destructive"
+            });
+            await supabase.auth.signOut();
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast({
+        title: "Eroare la autentificare",
+        description: error.message || "Email sau parolă incorectă",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -26,44 +106,58 @@ const SportsFacilityLogin = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email bază sportivă</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="contact@bazasportiva.ro"
-                  className="pl-10"
-                />
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email bază sportivă</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="contact@bazasportiva.ro"
+                    className="pl-10"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Parola</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="Parola ta"
-                  className="pl-10"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="password">Parola</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder="Parola ta"
+                    className="pl-10"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <Link to="/facility/register" className="text-primary hover:underline">
-                Înregistrează baza sportivă
-              </Link>
-              <Link to="/forgot-password" className="text-muted-foreground hover:text-primary transition-smooth">
-                Ai uitat parola?
-              </Link>
-            </div>
+              <div className="flex items-center justify-between text-sm">
+                <Link to="/facility/register" className="text-primary hover:underline">
+                  Înregistrează baza sportivă
+                </Link>
+                <Link to="/forgot-password" className="text-muted-foreground hover:text-primary transition-smooth">
+                  Ai uitat parola?
+                </Link>
+              </div>
 
-            <Button className="w-full" size="lg" variant="sport">
-              Acces Dashboard
-            </Button>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                size="lg" 
+                variant="sport"
+                disabled={isLoading}
+              >
+                {isLoading ? "Se conectează..." : "Acces Dashboard"}
+              </Button>
+            </form>
 
             <div className="bg-secondary/50 rounded-lg p-4 text-center">
               <p className="text-sm text-muted-foreground mb-2">Nou pe SportBook?</p>
