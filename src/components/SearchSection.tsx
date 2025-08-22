@@ -160,55 +160,6 @@ const SearchSection = () => {
               </Button>
             </div>
 
-            {/* Quick Filters */}
-            <div className="mt-6 pt-6 border-t border-border/30">
-              <p className="text-sm text-muted-foreground mb-3 text-center">Căutări populare:</p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setFacilityType("tennis");
-                    setLocation("București");
-                  }}
-                  className="bg-background/30 hover:bg-primary/10 hover:border-primary/50"
-                >
-                  Tenis în București
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setFacilityType("football");
-                    setSelectedDate(new Date());
-                  }}
-                  className="bg-background/30 hover:bg-primary/10 hover:border-primary/50"
-                >
-                  Fotbal astăzi
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setFacilityType("swimming");
-                  }}
-                  className="bg-background/30 hover:bg-primary/10 hover:border-primary/50"
-                >
-                  Piscine
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setFacilityType("padel");
-                    setLocation("Cluj");
-                  }}
-                  className="bg-background/30 hover:bg-primary/10 hover:border-primary/50"
-                >
-                  Padel în Cluj
-                </Button>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

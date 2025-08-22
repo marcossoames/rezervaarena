@@ -100,11 +100,8 @@ const FacilitiesPage = () => {
       return;
     }
 
-    // Only fetch facilities if user is authenticated and profile is loaded
-    if (!authChecked || !session || !userProfile) {
-      if (authChecked && !session) {
-        setLoading(false);
-      }
+    // Wait for auth check to complete
+    if (!authChecked) {
       return;
     }
 
@@ -113,23 +110,25 @@ const FacilitiesPage = () => {
         let allFacilities;
         let error;
 
-        // Use different functions based on user role
-        if (userProfile.role === 'client') {
-          // Clients get limited data through the secure function
+        // Use different functions based on user authentication status
+        if (session && userProfile?.role === 'client') {
+          // Authenticated clients get limited data through the secure function
           const { data, error: rpcError } = await supabase
             .rpc('get_facilities_for_booking');
           allFacilities = data;
           error = rpcError;
-        } else if (userProfile.role === 'admin') {
+        } else if (session && userProfile?.role === 'admin') {
           // Admins get full data
           const { data, error: rpcError } = await supabase
             .rpc('get_public_facilities');
           allFacilities = data;
           error = rpcError;
         } else {
-          // Facility owners shouldn't reach this point (redirected above)
-          allFacilities = [];
-          error = null;
+          // Non-authenticated users get public facility data for browsing
+          const { data, error: rpcError } = await supabase
+            .rpc('get_facilities_for_booking');
+          allFacilities = data;
+          error = rpcError;
         }
 
         if (error) {
@@ -190,50 +189,6 @@ const FacilitiesPage = () => {
     );
   }
 
-  // Show login prompt if user is not authenticated
-  if (!session) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="bg-card border border-border rounded-lg p-8">
-              <LogIn className="h-16 w-16 text-primary mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-4">
-                Autentificare Necesară
-              </h1>
-              <p className="text-muted-foreground mb-6">
-                Pentru a vizualiza facilitățile sportive disponibile și a face rezervări, 
-                trebuie să te autentifici în aplicație.
-              </p>
-              <div className="space-y-3">
-                <Button 
-                  onClick={() => navigate('/client/login')} 
-                  className="w-full" 
-                  size="lg"
-                >
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Autentifică-te
-                </Button>
-                <Button 
-                  onClick={() => navigate('/client/register')} 
-                  variant="outline" 
-                  className="w-full" 
-                  size="lg"
-                >
-                  Creează cont nou
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground mt-4">
-                Această măsură protejează informațiile sensibile ale facilităților sportive.
-              </p>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -401,9 +356,16 @@ const FacilitiesPage = () => {
                         <div className="text-2xl font-bold text-primary">
                           {facility.base_price_info || `${facility.price_per_hour} RON/oră`}
                         </div>
-                        <Button variant="sport">
-                          Rezervă Acum
-                        </Button>
+                        {session ? (
+                          <Button variant="sport">
+                            Rezervă Acum
+                          </Button>
+                        ) : (
+                          <Button variant="outline" onClick={() => navigate('/client/login')}>
+                            <LogIn className="h-4 w-4 mr-2" />
+                            Autentifică-te
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
