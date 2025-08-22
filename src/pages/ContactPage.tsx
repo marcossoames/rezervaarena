@@ -36,7 +36,7 @@ const ContactPage = () => {
             Contact
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Avem întrebări? Suntem aici să vă ajutăm! Contactați-ne prin oricare dintre metodele de mai jos.
+            Aveți întrebări? Suntem aici să vă ajutăm! Contactați-ne prin oricare dintre metodele de mai jos.
           </p>
         </div>
 
