@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Calendar, Building2, Settings, User, Trash2 } from "lucide-react";
+import { User, Calendar, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { deleteUserAccount } from "@/utils/deleteAccount";
 
-const FacilityOwnerProfilePage = () => {
+const ClientProfilePage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -22,7 +22,7 @@ const FacilityOwnerProfilePage = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          navigate("/facility/login");
+          navigate("/client/login");
           return;
         }
 
@@ -58,27 +58,6 @@ const FacilityOwnerProfilePage = () => {
 
     loadUserProfile();
   }, []);
-
-  const extractSportsComplexName = (userTypeComment: string) => {
-    console.log('Original user_type_comment:', userTypeComment);
-    
-    if (!userTypeComment) return userProfile?.full_name || "Baza Sportivă";
-    
-    // Remove system registration text
-    let cleanName = userTypeComment
-      .replace(' - înregistrat prin sistem', '')
-      .replace(' - Proprietar bază sportivă', '')
-      .replace('Proprietar bază sportivă - ', '');
-    
-    console.log('Clean name after replacements:', cleanName);
-    
-    // If we end up with just "Proprietar bază sportivă" or similar, use full_name
-    if (cleanName === 'Proprietar bază sportivă' || cleanName.trim() === '') {
-      return userProfile?.full_name || "Baza Sportivă";
-    }
-    
-    return cleanName;
-  };
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
@@ -134,8 +113,6 @@ const FacilityOwnerProfilePage = () => {
     );
   }
 
-  const sportsComplexName = extractSportsComplexName(userProfile.user_type_comment);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
       <Header />
@@ -148,7 +125,7 @@ const FacilityOwnerProfilePage = () => {
               <User className="h-10 w-10 text-primary" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {sportsComplexName}
+              {userProfile.full_name}
             </h1>
             <p className="text-sm text-gray-500">
               {userProfile.email}
@@ -161,7 +138,7 @@ const FacilityOwnerProfilePage = () => {
           </div>
 
           {/* Action Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* Rezervări */}
             <Card className="hover:shadow-lg transition-shadow cursor-pointer group" 
                   onClick={() => navigate("/my-reservations")}>
@@ -169,52 +146,14 @@ const FacilityOwnerProfilePage = () => {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
                   <Calendar className="h-8 w-8 text-blue-600" />
                 </div>
-                <CardTitle className="text-xl">Rezervări</CardTitle>
+                <CardTitle className="text-xl">Rezervările Mele</CardTitle>
                 <CardDescription>
-                  Vezi toate rezervările pentru facilitățile tale
+                  Vezi toate rezervările tale
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
                 <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   Vezi Rezervările
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Terenuri */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer group" 
-                  onClick={() => navigate("/manage-facilities")}>
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors">
-                  <Building2 className="h-8 w-8 text-green-600" />
-                </div>
-                <CardTitle className="text-xl">Terenuri</CardTitle>
-                <CardDescription>
-                  Gestionează facilitățile și terenurile tale
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  Gestionează Terenurile
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Setări Bază */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer group" 
-                  onClick={() => navigate("/edit-sports-complex-settings")}>
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors">
-                  <Settings className="h-8 w-8 text-purple-600" />
-                </div>
-                <CardTitle className="text-xl">Setări Bază</CardTitle>
-                <CardDescription>
-                  Editează informațiile generale ale bazei sportive
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  Editează Setările
                 </Button>
               </CardContent>
             </Card>
@@ -241,7 +180,7 @@ const FacilityOwnerProfilePage = () => {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Ești sigur că vrei să îți ștergi contul?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Această acțiune nu poate fi anulată. Toate datele tale, inclusiv facilitățile, rezervările și informațiile personale, vor fi șterse definitiv.
+                        Această acțiune nu poate fi anulată. Toate datele tale, inclusiv rezervările și informațiile personale, vor fi șterse definitiv.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -266,18 +205,14 @@ const FacilityOwnerProfilePage = () => {
               <CardTitle>Informații Rapide</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                 <div>
                   <div className="text-2xl font-bold text-primary">0</div>
-                  <div className="text-sm text-gray-600">Rezervări Astăzi</div>
+                  <div className="text-sm text-gray-600">Rezervări Active</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-green-600">0</div>
-                  <div className="text-sm text-gray-600">Rezervări Luna Aceasta</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">0</div>
-                  <div className="text-sm text-gray-600">Terenuri Active</div>
+                  <div className="text-sm text-gray-600">Rezervări Totale</div>
                 </div>
               </div>
             </CardContent>
@@ -290,4 +225,4 @@ const FacilityOwnerProfilePage = () => {
   );
 };
 
-export default FacilityOwnerProfilePage;
+export default ClientProfilePage;

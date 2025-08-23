@@ -70,7 +70,7 @@ const Header = () => {
       if (userProfile?.user_type_comment?.includes('Proprietar bază sportivă')) {
         navigate('/facility-owner-profile');
       } else {
-        navigate('/my-reservations');
+        navigate('/client-profile');
       }
     } else {
       navigate('/client/login');
