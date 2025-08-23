@@ -140,7 +140,7 @@ const SportsSection = () => {
                   
                   <div className="space-y-2 mb-6">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Facilități disponibile:</span>
+                      <span className="text-sm text-muted-foreground">Terenuri disponibile:</span>
                       <span className="font-semibold text-primary">{sport.facilities}</span>
                     </div>
                     <div className="flex justify-between items-center">
