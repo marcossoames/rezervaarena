@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Calendar as CalendarIcon, Ban, Edit, Eye, Clock, Users, MapPin } from "lucide-react";
@@ -53,7 +54,8 @@ const FacilityCalendarPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
+  const [blockStartTime, setBlockStartTime] = useState("");
+  const [blockEndTime, setBlockEndTime] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [blockReason, setBlockReason] = useState("");
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -128,6 +130,18 @@ const FacilityCalendarPage = () => {
     return blockedDates.some(blocked => blocked.blocked_date === dateStr);
   };
 
+  const getTimeOptions = () => {
+    const times = [];
+    for (let hour = 8; hour < 22; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        times.push({ value: timeString, label: timeString });
+      }
+    }
+    times.push({ value: "22:00", label: "22:00" });
+    return times;
+  };
+
   const getTimeSlots = () => {
     const slots = [];
     const startHour = 8; // Default start hour, can be from facility.operating_hours_start
@@ -146,7 +160,14 @@ const FacilityCalendarPage = () => {
   };
 
   const blockDate = async () => {
-    if (!selectedDate || !blockReason.trim()) return;
+    if (!selectedDate || !blockReason.trim()) {
+      toast({
+        title: "Eroare",
+        description: "Te rugăm să completezi motivul blocării",
+        variant: "destructive"
+      });
+      return;
+    }
     
     // Verifică că data este de la astăzi înainte
     if (isBefore(selectedDate, today)) {
@@ -158,14 +179,23 @@ const FacilityCalendarPage = () => {
       return;
     }
 
+    // Validare interval orar
+    if (blockStartTime && blockEndTime && blockStartTime >= blockEndTime) {
+      toast({
+        title: "Eroare",
+        description: "Ora de sfârșit trebuie să fie după ora de început",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     let startTime = null;
     let endTime = null;
     
-    if (selectedTimeSlot) {
-      const [start, end] = selectedTimeSlot.split(' - ');
-      startTime = start;
-      endTime = end;
+    if (blockStartTime && blockEndTime) {
+      startTime = blockStartTime;
+      endTime = blockEndTime;
     }
     
     const { data: { user } } = await supabase.auth.getUser();
@@ -199,12 +229,14 @@ const FacilityCalendarPage = () => {
 
     setBlockedDates(blockedDatesData || []);
     setBlockReason("");
-    setSelectedTimeSlot("");
+    setBlockStartTime("");
+    setBlockEndTime("");
     setIsBlockDialogOpen(false);
     
+    const timeInfo = startTime && endTime ? ` între ${startTime} - ${endTime}` : '';
     toast({
       title: "Data blocată",
-      description: `Data de ${format(selectedDate, 'dd MMMM yyyy', { locale: ro })} a fost blocată`
+      description: `Data de ${format(selectedDate, 'dd MMMM yyyy', { locale: ro })}${timeInfo} a fost blocată`
     });
   };
 
@@ -414,23 +446,43 @@ const FacilityCalendarPage = () => {
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="timeSlot">Interval orar (opțional)</Label>
-                            <select
-                              id="timeSlot"
-                              value={selectedTimeSlot}
-                              onChange={(e) => setSelectedTimeSlot(e.target.value)}
-                              className="w-full p-2 border rounded-md"
-                            >
-                              <option value="">Toată ziua</option>
-                              {getTimeSlots().map((slot) => (
-                                <option key={slot} value={slot}>
-                                  {slot}
-                                </option>
-                              ))}
-                            </select>
+                            <Label htmlFor="timeRange">Interval orar (opțional)</Label>
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <Select value={blockStartTime} onValueChange={setBlockStartTime}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="De la" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-background border shadow-lg z-50">
+                                    {getTimeOptions().filter(time => !blockEndTime || time.value < blockEndTime).map((time) => (
+                                      <SelectItem key={time.value} value={time.value}>
+                                        {time.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="flex-1">
+                                <Select value={blockEndTime} onValueChange={setBlockEndTime} disabled={!blockStartTime}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Până la" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-background border shadow-lg z-50">
+                                    {getTimeOptions().filter(time => blockStartTime && time.value > blockStartTime).map((time) => (
+                                      <SelectItem key={time.value} value={time.value}>
+                                        {time.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Lasă gol pentru a bloca toată ziua
+                            </p>
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="reason">Motivul blocării</Label>
+                            <Label htmlFor="reason">Motivul blocării *</Label>
                             <Textarea
                               id="reason"
                               value={blockReason}
@@ -442,7 +494,12 @@ const FacilityCalendarPage = () => {
                             <Button onClick={blockDate} disabled={!blockReason.trim()}>
                               Blochează
                             </Button>
-                            <Button variant="outline" onClick={() => setIsBlockDialogOpen(false)}>
+                            <Button variant="outline" onClick={() => {
+                              setIsBlockDialogOpen(false);
+                              setBlockStartTime("");
+                              setBlockEndTime("");
+                              setBlockReason("");
+                            }}>
                               Anulează
                             </Button>
                           </div>
