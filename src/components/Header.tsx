@@ -65,33 +65,11 @@ const Header = () => {
     }
   };
 
-  const handleProfileClick = () => {
+  const handleClientClick = () => {
     if (session) {
-      // Check if user has facilities (is a facility owner)
-      const isFacilityOwner = userProfile?.user_type_comment?.includes('Proprietar bază sportivă');
-      
-      if (isFacilityOwner) {
-        navigate('/manage-facilities');
-      } else {
-        navigate('/my-reservations');
-      }
+      navigate('/my-reservations');
     } else {
       navigate('/client/login');
-    }
-  };
-
-  const handleFacilitiesClick = () => {
-    if (session) {
-      // Check if user has facilities (is a facility owner)
-      const isFacilityOwner = userProfile?.user_type_comment?.includes('Proprietar bază sportivă');
-      
-      if (isFacilityOwner) {
-        navigate('/manage-facilities');
-      } else {
-        navigate('/facilities');
-      }
-    } else {
-      navigate('/facilities');
     }
   };
 
@@ -107,9 +85,9 @@ const Header = () => {
           </Link>
           
           <nav className="hidden md:flex items-center space-x-8">
-            <button onClick={handleFacilitiesClick} className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">
+            <Link to="/facilities" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">
               Terenuri
-            </button>
+            </Link>
             <Link to="/about" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">
               Despre noi
             </Link>
@@ -121,9 +99,9 @@ const Header = () => {
           <div className="flex items-center space-x-3">
             {session ? (
               <>
-                <Button onClick={handleProfileClick} variant="ghost" size="sm">
+                <Button onClick={handleClientClick} variant="ghost" size="sm">
                   <User className="h-4 w-4" />
-                  {userProfile?.user_type_comment?.includes('Proprietar bază sportivă') ? 'Facilitățile Mele' : 'Profilul Meu'}
+                  Profilul Meu
                 </Button>
                 <Button onClick={handleSignOut} variant="outline" size="sm">
                   <LogOut className="h-4 w-4" />
@@ -132,7 +110,7 @@ const Header = () => {
               </>
             ) : (
               <>
-                <Button onClick={handleProfileClick} variant="ghost" size="sm">
+                <Button onClick={handleClientClick} variant="ghost" size="sm">
                   <User className="h-4 w-4" />
                   Client
                 </Button>

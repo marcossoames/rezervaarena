@@ -10,6 +10,7 @@ import { Session } from "@supabase/supabase-js";
 
 const MyReservationsPage = () => {
   const [session, setSession] = useState<Session | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [reservations, setReservations] = useState<any[]>([]);
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const MyReservationsPage = () => {
         navigate('/client/login');
       } else {
         fetchReservations(session.user.id);
+        fetchUserProfile(session.user.id);
       }
     });
 
@@ -37,6 +39,7 @@ const MyReservationsPage = () => {
           navigate('/client/login');
         } else {
           fetchReservations(session.user.id);
+          fetchUserProfile(session.user.id);
         }
       }
     );
@@ -65,6 +68,32 @@ const MyReservationsPage = () => {
     } catch (error) {
       console.error('Error fetching reservations:', error);
       setReservations([]);
+    }
+  };
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (!error) {
+        setUserProfile(data);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
+  const handleViewFacilities = () => {
+    const isFacilityOwner = userProfile?.user_type_comment?.includes('Proprietar bază sportivă');
+    
+    if (isFacilityOwner) {
+      navigate('/manage-facilities');
+    } else {
+      navigate('/facilities');
     }
   };
   // Show loading while checking authentication or fetching data
@@ -128,8 +157,8 @@ const MyReservationsPage = () => {
                 <p className="text-muted-foreground text-center mb-4">
                   Când vei face o rezervare, o vei vedea aici.
                 </p>
-                <Button asChild>
-                  <a href="/facilities">Vezi Facilități</a>
+                <Button onClick={handleViewFacilities}>
+                  Vezi Facilități
                 </Button>
               </CardContent>
             </Card>
