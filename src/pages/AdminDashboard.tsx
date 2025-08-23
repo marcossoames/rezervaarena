@@ -348,23 +348,6 @@ const AdminDashboard = () => {
                 </div>
               </div>
               
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4">Acțiuni Administrative</h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="flex-col h-20">
-                    <Shield className="h-6 w-6 mb-2" />
-                    Backup Baza de Date
-                  </Button>
-                  <Button variant="outline" className="flex-col h-20">
-                    <Settings className="h-6 w-6 mb-2" />
-                    Configurare Email
-                  </Button>
-                  <Button variant="outline" className="flex-col h-20">
-                    <Users className="h-6 w-6 mb-2" />
-                    Log Securitate
-                  </Button>
-                </div>
-              </div>
             </CardContent>
           </Card>
         )}
