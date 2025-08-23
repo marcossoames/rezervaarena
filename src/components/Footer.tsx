@@ -18,8 +18,8 @@ const Footer = () => {
             </p>
           </div>
 
-          <div className="lg:text-right">
-            <h4 className="text-lg font-semibold text-foreground mb-6">Contact</h4>
+          <div className="lg:text-center">
+            <h4 className="text-lg font-semibold text-foreground mb-6 text-center">Contact</h4>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-primary" />
