@@ -134,9 +134,6 @@ const SportsSection = () => {
                 </div>
                 
                 <div className="p-6">
-                  <p className="text-muted-foreground mb-4">
-                    {sport.description}
-                  </p>
                   
                   <div className="space-y-2 mb-6">
                     <div className="flex justify-between items-center">
