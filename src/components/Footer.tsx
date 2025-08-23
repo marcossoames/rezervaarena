@@ -12,9 +12,7 @@ const Footer = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground">SportBook</h3>
             </div>
-            <p className="text-muted-foreground mb-2">
-              Platforma numărul 1 din România pentru rezervarea terenurilor sportive.
-            </p>
+            <p className="text-muted-foreground mb-2">Platforma numărul 1 din Timișoara pentru rezervarea terenurilor sportive.</p>
             <p className="text-muted-foreground">
               Conectăm pasionații de sport cu cele mai bune facilități.
             </p>
