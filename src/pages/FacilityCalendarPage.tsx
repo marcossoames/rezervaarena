@@ -24,6 +24,8 @@ interface Facility {
   images: string[];
   address: string;
   city: string;
+  operating_hours_start?: string;
+  operating_hours_end?: string;
 }
 
 interface Booking {
@@ -132,20 +134,23 @@ const FacilityCalendarPage = () => {
 
   const getTimeOptions = () => {
     const times = [];
-    for (let hour = 8; hour < 22; hour++) {
+    const startHour = facility?.operating_hours_start ? parseInt(facility.operating_hours_start.split(':')[0]) : 8;
+    const endHour = facility?.operating_hours_end ? parseInt(facility.operating_hours_end.split(':')[0]) : 22;
+    
+    for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         times.push({ value: timeString, label: timeString });
       }
     }
-    times.push({ value: "22:00", label: "22:00" });
+    times.push({ value: `${endHour.toString().padStart(2, '0')}:00`, label: `${endHour.toString().padStart(2, '0')}:00` });
     return times;
   };
 
   const getTimeSlots = () => {
     const slots = [];
-    const startHour = 8; // Default start hour, can be from facility.operating_hours_start
-    const endHour = 22; // Default end hour, can be from facility.operating_hours_end
+    const startHour = facility?.operating_hours_start ? parseInt(facility.operating_hours_start.split(':')[0]) : 8;
+    const endHour = facility?.operating_hours_end ? parseInt(facility.operating_hours_end.split(':')[0]) : 22;
     
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
