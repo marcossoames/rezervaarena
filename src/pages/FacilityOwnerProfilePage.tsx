@@ -59,13 +59,18 @@ const FacilityOwnerProfilePage = () => {
   const extractSportsComplexName = (userTypeComment: string) => {
     if (!userTypeComment) return "Baza Sportivă";
     
-    if (userTypeComment.includes(' - Proprietar bază sportivă')) {
-      return userTypeComment.replace(' - Proprietar bază sportivă', '');
-    } else if (userTypeComment.includes('Proprietar bază sportivă - ')) {
-      return userTypeComment.replace('Proprietar bază sportivă - ', '');
+    // Remove system registration text
+    let cleanName = userTypeComment
+      .replace(' - înregistrat prin sistem', '')
+      .replace(' - Proprietar bază sportivă', '')
+      .replace('Proprietar bază sportivă - ', '');
+    
+    // If we end up with just "Proprietar bază sportivă" or similar, return default
+    if (cleanName === 'Proprietar bază sportivă' || cleanName.trim() === '') {
+      return "Baza Sportivă";
     }
     
-    return "Baza Sportivă";
+    return cleanName;
   };
 
   if (isLoading) {
