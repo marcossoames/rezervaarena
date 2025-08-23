@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, MapPin, Edit, Trash2, Plus, Users, DollarSign } from "lucide-react";
+import { Building2, MapPin, Edit, Trash2, Plus, Users, DollarSign, ChevronDown, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Facility {
@@ -21,21 +22,31 @@ interface Facility {
   is_active: boolean;
   created_at: string;
   owner_id: string;
-  owner_name?: string;
-  owner_email?: string;
+}
+
+interface SportsComplex {
+  owner_id: string;
+  owner_name: string;
+  owner_email: string;
+  owner_phone?: string;
+  city: string;
+  facilities: Facility[];
+  total_facilities: number;
+  active_facilities: number;
 }
 
 const FacilityManagement = () => {
-  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [sportsComplexes, setSportsComplexes] = useState<SportsComplex[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedComplexes, setExpandedComplexes] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadFacilities();
+    loadSportsComplexes();
   }, []);
 
-  const loadFacilities = async () => {
+  const loadSportsComplexes = async () => {
     try {
       setIsLoading(true);
       
@@ -51,27 +62,46 @@ const FacilityManagement = () => {
       const ownerIds = facilitiesData?.map(f => f.owner_id) || [];
       const { data: ownersData } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email')
+        .select('user_id, full_name, email, phone')
         .in('user_id', ownerIds);
 
       // Create lookup map
       const ownerMap = new Map(ownersData?.map(o => [o.user_id, o]) || []);
 
-      const facilitiesWithOwner = facilitiesData?.map(facility => {
+      // Group facilities by owner (sports complex)
+      const complexMap = new Map<string, SportsComplex>();
+      
+      facilitiesData?.forEach(facility => {
         const owner = ownerMap.get(facility.owner_id);
-        return {
-          ...facility,
-          owner_name: owner?.full_name || 'Unknown',
-          owner_email: owner?.email || 'Unknown'
-        };
-      }) || [];
+        const ownerId = facility.owner_id;
+        
+        if (!complexMap.has(ownerId)) {
+          complexMap.set(ownerId, {
+            owner_id: ownerId,
+            owner_name: owner?.full_name || 'Unknown',
+            owner_email: owner?.email || 'Unknown',
+            owner_phone: owner?.phone,
+            city: facility.city,
+            facilities: [],
+            total_facilities: 0,
+            active_facilities: 0
+          });
+        }
+        
+        const complex = complexMap.get(ownerId)!;
+        complex.facilities.push(facility);
+        complex.total_facilities++;
+        if (facility.is_active) {
+          complex.active_facilities++;
+        }
+      });
 
-      setFacilities(facilitiesWithOwner);
+      setSportsComplexes(Array.from(complexMap.values()));
     } catch (error) {
-      console.error('Error loading facilities:', error);
+      console.error('Error loading sports complexes:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-au putut încărca facilitățile",
+        description: "Nu s-au putut încărca bazele sportive",
         variant: "destructive"
       });
     } finally {
@@ -88,11 +118,18 @@ const FacilityManagement = () => {
 
       if (error) throw error;
 
-      setFacilities(prev => prev.map(facility => 
-        facility.id === facilityId 
-          ? { ...facility, is_active: !currentStatus }
-          : facility
-      ));
+      // Update the facility in the sports complexes state
+      setSportsComplexes(prev => prev.map(complex => ({
+        ...complex,
+        facilities: complex.facilities.map(facility => 
+          facility.id === facilityId 
+            ? { ...facility, is_active: !currentStatus }
+            : facility
+        ),
+        active_facilities: complex.facilities.filter(f => 
+          f.id === facilityId ? !currentStatus : f.is_active
+        ).length
+      })));
 
       toast({
         title: "Succes",
@@ -121,7 +158,15 @@ const FacilityManagement = () => {
 
       if (error) throw error;
 
-      setFacilities(prev => prev.filter(facility => facility.id !== facilityId));
+      // Remove the facility from the sports complexes state
+      setSportsComplexes(prev => prev.map(complex => ({
+        ...complex,
+        facilities: complex.facilities.filter(facility => facility.id !== facilityId),
+        total_facilities: complex.total_facilities - 1,
+        active_facilities: complex.facilities.filter(f => 
+          f.id !== facilityId && f.is_active
+        ).length
+      })).filter(complex => complex.facilities.length > 0)); // Remove empty complexes
 
       toast({
         title: "Succes",
@@ -150,14 +195,30 @@ const FacilityManagement = () => {
     return types[type] || type;
   };
 
+  const toggleComplexExpanded = (ownerId: string) => {
+    setExpandedComplexes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(ownerId)) {
+        newSet.delete(ownerId);
+      } else {
+        newSet.add(ownerId);
+      }
+      return newSet;
+    });
+  };
+
+  const getTotalFacilitiesCount = () => {
+    return sportsComplexes.reduce((total, complex) => total + complex.total_facilities, 0);
+  };
+
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Gestionare Facilități</CardTitle>
+          <CardTitle>Se încarcă bazele sportive...</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Se încarcă facilitățile...</p>
+          <p className="text-muted-foreground">Se încarcă bazele sportive...</p>
         </CardContent>
       </Card>
     );
@@ -169,7 +230,7 @@ const FacilityManagement = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Building2 className="h-6 w-6" />
-            Gestionare Facilități ({facilities.length})
+            Baze Sportive ({sportsComplexes.length}) - Total Facilități ({getTotalFacilitiesCount()})
           </CardTitle>
           <Button onClick={() => navigate('/add-facility')}>
             <Plus className="h-4 w-4 mr-2" />
@@ -177,106 +238,138 @@ const FacilityManagement = () => {
           </Button>
         </CardHeader>
         <CardContent>
-          {facilities.length === 0 ? (
+          {sportsComplexes.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
-              Nu există facilități în sistem.
+              Nu există baze sportive în sistem.
             </p>
           ) : (
-            <div className="grid gap-4">
-              {facilities.map((facility) => (
-                <Card key={facility.id} className="border-l-4 border-l-primary">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-lg font-semibold">{facility.name}</h3>
-                          <Badge variant={facility.is_active ? "default" : "secondary"}>
-                            {facility.is_active ? "Activă" : "Inactivă"}
-                          </Badge>
-                          <Badge variant="outline">
-                            {getFacilityTypeLabel(facility.facility_type)}
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid md:grid-cols-2 gap-4 mb-4">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin className="h-4 w-4" />
-                              {facility.address}, {facility.city}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <DollarSign className="h-4 w-4" />
-                              {facility.price_per_hour} RON/oră
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Users className="h-4 w-4" />
-                              Capacitate: {facility.capacity} persoane
+            <div className="space-y-4">
+              {sportsComplexes.map((complex) => (
+                <Collapsible 
+                  key={complex.owner_id}
+                  open={expandedComplexes.has(complex.owner_id)}
+                  onOpenChange={() => toggleComplexExpanded(complex.owner_id)}
+                >
+                  <Card className="border-l-4 border-l-blue-500">
+                    <CollapsibleTrigger asChild>
+                      <CardHeader className="cursor-pointer hover:bg-muted/50">
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-3">
+                            {expandedComplexes.has(complex.owner_id) ? 
+                              <ChevronDown className="h-5 w-5" /> : 
+                              <ChevronRight className="h-5 w-5" />
+                            }
+                            <Building2 className="h-6 w-6 text-blue-600" />
+                            <div>
+                              <CardTitle className="text-left">{complex.owner_name}</CardTitle>
+                              <p className="text-sm text-muted-foreground">
+                                {complex.city} • {complex.total_facilities} facilități ({complex.active_facilities} active)
+                              </p>
                             </div>
                           </div>
-                          
-                          <div className="space-y-2">
-                            <p className="text-sm text-muted-foreground">
-                              <strong>Proprietar:</strong> {facility.owner_name}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              <strong>Email:</strong> {facility.owner_email}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              <strong>Înregistrată:</strong> {new Date(facility.created_at).toLocaleDateString('ro-RO')}
-                            </p>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">
+                              {complex.owner_email}
+                            </Badge>
+                            <Badge variant={complex.active_facilities > 0 ? "default" : "secondary"}>
+                              {complex.active_facilities}/{complex.total_facilities} active
+                            </Badge>
                           </div>
                         </div>
+                      </CardHeader>
+                    </CollapsibleTrigger>
+                    
+                    <CollapsibleContent>
+                      <CardContent className="pt-0">
+                        <div className="grid gap-3 ml-8">
+                          {complex.facilities.map((facility) => (
+                            <Card key={facility.id} className="border border-border/50">
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                      <h4 className="font-semibold">{facility.name}</h4>
+                                      <Badge variant={facility.is_active ? "default" : "secondary"}>
+                                        {facility.is_active ? "Activă" : "Inactivă"}
+                                      </Badge>
+                                      <Badge variant="outline">
+                                        {getFacilityTypeLabel(facility.facility_type)}
+                                      </Badge>
+                                    </div>
+                                    
+                                    <div className="grid md:grid-cols-3 gap-2 text-sm text-muted-foreground mb-2">
+                                      <div className="flex items-center gap-1">
+                                        <MapPin className="h-3 w-3" />
+                                        {facility.address}
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <DollarSign className="h-3 w-3" />
+                                        {facility.price_per_hour} RON/oră
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <Users className="h-3 w-3" />
+                                        {facility.capacity} persoane
+                                      </div>
+                                    </div>
 
-                        {facility.description && (
-                          <p className="text-sm text-muted-foreground mb-4">
-                            {facility.description}
-                          </p>
-                        )}
+                                    {facility.description && (
+                                      <p className="text-xs text-muted-foreground mb-2">
+                                        {facility.description}
+                                      </p>
+                                    )}
 
-                        {facility.amenities && facility.amenities.length > 0 && (
-                          <div className="mb-4">
-                            <p className="text-sm font-medium mb-2">Facilități:</p>
-                            <div className="flex flex-wrap gap-1">
-                              {facility.amenities.map((amenity, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
-                                  {amenity}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                                    {facility.amenities && facility.amenities.length > 0 && (
+                                      <div className="flex flex-wrap gap-1">
+                                        {facility.amenities.slice(0, 3).map((amenity, index) => (
+                                          <Badge key={index} variant="secondary" className="text-xs">
+                                            {amenity}
+                                          </Badge>
+                                        ))}
+                                        {facility.amenities.length > 3 && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            +{facility.amenities.length - 3} mai multe
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
 
-                      <div className="flex flex-col gap-2 ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/edit-facility/${facility.id}`)}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editează
-                        </Button>
-                        
-                        <Button
-                          variant={facility.is_active ? "secondary" : "default"}
-                          size="sm"
-                          onClick={() => toggleFacilityStatus(facility.id, facility.is_active)}
-                        >
-                          {facility.is_active ? "Dezactivează" : "Activează"}
-                        </Button>
-                        
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deleteFacility(facility.id, facility.name)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Șterge
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                                  <div className="flex flex-col gap-1 ml-4">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => navigate(`/edit-facility/${facility.id}`)}
+                                    >
+                                      <Edit className="h-3 w-3 mr-1" />
+                                      Editează
+                                    </Button>
+                                    
+                                    <Button
+                                      variant={facility.is_active ? "secondary" : "default"}
+                                      size="sm"
+                                      onClick={() => toggleFacilityStatus(facility.id, facility.is_active)}
+                                    >
+                                      {facility.is_active ? "Dezactivează" : "Activează"}
+                                    </Button>
+                                    
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => deleteFacility(facility.id, facility.name)}
+                                    >
+                                      <Trash2 className="h-3 w-3 mr-1" />
+                                      Șterge
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
               ))}
             </div>
           )}
