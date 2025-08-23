@@ -112,10 +112,12 @@ const FacilitiesPage = () => {
     const dateParam = searchParams.get('date');
     const locationParam = searchParams.get('location');
     const searchParam = searchParams.get('search');
+    const timeSlotParam = searchParams.get('timeSlot');
     
     setSelectedType(typeParam);
     setLocationFilter(locationParam || '');
     setSearchTerm(searchParam || '');
+    setSelectedTimeSlot(timeSlotParam || 'all-times');
     // Handle date parameter
     if (dateParam) {
       const date = new Date(dateParam);

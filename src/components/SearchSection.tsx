@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, MapPin, Calendar as CalendarIcon, Filter } from "lucide-react";
+import { Search, MapPin, Calendar as CalendarIcon, Filter, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { ro } from "date-fns/locale";
@@ -15,6 +15,7 @@ const SearchSection = () => {
   const [location, setLocation] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [facilityType, setFacilityType] = useState("");
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("all-times");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
@@ -32,6 +33,20 @@ const SearchSection = () => {
     { value: "volleyball", label: "Volei" }
   ];
 
+  const getTimeSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour < 22; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const startTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const endTime = minute === 30 
+          ? `${(hour + 1).toString().padStart(2, '0')}:00`
+          : `${hour.toString().padStart(2, '0')}:30`;
+        slots.push({ value: `${startTime}-${endTime}`, label: `${startTime} - ${endTime}` });
+      }
+    }
+    return slots;
+  };
+
   const handleSearch = () => {
     // Build query parameters
     const params = new URLSearchParams();
@@ -47,6 +62,9 @@ const SearchSection = () => {
     }
     if (searchQuery.trim()) {
       params.set('search', searchQuery.trim());
+    }
+    if (selectedTimeSlot && selectedTimeSlot !== 'all-times') {
+      params.set('timeSlot', selectedTimeSlot);
     }
 
     // Navigate to facilities page with search parameters
@@ -74,7 +92,7 @@ const SearchSection = () => {
 
         <Card className="max-w-5xl mx-auto shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
           <CardContent className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
               {/* Search Query */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Caută facilități</label>
@@ -157,6 +175,27 @@ const SearchSection = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Time Slot */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Intervalul orar</label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                  <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
+                    <SelectTrigger className="pl-10 bg-background/50 border-border/50 focus:border-primary">
+                      <SelectValue placeholder="Orice oră" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-times">Orice oră</SelectItem>
+                      {getTimeSlots().map((slot) => (
+                        <SelectItem key={slot.value} value={slot.value}>
+                          {slot.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
