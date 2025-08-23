@@ -21,6 +21,7 @@ import ContactPage from "./pages/ContactPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import MyReservationsPage from "./pages/MyReservationsPage";
 import FacilityCalendarPage from "./pages/FacilityCalendarPage";
+import FacilityOwnerProfilePage from "./pages/FacilityOwnerProfilePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/edit-sports-complex-settings" element={<EditSportsComplexSettingsPage />} />
           <Route path="/manage-facilities" element={<ManageFacilitiesPage />} />
           <Route path="/facility-calendar/:facilityId" element={<FacilityCalendarPage />} />
+          <Route path="/facility-owner-profile" element={<FacilityOwnerProfilePage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/facilities" element={<FacilitiesPage />} />
