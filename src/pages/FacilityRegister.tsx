@@ -487,11 +487,11 @@ const FacilityRegister = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="city">Oraș și comună sau sat *</Label>
+            <Label htmlFor="city">Oraș / Comună / Sat *</Label>
             <Input
               id="city"
               type="text"
-              {...register("city", { required: "Orașul și comuna sau satul sunt obligatorii" })}
+              {...register("city", { required: "Orașul / Comuna / Satul este obligatoriu" })}
               className="bg-background/50"
             />
             {errors.city && (
