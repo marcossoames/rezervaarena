@@ -67,7 +67,9 @@ const Header = () => {
 
   const handleClientClick = () => {
     if (session) {
-      if (userProfile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+      if (userProfile?.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (userProfile?.user_type_comment?.includes('Proprietar bază sportivă')) {
         navigate('/facility-owner-profile');
       } else {
         navigate('/client-profile');
@@ -105,7 +107,8 @@ const Header = () => {
               <>
                 <Button onClick={handleClientClick} variant="ghost" size="sm">
                   <User className="h-4 w-4" />
-                  {userProfile?.user_type_comment?.includes('Proprietar bază sportivă') ? 'Profil' : 'Profilul Meu'}
+                  {userProfile?.role === 'admin' ? 'Dashboard' : 
+                   userProfile?.user_type_comment?.includes('Proprietar bază sportivă') ? 'Profil' : 'Profilul Meu'}
                 </Button>
                 <Button onClick={handleSignOut} variant="outline" size="sm">
                   <LogOut className="h-4 w-4" />
