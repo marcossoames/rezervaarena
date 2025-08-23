@@ -57,7 +57,9 @@ const FacilityOwnerProfilePage = () => {
   }, []);
 
   const extractSportsComplexName = (userTypeComment: string) => {
-    if (!userTypeComment) return "Baza Sportivă";
+    console.log('Original user_type_comment:', userTypeComment);
+    
+    if (!userTypeComment) return userProfile?.full_name || "Baza Sportivă";
     
     // Remove system registration text
     let cleanName = userTypeComment
@@ -65,9 +67,11 @@ const FacilityOwnerProfilePage = () => {
       .replace(' - Proprietar bază sportivă', '')
       .replace('Proprietar bază sportivă - ', '');
     
-    // If we end up with just "Proprietar bază sportivă" or similar, return default
+    console.log('Clean name after replacements:', cleanName);
+    
+    // If we end up with just "Proprietar bază sportivă" or similar, use full_name
     if (cleanName === 'Proprietar bază sportivă' || cleanName.trim() === '') {
-      return "Baza Sportivă";
+      return userProfile?.full_name || "Baza Sportivă";
     }
     
     return cleanName;
