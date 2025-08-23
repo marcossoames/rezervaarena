@@ -91,7 +91,7 @@ const SearchSection = () => {
           </p>
         </div>
 
-        <Card className="max-w-5xl mx-auto shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
+        <Card className="max-w-7xl mx-auto shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
           <CardContent className="p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
               {/* Search Query */}
