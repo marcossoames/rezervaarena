@@ -192,7 +192,7 @@ const FacilityOwnerProfilePage = () => {
               <CardTitle>Informații Rapide</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div>
                   <div className="text-2xl font-bold text-primary">0</div>
                   <div className="text-sm text-gray-600">Rezervări Astăzi</div>
@@ -204,10 +204,6 @@ const FacilityOwnerProfilePage = () => {
                 <div>
                   <div className="text-2xl font-bold text-blue-600">0</div>
                   <div className="text-sm text-gray-600">Terenuri Active</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-purple-600">⭐ 5.0</div>
-                  <div className="text-sm text-gray-600">Rating Mediu</div>
                 </div>
               </div>
             </CardContent>

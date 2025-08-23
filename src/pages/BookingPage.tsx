@@ -168,10 +168,6 @@ const BookingPage = () => {
                   <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">
                     {facility.facility_type}
                   </Badge>
-                  <div className="absolute top-4 right-4 flex items-center bg-card/90 backdrop-blur-sm rounded-lg px-3 py-1">
-                    <Star className="h-4 w-4 text-accent mr-1 fill-current" />
-                    <span className="font-semibold">4.8</span>
-                  </div>
                 </div>
                 
                 <div className="p-6">

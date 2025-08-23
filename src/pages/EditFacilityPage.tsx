@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, ArrowLeft, Upload, Star, Trash2 } from "lucide-react";
+import { X, Plus, ArrowLeft, Upload, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ImageCarousel from "@/components/ImageCarousel";
@@ -616,11 +616,7 @@ const EditFacilityPage = () => {
                               className="absolute bottom-1 left-1 h-6 text-xs"
                               onClick={() => setMainImageIndex(index)}
                             >
-                              {mainImageIndex === index ? (
-                                <Star className="h-3 w-3 fill-current" />
-                              ) : (
-                                <Star className="h-3 w-3" />
-                              )}
+                              {mainImageIndex === index ? "Principală" : "Principală"}
                             </Button>
                           </div>
                         ))}
@@ -679,11 +675,7 @@ const EditFacilityPage = () => {
                               className="absolute bottom-1 left-1 h-6 text-xs"
                               onClick={() => setMainImageIndex(existingImages.length + index)}
                             >
-                              {mainImageIndex === existingImages.length + index ? (
-                                <Star className="h-3 w-3 fill-current" />
-                              ) : (
-                                <Star className="h-3 w-3" />
-                              )}
+                              {mainImageIndex === existingImages.length + index ? "Principală" : "Principală"}
                             </Button>
                           </div>
                         ))}
@@ -693,7 +685,7 @@ const EditFacilityPage = () => {
 
                   {allImages.length > 0 && (
                     <p className="text-sm text-muted-foreground">
-                      Imaginea cu ⭐ va fi imaginea principală a facilității
+                      Imaginea marcată ca "Principală" va fi imaginea principală a facilității
                     </p>
                   )}
                 </div>
