@@ -15,7 +15,7 @@ interface ClientFormData {
   password: string;
   confirmPassword: string;
   fullName: string;
-  phone?: string;
+  phone: string;
 }
 
 const ClientRegister = () => {
@@ -158,7 +158,7 @@ const ClientRegister = () => {
 
               {/* Phone */}
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefon (opțional)</Label>
+                <Label htmlFor="phone">Telefon *</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -166,9 +166,12 @@ const ClientRegister = () => {
                     type="tel"
                     placeholder="0712 345 678"
                     className="pl-10 bg-background/50"
-                    {...register("phone")}
+                    {...register("phone", { required: "Telefonul este obligatoriu" })}
                   />
                 </div>
+                {errors.phone && (
+                  <p className="text-sm text-destructive">{errors.phone.message}</p>
+                )}
               </div>
 
               {/* Password */}

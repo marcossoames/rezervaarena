@@ -387,13 +387,16 @@ const FacilityRegister = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Telefon</Label>
+            <Label htmlFor="phone">Telefon *</Label>
             <Input
               id="phone"
               type="tel"
-              {...register("phone")}
+              {...register("phone", { required: "Telefonul este obligatoriu" })}
               className="bg-background/50"
             />
+            {errors.phone && (
+              <p className="text-sm text-destructive">{errors.phone.message}</p>
+            )}
           </div>
         </div>
 
