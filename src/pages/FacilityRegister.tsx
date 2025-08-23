@@ -255,7 +255,18 @@ const FacilityRegister = () => {
 
       console.log('User signed up successfully:', authData.user?.id);
 
-      if (authData.user) {
+      if (authData.user && !authData.session) {
+        // User was created but needs email confirmation
+        toast({
+          title: "Cont creat cu succes!",
+          description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul. Apoi te poți conecta pentru a gestiona facilitățile.",
+          duration: 8000
+        });
+        
+        // Redirect to login page
+        navigate("/facility/login");
+      } else if (authData.user && authData.session) {
+        // User was created and automatically logged in - proceed with facility creation
         // Wait for user to be properly authenticated
         await new Promise(resolve => setTimeout(resolve, 1000));
         
