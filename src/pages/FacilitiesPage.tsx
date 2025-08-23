@@ -262,7 +262,7 @@ const FacilitiesPage = () => {
 
           const unavailableFacilities = new Set();
 
-          if (selectedTimeSlot) {
+          if (selectedTimeSlot && selectedTimeSlot !== 'all-times') {
             // Specific time slot selected - check exact availability
             const [startTime, endTime] = selectedTimeSlot.split('-');
             
@@ -467,7 +467,7 @@ const FacilitiesPage = () => {
                       <SelectValue placeholder="Interval orar" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Orice oră</SelectItem>
+                      <SelectItem value="all-times">Orice oră</SelectItem>
                       {getTimeSlots().map((slot) => (
                         <SelectItem key={slot.value} value={slot.value}>
                           {slot.label}
@@ -484,7 +484,7 @@ const FacilitiesPage = () => {
                     setSearchTerm('');
                     setLocationFilter('');
                     setSelectedDate(undefined);
-                    setSelectedTimeSlot('');
+                    setSelectedTimeSlot('all-times');
                     setSelectedType(null);
                   }}
                 >
