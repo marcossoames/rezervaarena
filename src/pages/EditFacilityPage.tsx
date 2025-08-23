@@ -84,7 +84,14 @@ const EditFacilityPage = () => {
           .eq('user_id', user.id)
           .single();
 
-        if (!profile || profile.role !== 'facility_owner') {
+        // Check if user is admin or facility owner
+        const isAdmin = profile && profile.role === 'admin';
+        const isFacilityOwner = profile && (
+          profile.role === 'facility_owner' || 
+          (profile.user_type_comment && profile.user_type_comment.includes('Proprietar bază sportivă'))
+        );
+        
+        if (!profile || (!isAdmin && !isFacilityOwner)) {
           toast({
             title: "Acces restricționat",
             description: "Doar proprietarii de baze sportive pot edita facilități",
@@ -98,19 +105,50 @@ const EditFacilityPage = () => {
 
         // Fetch facility data
         if (id) {
-          const { data: facilityData, error } = await supabase
-            .rpc('get_owner_facility_details')
-            .eq('id', id)
-            .single();
+          let facilityData;
+          
+          if (isAdmin) {
+            // Admins can see all facilities
+            const { data, error } = await supabase
+              .from('facilities')
+              .select('*')
+              .eq('id', id)
+              .single();
+            
+            if (error || !data) {
+              toast({
+                title: "Eroare",
+                description: "Nu s-a putut încărca facilitatea",
+                variant: "destructive"
+              });
+              navigate("/manage-facilities");
+              return;
+            }
+            
+            facilityData = {
+              ...data,
+              full_address: data.address,
+              exact_price_per_hour: data.price_per_hour,
+              exact_capacity: data.capacity
+            };
+          } else {
+            // Facility owners can only see their own facilities
+            const { data, error } = await supabase
+              .rpc('get_owner_facility_details')
+              .eq('id', id)
+              .single();
 
-          if (error || !facilityData) {
-            toast({
-              title: "Eroare",
-              description: "Nu s-a putut încărca facilitatea",
-              variant: "destructive"
-            });
-            navigate("/manage-facilities");
-            return;
+            if (error || !data) {
+              toast({
+                title: "Eroare",
+                description: "Nu s-a putut încărca facilitatea sau nu aveți permisiune să o editați",
+                variant: "destructive"
+              });
+              navigate("/manage-facilities");
+              return;
+            }
+            
+            facilityData = data;
           }
 
           setFacility({
