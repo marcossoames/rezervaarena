@@ -700,8 +700,19 @@ const FacilityRegister = () => {
                 <Input
                   type="number"
                   min="1"
-                  value={facility.capacity || ''}
-                  onChange={(e) => updateFacilityField(index, 'capacity', parseInt(e.target.value) || 1)}
+                  value={facility.capacity === 0 ? '' : facility.capacity}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      updateFacilityField(index, 'capacity', 0);
+                    } else {
+                      const numValue = parseInt(value);
+                      if (!isNaN(numValue) && numValue >= 1) {
+                        updateFacilityField(index, 'capacity', numValue);
+                      }
+                    }
+                  }}
+                  onFocus={(e) => e.target.select()}
                   className="bg-background/50"
                 />
               </div>
