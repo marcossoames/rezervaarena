@@ -20,6 +20,7 @@ interface FacilityFormData {
   city: string;
   pricePerHour: number;
   capacity: number;
+  ownerId?: string; // For admin users to select owner
 }
 
 const AddFacilityPage = () => {
@@ -31,6 +32,8 @@ const AddFacilityPage = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [facilityOwners, setFacilityOwners] = useState<any[]>([]);
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string>('');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -57,10 +60,10 @@ const AddFacilityPage = () => {
       const hasFacilities = facilities && facilities.length > 0;
       const isFacilityOwner = profile?.user_type_comment?.includes('Proprietar bază sportivă');
 
-      if (!hasFacilities && !isFacilityOwner && profile?.role !== 'facility_owner') {
+      if (!hasFacilities && !isFacilityOwner && profile?.role !== 'facility_owner' && profile?.role !== 'admin') {
         toast({
           title: "Acces restricționat",
-          description: "Doar proprietarii de baze sportive pot adăuga facilități",
+          description: "Doar proprietarii de baze sportive și administratorii pot adăuga facilități",
           variant: "destructive"
         });
         navigate("/");
@@ -68,10 +71,29 @@ const AddFacilityPage = () => {
       }
 
       setUserProfile(profile);
+      
+      // If admin, load facility owners
+      if (profile?.role === 'admin') {
+        loadFacilityOwners();
+      }
     };
 
     checkAuth();
   }, []);
+
+  const loadFacilityOwners = async () => {
+    try {
+      const { data: owners } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email, user_type_comment')
+        .or('role.eq.facility_owner,user_type_comment.ilike.%Proprietar bază sportivă%')
+        .order('full_name');
+      
+      setFacilityOwners(owners || []);
+    } catch (error) {
+      console.error('Error loading facility owners:', error);
+    }
+  };
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FacilityFormData>();
   const { toast } = useToast();
@@ -209,6 +231,16 @@ const AddFacilityPage = () => {
   const onSubmit = async (data: FacilityFormData) => {
     if (!userProfile) return;
 
+    // Validate owner selection for admin users
+    if (userProfile.role === 'admin' && !selectedOwnerId) {
+      toast({
+        title: "Eroare",
+        description: "Selectarea proprietarului bazei sportive este obligatorie",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     setUploading(true);
 
@@ -217,7 +249,7 @@ const AddFacilityPage = () => {
       const { data: facilityData, error: facilityError } = await supabase
         .from('facilities')
         .insert({
-          owner_id: userProfile.user_id,
+          owner_id: userProfile.role === 'admin' ? selectedOwnerId : userProfile.user_id,
           name: data.facilityName,
           description: data.description,
           facility_type: data.facilityType as "tennis" | "football" | "padel" | "swimming" | "basketball" | "volleyball",
@@ -263,7 +295,7 @@ const AddFacilityPage = () => {
         description: "Noua facilitate a fost adăugată în profilul tău."
       });
 
-      navigate("/manage-facilities");
+      navigate(userProfile?.role === 'admin' ? '/admin/dashboard' : '/manage-facilities');
     } catch (error: any) {
       console.error('Add facility error:', error);
       toast({
@@ -285,9 +317,12 @@ const AddFacilityPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       {/* Back Button */}
       <div className="container mx-auto max-w-2xl mb-4">
-        <Link to="/manage-facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
+        <Link 
+          to={userProfile?.role === 'admin' ? '/admin/dashboard' : '/manage-facilities'} 
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+        >
           <ArrowLeft className="h-4 w-4" />
-          Înapoi la facilități
+          {userProfile?.role === 'admin' ? 'Înapoi la dashboard' : 'Înapoi la facilități'}
         </Link>
       </div>
       
@@ -321,6 +356,28 @@ const AddFacilityPage = () => {
                     <p className="text-sm text-destructive">{errors.facilityName.message}</p>
                   )}
                 </div>
+
+                {/* Owner Selection for Admin Users */}
+                {userProfile?.role === 'admin' && (
+                  <div className="space-y-2">
+                    <Label>Proprietar Bază Sportivă *</Label>
+                    <Select onValueChange={setSelectedOwnerId} value={selectedOwnerId}>
+                      <SelectTrigger className="bg-background/50">
+                        <SelectValue placeholder="Selectează proprietarul bazei sportive" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {facilityOwners.map((owner) => (
+                          <SelectItem key={owner.user_id} value={owner.user_id}>
+                            {owner.full_name} ({owner.email})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {userProfile?.role === 'admin' && !selectedOwnerId && (
+                      <p className="text-sm text-destructive">Selectarea proprietarului este obligatorie</p>
+                    )}
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="description">Descriere</Label>
