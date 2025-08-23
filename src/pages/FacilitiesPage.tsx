@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn, Plus, Settings } from "lucide-react";
+import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn, Plus, Settings, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +35,7 @@ interface Facility {
   created_at?: string; // Optional for clients
   sports_complex_name?: string; // Sports complex name
   sports_complex_address?: string; // Sports complex address
+  phone_number?: string; // Contact phone number
 }
 
 interface UserProfile {
@@ -130,7 +131,7 @@ const FacilitiesPage = () => {
             .from('facilities')
             .select(`
               id, name, facility_type, city, description, price_per_hour, capacity, amenities, images, address,
-              profiles!facilities_owner_id_fkey (user_type_comment, full_name)
+              profiles!facilities_owner_id_fkey (user_type_comment, full_name, phone)
             `)
             .eq('is_active', true);
           
@@ -161,7 +162,8 @@ const FacilitiesPage = () => {
               ...f,
               area_info: `${f.city} area`,
               sports_complex_name: sportsComplexName,
-              sports_complex_address: f.address ? `${f.address}, ${f.city}` : `${f.city}`
+              sports_complex_address: f.address ? `${f.address}, ${f.city}` : `${f.city}`,
+              phone_number: f.profiles?.phone
             };
           });
           error = facilitiesError;
@@ -373,7 +375,7 @@ const FacilitiesPage = () => {
                               {facility.sports_complex_name}
                             </div>
                           )}
-                          <div className="flex items-center text-muted-foreground text-sm">
+                          <div className="flex items-center text-muted-foreground text-sm mb-1">
                             <MapPin className="h-4 w-4 mr-1" />
                             {/* Show sports complex address for better UX */}
                             {facility.sports_complex_address || 
@@ -382,6 +384,13 @@ const FacilitiesPage = () => {
                              (facility.address ? `${facility.address}, ${facility.city}` : `${facility.city} area`)
                             }
                           </div>
+                          {/* Show contact phone number */}
+                          {facility.phone_number && (
+                            <div className="flex items-center text-muted-foreground text-sm">
+                              <Phone className="h-4 w-4 mr-1" />
+                              {facility.phone_number}
+                            </div>
+                          )}
                         </div>
                       </div>
                       
