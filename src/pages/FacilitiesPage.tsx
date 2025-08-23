@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn, Plus, Settings, Phone, CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
@@ -53,6 +54,7 @@ const FacilitiesPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [locationFilter, setLocationFilter] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
   const [allFacilities, setAllFacilities] = useState<Facility[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [session, setSession] = useState<Session | null>(null);
@@ -240,43 +242,84 @@ const FacilitiesPage = () => {
         );
       }
 
-      // Apply date filter - check availability
+      // Apply date and time slot filter - check availability
       if (selectedDate) {
         try {
           const dateString = format(selectedDate, 'yyyy-MM-dd');
+          
+          // Get bookings for the selected date
           const { data: bookings } = await supabase
             .from('bookings')
             .select('facility_id, start_time, end_time')
             .eq('booking_date', dateString)
             .in('status', ['confirmed', 'pending']);
 
-          // Get facilities that have some availability (not fully booked all day)
+          // Get blocked dates for the selected date
+          const { data: blockedDates } = await supabase
+            .from('blocked_dates')
+            .select('facility_id, start_time, end_time')
+            .eq('blocked_date', dateString);
+
           const unavailableFacilities = new Set();
-          const facilityBookings = bookings?.reduce((acc: any, booking) => {
-            if (!acc[booking.facility_id]) acc[booking.facility_id] = [];
-            acc[booking.facility_id].push({
-              start: booking.start_time,
-              end: booking.end_time
-            });
-            return acc;
-          }, {}) || {};
 
-          // Check if facility is completely booked (simplified - assume 8-22 operating hours)
-          Object.keys(facilityBookings).forEach(facilityId => {
-            const bookingsForFacility = facilityBookings[facilityId];
-            // Simple check: if more than 10 hours booked, consider unavailable
-            const totalBookedHours = bookingsForFacility.reduce((total: number, booking: any) => {
-              const start = new Date(`1970-01-01T${booking.start}`);
-              const end = new Date(`1970-01-01T${booking.end}`);
-              return total + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-            }, 0);
+          if (selectedTimeSlot) {
+            // Specific time slot selected - check exact availability
+            const [startTime, endTime] = selectedTimeSlot.split('-');
             
-            if (totalBookedHours >= 10) {
-              unavailableFacilities.add(facilityId);
-            }
-          });
+            // Check which facilities are booked or blocked during this time slot
+            const bookingsInTimeSlot = bookings?.filter(booking => {
+              const bookingStart = booking.start_time;
+              const bookingEnd = booking.end_time;
+              // Check for overlap: booking overlaps if it starts before our slot ends and ends after our slot starts
+              return bookingStart < endTime && bookingEnd > startTime;
+            }) || [];
 
-          // Filter out completely unavailable facilities
+            const blockedInTimeSlot = blockedDates?.filter(blocked => {
+              // If no specific time, entire day is blocked
+              if (!blocked.start_time || !blocked.end_time) return true;
+              // Check for overlap with specific blocked time
+              return blocked.start_time < endTime && blocked.end_time > startTime;
+            }) || [];
+
+            // Mark facilities as unavailable if they have bookings or are blocked during this time slot
+            bookingsInTimeSlot.forEach(booking => unavailableFacilities.add(booking.facility_id));
+            blockedInTimeSlot.forEach(blocked => unavailableFacilities.add(blocked.facility_id));
+            
+          } else {
+            // No specific time slot - show facilities with some availability
+            const facilityBookings = bookings?.reduce((acc: any, booking) => {
+              if (!acc[booking.facility_id]) acc[booking.facility_id] = [];
+              acc[booking.facility_id].push({
+                start: booking.start_time,
+                end: booking.end_time
+              });
+              return acc;
+            }, {}) || {};
+
+            // Check for full day blocks
+            const fullyBlockedFacilities = blockedDates?.filter(blocked => 
+              !blocked.start_time || !blocked.end_time
+            ).map(blocked => blocked.facility_id) || [];
+
+            fullyBlockedFacilities.forEach(facilityId => unavailableFacilities.add(facilityId));
+
+            // Check if facility is completely booked (simplified - assume 8-22 operating hours)
+            Object.keys(facilityBookings).forEach(facilityId => {
+              const bookingsForFacility = facilityBookings[facilityId];
+              // Simple check: if more than 10 hours booked, consider unavailable
+              const totalBookedHours = bookingsForFacility.reduce((total: number, booking: any) => {
+                const start = new Date(`1970-01-01T${booking.start}`);
+                const end = new Date(`1970-01-01T${booking.end}`);
+                return total + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+              }, 0);
+              
+              if (totalBookedHours >= 10) {
+                unavailableFacilities.add(facilityId);
+              }
+            });
+          }
+
+          // Filter out unavailable facilities
           filteredFacilities = filteredFacilities.filter(f => 
             !unavailableFacilities.has(f.id)
           );
@@ -290,7 +333,7 @@ const FacilitiesPage = () => {
     };
 
     applyFilters();
-  }, [allFacilities, selectedType, locationFilter, searchTerm, selectedDate]);
+  }, [allFacilities, selectedType, locationFilter, searchTerm, selectedDate, selectedTimeSlot]);
 
   const getFacilityTypeLabel = (type: string) => {
     const typeMap: { [key: string]: string } = {
@@ -302,6 +345,20 @@ const FacilitiesPage = () => {
       volleyball: "Volei"
     };
     return typeMap[type] || type;
+  };
+
+  const getTimeSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour < 22; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const startTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const endTime = minute === 30 
+          ? `${(hour + 1).toString().padStart(2, '0')}:00`
+          : `${hour.toString().padStart(2, '0')}:30`;
+        slots.push({ value: `${startTime}-${endTime}`, label: `${startTime} - ${endTime}` });
+      }
+    }
+    return slots;
   };
 
   const handleTypeFilter = (type: string | null) => {
@@ -349,7 +406,7 @@ const FacilitiesPage = () => {
         {userProfile?.role !== 'facility_owner' && (
           <Card className="mb-8 animate-fade-in">
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input 
@@ -402,6 +459,23 @@ const FacilitiesPage = () => {
                     </PopoverContent>
                   </Popover>
                 </div>
+
+                <div className="relative">
+                  <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
+                    <SelectTrigger className="pl-10">
+                      <SelectValue placeholder="Interval orar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Orice oră</SelectItem>
+                      {getTimeSlots().map((slot) => (
+                        <SelectItem key={slot.value} value={slot.value}>
+                          {slot.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 <Button 
                   variant="sport" 
@@ -410,6 +484,7 @@ const FacilitiesPage = () => {
                     setSearchTerm('');
                     setLocationFilter('');
                     setSelectedDate(undefined);
+                    setSelectedTimeSlot('');
                     setSelectedType(null);
                   }}
                 >
