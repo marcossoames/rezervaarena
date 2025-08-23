@@ -30,6 +30,11 @@ const AdminDashboard = () => {
     loadStats();
   }, []);
 
+  useEffect(() => {
+    // Reload stats when switching tabs to ensure fresh data
+    loadStats();
+  }, [activeTab]);
+
   const checkAdminAccess = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -169,7 +174,7 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">{stats.facilityOwners}</div>
-              <p className="text-xs text-muted-foreground">Proprietari de facilități</p>
+              <p className="text-xs text-muted-foreground">Proprietari de terenuri</p>
             </CardContent>
           </Card>
 
@@ -200,12 +205,12 @@ const AdminDashboard = () => {
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Facilități</CardTitle>
+              <CardTitle className="text-sm font-medium">Terenuri</CardTitle>
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalFacilities}</div>
-              <p className="text-xs text-muted-foreground">Facilități active</p>
+              <p className="text-xs text-muted-foreground">Terenuri active</p>
             </CardContent>
           </Card>
 
@@ -241,7 +246,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('facilities')}
           >
             <Building2 className="h-4 w-4 mr-2" />
-            Facilități
+            Terenuri
           </Button>
           <Button 
             variant={activeTab === 'bookings' ? 'default' : 'outline'} 
@@ -273,7 +278,7 @@ const AdminDashboard = () => {
                 </Button>
                 <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('facilities')}>
                   <Building2 className="h-6 w-6 mb-2" />
-                  Gestionare Facilități
+                  Gestionare Terenuri
                 </Button>
                 <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('bookings')}>
                   <Calendar className="h-6 w-6 mb-2" />
