@@ -174,7 +174,7 @@ const ManageFacilitiesPage = () => {
             <Link to="/add-facility">
               <Button className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
-                Adaugă Facilitate
+                Adaugă Teren
               </Button>
             </Link>
           </div>
@@ -192,7 +192,7 @@ const ManageFacilitiesPage = () => {
                 Începe prin a adăuga prima ta facilitate sportivă
               </p>
               <Link to="/add-facility">
-                <Button>Adaugă Prima Facilitate</Button>
+                <Button>Adaugă Primul Teren</Button>
               </Link>
             </CardContent>
           </Card>

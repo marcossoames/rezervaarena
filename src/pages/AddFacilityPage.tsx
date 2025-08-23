@@ -47,7 +47,17 @@ const AddFacilityPage = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (!profile || profile.role !== 'facility_owner') {
+      // Check if user is facility owner or has facilities
+      const { data: facilities } = await supabase
+        .from('facilities')
+        .select('id')
+        .eq('owner_id', user.id)
+        .limit(1);
+
+      const hasFacilities = facilities && facilities.length > 0;
+      const isFacilityOwner = profile?.user_type_comment?.includes('Proprietar bază sportivă');
+
+      if (!hasFacilities && !isFacilityOwner && profile?.role !== 'facility_owner') {
         toast({
           title: "Acces restricționat",
           description: "Doar proprietarii de baze sportive pot adăuga facilități",
@@ -253,7 +263,7 @@ const AddFacilityPage = () => {
         description: "Noua facilitate a fost adăugată în profilul tău."
       });
 
-      navigate("/facilities");
+      navigate("/manage-facilities");
     } catch (error: any) {
       console.error('Add facility error:', error);
       toast({
@@ -275,7 +285,7 @@ const AddFacilityPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       {/* Back Button */}
       <div className="container mx-auto max-w-2xl mb-4">
-        <Link to="/facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
+        <Link to="/manage-facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
           <ArrowLeft className="h-4 w-4" />
           Înapoi la facilități
         </Link>
@@ -288,10 +298,10 @@ const AddFacilityPage = () => {
               <div className="w-8 h-8 bg-primary rounded-full"></div>
             </div>
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Adaugă Facilitate Nouă
+              Adaugă Teren Nou
             </CardTitle>
             <CardDescription className="text-lg">
-              Adaugă o nouă facilitate sportivă în baza ta
+              Adaugă un nou teren sportiv în baza ta
             </CardDescription>
           </CardHeader>
           
