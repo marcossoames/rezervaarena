@@ -10,6 +10,10 @@ const HeroSection = () => {
           src={heroImage} 
           alt="Facilități sportive moderne" 
           className="w-full h-full object-cover opacity-20"
+          loading="eager"
+          fetchPriority="high"
+          width="1920"
+          height="600"
         />
         <div className="absolute inset-0 bg-gradient-hero/60"></div>
       </div>
