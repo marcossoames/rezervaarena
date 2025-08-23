@@ -20,6 +20,7 @@ import ContactPage from "./pages/ContactPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import MyReservationsPage from "./pages/MyReservationsPage";
 import FacilityCalendarPage from "./pages/FacilityCalendarPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/facilities" element={<FacilitiesPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/my-reservations" element={<MyReservationsPage />} />
           <Route path="/booking/:facilityId" element={<BookingPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
