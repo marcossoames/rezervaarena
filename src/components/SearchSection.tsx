@@ -117,7 +117,7 @@ const SearchSection = () => {
                 <label className="text-sm font-medium text-foreground">Locația</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Oraș, sector, zonă..." value={location} onChange={e => setLocation(e.target.value)} onKeyPress={handleKeyPress} className="pl-10 bg-background/50 border-border/50 focus:border-primary" />
+                  <Input placeholder="Oraș, zonă..." value={location} onChange={e => setLocation(e.target.value)} onKeyPress={handleKeyPress} className="pl-10 bg-background/50 border-border/50 focus:border-primary" />
                 </div>
               </div>
 
