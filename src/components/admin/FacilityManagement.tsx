@@ -63,7 +63,7 @@ const FacilityManagement = () => {
       const ownerIds = facilitiesData?.map(f => f.owner_id) || [];
       const { data: ownersData } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email, phone')
+        .select('user_id, full_name, email, phone, user_type_comment')
         .in('user_id', ownerIds);
 
       // Create lookup map
@@ -77,8 +77,24 @@ const FacilityManagement = () => {
         const ownerId = facility.owner_id;
         
         if (!complexMap.has(ownerId)) {
-          // Determine sports complex name - use first facility's city + area or create a generic name
-          const complexName = `Baza Sportivă ${facility.city}`;
+          const owner = ownerMap.get(ownerId);
+          
+          // Try to extract business name from user_type_comment or use intelligent naming
+          let complexName = 'Baza Sportivă';
+          
+          if (owner?.user_type_comment && owner.user_type_comment.includes('Proprietar bază sportivă')) {
+            // If there's additional info in the comment, use it
+            const commentParts = owner.user_type_comment.split(' - ');
+            if (commentParts.length > 1) {
+              complexName = commentParts[1].replace('înregistrat prin sistem', '').trim();
+            }
+          }
+          
+          // If no business name found, create one based on owner name and location
+          if (complexName === 'Baza Sportivă') {
+            const ownerFirstName = owner?.full_name?.split(' ')[0] || 'Unknown';
+            complexName = `Baza Sportivă ${ownerFirstName} - ${facility.city}`;
+          }
           
           complexMap.set(ownerId, {
             owner_id: ownerId,
