@@ -97,7 +97,7 @@ const SearchSection = () => {
           <h2 className="text-4xl font-bold text-foreground mb-4">
             Găsește <span className="text-primary">Terenul Perfect</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Caută și rezervă cele mai bune facilități sportive din Timișoara în câțiva pași simpli</p>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Caută și rezervă cele mai bune terenuri sportive din Timișoara în câțiva pași simpli</p>
         </div>
 
         <Card className="max-w-7xl mx-auto shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
@@ -105,10 +105,10 @@ const SearchSection = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
               {/* Search Query */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Caută facilități</label>
+                <label className="text-sm font-medium text-foreground">Caută terenuri</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Nume facilitate sau bază sportivă..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyPress={handleKeyPress} className="pl-10 bg-background/50 border-border/50 focus:border-primary" />
+                  <Input placeholder="Nume teren sau bază sportivă..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyPress={handleKeyPress} className="pl-10 bg-background/50 border-border/50 focus:border-primary" />
                 </div>
               </div>
 
@@ -149,7 +149,7 @@ const SearchSection = () => {
 
               {/* Facility Type */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Tipul facilității</label>
+                <label className="text-sm font-medium text-foreground">Tipul terenului</label>
                 <Select value={facilityType} onValueChange={setFacilityType}>
                   <SelectTrigger className="bg-background/50 border-border/50 focus:border-primary">
                     <SelectValue placeholder="Toate tipurile" />
@@ -200,7 +200,7 @@ const SearchSection = () => {
             <div className="flex justify-center">
               <Button onClick={handleSearch} size="lg" className="px-12 py-3 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300">
                 <Search className="mr-2 h-5 w-5" />
-                Caută Facilități
+                Caută Terenuri
               </Button>
             </div>
 
