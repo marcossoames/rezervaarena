@@ -336,6 +336,7 @@ export type Database = {
           id: string
           images: string[]
           name: string
+          phone_number: string
           price_per_hour: number
           sports_complex_address: string
           sports_complex_name: string
