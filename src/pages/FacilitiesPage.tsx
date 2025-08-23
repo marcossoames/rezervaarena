@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn, Plus, Settings, Phone } from "lucide-react";
+import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn, Plus, Settings, Phone, CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,10 @@ import { Session } from "@supabase/supabase-js";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ImageCarousel from "@/components/ImageCarousel";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface Facility {
   id: string;
@@ -48,7 +52,7 @@ const FacilitiesPage = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [locationFilter, setLocationFilter] = useState<string>('');
-  const [dateFilter, setDateFilter] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [allFacilities, setAllFacilities] = useState<Facility[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [session, setSession] = useState<Session | null>(null);
@@ -108,9 +112,15 @@ const FacilitiesPage = () => {
     const searchParam = searchParams.get('search');
     
     setSelectedType(typeParam);
-    setDateFilter(dateParam || '');
     setLocationFilter(locationParam || '');
     setSearchTerm(searchParam || '');
+    // Handle date parameter
+    if (dateParam) {
+      const date = new Date(dateParam);
+      if (!isNaN(date.getTime())) {
+        setSelectedDate(date);
+      }
+    }
   }, [searchParams]);
 
   useEffect(() => {
@@ -205,33 +215,82 @@ const FacilitiesPage = () => {
 
   // Apply filters whenever filters change
   useEffect(() => {
-    let filteredFacilities = [...allFacilities];
+    const applyFilters = async () => {
+      let filteredFacilities = [...allFacilities];
 
-    // Apply type filter
-    if (selectedType) {
-      filteredFacilities = filteredFacilities.filter(f => f.facility_type === selectedType);
-    }
+      // Apply type filter
+      if (selectedType) {
+        filteredFacilities = filteredFacilities.filter(f => f.facility_type === selectedType);
+      }
 
-    // Apply location filter
-    if (locationFilter) {
-      filteredFacilities = filteredFacilities.filter(f => 
-        f.city.toLowerCase().includes(locationFilter.toLowerCase()) ||
-        (f.address && f.address.toLowerCase().includes(locationFilter.toLowerCase()))
-      );
-    }
+      // Apply location filter
+      if (locationFilter) {
+        filteredFacilities = filteredFacilities.filter(f => 
+          f.city.toLowerCase().includes(locationFilter.toLowerCase()) ||
+          (f.address && f.address.toLowerCase().includes(locationFilter.toLowerCase()))
+        );
+      }
 
-    // Apply search term filter
-    if (searchTerm) {
-      filteredFacilities = filteredFacilities.filter(f =>
-        f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (f.description && f.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (f.sports_complex_name && f.sports_complex_name.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
+      // Apply search term filter
+      if (searchTerm) {
+        filteredFacilities = filteredFacilities.filter(f =>
+          f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (f.description && f.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (f.sports_complex_name && f.sports_complex_name.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+      }
 
-    setFacilities(filteredFacilities);
-    setLoading(false);
-  }, [allFacilities, selectedType, locationFilter, searchTerm, dateFilter]);
+      // Apply date filter - check availability
+      if (selectedDate) {
+        try {
+          const dateString = format(selectedDate, 'yyyy-MM-dd');
+          const { data: bookings } = await supabase
+            .from('bookings')
+            .select('facility_id, start_time, end_time')
+            .eq('booking_date', dateString)
+            .in('status', ['confirmed', 'pending']);
+
+          // Get facilities that have some availability (not fully booked all day)
+          const unavailableFacilities = new Set();
+          const facilityBookings = bookings?.reduce((acc: any, booking) => {
+            if (!acc[booking.facility_id]) acc[booking.facility_id] = [];
+            acc[booking.facility_id].push({
+              start: booking.start_time,
+              end: booking.end_time
+            });
+            return acc;
+          }, {}) || {};
+
+          // Check if facility is completely booked (simplified - assume 8-22 operating hours)
+          Object.keys(facilityBookings).forEach(facilityId => {
+            const bookingsForFacility = facilityBookings[facilityId];
+            // Simple check: if more than 10 hours booked, consider unavailable
+            const totalBookedHours = bookingsForFacility.reduce((total: number, booking: any) => {
+              const start = new Date(`1970-01-01T${booking.start}`);
+              const end = new Date(`1970-01-01T${booking.end}`);
+              return total + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+            }, 0);
+            
+            if (totalBookedHours >= 10) {
+              unavailableFacilities.add(facilityId);
+            }
+          });
+
+          // Filter out completely unavailable facilities
+          filteredFacilities = filteredFacilities.filter(f => 
+            !unavailableFacilities.has(f.id)
+          );
+        } catch (error) {
+          console.error('Error checking availability:', error);
+        }
+      }
+
+      setFacilities(filteredFacilities);
+      setLoading(false);
+    };
+
+    applyFilters();
+  }, [allFacilities, selectedType, locationFilter, searchTerm, selectedDate]);
 
   const getFacilityTypeLabel = (type: string) => {
     const typeMap: { [key: string]: string } = {
@@ -312,13 +371,36 @@ const FacilitiesPage = () => {
                 </div>
                 
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="date" 
-                    className="pl-10" 
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal pl-10",
+                          !selectedDate && "text-muted-foreground"
+                        )}
+                      >
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        {selectedDate ? format(selectedDate, "dd/MM/yyyy") : <span>Selectează data</span>}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        disabled={(date) => {
+                          const today = new Date();
+                          const twoWeeksFromNow = new Date();
+                          twoWeeksFromNow.setDate(today.getDate() + 14);
+                          return date < today || date > twoWeeksFromNow;
+                        }}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 
                 <Button 
@@ -327,7 +409,7 @@ const FacilitiesPage = () => {
                   onClick={() => {
                     setSearchTerm('');
                     setLocationFilter('');
-                    setDateFilter('');
+                    setSelectedDate(undefined);
                     setSelectedType(null);
                   }}
                 >
