@@ -7,20 +7,21 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
-
 const MyReservationsPage = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [reservations, setReservations] = useState<any[]>([]);
   const navigate = useNavigate();
-
   useEffect(() => {
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       setSession(session);
       setIsLoading(false);
-      
       if (!session) {
         navigate('/client/login');
       } else {
@@ -30,28 +31,28 @@ const MyReservationsPage = () => {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setIsLoading(false);
-        
-        if (!session) {
-          navigate('/client/login');
-        } else {
-          fetchReservations(session.user.id);
-          fetchUserProfile(session.user.id);
-        }
+    const {
+      data: {
+        subscription
       }
-    );
-
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setIsLoading(false);
+      if (!session) {
+        navigate('/client/login');
+      } else {
+        fetchReservations(session.user.id);
+        fetchUserProfile(session.user.id);
+      }
+    });
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   const fetchReservations = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('bookings').select(`
           *,
           facilities (
             name,
@@ -59,10 +60,9 @@ const MyReservationsPage = () => {
             city,
             facility_type
           )
-        `)
-        .eq('client_id', userId)
-        .order('created_at', { ascending: false });
-
+        `).eq('client_id', userId).order('created_at', {
+        ascending: false
+      });
       if (error) throw error;
       setReservations(data || []);
     } catch (error) {
@@ -70,15 +70,12 @@ const MyReservationsPage = () => {
       setReservations([]);
     }
   };
-
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-      
+      const {
+        data,
+        error
+      } = await supabase.from('profiles').select('*').eq('user_id', userId).single();
       if (!error) {
         setUserProfile(data);
       }
@@ -86,10 +83,8 @@ const MyReservationsPage = () => {
       console.error('Error fetching user profile:', error);
     }
   };
-
   const handleViewFacilities = () => {
     const isFacilityOwner = userProfile?.user_type_comment?.includes('Proprietar bază sportivă');
-    
     if (isFacilityOwner) {
       navigate('/manage-facilities');
     } else {
@@ -98,31 +93,28 @@ const MyReservationsPage = () => {
   };
   // Show loading while checking authentication or fetching data
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Se încarcă...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Don't render the page if not authenticated
   if (!session) {
     return null;
   }
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ro-RO');
   };
-
   const formatTime = (timeString: string) => {
     return timeString.slice(0, 5);
   };
-
   const getStatusLabel = (status: string) => {
-    const statusMap: { [key: string]: string } = {
+    const statusMap: {
+      [key: string]: string;
+    } = {
       pending: 'În așteptare',
       confirmed: 'Confirmată',
       cancelled: 'Anulată',
@@ -130,9 +122,10 @@ const MyReservationsPage = () => {
     };
     return statusMap[status] || status;
   };
-
   const getStatusColor = (status: string) => {
-    const colorMap: { [key: string]: string } = {
+    const colorMap: {
+      [key: string]: string;
+    } = {
       pending: 'bg-yellow-100 text-yellow-800',
       confirmed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800',
@@ -140,32 +133,24 @@ const MyReservationsPage = () => {
     };
     return colorMap[status] || 'bg-gray-100 text-gray-800';
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Header />
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Rezervările Mele</h1>
           
-          {reservations.length === 0 ? (
-            <Card>
+          {reservations.length === 0 ? <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Nu ai rezervări</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  Când vei face o rezervare, o vei vedea aici.
-                </p>
+                <p className="text-muted-foreground text-center mb-4">Când vei avea o rezervare, o vei vedea aici.</p>
                 <Button onClick={handleViewFacilities}>
                   Vezi Facilități
                 </Button>
               </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              {reservations.map((reservation) => (
-                <Card key={reservation.id}>
+            </Card> : <div className="space-y-6">
+              {reservations.map(reservation => <Card key={reservation.id}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-xl">{reservation.facilities?.name}</CardTitle>
@@ -192,21 +177,18 @@ const MyReservationsPage = () => {
                       </div>
                     </div>
                     
-                    {reservation.notes && (
-                      <div className="mb-4">
+                    {reservation.notes && <div className="mb-4">
                         <p className="text-sm text-muted-foreground">
                           <strong>Note:</strong> {reservation.notes}
                         </p>
-                      </div>
-                    )}
+                      </div>}
                     
                     <div className="flex justify-between items-center">
                       <div className="text-lg font-semibold">
                         {reservation.total_price} LEI
                       </div>
                       <div className="flex gap-2">
-                        {reservation.status === 'pending' && (
-                          <>
+                        {reservation.status === 'pending' && <>
                             <Button variant="outline" size="sm">
                               Modifică
                             </Button>
@@ -214,27 +196,20 @@ const MyReservationsPage = () => {
                               <Trash2 className="h-4 w-4 mr-1" />
                               Anulează
                             </Button>
-                          </>
-                        )}
-                        {reservation.status === 'confirmed' && (
-                          <Button variant="outline" size="sm" className="text-destructive">
+                          </>}
+                        {reservation.status === 'confirmed' && <Button variant="outline" size="sm" className="text-destructive">
                             <Trash2 className="h-4 w-4 mr-1" />
                             Anulează
-                          </Button>
-                        )}
+                          </Button>}
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                </Card>)}
+            </div>}
         </div>
       </main>
       
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default MyReservationsPage;
