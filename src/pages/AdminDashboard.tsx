@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { secureSignOut } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
 import UserManagement from "@/components/UserManagement";
+import FacilityManagement from "@/components/admin/FacilityManagement";
+import BookingManagement from "@/components/admin/BookingManagement";
 
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -288,27 +290,9 @@ const AdminDashboard = () => {
 
         {activeTab === 'users' && <UserManagement />}
         
-        {activeTab === 'facilities' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestionare Facilități</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Funcționalitatea pentru gestionarea facilităților va fi adăugată în curând.</p>
-            </CardContent>
-          </Card>
-        )}
+        {activeTab === 'facilities' && <FacilityManagement />}
 
-        {activeTab === 'bookings' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Vizualizare Rezervări</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Funcționalitatea pentru vizualizarea rezervărilor va fi adăugată în curând.</p>
-            </CardContent>
-          </Card>
-        )}
+        {activeTab === 'bookings' && <BookingManagement />}
 
         {activeTab === 'settings' && (
           <Card>
