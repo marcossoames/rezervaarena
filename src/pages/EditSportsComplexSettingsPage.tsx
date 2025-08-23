@@ -88,12 +88,20 @@ const EditSportsComplexSettingsPage = () => {
           .limit(1)
           .single();
 
-        // Get facility services
-        const { data: servicesData } = await supabase
-          .from('facility_services')
-          .select('service_name')
-          .eq('facility_id', facilityData?.id || '')
-          .eq('is_included', true);
+        // Get facility services from amenities field
+        let generalServices: string[] = [];
+        if (facilityData?.amenities && facilityData.amenities.length > 0) {
+          generalServices = facilityData.amenities;
+        } else {
+          // Fallback: try to get from facility_services table
+          const { data: servicesData } = await supabase
+            .from('facility_services')
+            .select('service_name')
+            .eq('facility_id', facilityData?.id || '')
+            .eq('is_included', true);
+          
+          generalServices = servicesData?.map(s => s.service_name) || [];
+        }
 
         // Set form values
         setValue("sportsComplexName", sportsComplexName);
@@ -101,7 +109,7 @@ const EditSportsComplexSettingsPage = () => {
         setValue("address", facilityData?.address || "");
         setValue("city", facilityData?.city || "");
         setValue("description", facilityData?.description || "");
-        setValue("generalServices", servicesData?.map(s => s.service_name) || []);
+        setValue("generalServices", generalServices);
 
       } catch (error) {
         console.error('Error loading data:', error);
@@ -154,52 +162,20 @@ const EditSportsComplexSettingsPage = () => {
         throw profileError;
       }
 
-      // Update facility address, city, and description if they exist
-      if (data.address || data.city || data.description) {
-        const { error: facilityError } = await supabase
-          .from('facilities')
-          .update({
-            address: data.address,
-            city: data.city,
-            description: data.description
-          })
-          .eq('owner_id', user.id);
+      // Update facility address, city, description, and amenities
+      const { error: facilityError } = await supabase
+        .from('facilities')
+        .update({
+          address: data.address,
+          city: data.city,
+          description: data.description,
+          amenities: data.generalServices || []
+        })
+        .eq('owner_id', user.id);
 
-        if (facilityError) {
-          console.error('Error updating facility:', facilityError);
-          // Don't throw here as profile update was successful
-        }
-      }
-
-      // Update facility services
-      if (data.generalServices && data.generalServices.length > 0) {
-        // First, get the facility ID
-        const { data: facility } = await supabase
-          .from('facilities')
-          .select('id')
-          .eq('owner_id', user.id)
-          .limit(1)
-          .single();
-
-        if (facility) {
-          // Delete existing services
-          await supabase
-            .from('facility_services')
-            .delete()
-            .eq('facility_id', facility.id)
-            .eq('is_included', true);
-
-          // Insert new services
-          const servicesToInsert = data.generalServices.map(serviceName => ({
-            facility_id: facility.id,
-            service_name: serviceName,
-            is_included: true
-          }));
-
-          await supabase
-            .from('facility_services')
-            .insert(servicesToInsert);
-        }
+      if (facilityError) {
+        console.error('Error updating facility:', facilityError);
+        // Don't throw here as profile update was successful
       }
 
       toast({
@@ -234,14 +210,15 @@ const EditSportsComplexSettingsPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 p-4">
       <div className="container mx-auto max-w-2xl">
         <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/manage-facilities")}
-            className="mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Înapoi la Facilități
-          </Button>
+          <div className="flex justify-center mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/manage-facilities")}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Înapoi la Facilități
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold text-center">Setări Bază Sportivă</h1>
         </div>
 
