@@ -161,7 +161,7 @@ const FacilityOwnerProfilePage = () => {
           </div>
 
           {/* Action Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {/* Rezervări */}
             <Card className="hover:shadow-lg transition-shadow cursor-pointer group" 
                   onClick={() => navigate("/my-reservations")}>
@@ -169,8 +169,8 @@ const FacilityOwnerProfilePage = () => {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
                   <Calendar className="h-8 w-8 text-blue-600" />
                 </div>
-                <CardTitle className="text-xl">Rezervări</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg">Rezervări</CardTitle>
+                <CardDescription className="text-sm">
                   Vezi toate rezervările pentru facilitățile tale
                 </CardDescription>
               </CardHeader>
@@ -188,8 +188,8 @@ const FacilityOwnerProfilePage = () => {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors">
                   <Building2 className="h-8 w-8 text-green-600" />
                 </div>
-                <CardTitle className="text-xl">Terenuri</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg">Terenuri</CardTitle>
+                <CardDescription className="text-sm">
                   Gestionează facilitățile și terenurile tale
                 </CardDescription>
               </CardHeader>
@@ -207,8 +207,8 @@ const FacilityOwnerProfilePage = () => {
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors">
                   <Settings className="h-8 w-8 text-purple-600" />
                 </div>
-                <CardTitle className="text-xl">Setări Bază</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg">Setări Bază</CardTitle>
+                <CardDescription className="text-sm">
                   Editează informațiile generale ale bazei sportive
                 </CardDescription>
               </CardHeader>
@@ -225,8 +225,8 @@ const FacilityOwnerProfilePage = () => {
                 <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Trash2 className="h-8 w-8 text-destructive" />
                 </div>
-                <CardTitle className="text-xl text-destructive">Ștergere Cont</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg text-destructive">Ștergere Cont</CardTitle>
+                <CardDescription className="text-sm">
                   Șterge definitiv contul și toate datele asociate
                 </CardDescription>
               </CardHeader>
