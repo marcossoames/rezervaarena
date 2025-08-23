@@ -135,11 +135,25 @@ const FacilitiesPage = () => {
             .eq('is_active', true);
           
           allFacilities = facilitiesData?.map(f => {
-            // Extract sports complex name from profile
+            // Extract sports complex name from profile with improved logic
             let sportsComplexName = 'Baza Sportivă';
-            if (f.profiles?.user_type_comment && f.profiles.user_type_comment.includes(' - Proprietar bază sportivă')) {
-              sportsComplexName = f.profiles.user_type_comment.split(' - Proprietar bază sportivă')[0];
-            } else if (f.profiles?.full_name) {
+            if (f.profiles?.user_type_comment) {
+              // Check for format: "Name - Proprietar bază sportivă"
+              if (f.profiles.user_type_comment.match(/.+ - Proprietar bază sportivă$/)) {
+                sportsComplexName = f.profiles.user_type_comment.replace(' - Proprietar bază sportivă', '');
+              }
+              // Check for format: "Proprietar bază sportivă - Name"
+              else if (f.profiles.user_type_comment.match(/^Proprietar bază sportivă - .+/)) {
+                sportsComplexName = f.profiles.user_type_comment.replace('Proprietar bază sportivă - ', '');
+              }
+              // If no standard format, use the whole comment if it doesn't contain standard text
+              else if (!f.profiles.user_type_comment.includes('Proprietar bază sportivă')) {
+                sportsComplexName = f.profiles.user_type_comment;
+              }
+            }
+            
+            // Fallback to owner name and city if still generic
+            if (sportsComplexName === 'Baza Sportivă' && f.profiles?.full_name) {
               sportsComplexName = `Baza Sportivă ${f.profiles.full_name.split(' ')[0]} - ${f.city}`;
             }
             
