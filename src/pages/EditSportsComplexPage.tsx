@@ -71,14 +71,32 @@ const EditSportsComplexPage = () => {
 
       if (facilitiesError) throw facilitiesError;
 
-      // Extract business name from user_type_comment
+      // Extract business name from user_type_comment, but preserve existing if not found
       let businessName = 'Baza Sportivă';
       let businessDescription = '';
       
       if (profileData.user_type_comment) {
-        const commentParts = profileData.user_type_comment.split(' - ');
-        if (commentParts.length > 1 && commentParts[1].includes('Proprietar bază sportivă')) {
-          businessName = commentParts[0];
+        // Try different formats to extract business name
+        if (profileData.user_type_comment.includes(' - Proprietar bază sportivă')) {
+          // Format: "Business Name - Proprietar bază sportivă"
+          businessName = profileData.user_type_comment.split(' - Proprietar bază sportivă')[0];
+        } else if (profileData.user_type_comment.includes('Proprietar bază sportivă - ')) {
+          // Format: "Proprietar bază sportivă - Business Name"
+          const parts = profileData.user_type_comment.split('Proprietar bază sportivă - ');
+          if (parts.length > 1 && parts[1] !== 'înregistrat prin sistem') {
+            businessName = parts[1];
+          }
+        } else if (!profileData.user_type_comment.includes('Proprietar bază sportivă')) {
+          // If it doesn't contain the standard text, assume it's all business name
+          businessName = profileData.user_type_comment;
+        }
+        
+        // If we still have generic name, try to infer from facilities or owner name
+        if (businessName === 'Baza Sportivă' || businessName === 'înregistrat prin sistem') {
+          // Try to create a better name from owner's name
+          const ownerFirstName = profileData.full_name?.split(' ')[0] || 'Unknown';
+          const facilityCity = facilitiesData?.[0]?.city || '';
+          businessName = `Baza Sportivă ${ownerFirstName}${facilityCity ? ' - ' + facilityCity : ''}`;
         }
       }
 
