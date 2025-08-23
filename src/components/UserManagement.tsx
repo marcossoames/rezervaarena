@@ -33,6 +33,12 @@ const UserManagement = () => {
 
   useEffect(() => {
     fetchUsers();
+    // Force refresh when component mounts
+    const interval = setInterval(() => {
+      fetchUsers();
+    }, 1000); // Refresh every second for testing
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchUsers = async () => {
