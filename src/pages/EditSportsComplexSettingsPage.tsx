@@ -80,36 +80,24 @@ const EditSportsComplexSettingsPage = () => {
           }
         }
 
-        // Get facility data for address, city, description and services
+        // Get facility data only if it exists
         const { data: facilityData } = await supabase
           .from('facilities')
           .select('id, address, city, description, amenities')
           .eq('owner_id', user.id)
-          .limit(1)
-          .single();
+          .maybeSingle();
 
-        // Get facility services from amenities field
-        let generalServices: string[] = [];
-        if (facilityData?.amenities && facilityData.amenities.length > 0) {
-          generalServices = facilityData.amenities;
-        } else {
-          // Fallback: try to get from facility_services table
-          const { data: servicesData } = await supabase
-            .from('facility_services')
-            .select('service_name')
-            .eq('facility_id', facilityData?.id || '')
-            .eq('is_included', true);
-          
-          generalServices = servicesData?.map(s => s.service_name) || [];
-        }
-
-        // Set form values
+        // Set form values only with actual database data
         setValue("sportsComplexName", sportsComplexName);
         setValue("phone", profile.phone || "");
-        setValue("address", facilityData?.address || "");
-        setValue("city", facilityData?.city || "");
-        setValue("description", facilityData?.description || "");
-        setValue("generalServices", generalServices);
+        
+        // Only set facility data if it exists
+        if (facilityData) {
+          setValue("address", facilityData.address || "");
+          setValue("city", facilityData.city || "");
+          setValue("description", facilityData.description || "");
+          setValue("generalServices", facilityData.amenities || []);
+        }
 
       } catch (error) {
         console.error('Error loading data:', error);
@@ -162,20 +150,22 @@ const EditSportsComplexSettingsPage = () => {
         throw profileError;
       }
 
-      // Update facility address, city, description, and amenities
-      const { error: facilityError } = await supabase
-        .from('facilities')
-        .update({
-          address: data.address,
-          city: data.city,
-          description: data.description,
-          amenities: data.generalServices || []
-        })
-        .eq('owner_id', user.id);
+      // Update facility data only if user has a facility and data is provided
+      if (data.address || data.city || data.description || data.generalServices?.length) {
+        const { error: facilityError } = await supabase
+          .from('facilities')
+          .update({
+            ...(data.address && { address: data.address }),
+            ...(data.city && { city: data.city }),
+            ...(data.description && { description: data.description }),
+            ...(data.generalServices?.length && { amenities: data.generalServices })
+          })
+          .eq('owner_id', user.id);
 
-      if (facilityError) {
-        console.error('Error updating facility:', facilityError);
-        // Don't throw here as profile update was successful
+        if (facilityError) {
+          console.error('Error updating facility:', facilityError);
+          // Don't throw here as profile update was successful
+        }
       }
 
       toast({
