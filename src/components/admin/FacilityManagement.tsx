@@ -29,6 +29,7 @@ interface SportsComplex {
   owner_name: string;
   owner_email: string;
   owner_phone?: string;
+  complex_name: string;
   city: string;
   facilities: Facility[];
   total_facilities: number;
@@ -76,11 +77,15 @@ const FacilityManagement = () => {
         const ownerId = facility.owner_id;
         
         if (!complexMap.has(ownerId)) {
+          // Determine sports complex name - use first facility's city + area or create a generic name
+          const complexName = `Baza Sportivă ${facility.city}`;
+          
           complexMap.set(ownerId, {
             owner_id: ownerId,
             owner_name: owner?.full_name || 'Unknown',
             owner_email: owner?.email || 'Unknown',
             owner_phone: owner?.phone,
+            complex_name: complexName,
             city: facility.city,
             facilities: [],
             total_facilities: 0,
@@ -261,7 +266,12 @@ const FacilityManagement = () => {
                             }
                             <Building2 className="h-6 w-6 text-blue-600" />
                             <div>
-                              <CardTitle className="text-left">{complex.owner_name}</CardTitle>
+                              <CardTitle className="text-left">
+                                {complex.complex_name}
+                                <span className="text-sm font-normal text-muted-foreground ml-2">
+                                  ({complex.owner_name})
+                                </span>
+                              </CardTitle>
                               <p className="text-sm text-muted-foreground">
                                 {complex.city} • {complex.total_facilities} facilități ({complex.active_facilities} active)
                               </p>
