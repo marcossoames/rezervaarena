@@ -4,22 +4,23 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <div className="flex items-center space-x-2 mb-6">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-8">
+          <div className="lg:max-w-md">
+            <div className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 bg-gradient-hero rounded-md flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-lg">S</span>
               </div>
               <h3 className="text-xl font-bold text-foreground">SportBook</h3>
             </div>
-            <p className="text-muted-foreground mb-6">
-              Platforma numărul 1 din România pentru rezervarea terenurilor sportive. 
+            <p className="text-muted-foreground mb-2">
+              Platforma numărul 1 din România pentru rezervarea terenurilor sportive.
+            </p>
+            <p className="text-muted-foreground">
               Conectăm pasionații de sport cu cele mai bune facilități.
             </p>
-            
           </div>
 
-          <div>
+          <div className="lg:text-right">
             <h4 className="text-lg font-semibold text-foreground mb-6">Contact</h4>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
