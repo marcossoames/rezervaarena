@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-6">
               <div className="w-8 h-8 bg-gradient-hero rounded-md flex items-center justify-center">
@@ -17,25 +17,6 @@ const Footer = () => {
               Conectăm pasionații de sport cu cele mai bune facilități.
             </p>
             
-          </div>
-
-          <div>
-            <h4 className="text-lg font-semibold text-foreground mb-6">Pentru Clienți</h4>
-            <ul className="space-y-3">
-              <li><Link to="/facilities" className="text-muted-foreground hover:text-primary transition-smooth">Caută Terenuri</Link></li>
-              <li><Link to="/booking" className="text-muted-foreground hover:text-primary transition-smooth">Rezervările Mele</Link></li>
-              <li><Link to="/client-register" className="text-muted-foreground hover:text-primary transition-smooth">Profil</Link></li>
-              <li><Link to="/about" className="text-muted-foreground hover:text-primary transition-smooth">Ajutor</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-lg font-semibold text-foreground mb-6">Pentru Baze Sportive</h4>
-            <ul className="space-y-3">
-              <li><Link to="/facility-register" className="text-muted-foreground hover:text-primary transition-smooth">Înregistrează Baza</Link></li>
-              <li><Link to="/admin-dashboard" className="text-muted-foreground hover:text-primary transition-smooth">Dashboard</Link></li>
-              <li><Link to="/booking" className="text-muted-foreground hover:text-primary transition-smooth">Gestionare Rezervări</Link></li>
-            </ul>
           </div>
 
           <div>
