@@ -15,7 +15,8 @@ const SearchSection = () => {
   const [location, setLocation] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [facilityType, setFacilityType] = useState("");
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("all-times");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
@@ -33,18 +34,17 @@ const SearchSection = () => {
     { value: "volleyball", label: "Volei" }
   ];
 
-  const getTimeSlots = () => {
-    const slots = [];
+  const getTimeOptions = () => {
+    const times = [];
     for (let hour = 8; hour < 22; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
-        const startTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        const endTime = minute === 30 
-          ? `${(hour + 1).toString().padStart(2, '0')}:00`
-          : `${hour.toString().padStart(2, '0')}:30`;
-        slots.push({ value: `${startTime}-${endTime}`, label: `${startTime} - ${endTime}` });
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        times.push({ value: timeString, label: timeString });
       }
     }
-    return slots;
+    // Add final time slot for end time
+    times.push({ value: "22:00", label: "22:00" });
+    return times;
   };
 
   const handleSearch = () => {
@@ -63,8 +63,9 @@ const SearchSection = () => {
     if (searchQuery.trim()) {
       params.set('search', searchQuery.trim());
     }
-    if (selectedTimeSlot && selectedTimeSlot !== 'all-times') {
-      params.set('timeSlot', selectedTimeSlot);
+    if (startTime && endTime) {
+      params.set('startTime', startTime);
+      params.set('endTime', endTime);
     }
 
     // Navigate to facilities page with search parameters
@@ -177,24 +178,40 @@ const SearchSection = () => {
                 </Select>
               </div>
 
-              {/* Time Slot */}
+              {/* Time Range */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Intervalul orar</label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
-                  <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
-                    <SelectTrigger className="pl-10 bg-background/50 border-border/50 focus:border-primary">
-                      <SelectValue placeholder="Orice oră" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all-times">Orice oră</SelectItem>
-                      {getTimeSlots().map((slot) => (
-                        <SelectItem key={slot.value} value={slot.value}>
-                          {slot.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                    <Select value={startTime} onValueChange={setStartTime}>
+                      <SelectTrigger className="pl-10 bg-background/50 border-border/50 focus:border-primary">
+                        <SelectValue placeholder="De la" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border shadow-lg z-50">
+                        {getTimeOptions().filter(time => !endTime || time.value < endTime).map((time) => (
+                          <SelectItem key={time.value} value={time.value}>
+                            {time.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="relative flex-1">
+                    <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                    <Select value={endTime} onValueChange={setEndTime} disabled={!startTime}>
+                      <SelectTrigger className="pl-10 bg-background/50 border-border/50 focus:border-primary">
+                        <SelectValue placeholder="Până la" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border shadow-lg z-50">
+                        {getTimeOptions().filter(time => startTime && time.value > startTime).map((time) => (
+                          <SelectItem key={time.value} value={time.value}>
+                            {time.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </div>

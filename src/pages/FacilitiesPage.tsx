@@ -54,7 +54,8 @@ const FacilitiesPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [locationFilter, setLocationFilter] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
+  const [startTime, setStartTime] = useState<string>('');
+  const [endTime, setEndTime] = useState<string>('');
   const [allFacilities, setAllFacilities] = useState<Facility[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [session, setSession] = useState<Session | null>(null);
@@ -112,12 +113,14 @@ const FacilitiesPage = () => {
     const dateParam = searchParams.get('date');
     const locationParam = searchParams.get('location');
     const searchParam = searchParams.get('search');
-    const timeSlotParam = searchParams.get('timeSlot');
+    const startTimeParam = searchParams.get('startTime');
+    const endTimeParam = searchParams.get('endTime');
     
     setSelectedType(typeParam);
     setLocationFilter(locationParam || '');
     setSearchTerm(searchParam || '');
-    setSelectedTimeSlot(timeSlotParam || 'all-times');
+    setStartTime(startTimeParam || '');
+    setEndTime(endTimeParam || '');
     // Handle date parameter
     if (dateParam) {
       const date = new Date(dateParam);
@@ -264,28 +267,27 @@ const FacilitiesPage = () => {
 
           const unavailableFacilities = new Set();
 
-          if (selectedTimeSlot && selectedTimeSlot !== 'all-times') {
-            // Specific time slot selected - check exact availability
-            const [startTime, endTime] = selectedTimeSlot.split('-');
+          if (startTime && endTime) {
+            // Specific time range selected - check exact availability
             
-            // Check which facilities are booked or blocked during this time slot
-            const bookingsInTimeSlot = bookings?.filter(booking => {
+            // Check which facilities are booked or blocked during this time range
+            const bookingsInTimeRange = bookings?.filter(booking => {
               const bookingStart = booking.start_time;
               const bookingEnd = booking.end_time;
-              // Check for overlap: booking overlaps if it starts before our slot ends and ends after our slot starts
+              // Check for overlap: booking overlaps if it starts before our range ends and ends after our range starts
               return bookingStart < endTime && bookingEnd > startTime;
             }) || [];
 
-            const blockedInTimeSlot = blockedDates?.filter(blocked => {
+            const blockedInTimeRange = blockedDates?.filter(blocked => {
               // If no specific time, entire day is blocked
               if (!blocked.start_time || !blocked.end_time) return true;
               // Check for overlap with specific blocked time
               return blocked.start_time < endTime && blocked.end_time > startTime;
             }) || [];
 
-            // Mark facilities as unavailable if they have bookings or are blocked during this time slot
-            bookingsInTimeSlot.forEach(booking => unavailableFacilities.add(booking.facility_id));
-            blockedInTimeSlot.forEach(blocked => unavailableFacilities.add(blocked.facility_id));
+            // Mark facilities as unavailable if they have bookings or are blocked during this time range
+            bookingsInTimeRange.forEach(booking => unavailableFacilities.add(booking.facility_id));
+            blockedInTimeRange.forEach(blocked => unavailableFacilities.add(blocked.facility_id));
             
           } else {
             // No specific time slot - show facilities with some availability
@@ -335,7 +337,7 @@ const FacilitiesPage = () => {
     };
 
     applyFilters();
-  }, [allFacilities, selectedType, locationFilter, searchTerm, selectedDate, selectedTimeSlot]);
+  }, [allFacilities, selectedType, locationFilter, searchTerm, selectedDate, startTime, endTime]);
 
   const getFacilityTypeLabel = (type: string) => {
     const typeMap: { [key: string]: string } = {
@@ -349,18 +351,16 @@ const FacilitiesPage = () => {
     return typeMap[type] || type;
   };
 
-  const getTimeSlots = () => {
-    const slots = [];
+  const getTimeOptions = () => {
+    const times = [];
     for (let hour = 8; hour < 22; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
-        const startTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        const endTime = minute === 30 
-          ? `${(hour + 1).toString().padStart(2, '0')}:00`
-          : `${hour.toString().padStart(2, '0')}:30`;
-        slots.push({ value: `${startTime}-${endTime}`, label: `${startTime} - ${endTime}` });
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        times.push({ value: timeString, label: timeString });
       }
     }
-    return slots;
+    times.push({ value: "22:00", label: "22:00" });
+    return times;
   };
 
   const handleTypeFilter = (type: string | null) => {
@@ -462,21 +462,40 @@ const FacilitiesPage = () => {
                   </Popover>
                 </div>
 
-                <div className="relative">
-                  <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
-                    <SelectTrigger className="pl-10">
-                      <SelectValue placeholder="Interval orar" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all-times">Orice oră</SelectItem>
-                      {getTimeSlots().map((slot) => (
-                        <SelectItem key={slot.value} value={slot.value}>
-                          {slot.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Intervalul orar</label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                      <Select value={startTime} onValueChange={setStartTime}>
+                        <SelectTrigger className="pl-10">
+                          <SelectValue placeholder="De la" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border shadow-lg z-50">
+                          {getTimeOptions().filter(time => !endTime || time.value < endTime).map((time) => (
+                            <SelectItem key={time.value} value={time.value}>
+                              {time.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="relative flex-1">
+                      <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                      <Select value={endTime} onValueChange={setEndTime} disabled={!startTime}>
+                        <SelectTrigger className="pl-10">
+                          <SelectValue placeholder="Până la" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border shadow-lg z-50">
+                          {getTimeOptions().filter(time => startTime && time.value > startTime).map((time) => (
+                            <SelectItem key={time.value} value={time.value}>
+                              {time.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
                 
                 <Button 
@@ -486,7 +505,8 @@ const FacilitiesPage = () => {
                     setSearchTerm('');
                     setLocationFilter('');
                     setSelectedDate(undefined);
-                    setSelectedTimeSlot('all-times');
+                    setStartTime('');
+                    setEndTime('');
                     setSelectedType(null);
                   }}
                 >
