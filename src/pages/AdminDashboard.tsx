@@ -169,7 +169,7 @@ const AdminDashboard = () => {
 
           <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm border-l-4 border-l-blue-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Baze Sportive</CardTitle>
+              <CardTitle className="text-sm font-medium">Proprietari Terenuri</CardTitle>
               <Building2 className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
