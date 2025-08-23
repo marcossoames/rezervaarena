@@ -33,6 +33,8 @@ interface Facility {
   has_images?: boolean; // For legacy public browsing
   rating_display?: string; // For legacy public browsing
   created_at?: string; // Optional for clients
+  sports_complex_name?: string; // Sports complex name
+  sports_complex_address?: string; // Sports complex address
 }
 
 interface UserProfile {
@@ -123,17 +125,32 @@ const FacilitiesPage = () => {
 
         // Use different functions based on user authentication status
         if (session && userProfile?.role === 'client') {
-          // Authenticated clients get exact data directly from facilities table
-          const { data, error: rpcError } = await supabase
+          // Authenticated clients get exact data with sports complex info
+          const { data: facilitiesData, error: facilitiesError } = await supabase
             .from('facilities')
-            .select('id, name, facility_type, city, description, price_per_hour, capacity, amenities, images')
+            .select(`
+              id, name, facility_type, city, description, price_per_hour, capacity, amenities, images, address,
+              profiles!facilities_owner_id_fkey (user_type_comment, full_name)
+            `)
             .eq('is_active', true);
           
-          allFacilities = data?.map(f => ({
-            ...f,
-            area_info: `${f.city} area` // Add area_info field for consistency
-          }));
-          error = rpcError;
+          allFacilities = facilitiesData?.map(f => {
+            // Extract sports complex name from profile
+            let sportsComplexName = 'Baza Sportivă';
+            if (f.profiles?.user_type_comment && f.profiles.user_type_comment.includes(' - Proprietar bază sportivă')) {
+              sportsComplexName = f.profiles.user_type_comment.split(' - Proprietar bază sportivă')[0];
+            } else if (f.profiles?.full_name) {
+              sportsComplexName = `Baza Sportivă ${f.profiles.full_name.split(' ')[0]} - ${f.city}`;
+            }
+            
+            return {
+              ...f,
+              area_info: `${f.city} area`,
+              sports_complex_name: sportsComplexName,
+              sports_complex_address: f.address ? `${f.address}, ${f.city}` : `${f.city}`
+            };
+          });
+          error = facilitiesError;
         } else if (session && userProfile?.role === 'admin') {
           // Admins get full data
           const { data, error: rpcError } = await supabase
@@ -336,13 +353,21 @@ const FacilitiesPage = () => {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="text-xl font-bold text-foreground mb-1">{facility.name}</h3>
-                           <div className="flex items-center text-muted-foreground text-sm">
-                               <MapPin className="h-4 w-4 mr-1" />
-                               {/* Show appropriate location info based on data structure */}
-                               {facility.area_info || facility.general_area || 
-                                (facility.address ? `${facility.address}, ${facility.city}` : `${facility.city} area`)
-                               }
-                             </div>
+                          {/* Show sports complex name */}
+                          {facility.sports_complex_name && (
+                            <div className="text-sm font-medium text-primary mb-1">
+                              {facility.sports_complex_name}
+                            </div>
+                          )}
+                          <div className="flex items-center text-muted-foreground text-sm">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            {/* Show sports complex address for better UX */}
+                            {facility.sports_complex_address || 
+                             facility.area_info || 
+                             facility.general_area || 
+                             (facility.address ? `${facility.address}, ${facility.city}` : `${facility.city} area`)
+                            }
+                          </div>
                         </div>
                       </div>
                       
