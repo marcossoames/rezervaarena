@@ -286,6 +286,16 @@ const FacilityRegister = () => {
               p_amenities: facility.amenities
             });
 
+          // After the first facility is created, update the user_type_comment with business name
+          if (i === 0 && facilityId) {
+            await supabase
+              .from('profiles')
+              .update({ 
+                user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`
+              })
+              .eq('user_id', authData.user.id);
+          }
+
           if (facilityError) {
             console.error('Facility creation error:', facilityError);
             throw new Error(`Eroare la crearea facilității ${i + 1}: ${facilityError.message}`);

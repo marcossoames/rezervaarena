@@ -79,14 +79,14 @@ const FacilityManagement = () => {
         if (!complexMap.has(ownerId)) {
           const owner = ownerMap.get(ownerId);
           
-          // Try to extract business name from user_type_comment or use intelligent naming
+          // Extract business name from user_type_comment
           let complexName = 'Baza Sportivă';
           
-          if (owner?.user_type_comment && owner.user_type_comment.includes('Proprietar bază sportivă')) {
-            // If there's additional info in the comment, use it
+          if (owner?.user_type_comment) {
+            // Check if the comment contains business name (format: "Business Name - Proprietar bază sportivă")
             const commentParts = owner.user_type_comment.split(' - ');
-            if (commentParts.length > 1) {
-              complexName = commentParts[1].replace('înregistrat prin sistem', '').trim();
+            if (commentParts.length > 1 && commentParts[1].includes('Proprietar bază sportivă')) {
+              complexName = commentParts[0];
             }
           }
           
