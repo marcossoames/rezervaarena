@@ -48,46 +48,48 @@ const ContactPage = () => {
                 <CardTitle className="text-2xl">Informații de contact</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-primary" />
+                <div className="flex flex-col items-center text-center space-y-6">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <Mail className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-lg">Email</h3>
+                      <a href="mailto:soamespaul@gmail.com" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                        soamespaul@gmail.com
+                      </a>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium">Email</h3>
-                    <a href="mailto:soamespaul@gmail.com" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                      soamespaul@gmail.com
-                    </a>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-5 h-5 text-primary" />
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <Phone className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-lg">Telefon</h3>
+                      <a href="tel:+40720059535" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                        +40720059535
+                      </a>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium">Telefon</h3>
-                    <a href="tel:+40720059535" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                      +40720059535
-                    </a>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-5 h-5 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Adresă</h3>
-                    <a 
-                      href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara,+Timis" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                    >
-                      Str. Magnoliei nr. 21<br />
-                      Timișoara, Timiș<br />
-                      România
-                    </a>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
+                      <MapPin className="w-6 h-6 text-accent" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-lg">Adresă</h3>
+                      <a 
+                        href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara,+Timis" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                      >
+                        Str. Magnoliei nr. 21<br />
+                        Timișoara, Timiș<br />
+                        România
+                      </a>
+                    </div>
                   </div>
                 </div>
               </CardContent>
