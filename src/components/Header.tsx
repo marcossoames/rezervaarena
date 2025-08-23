@@ -59,14 +59,14 @@ const Header = () => {
             <h1 className="text-xl font-bold text-foreground">SportBook</h1>
           </Link>
           
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/facilities" className="text-muted-foreground hover:text-primary transition-smooth">
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link to="/facilities" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">
               Terenuri
             </Link>
-            <Link to="/about" className="text-muted-foreground hover:text-primary transition-smooth">
+            <Link to="/about" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">
               Despre noi
             </Link>
-            <Link to="/contact" className="text-muted-foreground hover:text-primary transition-smooth">
+            <Link to="/contact" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">
               Contact
             </Link>
           </nav>
