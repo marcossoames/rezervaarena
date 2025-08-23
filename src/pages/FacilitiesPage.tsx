@@ -46,6 +46,10 @@ const FacilitiesPage = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [locationFilter, setLocationFilter] = useState<string>('');
+  const [dateFilter, setDateFilter] = useState<string>('');
+  const [allFacilities, setAllFacilities] = useState<Facility[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [session, setSession] = useState<Session | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -104,7 +108,9 @@ const FacilitiesPage = () => {
     const searchParam = searchParams.get('search');
     
     setSelectedType(typeParam);
-    // TODO: Handle other search parameters (date, location, search) for filtering
+    setDateFilter(dateParam || '');
+    setLocationFilter(locationParam || '');
+    setSearchTerm(searchParam || '');
   }, [searchParams]);
 
   useEffect(() => {
@@ -186,22 +192,46 @@ const FacilitiesPage = () => {
           throw error;
         }
 
-        // Apply client-side filtering if type is selected
-        const data = selectedType 
-          ? allFacilities?.filter(f => f.facility_type === selectedType)
-          : allFacilities;
-
-        setFacilities(data || []);
+        // Store all facilities for filtering
+        setAllFacilities(allFacilities || []);
       } catch (error) {
         console.error('Error:', error);
-        setFacilities([]);
-      } finally {
-        setLoading(false);
+        setAllFacilities([]);
       }
     };
 
     fetchFacilities();
-  }, [selectedType, session, authChecked, userProfile, navigate]);
+  }, [session, authChecked, userProfile, navigate]);
+
+  // Apply filters whenever filters change
+  useEffect(() => {
+    let filteredFacilities = [...allFacilities];
+
+    // Apply type filter
+    if (selectedType) {
+      filteredFacilities = filteredFacilities.filter(f => f.facility_type === selectedType);
+    }
+
+    // Apply location filter
+    if (locationFilter) {
+      filteredFacilities = filteredFacilities.filter(f => 
+        f.city.toLowerCase().includes(locationFilter.toLowerCase()) ||
+        (f.address && f.address.toLowerCase().includes(locationFilter.toLowerCase()))
+      );
+    }
+
+    // Apply search term filter
+    if (searchTerm) {
+      filteredFacilities = filteredFacilities.filter(f =>
+        f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (f.description && f.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (f.sports_complex_name && f.sports_complex_name.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    setFacilities(filteredFacilities);
+    setLoading(false);
+  }, [allFacilities, selectedType, locationFilter, searchTerm, dateFilter]);
 
   const getFacilityTypeLabel = (type: string) => {
     const typeMap: { [key: string]: string } = {
@@ -263,22 +293,46 @@ const FacilitiesPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Caută facilități..." className="pl-10" />
+                  <Input 
+                    placeholder="Caută facilități..." 
+                    className="pl-10" 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
                 
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Locație..." className="pl-10" />
+                  <Input 
+                    placeholder="Locație..." 
+                    className="pl-10" 
+                    value={locationFilter}
+                    onChange={(e) => setLocationFilter(e.target.value)}
+                  />
                 </div>
                 
                 <div className="relative">
                   <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input type="date" className="pl-10" />
+                  <Input 
+                    type="date" 
+                    className="pl-10" 
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                  />
                 </div>
                 
-                <Button variant="sport" className="w-full">
+                <Button 
+                  variant="sport" 
+                  className="w-full"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setLocationFilter('');
+                    setDateFilter('');
+                    setSelectedType(null);
+                  }}
+                >
                   <Filter className="h-4 w-4 mr-2" />
-                  Filtrează
+                  Resetează
                 </Button>
               </div>
               
