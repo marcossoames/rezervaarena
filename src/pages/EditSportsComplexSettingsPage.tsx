@@ -66,12 +66,17 @@ const EditSportsComplexSettingsPage = () => {
         setUserProfile(profile);
 
         // Extract sports complex name from user_type_comment
-        let sportsComplexName = "";
+        let sportsComplexName = profile.full_name || "";
         if (profile.user_type_comment) {
-          if (profile.user_type_comment.includes(' - Proprietar bază sportivă')) {
-            sportsComplexName = profile.user_type_comment.replace(' - Proprietar bază sportivă', '');
-          } else if (profile.user_type_comment.includes('Proprietar bază sportivă - ')) {
-            sportsComplexName = profile.user_type_comment.replace('Proprietar bază sportivă - ', '');
+          // Remove system registration text
+          let cleanName = profile.user_type_comment
+            .replace(' - înregistrat prin sistem', '')
+            .replace(' - Proprietar bază sportivă', '')
+            .replace('Proprietar bază sportivă - ', '');
+          
+          // If we end up with just "Proprietar bază sportivă" or similar, use full_name
+          if (cleanName !== 'Proprietar bază sportivă' && cleanName.trim() !== '') {
+            sportsComplexName = cleanName;
           }
         }
 
