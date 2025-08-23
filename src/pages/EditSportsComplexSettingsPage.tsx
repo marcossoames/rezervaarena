@@ -80,21 +80,28 @@ const EditSportsComplexSettingsPage = () => {
           }
         }
 
-        // Get facility data for address and city
+        // Get facility data for address, city, description and services
         const { data: facilityData } = await supabase
           .from('facilities')
-          .select('address, city')
+          .select('id, address, city, description, amenities')
           .eq('owner_id', user.id)
           .limit(1)
           .single();
+
+        // Get facility services
+        const { data: servicesData } = await supabase
+          .from('facility_services')
+          .select('service_name')
+          .eq('facility_id', facilityData?.id || '')
+          .eq('is_included', true);
 
         // Set form values
         setValue("sportsComplexName", sportsComplexName);
         setValue("phone", profile.phone || "");
         setValue("address", facilityData?.address || "");
         setValue("city", facilityData?.city || "");
-        setValue("description", "");
-        setValue("generalServices", []);
+        setValue("description", facilityData?.description || "");
+        setValue("generalServices", servicesData?.map(s => s.service_name) || []);
 
       } catch (error) {
         console.error('Error loading data:', error);
@@ -147,19 +154,51 @@ const EditSportsComplexSettingsPage = () => {
         throw profileError;
       }
 
-      // Update facility address and city if they exist
-      if (data.address || data.city) {
+      // Update facility address, city, and description if they exist
+      if (data.address || data.city || data.description) {
         const { error: facilityError } = await supabase
           .from('facilities')
           .update({
             address: data.address,
-            city: data.city
+            city: data.city,
+            description: data.description
           })
           .eq('owner_id', user.id);
 
         if (facilityError) {
           console.error('Error updating facility:', facilityError);
           // Don't throw here as profile update was successful
+        }
+      }
+
+      // Update facility services
+      if (data.generalServices && data.generalServices.length > 0) {
+        // First, get the facility ID
+        const { data: facility } = await supabase
+          .from('facilities')
+          .select('id')
+          .eq('owner_id', user.id)
+          .limit(1)
+          .single();
+
+        if (facility) {
+          // Delete existing services
+          await supabase
+            .from('facility_services')
+            .delete()
+            .eq('facility_id', facility.id)
+            .eq('is_included', true);
+
+          // Insert new services
+          const servicesToInsert = data.generalServices.map(serviceName => ({
+            facility_id: facility.id,
+            service_name: serviceName,
+            is_included: true
+          }));
+
+          await supabase
+            .from('facility_services')
+            .insert(servicesToInsert);
         }
       }
 
@@ -253,11 +292,11 @@ const EditSportsComplexSettingsPage = () => {
 
               {/* City */}
               <div className="space-y-2">
-                <Label htmlFor="city">Orașul</Label>
+                <Label htmlFor="city">Orașul / Comuna / Satul</Label>
                 <Input
                   id="city"
                   {...register("city", { required: "Orașul este obligatoriu" })}
-                  placeholder="ex: București"
+                  placeholder="ex: București, Comuna Voluntari, Satul Mogoșoaia"
                 />
                 {errors.city && (
                   <p className="text-sm text-destructive">{errors.city.message}</p>
