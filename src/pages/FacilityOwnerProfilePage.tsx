@@ -111,7 +111,7 @@ const FacilityOwnerProfilePage = () => {
               <User className="h-10 w-10 text-primary" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {sportsComplexName}
+              Baza Sportivă: {sportsComplexName}
             </h1>
             <p className="text-lg text-gray-600">
               {userProfile.full_name}
@@ -199,7 +199,7 @@ const FacilityOwnerProfilePage = () => {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-green-600">0</div>
-                  <div className="text-sm text-gray-600">Rezervări Luna</div>
+                  <div className="text-sm text-gray-600">Rezervări Luna Aceasta</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-blue-600">0</div>
