@@ -147,21 +147,6 @@ const SearchSection = () => {
                 </Popover>
               </div>
 
-              {/* Facility Type */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Tipul terenului</label>
-                <Select value={facilityType} onValueChange={setFacilityType}>
-                  <SelectTrigger className="bg-background/50 border-border/50 focus:border-primary">
-                    <SelectValue placeholder="Toate tipurile" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {facilityTypes.map(type => <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-
               {/* Time Range */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Intervalul orar</label>
@@ -193,6 +178,21 @@ const SearchSection = () => {
                     </Select>
                   </div>
                 </div>
+              </div>
+
+              {/* Facility Type */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Tipul terenului</label>
+                <Select value={facilityType} onValueChange={setFacilityType}>
+                  <SelectTrigger className="bg-background/50 border-border/50 focus:border-primary">
+                    <SelectValue placeholder="Toate tipurile" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {facilityTypes.map(type => <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
