@@ -44,9 +44,7 @@ const ContactPage = () => {
           {/* Contact Information */}
           <div className="space-y-8">
             <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-2xl">Informații de contact</CardTitle>
-              </CardHeader>
+              
               <CardContent className="space-y-6">
                 <div className="flex flex-col items-center text-center space-y-6">
                   <div className="flex flex-col items-center gap-2">
@@ -79,12 +77,7 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-lg">Adresă</h3>
-                      <a 
-                        href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara,+Timis" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                      >
+                      <a href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara,+Timis" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
                         Str. Magnoliei nr. 21<br />
                         Timișoara, Timiș<br />
                         România
