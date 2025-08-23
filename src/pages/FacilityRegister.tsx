@@ -534,7 +534,7 @@ const FacilityRegister = () => {
             type="text"
             {...register("address", { required: "Adresa este obligatorie" })}
             className="bg-background/50"
-            placeholder="Strada, numărul, sectorul/comuna"
+            placeholder="Strada și numărul"
           />
           {errors.address && (
             <p className="text-sm text-destructive">{errors.address.message}</p>
