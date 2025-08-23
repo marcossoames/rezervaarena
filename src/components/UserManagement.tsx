@@ -37,6 +37,7 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
+      // Force refresh from server to get latest data
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -46,16 +47,22 @@ const UserManagement = () => {
         throw error;
       }
 
-      setUsers(data || []);
-      setFilteredUsers(data || []);
+      const userData = data || [];
+      setUsers(userData);
+      setFilteredUsers(userData);
       
-      // Calculate stats
+      // Calculate stats with fresh data
       const stats = {
-        clients: data?.filter(user => user.role === 'client').length || 0,
-        facilityOwners: data?.filter(user => user.role === 'facility_owner').length || 0,
-        admins: data?.filter(user => user.role === 'admin').length || 0
+        clients: userData.filter(user => user.role === 'client').length,
+        facilityOwners: userData.filter(user => user.role === 'facility_owner').length,
+        admins: userData.filter(user => user.role === 'admin').length
       };
       setUserStats(stats);
+      
+      // Apply current filter after data refresh
+      if (roleFilter !== 'all') {
+        setFilteredUsers(userData.filter(user => user.role === roleFilter));
+      }
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
