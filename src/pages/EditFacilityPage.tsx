@@ -21,6 +21,8 @@ interface FacilityFormData {
   city: string;
   pricePerHour: number;
   capacity: number;
+  operatingHoursStart: string;
+  operatingHoursEnd: string;
 }
 
 interface FacilityData {
@@ -35,6 +37,8 @@ interface FacilityData {
   amenities: string[];
   images: string[];
   main_image_url: string;
+  operating_hours_start: string;
+  operating_hours_end: string;
 }
 
 const EditFacilityPage = () => {
@@ -109,7 +113,11 @@ const EditFacilityPage = () => {
             return;
           }
 
-          setFacility(facilityData);
+          setFacility({
+            ...facilityData,
+            operating_hours_start: (facilityData as any).operating_hours_start || "08:00",
+            operating_hours_end: (facilityData as any).operating_hours_end || "22:00"
+          });
           setAmenities(facilityData.amenities || []);
           setExistingImages(facilityData.images || []);
           
@@ -127,6 +135,8 @@ const EditFacilityPage = () => {
           setValue("city", facilityData.city);
           setValue("pricePerHour", facilityData.exact_price_per_hour);
           setValue("capacity", facilityData.exact_capacity);
+          setValue("operatingHoursStart", (facilityData as any).operating_hours_start || "08:00");
+          setValue("operatingHoursEnd", (facilityData as any).operating_hours_end || "22:00");
         }
       } catch (error) {
         console.error('Error:', error);
@@ -305,7 +315,9 @@ const EditFacilityPage = () => {
           capacity: data.capacity,
           amenities: amenities,
           images: allImages,
-          main_image_url: mainImageUrl
+          main_image_url: mainImageUrl,
+          operating_hours_start: data.operatingHoursStart,
+          operating_hours_end: data.operatingHoursEnd
         })
         .eq('id', facility.id);
 
@@ -490,6 +502,34 @@ const EditFacilityPage = () => {
                   {errors.address && (
                     <p className="text-sm text-destructive">{errors.address.message}</p>
                   )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="operatingHoursStart">Ora de deschidere *</Label>
+                    <Input
+                      id="operatingHoursStart"
+                      type="time"
+                      {...register("operatingHoursStart", { required: "Ora de deschidere este obligatorie" })}
+                      className="bg-background/50"
+                    />
+                    {errors.operatingHoursStart && (
+                      <p className="text-sm text-destructive">{errors.operatingHoursStart.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="operatingHoursEnd">Ora de închidere *</Label>
+                    <Input
+                      id="operatingHoursEnd"
+                      type="time"
+                      {...register("operatingHoursEnd", { required: "Ora de închidere este obligatorie" })}
+                      className="bg-background/50"
+                    />
+                    {errors.operatingHoursEnd && (
+                      <p className="text-sm text-destructive">{errors.operatingHoursEnd.message}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Current Images Preview */}

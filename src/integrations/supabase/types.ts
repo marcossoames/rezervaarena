@@ -44,6 +44,47 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_dates: {
+        Row: {
+          blocked_date: string
+          created_at: string
+          created_by: string
+          end_time: string | null
+          facility_id: string
+          id: string
+          reason: string | null
+          start_time: string | null
+        }
+        Insert: {
+          blocked_date: string
+          created_at?: string
+          created_by: string
+          end_time?: string | null
+          facility_id: string
+          id?: string
+          reason?: string | null
+          start_time?: string | null
+        }
+        Update: {
+          blocked_date?: string
+          created_at?: string
+          created_by?: string
+          end_time?: string | null
+          facility_id?: string
+          id?: string
+          reason?: string | null
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_dates_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -129,6 +170,8 @@ export type Database = {
           is_active: boolean
           main_image_url: string | null
           name: string
+          operating_hours_end: string | null
+          operating_hours_start: string | null
           owner_id: string
           price_per_hour: number
           updated_at: string
@@ -146,6 +189,8 @@ export type Database = {
           is_active?: boolean
           main_image_url?: string | null
           name: string
+          operating_hours_end?: string | null
+          operating_hours_start?: string | null
           owner_id: string
           price_per_hour: number
           updated_at?: string
@@ -163,6 +208,8 @@ export type Database = {
           is_active?: boolean
           main_image_url?: string | null
           name?: string
+          operating_hours_end?: string | null
+          operating_hours_start?: string | null
           owner_id?: string
           price_per_hour?: number
           updated_at?: string

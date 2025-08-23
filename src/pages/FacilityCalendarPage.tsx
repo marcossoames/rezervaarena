@@ -38,8 +38,10 @@ interface Booking {
 
 interface BlockedDate {
   id: string;
-  date: string;
-  reason: string;
+  blocked_date: string;
+  start_time?: string;
+  end_time?: string;
+  reason?: string;
 }
 
 const FacilityCalendarPage = () => {
@@ -51,6 +53,7 @@ const FacilityCalendarPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [blockReason, setBlockReason] = useState("");
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -100,7 +103,15 @@ const FacilityCalendarPage = () => {
         .lte('booking_date', format(endDate, 'yyyy-MM-dd'))
         .order('booking_date', { ascending: true });
 
+      // Load blocked dates
+      const { data: blockedDatesData } = await supabase
+        .from('blocked_dates')
+        .select('*')
+        .eq('facility_id', facilityId)
+        .gte('blocked_date', format(startDate, 'yyyy-MM-dd'));
+
       setBookings(bookingsData || []);
+      setBlockedDates(blockedDatesData || []);
       setIsLoading(false);
     };
 
@@ -114,7 +125,24 @@ const FacilityCalendarPage = () => {
 
   const isDateBlocked = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return blockedDates.some(blocked => blocked.date === dateStr);
+    return blockedDates.some(blocked => blocked.blocked_date === dateStr);
+  };
+
+  const getTimeSlots = () => {
+    const slots = [];
+    const startHour = 8; // Default start hour, can be from facility.operating_hours_start
+    const endHour = 22; // Default end hour, can be from facility.operating_hours_end
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const startTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const endTime = minute === 30 
+          ? `${(hour + 1).toString().padStart(2, '0')}:00`
+          : `${hour.toString().padStart(2, '0')}:30`;
+        slots.push(`${startTime} - ${endTime}`);
+      }
+    }
+    return slots;
   };
 
   const blockDate = async () => {
@@ -131,17 +159,47 @@ const FacilityCalendarPage = () => {
     }
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    let startTime = null;
+    let endTime = null;
     
-    // For now, we'll store blocked dates in local state
-    // In a real app, you'd want a blocked_dates table
-    const newBlockedDate: BlockedDate = {
-      id: Date.now().toString(),
-      date: dateStr,
-      reason: blockReason
-    };
+    if (selectedTimeSlot) {
+      const [start, end] = selectedTimeSlot.split(' - ');
+      startTime = start;
+      endTime = end;
+    }
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-    setBlockedDates([...blockedDates, newBlockedDate]);
+    const { error } = await supabase
+      .from('blocked_dates')
+      .insert({
+        facility_id: facilityId,
+        blocked_date: dateStr,
+        start_time: startTime,
+        end_time: endTime,
+        reason: blockReason,
+        created_by: user.id
+      });
+
+    if (error) {
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut bloca data",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Reload blocked dates
+    const { data: blockedDatesData } = await supabase
+      .from('blocked_dates')
+      .select('*')
+      .eq('facility_id', facilityId);
+
+    setBlockedDates(blockedDatesData || []);
     setBlockReason("");
+    setSelectedTimeSlot("");
     setIsBlockDialogOpen(false);
     
     toast({
@@ -150,7 +208,7 @@ const FacilityCalendarPage = () => {
     });
   };
 
-  const unblockDate = (date: Date) => {
+  const unblockDate = async (date: Date) => {
     // Verifică că data este de la astăzi înainte
     if (isBefore(date, today)) {
       toast({
@@ -160,8 +218,31 @@ const FacilityCalendarPage = () => {
       });
       return;
     }
+    
     const dateStr = format(date, 'yyyy-MM-dd');
-    setBlockedDates(blockedDates.filter(blocked => blocked.date !== dateStr));
+    
+    const { error } = await supabase
+      .from('blocked_dates')
+      .delete()
+      .eq('facility_id', facilityId)
+      .eq('blocked_date', dateStr);
+
+    if (error) {
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut debloca data",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Reload blocked dates
+    const { data: blockedDatesData } = await supabase
+      .from('blocked_dates')
+      .select('*')
+      .eq('facility_id', facilityId);
+
+    setBlockedDates(blockedDatesData || []);
     
     toast({
       title: "Data deblocată",
@@ -332,6 +413,22 @@ const FacilityCalendarPage = () => {
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="timeSlot">Interval orar (opțional)</Label>
+                            <select
+                              id="timeSlot"
+                              value={selectedTimeSlot}
+                              onChange={(e) => setSelectedTimeSlot(e.target.value)}
+                              className="w-full p-2 border rounded-md"
+                            >
+                              <option value="">Toată ziua</option>
+                              {getTimeSlots().map((slot) => (
+                                <option key={slot} value={slot}>
+                                  {slot}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                           <div className="space-y-2">
                             <Label htmlFor="reason">Motivul blocării</Label>
                             <Textarea
