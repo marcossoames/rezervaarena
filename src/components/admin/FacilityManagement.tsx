@@ -300,6 +300,17 @@ const FacilityManagement = () => {
                             <Badge variant={complex.active_facilities > 0 ? "default" : "secondary"}>
                               {complex.active_facilities}/{complex.total_facilities} active
                             </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/admin/edit-sports-complex/${complex.owner_id}`);
+                              }}
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Editează Baza
+                            </Button>
                           </div>
                         </div>
                       </CardHeader>
