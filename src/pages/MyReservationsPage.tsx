@@ -137,6 +137,15 @@ const MyReservationsPage = () => {
 
         console.log('Clients info from RPC:', clientsInfo, clientsError);
 
+        // Get client emails separately since they're not in the secure function
+        const clientIds = [...new Set(userBookings.map(b => b.client_id))];
+        const { data: clientEmails, error: emailsError } = await supabase
+          .from('profiles')
+          .select('user_id, email')
+          .in('user_id', clientIds);
+
+        console.log('Client emails:', clientEmails, emailsError);
+
         // Get facility details for each booking
         const completeBookings = await Promise.all(
           userBookings.map(async (booking) => {
@@ -149,6 +158,7 @@ const MyReservationsPage = () => {
 
             // Find client info from the RPC result
             const clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
+            const clientEmail = clientEmails?.find(c => c.user_id === booking.client_id);
             console.log('Client info for booking:', booking.id, clientInfo);
 
             return {
@@ -156,11 +166,11 @@ const MyReservationsPage = () => {
               client_info: clientInfo ? {
                 full_name: clientInfo.client_name,
                 phone: clientInfo.client_phone,
-                email: 'Pentru protejarea datelor' // Privacy protection
+                email: clientEmail?.email || 'Email nedisponibil'
               } : {
                 full_name: 'Client neidentificat',
                 phone: 'Contact indisponibil',
-                email: 'Pentru protejarea datelor'
+                email: 'Email nedisponibil'
               },
               facilities: {
                 id: booking.facility_id,
@@ -421,7 +431,7 @@ const MyReservationsPage = () => {
                   {booking.client_info && (
                     <div className="mb-4 p-3 bg-muted/30 rounded-lg">
                       <h4 className="font-medium text-sm text-muted-foreground mb-2">Detalii Client:</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-primary" />
                           <span className="font-medium">{booking.client_info.full_name}</span>
@@ -430,6 +440,12 @@ const MyReservationsPage = () => {
                           <span className="text-primary">📞</span>
                           <a href={`tel:${booking.client_info.phone}`} className="text-primary hover:underline font-medium">
                             {booking.client_info.phone}
+                          </a>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-primary">📧</span>
+                          <a href={`mailto:${booking.client_info.email}`} className="text-primary hover:underline font-medium">
+                            {booking.client_info.email}
                           </a>
                         </div>
                       </div>
