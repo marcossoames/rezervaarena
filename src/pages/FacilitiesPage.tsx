@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 interface Facility {
   id: string;
   name: string;
@@ -285,19 +286,6 @@ const FacilitiesPage = () => {
     };
     applyFilters();
   }, [allFacilities, selectedType, locationFilter, searchTerm, selectedDate, startTime, endTime]);
-  const getFacilityTypeLabel = (type: string) => {
-    const typeMap: {
-      [key: string]: string;
-    } = {
-      tennis: "Tenis",
-      football: "Fotbal",
-      padel: "Padel",
-      swimming: "Înot",
-      basketball: "Baschet",
-      volleyball: "Volei"
-    };
-    return typeMap[type] || type;
-  };
   const getTimeOptions = () => {
     const times = [];
     for (let hour = 8; hour <= 22; hour++) {

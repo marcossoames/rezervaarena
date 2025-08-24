@@ -12,6 +12,8 @@ import { X, Plus, ArrowLeft, Upload, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ImageCarousel from "@/components/ImageCarousel";
+import Footer from "@/components/Footer";
+import { facilityTypeOptions } from "@/utils/facilityTypes";
 
 interface FacilityFormData {
   facilityName: string;
@@ -59,14 +61,7 @@ const EditFacilityPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const facilityTypes = [
-    { value: "tennis", label: "Tenis" },
-    { value: "football", label: "Fotbal" },
-    { value: "padel", label: "Padel" },
-    { value: "swimming", label: "Înot" },
-    { value: "basketball", label: "Baschet" },
-    { value: "volleyball", label: "Volei" }
-  ];
+  const facilityTypes = facilityTypeOptions;
 
   useEffect(() => {
     const checkAuthAndFetch = async () => {

@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { ro } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 
 interface Facility {
   id: string;

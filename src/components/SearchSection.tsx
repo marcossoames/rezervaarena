@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { ro } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { facilityTypeOptions } from "@/utils/facilityTypes";
 const SearchSection = () => {
   const [location, setLocation] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -25,25 +26,7 @@ const SearchSection = () => {
   const facilityTypes = [{
     value: "all",
     label: "Toate tipurile"
-  }, {
-    value: "tennis",
-    label: "Tenis"
-  }, {
-    value: "football",
-    label: "Fotbal"
-  }, {
-    value: "padel",
-    label: "Padel"
-  }, {
-    value: "swimming",
-    label: "Înot"
-  }, {
-    value: "basketball",
-    label: "Baschet"
-  }, {
-    value: "volleyball",
-    label: "Volei"
-  }];
+  }, ...facilityTypeOptions];
   const getTimeOptions = () => {
     const times = [];
     for (let hour = 8; hour <= 22; hour++) {

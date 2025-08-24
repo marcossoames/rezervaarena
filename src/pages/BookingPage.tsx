@@ -23,6 +23,7 @@ import { ro } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
+import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 
 interface Facility {
   id: string;
@@ -346,7 +347,7 @@ const BookingPage = () => {
                     style={{ aspectRatio: '800/264' }}
                   />
                   <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">
-                    {facility.facility_type}
+                    {getFacilityTypeLabel(facility.facility_type)}
                   </Badge>
                 </div>
                 
