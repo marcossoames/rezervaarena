@@ -30,12 +30,17 @@ interface Facility {
   description: string;
   facility_type: string;
   city: string;
+  address: string;
   price_per_hour: number;
   capacity: number;
   amenities: string[];
   images: string[];
   operating_hours_start?: string;
   operating_hours_end?: string;
+  // Sports complex information
+  sports_complex_name?: string;
+  sports_complex_address?: string;
+  phone_number?: string;
 }
 
 const generateTimeSlots = (facilityPrice: number, operatingStart = "08:00", operatingEnd = "22:00", isForStartTime = false) => {
@@ -153,7 +158,14 @@ const BookingPage = () => {
       try {
         const { data, error } = await supabase
           .from('facilities')
-          .select('*')
+          .select(`
+            *,
+            profiles!facilities_owner_id_fkey (
+              full_name,
+              phone,
+              user_type_comment
+            )
+          `)
           .eq('id', facilityId)
           .eq('is_active', true)
           .single();
@@ -167,7 +179,39 @@ const BookingPage = () => {
           return;
         }
 
-        setFacility(data);
+        // Extract sports complex information
+        const profileData = data.profiles;
+        let sportsComplexName = 'Baza Sportivă';
+        
+        if (profileData?.user_type_comment) {
+          // Check for format: "Name - Proprietar bază sportivă"
+          if (profileData.user_type_comment.match(/.+ - Proprietar bază sportivă$/)) {
+            sportsComplexName = profileData.user_type_comment.replace(' - Proprietar bază sportivă', '');
+          }
+          // Check for format: "Proprietar bază sportivă - Name"
+          else if (profileData.user_type_comment.match(/^Proprietar bază sportivă - .+/)) {
+            sportsComplexName = profileData.user_type_comment.replace('Proprietar bază sportivă - ', '');
+          }
+          // If no standard format, use the whole comment if it doesn't contain standard text
+          else if (!profileData.user_type_comment.includes('Proprietar bază sportivă')) {
+            sportsComplexName = profileData.user_type_comment;
+          }
+        }
+
+        // Fallback to owner name and city if still generic
+        if (sportsComplexName === 'Baza Sportivă' && profileData?.full_name) {
+          sportsComplexName = `Baza Sportivă ${profileData.full_name.split(' ')[0]} - ${data.city}`;
+        }
+
+        // Add sports complex information to facility data
+        const facilityWithSportsComplex = {
+          ...data,
+          sports_complex_name: sportsComplexName,
+          sports_complex_address: data.address ? `${data.address}, ${data.city}` : data.city,
+          phone_number: profileData?.phone
+        };
+
+        setFacility(facilityWithSportsComplex);
       } catch (error) {
         console.error('Error loading facility:', error);
         toast({
@@ -508,28 +552,57 @@ const BookingPage = () => {
                 <CardTitle>Sumar Rezervare</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  {/* Sports Complex Info */}
+                  <div className="pb-3 border-b border-border">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Baza sportivă:</span>
+                        <span className="font-medium text-right">{facility.sports_complex_name || 'Baza Sportivă'}</span>
+                      </div>
+                      {facility.sports_complex_address && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Adresa:</span>
+                          <span className="font-medium text-right text-sm">{facility.sports_complex_address}</span>
+                        </div>
+                      )}
+                      {facility.phone_number && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Telefon:</span>
+                          <span className="font-medium text-right">
+                            <a href={`tel:${facility.phone_number}`} className="text-primary hover:underline">
+                              {facility.phone_number}
+                            </a>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Booking Details */}
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Teren:</span>
                       <span className="font-medium">{facility.name}</span>
                     </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Data:</span>
-                    <span className="font-medium">
-                      {format(selectedDate, 'dd MMM yyyy', { locale: ro })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Ora:</span>
-                    <span className="font-medium">
-                      {selectedStartTime && selectedEndTime 
-                        ? `${selectedStartTime} - ${selectedEndTime}` 
-                        : "Nu este selectată"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Durată:</span>
-                    <span className="font-medium">{bookingDetails.formattedDuration}</span>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Data:</span>
+                      <span className="font-medium">
+                        {format(selectedDate, 'dd MMM yyyy', { locale: ro })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Ora:</span>
+                      <span className="font-medium">
+                        {selectedStartTime && selectedEndTime 
+                          ? `${selectedStartTime} - ${selectedEndTime}` 
+                          : "Nu este selectată"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Durată:</span>
+                      <span className="font-medium">{bookingDetails.formattedDuration}</span>
+                    </div>
                   </div>
                 </div>
                 

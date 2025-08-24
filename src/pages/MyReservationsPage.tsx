@@ -281,6 +281,14 @@ const MyReservationsPage = () => {
                         <span>{getSportsComplexName(booking.facilities.profiles?.user_type_comment || '', booking.facilities.profiles?.full_name || '')}</span>
                       </div>
                       <p className="text-sm text-muted-foreground">{booking.facilities.city}</p>
+                      {booking.facilities.profiles?.phone && (
+                        <div className="flex items-center text-sm text-muted-foreground mt-1">
+                          <span className="mr-2">📞</span>
+                          <a href={`tel:${booking.facilities.profiles.phone}`} className="text-primary hover:underline">
+                            {booking.facilities.profiles.phone}
+                          </a>
+                        </div>
+                      )}
                     </div>
                     <div className="text-right">
                       {getStatusBadge(booking.status)}
