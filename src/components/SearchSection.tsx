@@ -91,24 +91,34 @@ const SearchSection = () => {
       handleSearch();
     }
   };
-  return <section className="py-16 bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+  return (
+    <section className="py-16 bg-gradient-to-br from-primary/5 via-background to-secondary/10">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-foreground mb-4">
             Găsește <span className="text-primary">Terenul Perfect</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Caută și rezervă cele mai bune terenuri sportive din România în câțiva pași simpli</p>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Caută și rezervă cele mai bune terenuri sportive din România în câțiva pași simpli
+          </p>
         </div>
 
         <Card className="max-w-7xl mx-auto shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
-          <CardContent className="p-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 mb-8">
+          <CardContent className="p-8">
+            {/* Main Search Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
               {/* Search Query */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Caută terenuri</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Nume teren sau bază sportivă..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyPress={handleKeyPress} className="pl-10 bg-background/50 border-border/50 focus:border-primary" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Nume teren sau bază sportivă..." 
+                    value={searchQuery} 
+                    onChange={(e) => setSearchQuery(e.target.value)} 
+                    onKeyPress={handleKeyPress} 
+                    className="h-11 pl-10 bg-background/50 border-border/50 focus:border-primary" 
+                  />
                 </div>
               </div>
 
@@ -116,11 +126,37 @@ const SearchSection = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Locația</label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Oraș, zonă..." value={location} onChange={e => setLocation(e.target.value)} onKeyPress={handleKeyPress} className="pl-10 bg-background/50 border-border/50 focus:border-primary" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Oraș, zonă..." 
+                    value={location} 
+                    onChange={(e) => setLocation(e.target.value)} 
+                    onKeyPress={handleKeyPress} 
+                    className="h-11 pl-10 bg-background/50 border-border/50 focus:border-primary" 
+                  />
                 </div>
               </div>
 
+              {/* Facility Type */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Tipul terenului</label>
+                <Select value={facilityType} onValueChange={setFacilityType}>
+                  <SelectTrigger className="h-11 bg-background/50 border-border/50 focus:border-primary">
+                    <SelectValue placeholder="Toate tipurile" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border shadow-lg z-50">
+                    {facilityTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Secondary Search Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {/* Date */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Data rezervării</label>
@@ -193,34 +229,40 @@ const SearchSection = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Facility Type */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Tipul terenului</label>
-                <Select value={facilityType} onValueChange={setFacilityType}>
-                  <SelectTrigger className="bg-background/50 border-border/50 focus:border-primary">
-                    <SelectValue placeholder="Toate tipurile" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {facilityTypes.map(type => <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
-            {/* Search Button */}
-            <div className="flex justify-center">
-              <Button onClick={handleSearch} size="lg" className="px-12 py-3 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300">
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button 
+                onClick={handleSearch} 
+                size="lg" 
+                className="px-12 py-3 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
                 <Search className="mr-2 h-5 w-5" />
                 Caută Terenuri
               </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={() => {
+                  setLocation("");
+                  setSelectedDate(undefined);
+                  setFacilityType("");
+                  setStartTime("");
+                  setEndTime("");
+                  setSearchQuery("");
+                }}
+                className="px-8 py-3 text-base border-2 hover:bg-muted/50"
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Resetează Filtrele
+              </Button>
             </div>
-
           </CardContent>
         </Card>
       </div>
-    </section>;
+    </section>
+  );
 };
 export default SearchSection;
