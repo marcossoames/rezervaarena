@@ -69,29 +69,9 @@
       .px-4 { padding-left: 1rem; padding-right: 1rem; }
     </style>
     
-    <!-- Preload and async load main CSS to prevent render-blocking -->
-    <link rel="preload" as="style" href="/src/index.css" onload="this.onload=null;this.rel='stylesheet'" />
+    <!-- Load main CSS non-blocking using media attribute technique -->
+    <link rel="stylesheet" href="/src/index.css" media="print" onload="this.media='all'; this.onload=null;" />
     <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
-    
-    <!-- Defer non-critical CSS for better performance -->
-    <script>
-      // Load remaining CSS asynchronously after critical content
-      function loadDeferredCSS() {
-        var link = document.querySelector('link[href="/src/index.css"]');
-        if (link && link.media !== 'all') {
-          link.media = 'all';
-        }
-      }
-      
-      // Load deferred CSS when page is ready
-      if (document.readyState === 'complete') {
-        loadDeferredCSS();
-      } else {
-        window.addEventListener('load', loadDeferredCSS);
-        // Fallback: load after 1 second regardless
-        setTimeout(loadDeferredCSS, 1000);
-      }
-    </script>
     
     <!-- Preload critical hero image for better LCP -->
     <link rel="preload" as="image" href="/src/assets/hero-sports.jpg" fetchpriority="high" />
@@ -126,34 +106,15 @@
     </div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Fallback CSS loading script -->
+    <!-- Simplified CSS loading check -->
     <script>
-      // Ensure CSS loads even if preload fails
-      (function() {
-        var cssLoaded = false;
-        var link = document.querySelector('link[href="/src/index.css"]');
-        if (!link) {
-          link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = '/src/index.css';
-          document.head.appendChild(link);
-        }
-        
-        // Remove loading fallback once CSS is loaded
-        link.onload = function() {
-          if (!cssLoaded) {
-            cssLoaded = true;
-            var loadingEl = document.querySelector('.loading-container');
-            if (loadingEl) loadingEl.style.display = 'none';
-          }
-        };
-        
-        // Timeout fallback to remove loading state
+      // Remove loading fallback once app mounts
+      document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() {
           var loadingEl = document.querySelector('.loading-container');
           if (loadingEl) loadingEl.style.display = 'none';
-        }, 2000);
-      })();
+        }, 100);
+      });
     </script>
   </body>
 </html>
