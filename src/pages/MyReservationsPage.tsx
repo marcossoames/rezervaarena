@@ -143,14 +143,20 @@ const MyReservationsPage = () => {
               .eq('id', booking.facility_id)
               .single();
 
-            // Get client details with more comprehensive query
+            // Get client details with detailed logging
+            console.log('Attempting to fetch client profile for user_id:', booking.client_id);
             const { data: clientProfile, error: clientError } = await supabase
               .from('profiles')
               .select('full_name, phone, email')
               .eq('user_id', booking.client_id)
               .single();
             
-            console.log('Client profile for booking:', booking.id, 'Client ID:', booking.client_id, clientProfile, clientError);
+            console.log('Client profile result:', {
+              booking_id: booking.id,
+              client_id: booking.client_id,
+              profile: clientProfile,
+              error: clientError
+            });
 
             return {
               ...booking,
