@@ -64,7 +64,8 @@ const MyReservationsPage = () => {
             name,
             facility_type,
             city,
-            profiles!facilities_owner_id_fkey(
+            owner_id,
+            profiles:owner_id(
               user_type_comment,
               full_name,
               phone
@@ -76,9 +77,11 @@ const MyReservationsPage = () => {
         .order('start_time', { ascending: false });
 
       if (error) {
+        console.error('Database error:', error);
         throw error;
       }
 
+      console.log('Loaded bookings:', data);
       setBookings((data as any) || []);
     } catch (error) {
       console.error('Error loading bookings:', error);
