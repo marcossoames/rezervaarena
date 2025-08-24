@@ -474,24 +474,6 @@ export type Database = {
           price_per_hour: number
         }[]
       }
-      get_facilities_for_public_browsing: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          amenities: string[]
-          area_info: string
-          capacity: number
-          city: string
-          description: string
-          facility_type: Database["public"]["Enums"]["facility_type"]
-          id: string
-          images: string[]
-          name: string
-          phone_number: string
-          price_per_hour: number
-          sports_complex_address: string
-          sports_complex_name: string
-        }[]
-      }
       get_facilities_for_public_browsing_safe: {
         Args: Record<PropertyKey, never>
         Returns: {

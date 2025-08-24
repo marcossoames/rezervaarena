@@ -3,8 +3,10 @@ import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://ukopxkymzywfpobpcana.supabase.co, http://localhost:3000',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400'
 };
 
 serve(async (req) => {
@@ -13,9 +15,9 @@ serve(async (req) => {
   }
 
   try {
-    const { facilityId, date, time, totalPrice, duration } = await req.json();
+    const { facilityId, date, time, duration } = await req.json();
     
-    console.log('Payment request received:', { facilityId, date, time, totalPrice, duration });
+    console.log('Payment request received:', { facilityId, date, time, duration });
 
     // Get user from authorization header
     const authHeader = req.headers.get('Authorization');
@@ -46,6 +48,10 @@ serve(async (req) => {
       throw new Error('Facility not found');
     }
 
+    // SECURITY FIX: Calculate price server-side instead of trusting client
+    const calculatedPrice = facility.price_per_hour * duration;
+    console.log('Server-calculated price:', calculatedPrice, 'Duration:', duration, 'Rate:', facility.price_per_hour);
+
     console.log('Processing payment for facility:', facility.name);
 
     // Get facility owner's Stripe account and calculate fees
@@ -60,9 +66,9 @@ serve(async (req) => {
       throw new Error('Failed to fetch facility owner information');
     }
 
-    // Calculate platform fee (10% commission)
+    // Calculate platform fee (10% commission) using SERVER-CALCULATED price
     const platformFeeRate = 0.10;
-    const totalAmountCents = Math.round(totalPrice * 100);
+    const totalAmountCents = Math.round(calculatedPrice * 100);
     const platformFeeCents = Math.round(totalAmountCents * platformFeeRate);
     const facilityOwnerAmountCents = totalAmountCents - platformFeeCents;
 

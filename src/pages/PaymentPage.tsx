@@ -180,13 +180,12 @@ const PaymentPage = () => {
         return;
       }
 
-      // Create Stripe checkout session
+      // Create Stripe checkout session - server calculates price for security
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           facilityId,
           date: selectedDate,
           time: startTime,
-          totalPrice: parseFloat(totalPrice || '0'),
           duration: parseInt(duration || '60')
         }
       });
