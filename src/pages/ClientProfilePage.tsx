@@ -12,6 +12,7 @@ import { deleteUserAccount } from "@/utils/deleteAccount";
 
 const ClientProfilePage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [bookingStats, setBookingStats] = useState({ active: 0, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
@@ -44,6 +45,9 @@ const ClientProfilePage = () => {
         }
 
         setUserProfile(profile);
+
+        // Load booking statistics
+        await loadBookingStats(user.id);
       } catch (error) {
         console.error('Error loading profile:', error);
         toast({
@@ -58,6 +62,39 @@ const ClientProfilePage = () => {
 
     loadUserProfile();
   }, []);
+
+  const loadBookingStats = async (userId: string) => {
+    try {
+      // Get all bookings for the user
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('status, booking_date')
+        .eq('client_id', userId);
+
+      if (bookings) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Calculate active bookings (confirmed or pending, future dates)
+        const activeBookings = bookings.filter(booking => {
+          const bookingDate = new Date(booking.booking_date);
+          return (booking.status === 'confirmed' || booking.status === 'pending') && 
+                 bookingDate >= today;
+        }).length;
+
+        // Total bookings count
+        const totalBookings = bookings.length;
+
+        setBookingStats({
+          active: activeBookings,
+          total: totalBookings
+        });
+      }
+    } catch (error) {
+      console.error('Error loading booking stats:', error);
+      // Don't show error to user, just keep stats at 0
+    }
+  };
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
@@ -207,11 +244,11 @@ const ClientProfilePage = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-primary">0</div>
+                  <div className="text-2xl font-bold text-primary">{bookingStats.active}</div>
                   <div className="text-sm text-gray-600">Rezervări Active</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-green-600">0</div>
+                  <div className="text-2xl font-bold text-green-600">{bookingStats.total}</div>
                   <div className="text-sm text-gray-600">Rezervări Totale</div>
                 </div>
               </div>
