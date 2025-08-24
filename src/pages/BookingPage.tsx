@@ -38,7 +38,7 @@ interface Facility {
   operating_hours_end?: string;
 }
 
-const generateTimeSlots = (facilityPrice: number, operatingStart = "08:00", operatingEnd = "22:00") => {
+const generateTimeSlots = (facilityPrice: number, operatingStart = "08:00", operatingEnd = "22:00", isForStartTime = false) => {
   const slots = [];
   const [startHour, startMinute] = operatingStart.split(':').map(Number);
   const [endHour, endMinute] = operatingEnd.split(':').map(Number);
@@ -46,8 +46,10 @@ const generateTimeSlots = (facilityPrice: number, operatingStart = "08:00", oper
   const startTime = startHour * 60 + startMinute;
   const endTime = endHour * 60 + endMinute;
   
-  // Generate slots every 30 minutes including the closing time
-  for (let time = startTime; time <= endTime; time += 30) {
+  // For start time: exclude closing time (22:00), for end time: include closing time
+  const maxTime = isForStartTime ? endTime - 30 : endTime;
+  
+  for (let time = startTime; time <= maxTime; time += 30) {
     const hours = Math.floor(time / 60);
     const minutes = time % 60;
     const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
@@ -73,7 +75,8 @@ const BookingPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [facility, setFacility] = useState<Facility | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeSlots, setTimeSlots] = useState<Array<{time: string, available: boolean, price: number}>>([]);
+  const [startTimeSlots, setStartTimeSlots] = useState<Array<{time: string, available: boolean, price: number}>>([]);
+  const [endTimeSlots, setEndTimeSlots] = useState<Array<{time: string, available: boolean, price: number}>>([]);
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
   const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
   const [selectedEndTime, setSelectedEndTime] = useState<string | null>(null);
@@ -209,7 +212,10 @@ const BookingPage = () => {
       if (!facility || !selectedDate) return;
 
       const dateString = format(selectedDate, 'yyyy-MM-dd');
-      const slots = generateTimeSlots(facility.price_per_hour, facility.operating_hours_start, facility.operating_hours_end);
+      
+      // Generate separate slots for start and end times
+      const startSlots = generateTimeSlots(facility.price_per_hour, facility.operating_hours_start, facility.operating_hours_end, true);
+      const endSlots = generateTimeSlots(facility.price_per_hour, facility.operating_hours_start, facility.operating_hours_end, false);
 
       try {
         // Get existing bookings for the selected date
@@ -227,34 +233,38 @@ const BookingPage = () => {
           .eq('facility_id', facilityId)
           .eq('blocked_date', dateString);
 
-        // Mark unavailable slots
-        const updatedSlots = slots.map(slot => {
-          let available = true;
+        // Function to mark unavailable slots
+        const markUnavailableSlots = (slots: typeof startSlots) => {
+          return slots.map(slot => {
+            let available = true;
 
-          // Check against bookings
-          if (bookings) {
-            available = !bookings.some(booking => {
-              const bookingStart = booking.start_time;
-              const bookingEnd = booking.end_time;
-              return slot.time >= bookingStart && slot.time < bookingEnd;
-            });
-          }
+            // Check against bookings
+            if (bookings) {
+              available = !bookings.some(booking => {
+                const bookingStart = booking.start_time;
+                const bookingEnd = booking.end_time;
+                return slot.time >= bookingStart && slot.time < bookingEnd;
+              });
+            }
 
-          // Check against blocked times
-          if (available && blockedTimes) {
-            available = !blockedTimes.some(blocked => {
-              if (!blocked.start_time || !blocked.end_time) return false;
-              return slot.time >= blocked.start_time && slot.time < blocked.end_time;
-            });
-          }
+            // Check against blocked times
+            if (available && blockedTimes) {
+              available = !blockedTimes.some(blocked => {
+                if (!blocked.start_time || !blocked.end_time) return false;
+                return slot.time >= blocked.start_time && slot.time < blocked.end_time;
+              });
+            }
 
-          return { ...slot, available };
-        });
+            return { ...slot, available };
+          });
+        };
 
-        setTimeSlots(updatedSlots);
+        setStartTimeSlots(markUnavailableSlots(startSlots));
+        setEndTimeSlots(markUnavailableSlots(endSlots));
       } catch (error) {
         console.error('Error loading time slots:', error);
-        setTimeSlots(slots);
+        setStartTimeSlots(startSlots);
+        setEndTimeSlots(endSlots);
       }
     };
 
@@ -426,7 +436,7 @@ const BookingPage = () => {
                 <div className="mb-4">
                   <h4 className="text-sm font-medium mb-2">Selectează ora de început:</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {timeSlots.map((slot) => (
+                    {startTimeSlots.map((slot) => (
                       <Button
                         key={`start-${slot.time}`}
                         variant={selectedStartTime === slot.time ? "default" : "outline"}
@@ -447,7 +457,7 @@ const BookingPage = () => {
                   <div className="mb-4">
                     <h4 className="text-sm font-medium mb-2">Selectează ora de sfârșit:</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {timeSlots
+                      {endTimeSlots
                         .filter(slot => {
                           const [startHour, startMinute] = selectedStartTime.split(':').map(Number);
                           const [slotHour, slotMinute] = slot.time.split(':').map(Number);
