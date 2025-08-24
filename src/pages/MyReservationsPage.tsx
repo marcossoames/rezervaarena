@@ -66,91 +66,84 @@ const MyReservationsPage = () => {
         return;
       }
 
-      console.log('Fetching bookings for user:', user.id);
-
-      // Simplified query first - let's just get the basic bookings
-      const { data: basicBookings, error: basicError } = await supabase
+      // First get all bookings for the user
+      const { data: userBookings, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
-        .eq('client_id', user.id);
-
-      console.log('Basic bookings query result:', { basicBookings, basicError });
-
-      if (basicError) {
-        console.error('Basic query failed:', basicError);
-        throw basicError;
-      }
-
-      // If basic query works, try the full query
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          facilities(
-            id,
-            name,
-            facility_type,
-            city,
-            owner_id
-          )
-        `)
         .eq('client_id', user.id)
         .order('booking_date', { ascending: false });
 
-      console.log('Full query result:', { data, error });
+      if (bookingsError) {
+        console.error('Error fetching bookings:', bookingsError);
+        throw bookingsError;
+      }
 
-      if (error) {
-        console.error('Full query failed:', error);
-        // Fall back to basic bookings if full query fails - create dummy facilities
-        const fallbackBookings = (basicBookings || []).map((booking: BasicBooking) => ({
-          ...booking,
-          facilities: {
-            id: booking.facility_id,
-            name: 'Teren nedefinit',
-            facility_type: 'nedefinit',
-            city: 'Oraș nedefinit',
-            profiles: null
-          }
-        }));
-        setBookings(fallbackBookings);
-        toast({
-          title: "Atenție",
-          description: "Rezervările au fost încărcate parțial. Unele detalii pot lipsi.",
-          variant: "default"
-        });
+      console.log('User bookings:', userBookings);
+
+      if (!userBookings || userBookings.length === 0) {
+        setBookings([]);
         return;
       }
 
-      // Get facility owner profiles separately to avoid complex joins
-      const bookingsWithProfiles = await Promise.all(
-        (data || []).map(async (booking: any) => {
-          if (booking.facilities?.owner_id) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('user_type_comment, full_name, phone')
-              .eq('user_id', booking.facilities.owner_id)
-              .maybeSingle();
-            
-            return {
-              ...booking,
-              facilities: {
-                ...booking.facilities,
-                profiles: profile
-              }
-            };
-          }
-          return {
-            ...booking,
-            facilities: {
-              ...booking.facilities,
-              profiles: null
-            }
-          };
-        })
-      );
+      // Get all facility IDs from bookings
+      const facilityIds = [...new Set(userBookings.map(b => b.facility_id))];
+      console.log('Facility IDs:', facilityIds);
 
-      console.log('Final bookings with profiles:', bookingsWithProfiles);
-      setBookings(bookingsWithProfiles);
+      // Get all facilities with their owners
+      const { data: facilities, error: facilitiesError } = await supabase
+        .from('facilities')
+        .select(`
+          id,
+          name,
+          facility_type,
+          city,
+          owner_id
+        `)
+        .in('id', facilityIds);
+
+      if (facilitiesError) {
+        console.error('Error fetching facilities:', facilitiesError);
+        throw facilitiesError;
+      }
+
+      console.log('Facilities:', facilities);
+
+      // Get all owner profiles
+      const ownerIds = [...new Set(facilities?.map(f => f.owner_id).filter(Boolean) || [])];
+      console.log('Owner IDs:', ownerIds);
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, user_type_comment, full_name, phone')
+        .in('user_id', ownerIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        // Don't throw here, just continue without profiles
+      }
+
+      console.log('Profiles:', profiles);
+
+      // Combine all data
+      const completeBookings = userBookings.map(booking => {
+        const facility = facilities?.find(f => f.id === booking.facility_id);
+        const profile = profiles?.find(p => p.user_id === facility?.owner_id);
+
+        return {
+          ...booking,
+          facilities: {
+            id: facility?.id || booking.facility_id,
+            name: facility?.name || 'Teren nedefinit',
+            facility_type: facility?.facility_type || 'nedefinit',
+            city: facility?.city || 'Oraș nedefinit',
+            owner_id: facility?.owner_id,
+            profiles: profile || null
+          }
+        };
+      });
+
+      console.log('Complete bookings:', completeBookings);
+      setBookings(completeBookings);
       
     } catch (error) {
       console.error('Error loading bookings:', error);
