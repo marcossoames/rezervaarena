@@ -13,10 +13,10 @@ const HeroSection = () => {
           className="w-full h-full object-cover opacity-20"
           loading="eager"
           fetchPriority="high"
-          width={1920}
-          height={864}
+          width={1335}
+          height={600}
           sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px"
-          style={{ aspectRatio: '1920/864' }}
+          quality={85}
         />
         <div className="absolute inset-0 bg-gradient-hero/60"></div>
       </div>

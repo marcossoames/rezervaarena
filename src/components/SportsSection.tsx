@@ -141,10 +141,10 @@ const SportsSection = () => {
                     alt={sport.name} 
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" 
                     loading="lazy" 
-                    width={800} 
-                    height={372} 
+                    width={413} 
+                    height={192} 
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 413px" 
-                    style={{ aspectRatio: '800/372' }} 
+                    quality={85}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent"></div>
                   <div className="absolute bottom-4 left-4">

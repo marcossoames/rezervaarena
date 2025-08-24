@@ -29,15 +29,9 @@ export default defineConfig(({ mode }) => ({
         }
       }
     },
-    // Compress assets
+    // Compress assets without terser to avoid dependency issues
     assetsInlineLimit: 4096, // Inline small assets
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production'
-      }
-    }
+    minify: 'esbuild' // Use esbuild instead of terser
   },
   // Optimize dependencies
   optimizeDeps: {
