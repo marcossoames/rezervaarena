@@ -398,6 +398,7 @@ export type Database = {
       get_client_info_for_facility_bookings: {
         Args: { facility_owner_id: string }
         Returns: {
+          client_email: string
           client_id: string
           client_name: string
           client_phone: string

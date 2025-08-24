@@ -137,15 +137,6 @@ const MyReservationsPage = () => {
 
         console.log('Clients info from RPC:', clientsInfo, clientsError);
 
-        // Get client emails separately since they're not in the secure function
-        const clientIds = [...new Set(userBookings.map(b => b.client_id))];
-        const { data: clientEmails, error: emailsError } = await supabase
-          .from('profiles')
-          .select('user_id, email')
-          .in('user_id', clientIds);
-
-        console.log('Client emails:', clientEmails, emailsError);
-
         // Get facility details for each booking
         const completeBookings = await Promise.all(
           userBookings.map(async (booking) => {
@@ -158,7 +149,6 @@ const MyReservationsPage = () => {
 
             // Find client info from the RPC result
             const clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
-            const clientEmail = clientEmails?.find(c => c.user_id === booking.client_id);
             console.log('Client info for booking:', booking.id, clientInfo);
 
             return {
@@ -166,7 +156,7 @@ const MyReservationsPage = () => {
               client_info: clientInfo ? {
                 full_name: clientInfo.client_name,
                 phone: clientInfo.client_phone,
-                email: clientEmail?.email || 'Email nedisponibil'
+                email: clientInfo.client_email
               } : {
                 full_name: 'Client neidentificat',
                 phone: 'Contact indisponibil',
