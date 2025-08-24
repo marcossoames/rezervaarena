@@ -25,7 +25,7 @@ const AboutPage = () => {
               <CardTitle className="text-2xl text-center">Povestea Noastră</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <p className="text-muted-foreground leading-relaxed">SportBook a început din dorința de a simplifica accesul la facilitățile sportive din Timișoara Am observat că multe persoane întâmpină dificultăți în găsirea și rezervarea terenurilor de sport, iar proprietarii de facilități nu au o modalitate eficientă de a-și gestiona rezervările.</p>
+              <p className="text-muted-foreground leading-relaxed">SportBook a început din dorința de a simplifica accesul la facilitățile sportive din Timișoara. Ca tineri informaticieni și sportivi de ocazie, am observat că multe persoane întâmpină dificultăți în găsirea și rezervarea terenurilor de sport, iar proprietarii de facilități nu au o modalitate eficientă de a-și gestiona rezervările.</p>
               <p className="text-muted-foreground leading-relaxed">Platforma noastră conectează utilizatorii cu o gamă largă de facilități sportive - de la terenuri de fotbal și tenis, până la piscine și terenuri de padel. Oferim o experiență de rezervare simplă, transparentă și sigură, atât pentru sportivi cât și pentru proprietarii bazelor sportive.</p>
               <p className="text-muted-foreground leading-relaxed">
                 Viziunea noastră este să devenim cea mai mare platformă de rezervări sportive din România, 
