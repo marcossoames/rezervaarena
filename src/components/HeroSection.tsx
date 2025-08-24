@@ -14,7 +14,7 @@ const HeroSection = () => {
           fetchPriority="high"
           width="1920"
           height="864"
-          sizes="100vw"
+          sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px"
           style={{ aspectRatio: '1920/864' }}
         />
         <div className="absolute inset-0 bg-gradient-hero/60"></div>

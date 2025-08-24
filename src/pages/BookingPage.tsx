@@ -318,7 +318,7 @@ const BookingPage = () => {
                     loading="lazy"
                     width="800"
                     height="264"
-                    sizes="(max-width: 1024px) 100vw, 66vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 66vw, 880px"
                     style={{ aspectRatio: '800/264' }}
                   />
                   <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">

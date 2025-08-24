@@ -132,4 +132,10 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Image optimization for better performance */
+  img {
+    image-rendering: auto;
+    image-rendering: optimizeQuality;
+  }
 }
