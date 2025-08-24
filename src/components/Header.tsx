@@ -82,70 +82,61 @@ const Header = () => {
   return (
     <header className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
       <div className="w-full max-w-7xl mx-auto px-4 py-3">
-        <div className="flex items-center justify-between gap-4">
-          {/* Left side - Admin button and Logo */}
-          <div className="flex items-center gap-6">
-            {/* Admin button - moved to far left, only show when not logged in */}
-            {!session && (
-              <Link to="/admin/login">
-                <Button variant="premium" size="sm" className="shrink-0">
-                  <Shield className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Admin</span>
-                </Button>
-              </Link>
-            )}
-            
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2 shrink-0">
-              <div className="w-8 h-8 bg-gradient-hero rounded-md flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">S</span>
-              </div>
-              <h1 className="text-xl font-bold text-foreground">SportBook</h1>
-            </Link>
-          </div>
+        <div className="flex items-center justify-between">
+          {/* Left side - Logo */}
+          <Link to="/" className="flex items-center space-x-2 shrink-0">
+            <div className="w-8 h-8 bg-gradient-hero rounded-md flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">S</span>
+            </div>
+            <h1 className="text-xl font-bold text-foreground">SportBook</h1>
+          </Link>
           
           {/* Center - Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6">
-            <Link to="/facilities" className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
+          <nav className="hidden md:flex items-center justify-center space-x-8 flex-1">
+            <Link to="/facilities" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
               Terenuri
             </Link>
-            <Link to="/about" className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
+            <Link to="/about" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
               Despre noi
             </Link>
-            <Link to="/contact" className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
+            <Link to="/contact" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
               Contact
             </Link>
-            <Link to="/articles" className="text-sm font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
+            <Link to="/articles" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
               Articole
             </Link>
           </nav>
 
           {/* Right side - User actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center space-x-3 shrink-0">
             {session ? (
               <>
-                <Button onClick={handleClientClick} variant="ghost" size="sm" className="shrink-0">
-                  <User className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">
-                    {userProfile?.role === 'admin' ? 'Dashboard' : 
-                     userProfile?.user_type_comment?.includes('Proprietar bază sportivă') ? 'Profil' : 'Profilul Meu'}
-                  </span>
+                <Button onClick={handleClientClick} variant="ghost" size="sm">
+                  <User className="h-4 w-4" />
+                  {userProfile?.role === 'admin' ? 'Dashboard' : 
+                   userProfile?.user_type_comment?.includes('Proprietar bază sportivă') ? 'Profil' : 'Profilul Meu'}
                 </Button>
-                <Button onClick={handleSignOut} variant="outline" size="sm" className="shrink-0">
-                  <LogOut className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Deconectare</span>
+                <Button onClick={handleSignOut} variant="outline" size="sm">
+                  <LogOut className="h-4 w-4" />
+                  Deconectare
                 </Button>
               </>
             ) : (
               <>
-                <Button onClick={handleClientClick} variant="ghost" size="sm" className="shrink-0">
-                  <User className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Client</span>
+                <Button onClick={handleClientClick} variant="ghost" size="sm">
+                  <User className="h-4 w-4" />
+                  Client
                 </Button>
                 <Link to="/facility/login">
-                  <Button variant="outline" size="sm" className="shrink-0">
-                    <Building2 className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden md:inline">Bază Sportivă</span>
+                  <Button variant="outline" size="sm">
+                    <Building2 className="h-4 w-4" />
+                    Bază Sportivă
+                  </Button>
+                </Link>
+                <Link to="/admin/login">
+                  <Button variant="premium" size="sm">
+                    <Shield className="h-4 w-4" />
+                    Admin
                   </Button>
                 </Link>
               </>
