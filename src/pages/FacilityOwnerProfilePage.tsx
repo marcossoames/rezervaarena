@@ -421,9 +421,6 @@ const FacilityOwnerProfilePage = () => {
               </CardContent>
             </Card>
 
-            {/* Stripe Connect */}
-            <StripeConnectCard userProfile={userProfile} onStatusUpdate={setUserProfile} />
-
             {/* Setări Bază */}
             <Card className="hover:shadow-lg transition-shadow cursor-pointer group" 
                   onClick={() => navigate("/edit-sports-complex-settings")}>
@@ -442,6 +439,9 @@ const FacilityOwnerProfilePage = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Stripe Connect */}
+            <StripeConnectCard userProfile={userProfile} onStatusUpdate={setUserProfile} />
 
             {/* Ștergere Cont */}
             <Card className="border-destructive/20 hover:border-destructive/40 transition-colors">
