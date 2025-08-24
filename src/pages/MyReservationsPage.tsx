@@ -92,68 +92,27 @@ const MyReservationsPage = () => {
       const facilityIds = [...new Set(userBookings.map(b => b.facility_id))];
       console.log('Facility IDs:', facilityIds);
 
-      // Get all facilities with complete data
-      const { data: facilities, error: facilitiesError } = await supabase
-        .from('facilities')
-        .select(`
-          id,
-          name,
-          facility_type,
-          city,
-          address,
-          owner_id
-        `)
-        .in('id', facilityIds);
+      // Use the same function as other pages to get complete facility data
+      const { data: allFacilities, error: facilitiesError } = await supabase
+        .rpc('get_facilities_for_authenticated_users');
 
       if (facilitiesError) {
         console.error('Error fetching facilities:', facilitiesError);
         throw facilitiesError;
       }
 
-      console.log('Facilities:', facilities);
+      console.log('All facilities from RPC:', allFacilities);
 
-      // Get all owner profiles
-      const ownerIds = [...new Set(facilities?.map(f => f.owner_id).filter(Boolean) || [])];
-      console.log('Owner IDs:', ownerIds);
-
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, user_type_comment, full_name, phone')
-        .in('user_id', ownerIds);
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        // Don't throw here, just continue without profiles
-      }
-
-      console.log('Profiles:', profiles);
+      // Filter only the facilities we need
+      const facilities = allFacilities?.filter(f => facilityIds.includes(f.id)) || [];
+      
+      console.log('Filtered facilities:', facilities);
 
       // Combine all data
       const completeBookings = userBookings.map(booking => {
-        const facility = facilities?.find(f => f.id === booking.facility_id);
-        const profile = profiles?.find(p => p.user_id === facility?.owner_id);
+        const facility = facilities.find(f => f.id === booking.facility_id);
 
-        // Extract sports complex name using the same logic as other pages
-        let sportsComplexName = 'Baza Sportivă';
-        if (profile?.user_type_comment) {
-          // Check for format: "Name - Proprietar bază sportivă"
-          if (profile.user_type_comment.match(/.+ - Proprietar bază sportivă$/)) {
-            sportsComplexName = profile.user_type_comment.replace(' - Proprietar bază sportivă', '');
-          }
-          // Check for format: "Proprietar bază sportivă - Name"
-          else if (profile.user_type_comment.match(/^Proprietar bază sportivă - .+/)) {
-            sportsComplexName = profile.user_type_comment.replace('Proprietar bază sportivă - ', '');
-          }
-          // If no standard format, use the whole comment if it doesn't contain standard text
-          else if (!profile.user_type_comment.includes('Proprietar bază sportivă')) {
-            sportsComplexName = profile.user_type_comment;
-          }
-        }
-
-        // Fallback to owner name and city if still generic
-        if (sportsComplexName === 'Baza Sportivă' && profile?.full_name) {
-          sportsComplexName = `Baza Sportivă ${profile.full_name.split(' ')[0]} - ${facility?.city}`;
-        }
+        console.log('Facility for booking:', facility);
 
         return {
           ...booking,
@@ -162,11 +121,15 @@ const MyReservationsPage = () => {
             name: facility?.name || 'Teren nedefinit',
             facility_type: facility?.facility_type || 'nedefinit',
             city: facility?.city || 'Oraș nedefinit',
-            address: facility?.address || '',
-            owner_id: facility?.owner_id,
-            sports_complex_name: sportsComplexName,
-            sports_complex_address: facility?.address ? `${facility.address}, ${facility.city}` : facility?.city || 'Adresă nedefinită',
-            profiles: profile || null
+            address: facility?.sports_complex_address?.split(', ')[0] || '',
+            owner_id: facility?.id, // Not available in RPC response but not needed
+            sports_complex_name: facility?.sports_complex_name || 'Baza Sportivă',
+            sports_complex_address: facility?.sports_complex_address || facility?.city || 'Adresă nedefinită',
+            profiles: facility?.phone_number ? {
+              user_type_comment: '',
+              full_name: '',
+              phone: facility.phone_number
+            } : null
           }
         };
       });
@@ -251,15 +214,6 @@ const MyReservationsPage = () => {
     }
   };
 
-  const getSportsComplexName = (userTypeComment: string, fullName: string) => {
-    if (userTypeComment && userTypeComment.includes('Proprietar bază sportivă - ')) {
-      return userTypeComment.replace('Proprietar bază sportivă - ', '');
-    }
-    if (userTypeComment && userTypeComment.includes(' - Proprietar bază sportivă')) {
-      return userTypeComment.replace(' - Proprietar bază sportivă', '');
-    }
-    return `Baza Sportivă ${fullName.split(' ')[0]}`;
-  };
 
   if (loading) {
     return (
