@@ -282,8 +282,7 @@ const FacilityRegister = () => {
           
           // Use the secure function to create facility and update profile
           const { data: facilityId, error: facilityError } = await supabase
-            .rpc('register_facility_with_profile', {
-              p_user_id: authData.user.id,
+            .rpc('register_facility_with_profile_secure', {
               p_email: accountData.email,
               p_full_name: accountData.fullName,
               p_phone: accountData.phone || '',

@@ -196,10 +196,16 @@ const FacilitiesPage = () => {
             .rpc('get_public_facilities');
           allFacilities = data;
           error = rpcError;
-        } else {
-          // Non-authenticated users get public facility data for browsing
+        } else if (session) {
+          // Authenticated users get enhanced data with contact info
           const { data, error: rpcError } = await supabase
-            .rpc('get_facilities_for_public_browsing');
+            .rpc('get_facilities_for_authenticated_users');
+          allFacilities = data;
+          error = rpcError;
+        } else {
+          // Non-authenticated users get safe public facility data
+          const { data, error: rpcError } = await supabase
+            .rpc('get_facilities_for_public_browsing_safe');
           allFacilities = data;
           error = rpcError;
         }

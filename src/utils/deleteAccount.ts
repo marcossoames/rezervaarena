@@ -7,20 +7,18 @@ export const deleteUserAccount = async () => {
       throw new Error("Nu există utilizator autentificat");
     }
 
-    // Delete profile first (this should cascade properly due to foreign keys)
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('user_id', user.id);
+    // Use the secure deletion function
+    const { data, error } = await supabase.rpc('delete_current_user_account');
 
-    if (profileError) {
-      console.error('Error deleting profile:', profileError);
+    if (error) {
+      throw error;
     }
 
-    // Then sign out the user
+    // Sign out the user after successful deletion
     const { error: signOutError } = await supabase.auth.signOut();
     if (signOutError) {
-      throw signOutError;
+      console.error('Sign out error after deletion:', signOutError);
+      // Don't throw here since account was already deleted
     }
     
     return { success: true };

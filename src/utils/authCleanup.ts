@@ -1,9 +1,12 @@
 /**
- * Critical auth cleanup utility to prevent authentication limbo states
- * Always call this before sign-in/sign-up operations
+ * Comprehensive auth state cleanup utility to prevent authentication limbo states
+ * This utility clears all auth-related keys from browser storage
  */
 export const cleanupAuthState = () => {
   try {
+    // Remove standard auth tokens
+    localStorage.removeItem('supabase.auth.token');
+    
     // Remove all Supabase auth keys from localStorage
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
@@ -11,7 +14,7 @@ export const cleanupAuthState = () => {
       }
     });
     
-    // Remove from sessionStorage if it exists
+    // Remove from sessionStorage if in use
     if (typeof sessionStorage !== 'undefined') {
       Object.keys(sessionStorage).forEach((key) => {
         if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
@@ -20,9 +23,9 @@ export const cleanupAuthState = () => {
       });
     }
     
-    console.log('Auth state cleaned up');
+    console.log('Auth state cleaned up successfully');
   } catch (error) {
-    console.warn('Error cleaning auth state:', error);
+    console.error('Error cleaning up auth state:', error);
   }
 };
 

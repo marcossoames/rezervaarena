@@ -387,6 +387,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_current_user_account: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       delete_user_account_secure: {
         Args: { _user_id: string }
         Returns: boolean
@@ -394,6 +398,24 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_facilities_for_authenticated_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amenities: string[]
+          area_info: string
+          capacity: number
+          city: string
+          description: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          id: string
+          images: string[]
+          name: string
+          phone_number: string
+          price_per_hour: number
+          sports_complex_address: string
+          sports_complex_name: string
+        }[]
       }
       get_facilities_for_booking: {
         Args: Record<PropertyKey, never>
@@ -425,6 +447,21 @@ export type Database = {
           phone_number: string
           price_per_hour: number
           sports_complex_address: string
+          sports_complex_name: string
+        }[]
+      }
+      get_facilities_for_public_browsing_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amenities: string[]
+          capacity: number
+          city: string
+          description: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          id: string
+          images: string[]
+          name: string
+          price_per_hour: number
           sports_complex_name: string
         }[]
       }
@@ -498,6 +535,22 @@ export type Database = {
           p_phone: string
           p_price_per_hour: number
           p_user_id: string
+        }
+        Returns: string
+      }
+      register_facility_with_profile_secure: {
+        Args: {
+          p_address: string
+          p_amenities: string[]
+          p_capacity: number
+          p_city: string
+          p_description: string
+          p_email: string
+          p_facility_name: string
+          p_facility_type: Database["public"]["Enums"]["facility_type"]
+          p_full_name: string
+          p_phone: string
+          p_price_per_hour: number
         }
         Returns: string
       }
