@@ -100,38 +100,23 @@ const BookingPage = () => {
     const durationMinutes = endMinutes - startMinutes;
     const durationHours = durationMinutes / 60;
     
-    // Check if booking spans peak hours (12:00-15:00)
+    // Simple calculation: base price * duration hours
+    // Peak hours (12:00-15:00) have 20% surcharge
     const peakStartMinutes = 12 * 60; // 12:00
     const peakEndMinutes = 15 * 60;   // 15:00
     
     let totalPrice = 0;
-    let regularHours = 0;
-    let peakHours = 0;
 
-    // Calculate regular and peak hours
-    const bookingStartMinutes = Math.max(startMinutes, 0);
-    const bookingEndMinutes = Math.min(endMinutes, 24 * 60);
-
-    // Regular hours before peak
-    if (bookingStartMinutes < peakStartMinutes && bookingEndMinutes > bookingStartMinutes) {
-      const regularEndBefore = Math.min(bookingEndMinutes, peakStartMinutes);
-      regularHours += (regularEndBefore - bookingStartMinutes) / 60;
+    // Calculate price for each 30-minute slot
+    for (let time = startMinutes; time < endMinutes; time += 30) {
+      const slotHours = 0.5; // 30 minutes = 0.5 hours
+      
+      // Check if this slot is in peak hours
+      const isPeakSlot = time >= peakStartMinutes && time < peakEndMinutes;
+      const slotPrice = isPeakSlot ? facility.price_per_hour * 1.2 : facility.price_per_hour;
+      
+      totalPrice += slotPrice * slotHours;
     }
-
-    // Peak hours
-    if (bookingStartMinutes < peakEndMinutes && bookingEndMinutes > peakStartMinutes) {
-      const peakStart = Math.max(bookingStartMinutes, peakStartMinutes);
-      const peakEnd = Math.min(bookingEndMinutes, peakEndMinutes);
-      peakHours += (peakEnd - peakStart) / 60;
-    }
-
-    // Regular hours after peak
-    if (bookingStartMinutes < bookingEndMinutes && bookingEndMinutes > peakEndMinutes) {
-      const regularStartAfter = Math.max(bookingStartMinutes, peakEndMinutes);
-      regularHours += (bookingEndMinutes - regularStartAfter) / 60;
-    }
-
-    totalPrice = (regularHours * facility.price_per_hour) + (peakHours * facility.price_per_hour * 1.2);
 
     // Format duration
     const hours = Math.floor(durationHours);
