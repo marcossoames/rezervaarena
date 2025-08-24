@@ -101,8 +101,8 @@ const SearchSection = () => {
         </div>
 
         <Card className="max-w-7xl mx-auto shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
-          <CardContent className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+          <CardContent className="p-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 mb-8">
               {/* Search Query */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Caută terenuri</label>
