@@ -89,23 +89,41 @@ export const OptimizedImage = ({
   };
 
   const targetDimensions = getTargetDimensions();
-  const webpSrc = supportsWebP ? getOptimizedImageSrc(src.replace(/\.(jpg|jpeg|png)$/i, '.webp'), targetDimensions.width) : '';
-  const fallbackSrc = getOptimizedImageSrc(src, targetDimensions.width);
+  
+  // Generate multiple format sources with proper sizing
+  const generateImageSources = () => {
+    const baseName = src.replace(/\.(jpg|jpeg|png)$/i, '');
+    const extension = src.match(/\.(jpg|jpeg|png)$/i)?.[1] || 'jpg';
+    
+    return {
+      avif: `${baseName}.avif?w=${targetDimensions.width}&q=${quality}`,
+      webp: `${baseName}.webp?w=${targetDimensions.width}&q=${quality}`,
+      fallback: `${src}?w=${targetDimensions.width}&q=${quality}`
+    };
+  };
+
+  const sources = generateImageSources();
 
   return (
     <picture>
-      {/* WebP source for modern browsers with optimized sizing */}
-      {supportsWebP && !imageError && (
-        <source
-          srcSet={`${webpSrc} ${targetDimensions.width}w`}
-          type="image/webp"
-          sizes={getOptimalSizes()}
-        />
-      )}
+      {/* AVIF source for best compression (when available) */}
+      <source
+        srcSet={sources.avif}
+        type="image/avif"
+        sizes={getOptimalSizes()}
+        media="(min-width: 1px)" // Ensures it's considered by browsers that support AVIF
+      />
       
-      {/* Original format fallback with optimized sizing */}
+      {/* WebP source for modern browsers */}
+      <source
+        srcSet={sources.webp}
+        type="image/webp"
+        sizes={getOptimalSizes()}
+      />
+      
+      {/* JPEG/PNG fallback for older browsers */}
       <img
-        src={imageError ? src : fallbackSrc}
+        src={imageError ? src : sources.fallback}
         alt={alt}
         className={`${className} ${!imageLoaded && loading === 'lazy' ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         loading={loading}

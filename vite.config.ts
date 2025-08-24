@@ -14,6 +14,8 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
+  // Asset handling for modern image formats
+  assetsInclude: ['**/*.webp', '**/*.avif'],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
