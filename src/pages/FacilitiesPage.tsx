@@ -332,7 +332,7 @@ const FacilitiesPage = () => {
   };
   const getTimeOptions = () => {
     const times = [];
-    for (let hour = 8; hour < 22; hour++) {
+    for (let hour = 8; hour <= 22; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         times.push({
@@ -341,10 +341,6 @@ const FacilitiesPage = () => {
         });
       }
     }
-    times.push({
-      value: "22:00",
-      label: "22:00"
-    });
     return times;
   };
   const handleTypeFilter = (type: string | null) => {

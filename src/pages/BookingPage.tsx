@@ -46,7 +46,8 @@ const generateTimeSlots = (facilityPrice: number, operatingStart = "08:00", oper
   const startTime = startHour * 60 + startMinute;
   const endTime = endHour * 60 + endMinute;
   
-  for (let time = startTime; time < endTime; time += 30) {
+  // Generate slots every 30 minutes including the closing time
+  for (let time = startTime; time <= endTime; time += 30) {
     const hours = Math.floor(time / 60);
     const minutes = time % 60;
     const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
