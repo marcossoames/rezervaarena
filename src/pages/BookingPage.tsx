@@ -156,18 +156,10 @@ const BookingPage = () => {
       }
 
       try {
+        // Use the function to get proper sports complex data for authenticated users
         const { data, error } = await supabase
-          .from('facilities')
-          .select(`
-            *,
-            profiles!facilities_owner_id_fkey (
-              full_name,
-              phone,
-              user_type_comment
-            )
-          `)
+          .rpc('get_facilities_for_authenticated_users')
           .eq('id', facilityId)
-          .eq('is_active', true)
           .single();
 
         if (error || !data) {
@@ -179,36 +171,13 @@ const BookingPage = () => {
           return;
         }
 
-        // Extract sports complex information
-        const profileData = data.profiles;
-        let sportsComplexName = 'Baza Sportivă';
-        
-        if (profileData?.user_type_comment) {
-          // Check for format: "Name - Proprietar bază sportivă"
-          if (profileData.user_type_comment.match(/.+ - Proprietar bază sportivă$/)) {
-            sportsComplexName = profileData.user_type_comment.replace(' - Proprietar bază sportivă', '');
-          }
-          // Check for format: "Proprietar bază sportivă - Name"
-          else if (profileData.user_type_comment.match(/^Proprietar bază sportivă - .+/)) {
-            sportsComplexName = profileData.user_type_comment.replace('Proprietar bază sportivă - ', '');
-          }
-          // If no standard format, use the whole comment if it doesn't contain standard text
-          else if (!profileData.user_type_comment.includes('Proprietar bază sportivă')) {
-            sportsComplexName = profileData.user_type_comment;
-          }
-        }
-
-        // Fallback to owner name and city if still generic
-        if (sportsComplexName === 'Baza Sportivă' && profileData?.full_name) {
-          sportsComplexName = `Baza Sportivă ${profileData.full_name.split(' ')[0]} - ${data.city}`;
-        }
-
-        // Add sports complex information to facility data
+        // The function already provides sports complex information
         const facilityWithSportsComplex = {
           ...data,
-          sports_complex_name: sportsComplexName,
-          sports_complex_address: data.address ? `${data.address}, ${data.city}` : data.city,
-          phone_number: profileData?.phone
+          address: data.sports_complex_address?.split(', ')[0] || data.city, // Extract address part
+          sports_complex_name: data.sports_complex_name,
+          sports_complex_address: data.sports_complex_address,
+          phone_number: data.phone_number
         };
 
         setFacility(facilityWithSportsComplex);

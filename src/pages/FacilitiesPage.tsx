@@ -146,40 +146,8 @@ const FacilitiesPage = () => {
           const {
             data: facilitiesData,
             error: facilitiesError
-          } = await supabase.from('facilities').select(`
-              id, name, facility_type, city, description, price_per_hour, capacity, amenities, images, address,
-              profiles!facilities_owner_id_fkey (user_type_comment, full_name, phone)
-            `).eq('is_active', true);
-          allFacilities = facilitiesData?.map(f => {
-            // Extract sports complex name from profile with improved logic
-            let sportsComplexName = 'Baza Sportivă';
-            if (f.profiles?.user_type_comment) {
-              // Check for format: "Name - Proprietar bază sportivă"
-              if (f.profiles.user_type_comment.match(/.+ - Proprietar bază sportivă$/)) {
-                sportsComplexName = f.profiles.user_type_comment.replace(' - Proprietar bază sportivă', '');
-              }
-              // Check for format: "Proprietar bază sportivă - Name"
-              else if (f.profiles.user_type_comment.match(/^Proprietar bază sportivă - .+/)) {
-                sportsComplexName = f.profiles.user_type_comment.replace('Proprietar bază sportivă - ', '');
-              }
-              // If no standard format, use the whole comment if it doesn't contain standard text
-              else if (!f.profiles.user_type_comment.includes('Proprietar bază sportivă')) {
-                sportsComplexName = f.profiles.user_type_comment;
-              }
-            }
-
-            // Fallback to owner name and city if still generic
-            if (sportsComplexName === 'Baza Sportivă' && f.profiles?.full_name) {
-              sportsComplexName = `Baza Sportivă ${f.profiles.full_name.split(' ')[0]} - ${f.city}`;
-            }
-            return {
-              ...f,
-              area_info: `${f.city} area`,
-              sports_complex_name: sportsComplexName,
-              sports_complex_address: f.address ? `${f.address}, ${f.city}` : `${f.city}`,
-              phone_number: f.profiles?.phone
-            };
-          });
+          } = await supabase.rpc('get_facilities_for_authenticated_users');
+          allFacilities = facilitiesData;
           error = facilitiesError;
         } else if (session && userProfile?.role === 'admin') {
           // Admins get full data
