@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { User, Building2, Shield, LogOut } from "lucide-react";
+import { User, Building2, Shield, LogOut, Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const Header = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -93,7 +94,7 @@ const Header = () => {
             <h1 className="text-lg sm:text-xl font-bold text-foreground">SportBook</h1>
           </Link>
           
-          {/* Center - Navigation */}
+          {/* Center - Navigation Desktop */}
           <nav className="hidden md:flex items-center justify-center space-x-8 flex-1">
             <Link to="/facilities" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
               Terenuri
@@ -108,6 +109,18 @@ const Header = () => {
               Articole
             </Link>
           </nav>
+
+          {/* Center - Mobile Menu Button */}
+          <div className="flex-1 flex justify-center md:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="px-2"
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
 
           {/* Right side - User actions */}
           <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-3'} shrink-0`}>
@@ -145,6 +158,42 @@ const Header = () => {
             )}
           </div>
         </div>
+        
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-card border-b border-border shadow-lg z-50">
+            <nav className="px-4 py-3 space-y-2">
+              <Link 
+                to="/facilities" 
+                className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Terenuri
+              </Link>
+              <Link 
+                to="/about" 
+                className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Despre noi
+              </Link>
+              <Link 
+                to="/contact" 
+                className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Contact
+              </Link>
+              <Link 
+                to="/articles" 
+                className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Articole
+              </Link>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );
