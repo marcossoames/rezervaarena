@@ -274,9 +274,8 @@ const ManageFacilitiesPage = () => {
               Rezervări ({bookings.length})
             </TabsTrigger>
           </TabsList>
-        </Tabs>
 
-        <TabsContent value="facilities" className="space-y-6">
+          <TabsContent value="facilities" className="space-y-6">
           {/* Facilities Grid */}
           {facilities.length === 0 ? (
             <Card className="text-center py-12">
@@ -512,6 +511,7 @@ const ManageFacilitiesPage = () => {
             </div>
           )}
         </TabsContent>
+      </Tabs>
       </div>
     </div>
   );
