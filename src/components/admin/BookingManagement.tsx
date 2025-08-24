@@ -63,7 +63,9 @@ const BookingManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFacility, setSelectedFacility] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedSportType, setSelectedSportType] = useState<string>("all");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
   
   // Block date/time modal state
@@ -82,7 +84,7 @@ const BookingManagement = () => {
 
   useEffect(() => {
     filterBookings();
-  }, [selectedFacility, selectedStatus, selectedDate]);
+  }, [selectedFacility, selectedStatus, selectedSportType, selectedDate, currentMonth]);
 
   const loadData = async () => {
     try {
@@ -295,21 +297,53 @@ const BookingManagement = () => {
     return types[type] || type;
   };
 
+  const getSportTypes = () => {
+    const types = [
+      { value: 'football', label: 'Fotbal' },
+      { value: 'tennis', label: 'Tenis' },
+      { value: 'basketball', label: 'Baschet' },
+      { value: 'volleyball', label: 'Volei' },
+      { value: 'swimming', label: 'Înot' },
+      { value: 'padel', label: 'Padel' },
+      { value: 'other', label: 'Altele' }
+    ];
+    return types;
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const newMonth = new Date(currentMonth);
+    if (direction === 'prev') {
+      newMonth.setMonth(newMonth.getMonth() - 1);
+    } else {
+      newMonth.setMonth(newMonth.getMonth() + 1);
+    }
+    setCurrentMonth(newMonth);
+  };
+
   const getCalendarDays = (): CalendarDay[] => {
     const days: CalendarDay[] = [];
     const today = new Date();
-    const selectedMonth = selectedDate || today;
     
-    // Get start and end of month
-    const startOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
-    const endOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0);
+    // Get start and end of the current month being viewed
+    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
     
-    // Generate days for the month
-    for (let d = new Date(startOfMonth); d <= endOfMonth; d.setDate(d.getDate() + 1)) {
+    // Get start of week for the first day of month (to show full weeks)
+    const startOfWeek = new Date(startOfMonth);
+    startOfWeek.setDate(startOfMonth.getDate() - startOfMonth.getDay() + 1);
+    
+    // Get end of week for the last day of month
+    const endOfWeek = new Date(endOfMonth);
+    endOfWeek.setDate(endOfMonth.getDate() + (7 - endOfMonth.getDay()));
+    
+    // Generate days for the full calendar grid
+    for (let d = new Date(startOfWeek); d <= endOfWeek; d.setDate(d.getDate() + 1)) {
       const dateStr = format(d, 'yyyy-MM-dd');
       const dayBookings = bookings.filter(booking => 
         booking.booking_date === dateStr &&
-        (selectedFacility === "all" || booking.facility_id === selectedFacility)
+        (selectedFacility === "all" || booking.facility_id === selectedFacility) &&
+        (selectedStatus === "all" || booking.status === selectedStatus) &&
+        (selectedSportType === "all" || booking.facility_type === selectedSportType)
       );
       const dayBlocked = blockedDates.filter(blocked => 
         blocked.blocked_date === dateStr &&
@@ -331,9 +365,10 @@ const BookingManagement = () => {
   const filteredBookings = bookings.filter(booking => {
     const facilityMatch = selectedFacility === "all" || booking.facility_id === selectedFacility;
     const statusMatch = selectedStatus === "all" || booking.status === selectedStatus;
+    const sportTypeMatch = selectedSportType === "all" || booking.facility_type === selectedSportType;
     const dateMatch = !selectedDate || booking.booking_date === format(selectedDate, 'yyyy-MM-dd');
     
-    return facilityMatch && statusMatch && dateMatch;
+    return facilityMatch && statusMatch && sportTypeMatch && dateMatch;
   });
 
   const filteredBlockedDates = blockedDates.filter(blocked => {
@@ -478,7 +513,7 @@ const BookingManagement = () => {
         </CardHeader>
         <CardContent className="p-6">
           {/* Filters */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8 p-4 bg-gradient-to-r from-secondary/30 to-secondary/20 rounded-lg border animate-fade-in">
+          <div className="grid md:grid-cols-3 gap-6 mb-8 p-4 bg-gradient-to-r from-secondary/30 to-secondary/20 rounded-lg border animate-fade-in">
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-primary" />
@@ -517,118 +552,136 @@ const BookingManagement = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Filter className="h-4 w-4 text-primary" />
+                Tip sport
+              </label>
+              <Select value={selectedSportType} onValueChange={setSelectedSportType}>
+                <SelectTrigger className="bg-background shadow-sm hover:shadow-md transition-shadow">
+                  <SelectValue placeholder="Toate sporturile" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-50">
+                  <SelectItem value="all" className="hover:bg-accent">Toate sporturile</SelectItem>
+                  {getSportTypes().map(sport => (
+                    <SelectItem key={sport.value} value={sport.value} className="hover:bg-accent">
+                      {sport.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Combined Calendar View */}
+          {/* Unified Calendar View */}
           {viewMode === 'calendar' && (
             <div className="mb-8 animate-fade-in">
               <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-4 rounded-lg border border-primary/20 mb-6">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
-                  <CalendarIcon className="h-5 w-5" />
-                  Calendar Rezervări
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">Navigează prin luni și click pe o zi pentru a filtra rezervările</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+                      <CalendarIcon className="h-5 w-5" />
+                      Calendar Rezervări
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">Navigează prin luni și click pe o zi pentru detalii</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigateMonth('prev')}
+                      className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                    >
+                      ←
+                    </Button>
+                    <span className="text-lg font-semibold min-w-[200px] text-center">
+                      {format(currentMonth, 'MMMM yyyy', { locale: ro })}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigateMonth('next')}
+                      className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                    >
+                      →
+                    </Button>
+                  </div>
+                </div>
               </div>
               
-              <div className="grid lg:grid-cols-4 gap-6">
-                {/* Month Navigation Calendar */}
-                <div className="lg:col-span-1">
-                  <div className="bg-card border rounded-lg p-4 shadow-sm">
-                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                      <CalendarIcon className="h-4 w-4 text-primary" />
-                      Selectează data
-                    </h4>
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      locale={ro}
-                      className="rounded-lg bg-background w-full"
-                      classNames={{
-                        months: "space-y-4",
-                        month: "space-y-4",
-                        caption: "flex justify-center pt-1 relative items-center",
-                        caption_label: "text-sm font-medium",
-                        nav: "space-x-1 flex items-center",
-                        nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-                        nav_button_previous: "absolute left-1",
-                        nav_button_next: "absolute right-1",
-                        table: "w-full border-collapse space-y-1",
-                        head_row: "flex",
-                        head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
-                        row: "flex w-full mt-2",
-                        cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                        day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors",
-                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                        day_today: "bg-accent text-accent-foreground",
-                        day_outside: "text-muted-foreground opacity-50",
-                        day_disabled: "text-muted-foreground opacity-50",
-                        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                        day_hidden: "invisible",
+              <div className="grid grid-cols-7 gap-2 mb-4">
+                {['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'].map(day => (
+                  <div key={day} className="text-center text-sm font-medium p-3 bg-secondary/30 rounded-lg border">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              
+              <div className="grid grid-cols-7 gap-3">
+                {getCalendarDays().map((day, index) => {
+                  const isCurrentMonth = day.date.getMonth() === currentMonth.getMonth();
+                  return (
+                    <div
+                      key={index}
+                      className={`min-h-32 border-2 rounded-xl p-3 cursor-pointer transition-all duration-300 hover-scale shadow-sm hover:shadow-lg ${
+                        !isCurrentMonth ? 'opacity-50 bg-muted/20' :
+                        day.isToday ? 'bg-gradient-to-br from-primary/20 to-primary/10 border-primary shadow-md' : 
+                        day.isSelected ? 'bg-gradient-to-br from-secondary/50 to-secondary/30 border-primary shadow-md' : 
+                        'bg-card/50 border-border hover:bg-secondary/30 hover:border-primary/50'
+                      }`}
+                      onClick={() => {
+                        setSelectedDate(day.date);
+                        if (!isCurrentMonth) {
+                          setCurrentMonth(new Date(day.date.getFullYear(), day.date.getMonth(), 1));
+                        }
                       }}
-                    />
-                  </div>
-                </div>
-
-                {/* Monthly Grid View */}
-                <div className="lg:col-span-3">
-                  <div className="grid grid-cols-7 gap-2 mb-4">
-                    {['Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm', 'Dum'].map(day => (
-                      <div key={day} className="text-center text-sm font-medium p-3 bg-secondary/30 rounded-lg border">
-                        {day}
+                    >
+                      <div className={`text-sm font-semibold mb-2 ${
+                        !isCurrentMonth ? 'text-muted-foreground' :
+                        day.isToday ? 'text-primary' : 'text-foreground'
+                      }`}>
+                        {format(day.date, 'd')}
+                        {day.isToday && <span className="ml-1 text-xs">(azi)</span>}
                       </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-7 gap-3">
-                    {getCalendarDays().map((day, index) => (
-                      <div
-                        key={index}
-                        className={`min-h-28 border-2 rounded-xl p-3 cursor-pointer transition-all duration-300 hover-scale shadow-sm hover:shadow-lg ${
-                          day.isToday ? 'bg-gradient-to-br from-primary/20 to-primary/10 border-primary shadow-md' : 
-                          day.isSelected ? 'bg-gradient-to-br from-secondary/50 to-secondary/30 border-primary shadow-md' : 
-                          'bg-card/50 border-border hover:bg-secondary/30 hover:border-primary/50'
-                        }`}
-                        onClick={() => setSelectedDate(day.date)}
-                      >
-                        <div className={`text-sm font-semibold mb-2 ${day.isToday ? 'text-primary' : 'text-foreground'}`}>
-                          {format(day.date, 'd')}
-                          {day.isToday && <span className="ml-1 text-xs">(azi)</span>}
-                        </div>
-                        <div className="space-y-1">
-                          {day.bookings.slice(0, 2).map((booking, idx) => (
-                            <div
-                              key={idx}
-                              className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 ${
-                                booking.status === 'confirmed' ? 'bg-gradient-to-r from-green-500 to-green-600' :
-                                booking.status === 'pending' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
-                                booking.status === 'cancelled' ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                                'bg-gradient-to-r from-gray-500 to-gray-600'
-                              }`}
-                            >
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {booking.start_time}
-                              </div>
+                      <div className="space-y-1">
+                        {day.bookings.slice(0, 2).map((booking, idx) => (
+                          <div
+                            key={idx}
+                            className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 ${
+                              booking.status === 'confirmed' ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                              booking.status === 'pending' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                              booking.status === 'cancelled' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                              'bg-gradient-to-r from-gray-500 to-gray-600'
+                            }`}
+                            title={`${booking.start_time} - ${booking.facility_name} (${getFacilityTypeLabel(booking.facility_type)})`}
+                          >
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {booking.start_time}
                             </div>
-                          ))}
-                          {day.blockedTimes.length > 0 && (
-                            <div className="text-xs p-2 rounded-lg bg-gradient-to-r from-black to-gray-800 text-white shadow-sm">
-                              <div className="flex items-center gap-1">
-                                <Ban className="h-3 w-3" />
-                                Blocat
-                              </div>
+                            <div className="text-[10px] opacity-90 truncate">
+                              {getFacilityTypeLabel(booking.facility_type)}
                             </div>
-                          )}
-                          {day.bookings.length > 2 && (
-                            <div className="text-xs text-muted-foreground font-medium bg-secondary/50 p-1 rounded">
-                              +{day.bookings.length - 2} mai multe
+                          </div>
+                        ))}
+                        {day.blockedTimes.length > 0 && (
+                          <div className="text-xs p-2 rounded-lg bg-gradient-to-r from-black to-gray-800 text-white shadow-sm">
+                            <div className="flex items-center gap-1">
+                              <Ban className="h-3 w-3" />
+                              Blocat
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
+                        {day.bookings.length > 2 && (
+                          <div className="text-xs text-muted-foreground font-medium bg-secondary/50 p-1 rounded">
+                            +{day.bookings.length - 2} mai multe
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
