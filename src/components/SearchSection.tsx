@@ -97,7 +97,7 @@ const SearchSection = () => {
           <h2 className="text-4xl font-bold text-foreground mb-4">
             Găsește <span className="text-primary">Terenul Perfect</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Caută și rezervă cele mai bune terenuri sportive din Timișoara în câțiva pași simpli</p>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Caută și rezervă cele mai bune terenuri sportive din România în câțiva pași simpli</p>
         </div>
 
         <Card className="max-w-7xl mx-auto shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
