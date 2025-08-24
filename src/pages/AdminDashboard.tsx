@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Building2, Calendar, LogOut, Settings, DollarSign } from "lucide-react";
+import { Shield, Users, Building2, Calendar, LogOut, Settings, DollarSign, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { secureSignOut } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
@@ -10,11 +10,12 @@ import UserManagement from "@/components/UserManagement";
 import FacilityManagement from "@/components/admin/FacilityManagement";
 import BookingManagement from "@/components/admin/BookingManagement";
 import IncomeManagement from "@/components/admin/IncomeManagement";
+import ArticleManagement from "@/components/admin/ArticleManagement";
 
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings' | 'income' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings' | 'income' | 'articles' | 'settings'>('dashboard');
   const [stats, setStats] = useState({
     totalUsers: 0,
     clients: 0,
@@ -264,6 +265,13 @@ const AdminDashboard = () => {
             Încasări
           </Button>
           <Button 
+            variant={activeTab === 'articles' ? 'default' : 'outline'} 
+            onClick={() => setActiveTab('articles')}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Articole
+          </Button>
+          <Button 
             variant={activeTab === 'settings' ? 'default' : 'outline'} 
             onClick={() => setActiveTab('settings')}
           >
@@ -296,6 +304,10 @@ const AdminDashboard = () => {
                   <DollarSign className="h-6 w-6 mb-2" />
                   Rapoarte Încasări
                 </Button>
+                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('articles')}>
+                  <FileText className="h-6 w-6 mb-2" />
+                  Gestionare Articole
+                </Button>
                 <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('settings')}>
                   <Settings className="h-6 w-6 mb-2" />
                   Setări Sistem
@@ -312,6 +324,8 @@ const AdminDashboard = () => {
         {activeTab === 'bookings' && <BookingManagement />}
 
         {activeTab === 'income' && <IncomeManagement />}
+
+        {activeTab === 'articles' && <ArticleManagement />}
 
         {activeTab === 'settings' && (
           <Card>

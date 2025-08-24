@@ -26,6 +26,7 @@ import FacilityOwnerProfilePage from "./pages/FacilityOwnerProfilePage";
 import ClientProfilePage from "./pages/ClientProfilePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import NotFound from "./pages/NotFound";
+import ArticlesPage from "./pages/ArticlesPage";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
           <Route path="/facilities" element={<FacilitiesPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/articles" element={<ArticlesPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/my-reservations" element={<MyReservationsPage />} />
           <Route path="/booking/:facilityId" element={<BookingPage />} />
