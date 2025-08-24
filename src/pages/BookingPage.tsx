@@ -22,6 +22,7 @@ import { addDays, format, isSameDay, isAfter, isBefore } from "date-fns";
 import { ro } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Calendar } from "@/components/ui/calendar";
 
 interface Facility {
   id: string;
@@ -33,26 +34,36 @@ interface Facility {
   capacity: number;
   amenities: string[];
   images: string[];
+  operating_hours_start?: string;
+  operating_hours_end?: string;
 }
 
-const getTimeSlots = (facilityPrice: number) => [
-  { time: "08:00", available: true, price: facilityPrice },
-  { time: "08:30", available: true, price: facilityPrice },
-  { time: "09:00", available: false, price: facilityPrice },
-  { time: "09:30", available: true, price: facilityPrice },
-  { time: "10:00", available: true, price: facilityPrice },
-  { time: "10:30", available: false, price: facilityPrice },
-  { time: "11:00", available: true, price: facilityPrice },
-  { time: "11:30", available: true, price: facilityPrice },
-  { time: "12:00", available: true, price: facilityPrice * 1.2 }, // Peak hours
-  { time: "12:30", available: true, price: facilityPrice * 1.2 },
-  { time: "13:00", available: false, price: facilityPrice * 1.2 },
-  { time: "13:30", available: true, price: facilityPrice * 1.2 },
-  { time: "14:00", available: true, price: facilityPrice * 1.2 },
-  { time: "14:30", available: true, price: facilityPrice * 1.2 },
-  { time: "15:00", available: true, price: facilityPrice },
-  { time: "15:30", available: false, price: facilityPrice }
-];
+const generateTimeSlots = (facilityPrice: number, operatingStart = "08:00", operatingEnd = "22:00") => {
+  const slots = [];
+  const [startHour, startMinute] = operatingStart.split(':').map(Number);
+  const [endHour, endMinute] = operatingEnd.split(':').map(Number);
+  
+  const startTime = startHour * 60 + startMinute;
+  const endTime = endHour * 60 + endMinute;
+  
+  for (let time = startTime; time < endTime; time += 30) {
+    const hours = Math.floor(time / 60);
+    const minutes = time % 60;
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    
+    // Peak hours pricing (12:00-15:00)
+    const isPeakHour = hours >= 12 && hours < 15;
+    const price = isPeakHour ? facilityPrice * 1.2 : facilityPrice;
+    
+    slots.push({
+      time: timeString,
+      available: true, // Will be updated based on actual bookings and blocked dates
+      price: price
+    });
+  }
+  
+  return slots;
+};
 
 const BookingPage = () => {
   const { facilityId } = useParams();
@@ -60,11 +71,14 @@ const BookingPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [facility, setFacility] = useState<Facility | null>(null);
   const [loading, setLoading] = useState(true);
+  const [timeSlots, setTimeSlots] = useState<Array<{time: string, available: boolean, price: number}>>([]);
+  const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
   
   // Restricții temporale pentru clienți: doar următoarele 2 săptămâni
   const today = new Date();
   const maxBookingDate = addDays(today, 14); // 2 săptămâni de la astăzi
 
+  // Load facility data
   useEffect(() => {
     const loadFacility = async () => {
       if (!facilityId) {
@@ -108,6 +122,87 @@ const BookingPage = () => {
 
     loadFacility();
   }, [facilityId, toast]);
+
+  // Load blocked dates
+  useEffect(() => {
+    const loadBlockedDates = async () => {
+      if (!facilityId) return;
+
+      try {
+        const { data } = await supabase
+          .from('blocked_dates')
+          .select('blocked_date')
+          .eq('facility_id', facilityId);
+
+        if (data) {
+          const dates = new Set(data.map(item => item.blocked_date));
+          setBlockedDates(dates);
+        }
+      } catch (error) {
+        console.error('Error loading blocked dates:', error);
+      }
+    };
+
+    loadBlockedDates();
+  }, [facilityId]);
+
+  // Load time slots based on selected date
+  useEffect(() => {
+    const loadTimeSlots = async () => {
+      if (!facility || !selectedDate) return;
+
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
+      const slots = generateTimeSlots(facility.price_per_hour, facility.operating_hours_start, facility.operating_hours_end);
+
+      try {
+        // Get existing bookings for the selected date
+        const { data: bookings } = await supabase
+          .from('bookings')
+          .select('start_time, end_time')
+          .eq('facility_id', facilityId)
+          .eq('booking_date', dateString)
+          .neq('status', 'cancelled');
+
+        // Get blocked time slots for the selected date
+        const { data: blockedTimes } = await supabase
+          .from('blocked_dates')
+          .select('start_time, end_time')
+          .eq('facility_id', facilityId)
+          .eq('blocked_date', dateString);
+
+        // Mark unavailable slots
+        const updatedSlots = slots.map(slot => {
+          let available = true;
+
+          // Check against bookings
+          if (bookings) {
+            available = !bookings.some(booking => {
+              const bookingStart = booking.start_time;
+              const bookingEnd = booking.end_time;
+              return slot.time >= bookingStart && slot.time < bookingEnd;
+            });
+          }
+
+          // Check against blocked times
+          if (available && blockedTimes) {
+            available = !blockedTimes.some(blocked => {
+              if (!blocked.start_time || !blocked.end_time) return false;
+              return slot.time >= blocked.start_time && slot.time < blocked.end_time;
+            });
+          }
+
+          return { ...slot, available };
+        });
+
+        setTimeSlots(updatedSlots);
+      } catch (error) {
+        console.error('Error loading time slots:', error);
+        setTimeSlots(slots);
+      }
+    };
+
+    loadTimeSlots();
+  }, [facility, selectedDate, facilityId]);
 
   if (loading) {
     return (
@@ -202,72 +297,23 @@ const BookingPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between mb-4">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => {
-                      const newDate = addDays(selectedDate, -1);
-                      if (!isBefore(newDate, today)) {
-                        setSelectedDate(newDate);
-                      }
-                    }}
-                    disabled={isSameDay(selectedDate, today)}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <h3 className="text-lg font-semibold">
-                    {selectedDate.toLocaleDateString('ro-RO', { 
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </h3>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => {
-                      const newDate = addDays(selectedDate, 1);
-                      if (!isAfter(newDate, maxBookingDate)) {
-                        setSelectedDate(newDate);
-                      }
-                    }}
-                    disabled={isSameDay(selectedDate, maxBookingDate)}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <div className="grid grid-cols-7 gap-2">
-                  {Array.from({ length: 14 }, (_, i) => {
-                    const date = addDays(today, i);
-                    const isSelectedDate = isSameDay(date, selectedDate);
-                    const isToday = isSameDay(date, today);
-                    
-                    return (
-                      <Button
-                        key={i}
-                        variant={isSelectedDate ? "default" : "outline"}
-                        size="sm"
-                        className="h-16 flex flex-col"
-                        onClick={() => setSelectedDate(date)}
-                      >
-                        <span className="text-xs">
-                          {format(date, 'EEE', { locale: ro })}
-                        </span>
-                        <span className="text-lg font-bold">
-                          {date.getDate()}
-                        </span>
-                        {isToday && (
-                          <span className="text-xs font-medium text-primary">
-                            Azi
-                          </span>
-                        )}
-                      </Button>
-                    );
-                  })}
-                </div>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date && !isBefore(date, today) && !isAfter(date, maxBookingDate)) {
+                      setSelectedDate(date);
+                    }
+                  }}
+                  disabled={(date) => {
+                    const dateString = format(date, 'yyyy-MM-dd');
+                    return isBefore(date, today) || 
+                           isAfter(date, maxBookingDate) || 
+                           blockedDates.has(dateString);
+                  }}
+                  initialFocus
+                  className="rounded-md border pointer-events-auto"
+                />
                 
                 <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground text-center">
@@ -287,7 +333,7 @@ const BookingPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {getTimeSlots(facility.price_per_hour).map((slot) => (
+                  {timeSlots.map((slot) => (
                     <Button
                       key={slot.time}
                       variant={slot.available ? "outline" : "secondary"}
