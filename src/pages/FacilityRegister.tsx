@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, ArrowLeft, ArrowRight, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Plus, ArrowLeft, ArrowRight, Upload, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -45,6 +45,8 @@ const FacilityRegister = () => {
   const [amenityInputs, setAmenityInputs] = useState<string[]>([]);
   const [generalServices, setGeneralServices] = useState<string[]>([]);
   const [generalServiceInput, setGeneralServiceInput] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<AccountFormData>({
     defaultValues: accountData || {}
@@ -432,18 +434,27 @@ const FacilityRegister = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="password">Parolă *</Label>
-            <Input
-              id="password"
-              type="password"
-              {...register("password", { 
-                required: "Parola este obligatorie",
-                minLength: {
-                  value: 6,
-                  message: "Parola trebuie să aibă cel puțin 6 caractere"
-                }
-              })}
-              className="bg-background/50"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                {...register("password", { 
+                  required: "Parola este obligatorie",
+                  minLength: {
+                    value: 6,
+                    message: "Parola trebuie să aibă cel puțin 6 caractere"
+                  }
+                })}
+                className="bg-background/50 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             {errors.password && (
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
@@ -451,15 +462,24 @@ const FacilityRegister = () => {
 
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirmă Parola *</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              {...register("confirmPassword", { 
-                required: "Confirmarea parolei este obligatorie",
-                validate: value => value === password || "Parolele nu se potrivesc"
-              })}
-              className="bg-background/50"
-            />
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                {...register("confirmPassword", { 
+                  required: "Confirmarea parolei este obligatorie",
+                  validate: value => value === password || "Parolele nu se potrivesc"
+                })}
+                className="bg-background/50 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             {errors.confirmPassword && (
               <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
             )}

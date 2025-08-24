@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Mail, Lock, ArrowLeft, AlertTriangle } from "lucide-react";
+import { Shield, Mail, Lock, ArrowLeft, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/utils/authCleanup";
@@ -19,6 +19,7 @@ interface AdminLoginData {
 
 const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<AdminLoginData>();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -133,13 +134,20 @@ const AdminLogin = () => {
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input 
                     id="admin-password" 
-                    type="password" 
+                    type={showPassword ? "text" : "password"}
                     placeholder="Parola securizată"
-                    className="pl-10"
+                    className="pl-10 pr-10"
                     {...register("password", { 
                       required: "Parola este obligatorie"
                     })}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
                 {errors.password && (
                   <p className="text-sm text-destructive">{errors.password.message}</p>
