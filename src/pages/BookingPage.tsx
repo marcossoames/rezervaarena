@@ -18,7 +18,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import tennisImage from "@/assets/tennis-court.jpg";
 import { useState, useEffect } from "react";
-import { addDays, format, isSameDay, isAfter, isBefore } from "date-fns";
+import { addDays, format, isSameDay, isAfter, isBefore, startOfDay } from "date-fns";
 import { ro } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -77,7 +77,7 @@ const BookingPage = () => {
   const [selectedEndTime, setSelectedEndTime] = useState<string | null>(null);
   
   // Restricții temporale pentru clienți: doar următoarele 2 săptămâni
-  const today = new Date();
+  const today = startOfDay(new Date()); // Normalize to start of day
   const maxBookingDate = addDays(today, 14); // 2 săptămâni de la astăzi
 
   // Calculate total booking price and duration
@@ -372,17 +372,27 @@ const BookingPage = () => {
                   mode="single"
                   selected={selectedDate}
                   onSelect={(date) => {
-                    if (date && !isBefore(date, today) && !isAfter(date, maxBookingDate)) {
-                      setSelectedDate(date);
-                      // Reset time selection when date changes
-                      setSelectedStartTime(null);
-                      setSelectedEndTime(null);
+                    if (date) {
+                      const normalizedDate = startOfDay(date);
+                      const normalizedToday = startOfDay(new Date());
+                      const normalizedMaxDate = startOfDay(maxBookingDate);
+                      
+                      if (!isBefore(normalizedDate, normalizedToday) && !isAfter(normalizedDate, normalizedMaxDate)) {
+                        setSelectedDate(normalizedDate);
+                        // Reset time selection when date changes
+                        setSelectedStartTime(null);
+                        setSelectedEndTime(null);
+                      }
                     }
                   }}
                   disabled={(date) => {
-                    const dateString = format(date, 'yyyy-MM-dd');
-                    return isBefore(date, today) || 
-                           isAfter(date, maxBookingDate) || 
+                    const normalizedDate = startOfDay(date);
+                    const normalizedToday = startOfDay(new Date());
+                    const normalizedMaxDate = startOfDay(maxBookingDate);
+                    const dateString = format(normalizedDate, 'yyyy-MM-dd');
+                    
+                    return isBefore(normalizedDate, normalizedToday) || 
+                           isAfter(normalizedDate, normalizedMaxDate) || 
                            blockedDates.has(dateString);
                   }}
                   initialFocus
@@ -395,11 +405,11 @@ const BookingPage = () => {
                     variant="outline" 
                     size="sm"
                     onClick={() => {
-                      setSelectedDate(today);
+                      setSelectedDate(startOfDay(new Date()));
                       setSelectedStartTime(null);
                       setSelectedEndTime(null);
                     }}
-                    disabled={isSameDay(selectedDate, today)}
+                    disabled={isSameDay(selectedDate, startOfDay(new Date()))}
                   >
                     Mergi la Azi
                   </Button>
