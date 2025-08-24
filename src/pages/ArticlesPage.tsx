@@ -194,15 +194,15 @@ const ArticlesPage = () => {
       {/* Article Modal */}
       {selectedArticle && (
         <Dialog open={!!selectedArticle} onOpenChange={() => setSelectedArticle(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="sticky top-0 bg-background/95 backdrop-blur-sm border-b pb-4 mb-4">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
+            <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b pb-4 mb-4">
               <div className="flex items-center justify-between">
-                <DialogTitle className="text-2xl font-bold pr-8">
+                <h2 className="text-2xl font-bold pr-8">
                   {selectedArticle.title}
-                </DialogTitle>
+                </h2>
                 <button
                   onClick={() => setSelectedArticle(null)}
-                  className="absolute top-4 right-4 w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors"
+                  className="w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -211,7 +211,7 @@ const ArticlesPage = () => {
                 <Calendar className="h-4 w-4" />
                 {formatDate(selectedArticle.created_at)}
               </div>
-            </DialogHeader>
+            </div>
             
             <div className="space-y-6">
               {selectedArticle.images && selectedArticle.images.length > 0 && (
