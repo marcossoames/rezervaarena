@@ -1,0 +1,106 @@
+/* Critical CSS for Articles Page - Above-the-fold content only */
+
+/* Essential base styles */
+*, ::before, ::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: #e5e7eb;
+}
+
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(to bottom right, hsl(0 0% 99%), hsl(0 0% 99%), hsl(210 15% 97% / 0.2));
+  color: hsl(210 15% 15%);
+  min-height: 100vh;
+}
+
+/* Critical design tokens */
+:root {
+  --background: 0 0% 99%;
+  --foreground: 210 15% 15%;
+  --primary: 210 100% 12%;
+  --primary-foreground: 0 0% 98%;
+  --card: 0 0% 100%;
+  --card-foreground: 210 15% 15%;
+  --border: 210 15% 90%;
+  --muted: 210 15% 97%;
+  --muted-foreground: 210 10% 45%;
+  --secondary: 210 15% 96%;
+  --secondary-foreground: 210 15% 15%;
+}
+
+/* Layout containers */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) { .container { max-width: 640px; } }
+@media (min-width: 768px) { .container { max-width: 768px; } }
+@media (min-width: 1024px) { .container { max-width: 1024px; } }
+@media (min-width: 1280px) { .container { max-width: 1280px; } }
+
+/* Critical typography */
+.text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  font-weight: 700;
+  color: hsl(210 15% 15%);
+  margin-bottom: 1rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  color: hsl(210 10% 45%);
+  margin-bottom: 3rem;
+}
+
+/* Critical spacing */
+.py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.mb-12 { margin-bottom: 3rem; }
+.text-center { text-align: center; }
+.max-w-2xl { max-width: 42rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* Critical loading state */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid hsl(210 15% 90%);
+  border-top: 2px solid hsl(210 100% 12%);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Defer non-critical styles */
+.defer-styles {
+  visibility: hidden;
+}
+
+.defer-styles.loaded {
+  visibility: visible;
+}

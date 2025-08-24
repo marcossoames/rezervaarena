@@ -20,18 +20,37 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Optimize chunk splitting for better caching
+    // Optimize chunk splitting for better caching and CSS optimization
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          ui: ['@radix-ui/react-slot', '@radix-ui/react-toast']
+          ui: ['@radix-ui/react-slot', '@radix-ui/react-toast'],
+          supabase: ['@supabase/supabase-js']
+        },
+        // Separate CSS files for better caching
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name?.endsWith('.css')) {
+            return 'assets/[name]-[hash][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
         }
       }
     },
     // Compress assets without terser to avoid dependency issues
-    assetsInlineLimit: 4096, // Inline small assets
-    minify: 'esbuild' // Use esbuild instead of terser
+    assetsInlineLimit: 2048, // Reduced inline limit to force external CSS
+    minify: 'esbuild', // Use esbuild instead of terser
+    cssCodeSplit: true, // Enable CSS code splitting
+    cssMinify: true // Minify CSS
+  },
+  // CSS preprocessing optimization
+  css: {
+    devSourcemap: false,
+    preprocessorOptions: {
+      css: {
+        charset: false // Remove charset to reduce bundle size
+      }
+    }
   },
   // Optimize dependencies
   optimizeDeps: {
