@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Calendar, Clock, MapPin, CreditCard, Banknote, X } from "lucide-react";
+import { Calendar, Clock, MapPin, CreditCard, Banknote, X, User } from "lucide-react";
 import { format } from "date-fns";
 import { ro } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ interface BasicBooking {
   facility_id: string;
   client_id: string;
 }
+
 interface Booking extends BasicBooking {
   facilities: {
     id: string;
@@ -39,6 +40,11 @@ interface Booking extends BasicBooking {
       phone: string;
     } | null;
   };
+  client_info?: {
+    full_name: string;
+    phone: string;
+    email: string;
+  } | null;
 }
 const MyReservationsPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -54,7 +60,7 @@ const MyReservationsPage = () => {
   const checkUserRole = async (user: any) => {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, user_type_comment')
+      .select('role, user_type_comment, full_name, phone')
       .eq('user_id', user.id)
       .single();
     
@@ -146,6 +152,11 @@ const MyReservationsPage = () => {
 
             return {
               ...booking,
+              client_info: {
+                full_name: clientProfile?.full_name || 'Nume nedisponibil',
+                phone: clientProfile?.phone || 'Telefon nedisponibil',
+                email: 'Email nedisponibil' // We don't expose email for privacy
+              },
               facilities: {
                 id: booking.facility_id,
                 name: facilityDetail?.name || 'Teren necunoscut',
@@ -155,10 +166,10 @@ const MyReservationsPage = () => {
                 owner_id: user.id,
                 sports_complex_name: profile?.user_type_comment?.replace(' - Proprietar bază sportivă', '') || 'Baza Sportivă',
                 sports_complex_address: facilityDetail?.address ? `${facilityDetail.address}, ${facilityDetail.city}` : facilityDetail?.city || 'Adresă nedefinită',
-                profiles: clientProfile?.phone ? {
-                  user_type_comment: clientProfile.user_type_comment || '',
-                  full_name: clientProfile.full_name || '',
-                  phone: clientProfile.phone
+                profiles: profile?.phone ? {
+                  user_type_comment: profile.user_type_comment || '',
+                  full_name: profile.full_name || '',
+                  phone: profile.phone
                 } : null
               }
             };
@@ -400,6 +411,35 @@ const MyReservationsPage = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Client Information - only for facility owners */}
+                  {booking.client_info && (
+                    <div className="mb-4 p-3 bg-muted/30 rounded-lg">
+                      <h4 className="font-medium text-sm text-muted-foreground mb-2">Detalii Client:</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-primary" />
+                          <span className="font-medium">{booking.client_info.full_name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-primary">📞</span>
+                          <a href={`tel:${booking.client_info.phone}`} className="text-primary hover:underline font-medium">
+                            {booking.client_info.phone}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Contact info for regular clients */}
+                  {!booking.client_info && booking.facilities.profiles?.phone && (
+                    <div className="flex items-center text-sm text-muted-foreground mt-1 mb-4">
+                      <span className="mr-2">📞</span>
+                      <a href={`tel:${booking.facilities.profiles.phone}`} className="text-primary hover:underline">
+                        {booking.facilities.profiles.phone}
+                      </a>
+                    </div>
+                  )}
 
                   {booking.status !== 'cancelled' && canCancelBooking(booking) && <div className="flex justify-end pt-4 border-t">
                       <AlertDialog>
