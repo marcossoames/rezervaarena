@@ -478,7 +478,7 @@ const BookingManagement = () => {
         </CardHeader>
         <CardContent className="p-6">
           {/* Filters */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8 p-4 bg-gradient-to-r from-secondary/30 to-secondary/20 rounded-lg border animate-fade-in">
+          <div className="grid md:grid-cols-2 gap-6 mb-8 p-4 bg-gradient-to-r from-secondary/30 to-secondary/20 rounded-lg border animate-fade-in">
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-primary" />
@@ -517,23 +517,9 @@ const BookingManagement = () => {
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-primary" />
-                Data
-              </label>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                locale={ro}
-                className="rounded-lg border bg-background shadow-sm hover:shadow-md transition-shadow w-fit"
-              />
-            </div>
           </div>
 
-          {/* Calendar View */}
+          {/* Combined Calendar View */}
           {viewMode === 'calendar' && (
             <div className="mb-8 animate-fade-in">
               <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-4 rounded-lg border border-primary/20 mb-6">
@@ -541,63 +527,108 @@ const BookingManagement = () => {
                   <CalendarIcon className="h-5 w-5" />
                   Calendar Rezervări
                 </h3>
-                <p className="text-sm text-muted-foreground mt-1">Click pe o zi pentru a filtra rezervările</p>
+                <p className="text-sm text-muted-foreground mt-1">Navigează prin luni și click pe o zi pentru a filtra rezervările</p>
               </div>
-              <div className="grid grid-cols-7 gap-2 mb-4">
-                {['Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm', 'Dum'].map(day => (
-                  <div key={day} className="text-center text-sm font-medium p-3 bg-secondary/30 rounded-lg border">
-                    {day}
+              
+              <div className="grid lg:grid-cols-4 gap-6">
+                {/* Month Navigation Calendar */}
+                <div className="lg:col-span-1">
+                  <div className="bg-card border rounded-lg p-4 shadow-sm">
+                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                      <CalendarIcon className="h-4 w-4 text-primary" />
+                      Selectează data
+                    </h4>
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      locale={ro}
+                      className="rounded-lg bg-background w-full"
+                      classNames={{
+                        months: "space-y-4",
+                        month: "space-y-4",
+                        caption: "flex justify-center pt-1 relative items-center",
+                        caption_label: "text-sm font-medium",
+                        nav: "space-x-1 flex items-center",
+                        nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                        nav_button_previous: "absolute left-1",
+                        nav_button_next: "absolute right-1",
+                        table: "w-full border-collapse space-y-1",
+                        head_row: "flex",
+                        head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
+                        row: "flex w-full mt-2",
+                        cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                        day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors",
+                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                        day_today: "bg-accent text-accent-foreground",
+                        day_outside: "text-muted-foreground opacity-50",
+                        day_disabled: "text-muted-foreground opacity-50",
+                        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                        day_hidden: "invisible",
+                      }}
+                    />
                   </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 gap-3">
-                {getCalendarDays().map((day, index) => (
-                  <div
-                    key={index}
-                    className={`min-h-28 border-2 rounded-xl p-3 cursor-pointer transition-all duration-300 hover-scale shadow-sm hover:shadow-lg ${
-                      day.isToday ? 'bg-gradient-to-br from-primary/20 to-primary/10 border-primary shadow-md' : 
-                      day.isSelected ? 'bg-gradient-to-br from-secondary/50 to-secondary/30 border-primary shadow-md' : 
-                      'bg-card/50 border-border hover:bg-secondary/30 hover:border-primary/50'
-                    }`}
-                    onClick={() => setSelectedDate(day.date)}
-                  >
-                    <div className={`text-sm font-semibold mb-2 ${day.isToday ? 'text-primary' : 'text-foreground'}`}>
-                      {format(day.date, 'd')}
-                      {day.isToday && <span className="ml-1 text-xs">(azi)</span>}
-                    </div>
-                    <div className="space-y-1">
-                      {day.bookings.slice(0, 2).map((booking, idx) => (
-                        <div
-                          key={idx}
-                          className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 ${
-                            booking.status === 'confirmed' ? 'bg-gradient-to-r from-green-500 to-green-600' :
-                            booking.status === 'pending' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
-                            booking.status === 'cancelled' ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                            'bg-gradient-to-r from-gray-500 to-gray-600'
-                          }`}
-                        >
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {booking.start_time}
-                          </div>
-                        </div>
-                      ))}
-                      {day.blockedTimes.length > 0 && (
-                        <div className="text-xs p-2 rounded-lg bg-gradient-to-r from-black to-gray-800 text-white shadow-sm">
-                          <div className="flex items-center gap-1">
-                            <Ban className="h-3 w-3" />
-                            Blocat
-                          </div>
-                        </div>
-                      )}
-                      {day.bookings.length > 2 && (
-                        <div className="text-xs text-muted-foreground font-medium bg-secondary/50 p-1 rounded">
-                          +{day.bookings.length - 2} mai multe
-                        </div>
-                      )}
-                    </div>
+                </div>
+
+                {/* Monthly Grid View */}
+                <div className="lg:col-span-3">
+                  <div className="grid grid-cols-7 gap-2 mb-4">
+                    {['Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm', 'Dum'].map(day => (
+                      <div key={day} className="text-center text-sm font-medium p-3 bg-secondary/30 rounded-lg border">
+                        {day}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                  <div className="grid grid-cols-7 gap-3">
+                    {getCalendarDays().map((day, index) => (
+                      <div
+                        key={index}
+                        className={`min-h-28 border-2 rounded-xl p-3 cursor-pointer transition-all duration-300 hover-scale shadow-sm hover:shadow-lg ${
+                          day.isToday ? 'bg-gradient-to-br from-primary/20 to-primary/10 border-primary shadow-md' : 
+                          day.isSelected ? 'bg-gradient-to-br from-secondary/50 to-secondary/30 border-primary shadow-md' : 
+                          'bg-card/50 border-border hover:bg-secondary/30 hover:border-primary/50'
+                        }`}
+                        onClick={() => setSelectedDate(day.date)}
+                      >
+                        <div className={`text-sm font-semibold mb-2 ${day.isToday ? 'text-primary' : 'text-foreground'}`}>
+                          {format(day.date, 'd')}
+                          {day.isToday && <span className="ml-1 text-xs">(azi)</span>}
+                        </div>
+                        <div className="space-y-1">
+                          {day.bookings.slice(0, 2).map((booking, idx) => (
+                            <div
+                              key={idx}
+                              className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 ${
+                                booking.status === 'confirmed' ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                booking.status === 'pending' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                booking.status === 'cancelled' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                                'bg-gradient-to-r from-gray-500 to-gray-600'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {booking.start_time}
+                              </div>
+                            </div>
+                          ))}
+                          {day.blockedTimes.length > 0 && (
+                            <div className="text-xs p-2 rounded-lg bg-gradient-to-r from-black to-gray-800 text-white shadow-sm">
+                              <div className="flex items-center gap-1">
+                                <Ban className="h-3 w-3" />
+                                Blocat
+                              </div>
+                            </div>
+                          )}
+                          {day.bookings.length > 2 && (
+                            <div className="text-xs text-muted-foreground font-medium bg-secondary/50 p-1 rounded">
+                              +{day.bookings.length - 2} mai multe
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
