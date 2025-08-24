@@ -12,6 +12,7 @@ interface ImageCarouselProps {
 const ImageCarousel = ({ images, facilityName, className = "" }: ImageCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [modalIndex, setModalIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (!images || images.length === 0) {
     return (
@@ -55,10 +56,11 @@ const ImageCarousel = ({ images, facilityName, className = "" }: ImageCarouselPr
 
   const openModal = (index: number) => {
     setModalIndex(index);
+    setIsModalOpen(true);
   };
 
   return (
-    <Dialog>
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DialogTrigger asChild>
         <div 
           className={`relative overflow-hidden group cursor-pointer ${className}`}
@@ -139,7 +141,7 @@ const ImageCarousel = ({ images, facilityName, className = "" }: ImageCarouselPr
       <DialogContent className="max-w-6xl w-full p-0 bg-black/95">
         {/* Close Button - Red and more visible */}
         <button 
-          onClick={() => setModalIndex(-1)}
+          onClick={() => setIsModalOpen(false)}
           className="absolute top-4 right-4 z-50 w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
         >
           <X className="h-5 w-5" />
