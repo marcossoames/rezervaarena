@@ -353,13 +353,9 @@ const MyReservationsPage = () => {
                             <AlertDialogTitle>Anulezi această rezervare?</AlertDialogTitle>
                             <AlertDialogDescription className="space-y-2">
                               <p>Această acțiune nu poate fi anulată.</p>
-                              {booking.payment_method === 'card' ? (
+                              {booking.payment_method === 'card' && (
                                 <p className="font-medium text-green-600">
                                   Banii vor fi returnați în 3-5 zile lucrătoare pe cardul folosit la plată.
-                                </p>
-                              ) : (
-                                <p className="font-medium text-amber-600">
-                                  Pentru plata cash, contactează direct baza sportivă pentru returnarea banilor.
                                 </p>
                               )}
                             </AlertDialogDescription>
