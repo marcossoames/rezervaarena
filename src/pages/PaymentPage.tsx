@@ -113,7 +113,9 @@ const PaymentPage = () => {
           start_time: startTime,
           end_time: endTime,
           total_price: parseFloat(totalPrice || '0'),
+          total_amount: parseFloat(totalPrice || '0'),
           status: 'pending',
+          payment_method: 'cash',
           notes: 'Plată cu numerar la fața locului'
         });
 
@@ -148,13 +150,58 @@ const PaymentPage = () => {
     }
   };
 
-  const handleCardPayment = () => {
-    // TODO: Implement Stripe integration
-    toast({
-      title: "În dezvoltare",
-      description: "Plata cu cardul va fi disponibilă în curând",
-      variant: "destructive"
-    });
+  const handleCardPayment = async () => {
+    if (!facility || !selectedDate || !startTime || !endTime) return;
+    
+    setProcessingPayment(true);
+    
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Eroare",
+          description: "Trebuie să fiți autentificat pentru a face o rezervare",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create Stripe checkout session
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          facilityId,
+          date: selectedDate,
+          time: startTime,
+          totalPrice: parseFloat(totalPrice || '0'),
+          duration: parseInt(duration || '60')
+        }
+      });
+
+      if (error || !data?.url) {
+        console.error('Error creating payment session:', error);
+        toast({
+          title: "Eroare",
+          description: "Nu s-a putut inițializa plata cu cardul",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Redirect to Stripe Checkout
+      window.open(data.url, '_blank');
+      
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Eroare",
+        description: "A apărut o eroare la procesarea plății",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessingPayment(false);
+    }
   };
 
   if (loading || !facility) {
@@ -281,12 +328,9 @@ const PaymentPage = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold">Plată cu cardul</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Plătești online cu cardul bancar (securizat)
-                        </p>
-                        <Badge variant="secondary" className="mt-1">
-                          În curând
-                        </Badge>
+                         <p className="text-sm text-muted-foreground">
+                           Plătești online cu cardul bancar (securizat prin Stripe)
+                         </p>
                       </div>
                       {selectedPaymentMethod === 'card' && (
                         <CheckCircle className="h-6 w-6 text-primary" />
@@ -315,16 +359,23 @@ const PaymentPage = () => {
                     </Button>
                   )}
                   
-                  {selectedPaymentMethod === 'card' && (
-                    <Button 
-                      className="w-full" 
-                      size="lg"
-                      onClick={handleCardPayment}
-                      disabled={true}
-                    >
-                      Plătește cu cardul (În curând)
-                    </Button>
-                  )}
+                   {selectedPaymentMethod === 'card' && (
+                     <Button 
+                       className="w-full" 
+                       size="lg"
+                       onClick={handleCardPayment}
+                       disabled={processingPayment}
+                     >
+                       {processingPayment ? (
+                         <>
+                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                           Se procesează...
+                         </>
+                       ) : (
+                         'Plătește cu cardul online'
+                       )}
+                     </Button>
+                   )}
                   
                   {!selectedPaymentMethod && (
                     <Button 

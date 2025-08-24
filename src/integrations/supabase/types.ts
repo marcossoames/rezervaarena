@@ -94,8 +94,12 @@ export type Database = {
           facility_id: string
           id: string
           notes: string | null
+          payment_method: string | null
           start_time: string
           status: Database["public"]["Enums"]["booking_status"]
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          total_amount: number | null
           total_price: number
           updated_at: string
         }
@@ -107,8 +111,12 @@ export type Database = {
           facility_id: string
           id?: string
           notes?: string | null
+          payment_method?: string | null
           start_time: string
           status?: Database["public"]["Enums"]["booking_status"]
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          total_amount?: number | null
           total_price: number
           updated_at?: string
         }
@@ -120,8 +128,12 @@ export type Database = {
           facility_id?: string
           id?: string
           notes?: string | null
+          payment_method?: string | null
           start_time?: string
           status?: Database["public"]["Enums"]["booking_status"]
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          total_amount?: number | null
           total_price?: number
           updated_at?: string
         }
