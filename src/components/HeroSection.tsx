@@ -1,19 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import heroImage from "@/assets/hero-sports.jpg";
 
 const HeroSection = () => {
   return (
     <section className="relative bg-gradient-hero min-h-[600px] flex items-center">
       <div className="absolute inset-0">
-        <img 
+        <OptimizedImage 
           src={heroImage} 
           alt="Facilități sportive moderne" 
           className="w-full h-full object-cover opacity-20"
           loading="eager"
           fetchPriority="high"
-          width="1920"
-          height="864"
+          width={1920}
+          height={864}
           sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px"
           style={{ aspectRatio: '1920/864' }}
         />
