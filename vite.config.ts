@@ -20,13 +20,24 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Optimize chunk splitting for better caching and CSS optimization
+    // Optimize chunk splitting for better caching and code splitting
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          ui: ['@radix-ui/react-slot', '@radix-ui/react-toast'],
-          supabase: ['@supabase/supabase-js']
+          // Core React dependencies
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // UI component libraries
+          'ui-vendor': ['@radix-ui/react-accordion', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-slot', '@radix-ui/react-toast'],
+          // Data fetching
+          'query-vendor': ['@tanstack/react-query'],
+          // Backend integration
+          'supabase-vendor': ['@supabase/supabase-js'],
+          // Form handling
+          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          // Charts and visualization
+          'chart-vendor': ['recharts'],
+          // Icons
+          'icon-vendor': ['lucide-react']
         },
         // Separate CSS files for better caching
         assetFileNames: (assetInfo) => {
@@ -41,7 +52,8 @@ export default defineConfig(({ mode }) => ({
     assetsInlineLimit: 2048, // Reduced inline limit to force external CSS
     minify: 'esbuild', // Use esbuild instead of terser
     cssCodeSplit: true, // Enable CSS code splitting
-    cssMinify: true // Minify CSS
+    cssMinify: true, // Minify CSS
+    chunkSizeWarningLimit: 1000 // Warn for chunks larger than 1MB
   },
   // CSS preprocessing optimization
   css: {
