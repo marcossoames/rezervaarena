@@ -242,19 +242,19 @@ const SearchSection = () => {
                   Caută Terenuri
                 </Button>
                 
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  onClick={() => {
-                    setLocation("");
-                    setSelectedDate(undefined);
-                    setFacilityType("");
-                    setStartTime("");
-                    setEndTime("");
-                    setSearchQuery("");
-                  }}
-                  className="w-full sm:w-auto px-6 py-3 text-base border-2 hover:bg-muted/50"
-                >
+              <Button 
+                variant="secondary" 
+                size="lg"
+                onClick={() => {
+                  setLocation("");
+                  setSelectedDate(undefined);
+                  setFacilityType("");
+                  setStartTime("");
+                  setEndTime("");
+                  setSearchQuery("");
+                }}
+                className="w-full sm:w-auto px-6 py-3 text-base border-2 border-border bg-background text-foreground hover:bg-secondary hover:text-secondary-foreground"
+              >
                   <Filter className="mr-2 h-4 w-4" />
                   Resetează
                 </Button>

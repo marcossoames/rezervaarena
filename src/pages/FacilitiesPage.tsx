@@ -487,12 +487,11 @@ const FacilitiesPage = () => {
                 </div>
               </div>
 
-              {/* Third Row: Reset Button */}
               <div className="flex justify-center">
                 <Button 
-                  variant="outline" 
+                  variant="secondary" 
                   size="lg"
-                  className="px-8 py-3 border-2 hover:bg-muted/50" 
+                  className="px-8 py-3 border-2 border-border bg-background text-foreground hover:bg-secondary hover:text-secondary-foreground" 
                   onClick={() => {
                     setSearchTerm('');
                     setLocationFilter('');
