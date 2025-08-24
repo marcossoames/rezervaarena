@@ -52,8 +52,8 @@ const SportsFacilityLogin = () => {
         }
 
         if (facilities && facilities.length > 0) {
-          // User has facilities, redirect to management page
-          navigate('/manage-facilities');
+          // User has facilities, redirect to profile page
+          navigate('/facility-owner-profile');
         } else {
           // User doesn't have facilities, check their profile comment
           const { data: profile } = await supabase
@@ -64,7 +64,7 @@ const SportsFacilityLogin = () => {
 
           if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
             // They are supposed to be facility owners but have no facilities
-            navigate('/manage-facilities');
+            navigate('/facility-owner-profile');
           } else {
             toast({
               title: "Acces restricționat",
