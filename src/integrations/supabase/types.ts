@@ -395,6 +395,14 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      get_client_info_for_facility_bookings: {
+        Args: { facility_owner_id: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          client_phone: string
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]

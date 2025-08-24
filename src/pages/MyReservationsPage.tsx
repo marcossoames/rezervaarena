@@ -131,11 +131,15 @@ const MyReservationsPage = () => {
           return;
         }
 
+        // Get client contact information using the secure function
+        const { data: clientsInfo, error: clientsError } = await supabase
+          .rpc('get_client_info_for_facility_bookings', { facility_owner_id: user.id });
+
+        console.log('Clients info from RPC:', clientsInfo, clientsError);
+
         // Get facility details for each booking
         const completeBookings = await Promise.all(
           userBookings.map(async (booking) => {
-            const facility = facilitiesData.find(f => f.id === booking.facility_id);
-            
             // Get facility details
             const { data: facilityDetail } = await supabase
               .from('facilities')
@@ -143,31 +147,20 @@ const MyReservationsPage = () => {
               .eq('id', booking.facility_id)
               .single();
 
-            // Get client details with detailed logging
-            console.log('Attempting to fetch client profile for user_id:', booking.client_id);
-            const { data: clientProfile, error: clientError } = await supabase
-              .from('profiles')
-              .select('full_name, phone, email')
-              .eq('user_id', booking.client_id)
-              .single();
-            
-            console.log('Client profile result:', {
-              booking_id: booking.id,
-              client_id: booking.client_id,
-              profile: clientProfile,
-              error: clientError
-            });
+            // Find client info from the RPC result
+            const clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
+            console.log('Client info for booking:', booking.id, clientInfo);
 
             return {
               ...booking,
-              client_info: clientProfile ? {
-                full_name: clientProfile.full_name || 'Nume necompletat',
-                phone: clientProfile.phone || 'Telefon necompletat', 
-                email: 'Nu se afișează emailul' // Privacy protection
+              client_info: clientInfo ? {
+                full_name: clientInfo.client_name,
+                phone: clientInfo.client_phone,
+                email: 'Pentru protejarea datelor' // Privacy protection
               } : {
-                full_name: 'Profil client nu există',
+                full_name: 'Client neidentificat',
                 phone: 'Contact indisponibil',
-                email: 'Nu se afișează emailul'
+                email: 'Pentru protejarea datelor'
               },
               facilities: {
                 id: booking.facility_id,
