@@ -6,12 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { secureSignOut } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Header = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Get current session
@@ -81,14 +83,14 @@ const Header = () => {
 
   return (
     <header className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
-      <div className="w-full max-w-7xl mx-auto px-4 py-3">
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
         <div className="flex items-center justify-between">
           {/* Left side - Logo */}
-          <Link to="/" className="flex items-center space-x-2 shrink-0">
-            <div className="w-8 h-8 bg-gradient-hero rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">S</span>
+          <Link to="/" className="flex items-center space-x-1 sm:space-x-2 shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-hero rounded-md flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm sm:text-lg">S</span>
             </div>
-            <h1 className="text-xl font-bold text-foreground">SportBook</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">SportBook</h1>
           </Link>
           
           {/* Center - Navigation */}
@@ -108,35 +110,35 @@ const Header = () => {
           </nav>
 
           {/* Right side - User actions */}
-          <div className="flex items-center space-x-3 shrink-0">
+          <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-3'} shrink-0`}>
             {session ? (
               <>
-                <Button onClick={handleClientClick} variant="ghost" size="sm">
+                <Button onClick={handleClientClick} variant="ghost" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
                   <User className="h-4 w-4" />
-                  {userProfile?.role === 'admin' ? 'Dashboard' : 
-                   userProfile?.user_type_comment?.includes('Proprietar bază sportivă') ? 'Profil' : 'Profilul Meu'}
+                  {!isMobile && (userProfile?.role === 'admin' ? 'Dashboard' : 
+                   userProfile?.user_type_comment?.includes('Proprietar bază sportivă') ? 'Profil' : 'Profilul Meu')}
                 </Button>
-                <Button onClick={handleSignOut} variant="outline" size="sm">
+                <Button onClick={handleSignOut} variant="outline" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
                   <LogOut className="h-4 w-4" />
-                  Deconectare
+                  {!isMobile && "Deconectare"}
                 </Button>
               </>
             ) : (
               <>
-                <Button onClick={handleClientClick} variant="ghost" size="sm">
+                <Button onClick={handleClientClick} variant="ghost" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
                   <User className="h-4 w-4" />
-                  Client
+                  {!isMobile && "Client"}
                 </Button>
                 <Link to="/facility/login">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
                     <Building2 className="h-4 w-4" />
-                    Bază Sportivă
+                    {!isMobile && "Bază Sportivă"}
                   </Button>
                 </Link>
                 <Link to="/admin/login">
-                  <Button variant="premium" size="sm">
+                  <Button variant="premium" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
                     <Shield className="h-4 w-4" />
-                    Admin
+                    {!isMobile && "Admin"}
                   </Button>
                 </Link>
               </>
