@@ -9,6 +9,7 @@ import SportsFacilityLogin from "./pages/SportsFacilityLogin";
 import AdminLogin from "./pages/AdminLogin";
 import FacilitiesPage from "./pages/FacilitiesPage";
 import BookingPage from "./pages/BookingPage";
+import PaymentPage from "./pages/PaymentPage";
 import FacilityRegister from "./pages/FacilityRegister";
 import AddFacilityPage from "./pages/AddFacilityPage";
 import EditFacilityPage from "./pages/EditFacilityPage";
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/my-reservations" element={<MyReservationsPage />} />
           <Route path="/booking/:facilityId" element={<BookingPage />} />
+          <Route path="/payment/:facilityId" element={<PaymentPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

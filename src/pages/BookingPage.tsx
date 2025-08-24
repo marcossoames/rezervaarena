@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import tennisImage from "@/assets/tennis-court.jpg";
@@ -67,6 +67,7 @@ const generateTimeSlots = (facilityPrice: number, operatingStart = "08:00", oper
 
 const BookingPage = () => {
   const { facilityId } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [facility, setFacility] = useState<Facility | null>(null);
@@ -148,6 +149,20 @@ const BookingPage = () => {
   };
 
   const bookingDetails = calculateBookingDetails();
+
+  const handleContinueToPayment = () => {
+    if (!selectedStartTime || !selectedEndTime || !facility) return;
+    
+    const params = new URLSearchParams({
+      date: format(selectedDate, 'yyyy-MM-dd'),
+      startTime: selectedStartTime,
+      endTime: selectedEndTime,
+      totalPrice: bookingDetails.totalPrice.toString(),
+      duration: bookingDetails.formattedDuration
+    });
+    
+    navigate(`/payment/${facilityId}?${params.toString()}`);
+  };
 
   // Load facility data
   useEffect(() => {
@@ -544,6 +559,7 @@ const BookingPage = () => {
                   size="lg" 
                   variant="sport" 
                   disabled={!selectedStartTime || !selectedEndTime}
+                  onClick={handleContinueToPayment}
                 >
                   {selectedStartTime && selectedEndTime ? "Continuă cu plata" : "Selectează intervalul pentru a continua"}
                 </Button>
