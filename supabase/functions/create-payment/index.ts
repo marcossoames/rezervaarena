@@ -48,6 +48,24 @@ serve(async (req) => {
 
     console.log('Processing payment for facility:', facility.name);
 
+    // Get facility owner's Stripe account and calculate fees
+    const { data: facilityOwner, error: ownerError } = await supabase
+      .from('profiles')
+      .select('stripe_account_id, stripe_charges_enabled')
+      .eq('user_id', facility.owner_id)
+      .single();
+
+    if (ownerError) {
+      console.error('Error fetching facility owner:', ownerError);
+      throw new Error('Failed to fetch facility owner information');
+    }
+
+    // Calculate platform fee (10% commission)
+    const platformFeeRate = 0.10;
+    const totalAmountCents = Math.round(totalPrice * 100);
+    const platformFeeCents = Math.round(totalAmountCents * platformFeeRate);
+    const facilityOwnerAmountCents = totalAmountCents - platformFeeCents;
+
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
@@ -65,34 +83,51 @@ serve(async (req) => {
       console.log('Existing customer found:', customerId);
     }
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    let sessionConfig: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: "ron",
             product_data: {
               name: `Rezervare ${facility.name}`,
-              description: `Rezervare pentru ${new Date(date).toLocaleDateString()} la ${time}`,
+              description: `${facilityId} - ${date} ${time}`,
             },
-            unit_amount: Math.round(totalPrice * 100), // Convert to cents
+            unit_amount: totalAmountCents,
           },
           quantity: 1,
         },
       ],
       mode: "payment",
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/booking/${facilityId}`,
+      cancel_url: `${req.headers.get("origin")}/payment`,
       metadata: {
         facilityId,
-        userId: user.id,
         date,
         time,
         duration: duration.toString(),
+        userId: user.id,
+        platformFee: platformFeeCents.toString(),
+        facilityOwnerAmount: facilityOwnerAmountCents.toString(),
       },
-    });
+    };
+
+    // If facility owner has Stripe Connect enabled, use transfer
+    if (facilityOwner?.stripe_account_id && facilityOwner?.stripe_charges_enabled) {
+      sessionConfig.payment_intent_data = {
+        application_fee_amount: platformFeeCents,
+        transfer_data: {
+          destination: facilityOwner.stripe_account_id,
+        },
+      };
+      console.log(`Using Stripe Connect transfer to ${facilityOwner.stripe_account_id}, platform fee: ${platformFeeCents} cents`);
+    } else {
+      console.log('Facility owner does not have Stripe Connect enabled, using manual payout');
+    }
+
+    // Create checkout session
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     console.log('Stripe checkout session created:', session.id);
     console.log('Stripe Request ID:', session.lastResponse?.requestId);

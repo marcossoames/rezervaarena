@@ -92,13 +92,18 @@ export type Database = {
           created_at: string
           end_time: string
           facility_id: string
+          facility_owner_amount: number | null
           id: string
           notes: string | null
           payment_method: string | null
+          platform_fee_amount: number | null
           start_time: string
           status: Database["public"]["Enums"]["booking_status"]
+          stripe_application_fee_amount: number | null
+          stripe_charge_id: string | null
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
+          stripe_transfer_id: string | null
           total_amount: number | null
           total_price: number
           updated_at: string
@@ -109,13 +114,18 @@ export type Database = {
           created_at?: string
           end_time: string
           facility_id: string
+          facility_owner_amount?: number | null
           id?: string
           notes?: string | null
           payment_method?: string | null
+          platform_fee_amount?: number | null
           start_time: string
           status?: Database["public"]["Enums"]["booking_status"]
+          stripe_application_fee_amount?: number | null
+          stripe_charge_id?: string | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          stripe_transfer_id?: string | null
           total_amount?: number | null
           total_price: number
           updated_at?: string
@@ -126,13 +136,18 @@ export type Database = {
           created_at?: string
           end_time?: string
           facility_id?: string
+          facility_owner_amount?: number | null
           id?: string
           notes?: string | null
           payment_method?: string | null
+          platform_fee_amount?: number | null
           start_time?: string
           status?: Database["public"]["Enums"]["booking_status"]
+          stripe_application_fee_amount?: number | null
+          stripe_charge_id?: string | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          stripe_transfer_id?: string | null
           total_amount?: number | null
           total_price?: number
           updated_at?: string
@@ -327,6 +342,10 @@ export type Database = {
           id: string
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          stripe_account_id: string | null
+          stripe_charges_enabled: boolean | null
+          stripe_onboarding_complete: boolean | null
+          stripe_payouts_enabled: boolean | null
           updated_at: string
           user_id: string
           user_type_comment: string | null
@@ -338,6 +357,10 @@ export type Database = {
           id?: string
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_onboarding_complete?: boolean | null
+          stripe_payouts_enabled?: boolean | null
           updated_at?: string
           user_id: string
           user_type_comment?: string | null
@@ -349,6 +372,10 @@ export type Database = {
           id?: string
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_onboarding_complete?: boolean | null
+          stripe_payouts_enabled?: boolean | null
           updated_at?: string
           user_id?: string
           user_type_comment?: string | null

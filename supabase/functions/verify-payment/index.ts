@@ -44,33 +44,79 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    // Retrieve the checkout session
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    // Retrieve the checkout session with expanded payment details
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['payment_intent', 'payment_intent.latest_charge', 'payment_intent.transfer_data']
+    });
     
     console.log('Retrieved session:', session.id, 'Payment status:', session.payment_status);
     console.log('Stripe Request ID:', session.lastResponse?.requestId);
 
-    // If payment was successful, create the booking
+    // If payment was successful, create the booking with full payment tracking
     if (session.payment_status === 'paid') {
       const metadata = session.metadata;
+      const paymentIntent = session.payment_intent as any;
+      const charge = paymentIntent?.latest_charge as any;
+      const transfer = paymentIntent?.transfer_data as any;
       
+      const bookingData: any = {
+        client_id: user.id,
+        facility_id: metadata.facilityId,
+        booking_date: metadata.date,
+        start_time: metadata.time,
+        end_time: new Date(new Date(`${metadata.date}T${metadata.time}`).getTime() + parseInt(metadata.duration) * 60000).toTimeString().slice(0, 5),
+        status: 'confirmed',
+        payment_method: 'card',
+        total_amount: session.amount_total / 100, // Convert from cents
+        total_price: session.amount_total / 100, // Keep for compatibility
+        stripe_session_id: sessionId,
+        stripe_payment_intent_id: paymentIntent?.id,
+        stripe_charge_id: charge?.id,
+        platform_fee_amount: metadata.platformFee ? parseInt(metadata.platformFee) / 100 : null,
+        facility_owner_amount: metadata.facilityOwnerAmount ? parseInt(metadata.facilityOwnerAmount) / 100 : null,
+        stripe_application_fee_amount: paymentIntent?.application_fee_amount ? paymentIntent.application_fee_amount / 100 : null,
+      };
+
+      // If there's a transfer, get the transfer ID
+      if (transfer?.destination) {
+        // Get the transfer using the charge ID
+        const transfers = await stripe.transfers.list({
+          destination: transfer.destination,
+          limit: 1
+        });
+        
+        if (transfers.data.length > 0) {
+          const transferObj = transfers.data.find(t => t.source_transaction === charge?.id);
+          if (transferObj) {
+            bookingData.stripe_transfer_id = transferObj.id;
+            console.log('Found transfer ID:', transferObj.id);
+          }
+        }
+      }
+
       const { error: bookingError } = await supabase
         .from('bookings')
-        .insert({
-          user_id: user.id,
-          facility_id: metadata.facilityId,
-          booking_date: metadata.date,
-          start_time: metadata.time,
-          end_time: new Date(new Date(`${metadata.date}T${metadata.time}`).getTime() + parseInt(metadata.duration) * 60000).toTimeString().slice(0, 5),
-          status: 'confirmed',
-          payment_method: 'card',
-          total_amount: session.amount_total / 100, // Convert from cents
-          stripe_session_id: sessionId,
-        });
+        .insert(bookingData);
 
       if (bookingError) {
         console.error('Error creating booking:', bookingError);
         throw new Error('Failed to create booking');
+      }
+
+      // Update facility owner's Stripe Connect status if this was their first payment
+      if (transfer?.destination) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            stripe_onboarding_complete: true,
+            stripe_charges_enabled: true,
+            stripe_payouts_enabled: true
+          })
+          .eq('stripe_account_id', transfer.destination);
+
+        if (updateError) {
+          console.warn('Could not update facility owner Stripe status:', updateError);
+        }
       }
 
       console.log('Booking created successfully for user:', user.email);

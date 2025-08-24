@@ -3,12 +3,172 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Calendar, Building2, Settings, User, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar, Building2, Settings, User, Trash2, CreditCard, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { deleteUserAccount } from "@/utils/deleteAccount";
+
+// Stripe Connect Component
+const StripeConnectCard = ({ userProfile }: { userProfile: any }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleCreateAccount = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('connect-create-account', {
+        body: { 
+          email: userProfile.email,
+          country: 'RO',
+          business_type: 'individual'
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Cont Stripe creat",
+        description: "Contul Stripe a fost creat cu succes. Acum poți începe onboarding-ul.",
+      });
+
+      // Reload the page to show updated status
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Error creating Stripe account:', error);
+      toast({
+        title: "Eroare",
+        description: error.message || "Nu s-a putut crea contul Stripe",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOnboarding = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('connect-onboarding-link');
+
+      if (error) throw error;
+
+      // Open Stripe onboarding in new tab
+      window.open(data.url, '_blank');
+    } catch (error: any) {
+      console.error('Error creating onboarding link:', error);
+      toast({
+        title: "Eroare",
+        description: error.message || "Nu s-a putut crea link-ul de onboarding",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDashboard = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('connect-dashboard-link');
+
+      if (error) throw error;
+
+      // Open Stripe dashboard in new tab
+      window.open(data.url, '_blank');
+    } catch (error: any) {
+      console.error('Error creating dashboard link:', error);
+      toast({
+        title: "Eroare",
+        description: error.message || "Nu s-a putut accesa dashboard-ul Stripe",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getStripeStatus = () => {
+    if (!userProfile.stripe_account_id) {
+      return {
+        status: 'not_connected',
+        icon: CreditCard,
+        color: 'gray',
+        title: 'Stripe Connect',
+        description: 'Conectează-te la Stripe pentru a primi plăți automat'
+      };
+    }
+    
+    if (!userProfile.stripe_onboarding_complete) {
+      return {
+        status: 'pending',
+        icon: AlertCircle,
+        color: 'orange',
+        title: 'Onboarding Incomplet',
+        description: 'Completează configurarea Stripe pentru a primi plăți'
+      };
+    }
+
+    return {
+      status: 'connected',
+      icon: CheckCircle,
+      color: 'green',
+      title: 'Stripe Conectat',
+      description: 'Primești automat plățile pentru rezervări'
+    };
+  };
+
+  const status = getStripeStatus();
+  const StatusIcon = status.icon;
+
+  return (
+    <Card className={`hover:shadow-lg transition-shadow border-${status.color}-200`}>
+      <CardHeader className="text-center pb-4">
+        <div className={`w-16 h-16 bg-${status.color}-100 rounded-full flex items-center justify-center mx-auto mb-4`}>
+          <StatusIcon className={`h-8 w-8 text-${status.color}-600`} />
+        </div>
+        <CardTitle className="text-lg">{status.title}</CardTitle>
+        <CardDescription className="text-sm">
+          {status.description}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="text-center space-y-2">
+        {status.status === 'not_connected' && (
+          <Button 
+            onClick={handleCreateAccount} 
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? "Se creează..." : "Conectează Stripe"}
+          </Button>
+        )}
+        
+        {status.status === 'pending' && (
+          <Button 
+            onClick={handleOnboarding} 
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? "Se încarcă..." : "Completează Onboarding"}
+          </Button>
+        )}
+        
+        {status.status === 'connected' && (
+          <Button 
+            onClick={handleDashboard} 
+            disabled={isLoading}
+            variant="outline"
+            className="w-full"
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            {isLoading ? "Se încarcă..." : "Dashboard Stripe"}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 const FacilityOwnerProfilePage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -199,6 +359,9 @@ const FacilityOwnerProfilePage = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Stripe Connect */}
+            <StripeConnectCard userProfile={userProfile} />
 
             {/* Setări Bază */}
             <Card className="hover:shadow-lg transition-shadow cursor-pointer group" 
