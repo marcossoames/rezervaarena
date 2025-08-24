@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Calendar, X } from "lucide-react";
+import { Calendar, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ImageCarousel from "@/components/ImageCarousel";
@@ -23,19 +23,13 @@ interface Article {
 
 const ArticlesPage = () => {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     loadArticles();
   }, []);
-
-  useEffect(() => {
-    filterArticles();
-  }, [articles, searchTerm]);
 
   const loadArticles = async () => {
     try {
@@ -57,19 +51,6 @@ const ArticlesPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const filterArticles = () => {
-    if (!searchTerm.trim()) {
-      setFilteredArticles(articles);
-      return;
-    }
-
-    const filtered = articles.filter(article =>
-      article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.content.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredArticles(filtered);
   };
 
   const formatDate = (dateString: string) => {
@@ -112,36 +93,19 @@ const ArticlesPage = () => {
           </p>
         </div>
 
-        {/* Search Section */}
-        <div className="mb-8">
-          <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Caută articole..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
         {/* Articles Grid */}
-        {filteredArticles.length === 0 ? (
+        {articles.length === 0 ? (
           <div className="text-center py-16">
             <h3 className="text-2xl font-semibold text-foreground mb-4">
-              {searchTerm ? 'Nu s-au găsit articole' : 'Nu există articole încă'}
+              Nu există articole încă
             </h3>
             <p className="text-muted-foreground">
-              {searchTerm 
-                ? 'Încercați să modificați termenul de căutare'
-                : 'Reveniți mai târziu pentru cele mai noi articole'
-              }
+              Reveniți mai târziu pentru cele mai noi articole
             </p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredArticles.map((article) => (
+            {articles.map((article) => (
               <Card key={article.id} className="border-0 shadow-card bg-card/50 backdrop-blur-sm overflow-hidden group hover:shadow-lg transition-all duration-300">
                 <CardHeader className="p-0">
                   {article.images && article.images.length > 0 && (
@@ -182,10 +146,10 @@ const ArticlesPage = () => {
         )}
 
         {/* Load More Section (for future implementation) */}
-        {filteredArticles.length > 0 && (
+        {articles.length > 0 && (
           <div className="text-center mt-12">
             <p className="text-muted-foreground">
-              {filteredArticles.length} articol{filteredArticles.length !== 1 ? 'e' : ''} afișat{filteredArticles.length !== 1 ? 'e' : ''}
+              {articles.length} articol{articles.length !== 1 ? 'e' : ''} afișat{articles.length !== 1 ? 'e' : ''}
             </p>
           </div>
         )}
