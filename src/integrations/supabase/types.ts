@@ -340,7 +340,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
-          phone: string | null
+          phone: string
           role: Database["public"]["Enums"]["user_role"]
           stripe_account_id: string | null
           stripe_charges_enabled: boolean | null
@@ -355,7 +355,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
-          phone?: string | null
+          phone: string
           role?: Database["public"]["Enums"]["user_role"]
           stripe_account_id?: string | null
           stripe_charges_enabled?: boolean | null
@@ -370,7 +370,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
-          phone?: string | null
+          phone?: string
           role?: Database["public"]["Enums"]["user_role"]
           stripe_account_id?: string | null
           stripe_charges_enabled?: boolean | null
