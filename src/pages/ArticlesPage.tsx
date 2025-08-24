@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Calendar } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Search, Calendar, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ImageCarousel from "@/components/ImageCarousel";
@@ -25,6 +26,7 @@ const ArticlesPage = () => {
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -166,7 +168,11 @@ const ArticlesPage = () => {
                     {article.content}
                   </p>
                   
-                  <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                  <Button 
+                    variant="outline" 
+                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                    onClick={() => setSelectedArticle(article)}
+                  >
                     Citește mai mult
                   </Button>
                 </CardContent>
@@ -184,6 +190,49 @@ const ArticlesPage = () => {
           </div>
         )}
       </main>
+
+      {/* Article Modal */}
+      {selectedArticle && (
+        <Dialog open={!!selectedArticle} onOpenChange={() => setSelectedArticle(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="sticky top-0 bg-background/95 backdrop-blur-sm border-b pb-4 mb-4">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-2xl font-bold pr-8">
+                  {selectedArticle.title}
+                </DialogTitle>
+                <button
+                  onClick={() => setSelectedArticle(null)}
+                  className="absolute top-4 right-4 w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                {formatDate(selectedArticle.created_at)}
+              </div>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {selectedArticle.images && selectedArticle.images.length > 0 && (
+                <div className="mb-6">
+                  <ImageCarousel
+                    images={selectedArticle.images}
+                    facilityName={selectedArticle.title}
+                    className="max-w-full"
+                  />
+                </div>
+              )}
+              
+              <div className="prose prose-lg max-w-none">
+                <div className="whitespace-pre-wrap text-base leading-relaxed">
+                  {selectedArticle.content}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       
       <Footer />
     </div>

@@ -137,6 +137,14 @@ const ImageCarousel = ({ images, facilityName, className = "" }: ImageCarouselPr
       </DialogTrigger>
 
       <DialogContent className="max-w-6xl w-full p-0 bg-black/95">
+        {/* Close Button - Red and more visible */}
+        <button 
+          onClick={() => setModalIndex(-1)}
+          className="absolute top-4 right-4 z-50 w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        
         <div className="relative w-full h-[80vh] flex items-center justify-center">
           {/* Large Image */}
           <img
