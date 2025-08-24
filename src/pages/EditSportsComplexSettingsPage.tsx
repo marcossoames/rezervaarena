@@ -80,19 +80,20 @@ const EditSportsComplexSettingsPage = () => {
           }
         }
 
-        // Get facility data only if it exists
-        const { data: facilityData } = await supabase
+        // Get facility data - use all facilities and take the first one if multiple
+        const { data: facilitiesData } = await supabase
           .from('facilities')
           .select('id, address, city, description, amenities')
           .eq('owner_id', user.id)
-          .maybeSingle();
+          .limit(1);
 
         // Set form values only with actual database data
         setValue("sportsComplexName", sportsComplexName);
         setValue("phone", profile.phone || "");
         
         // Only set facility data if it exists
-        if (facilityData) {
+        if (facilitiesData && facilitiesData.length > 0) {
+          const facilityData = facilitiesData[0];
           setValue("address", facilityData.address || "");
           setValue("city", facilityData.city || "");
           setValue("description", facilityData.description || "");
