@@ -65,7 +65,7 @@ export const useCriticalDataPreloader = (): CriticalDataPreloader => {
       }
 
     } catch (error) {
-      console.warn('Error prefetching critical data:', error);
+      console.debug('Error prefetching critical data:', error);
     } finally {
       setIsLoading(false);
     }

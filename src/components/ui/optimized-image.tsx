@@ -56,10 +56,12 @@ export const OptimizedImage = ({
     return '(max-width: 768px) 100vw, 50vw';
   };
 
-  // Handle image load errors
+  // Handle image load errors silently (no toast notifications)
   const handleError = () => {
     if (!imageError) {
       setImageError(true);
+      // Log error silently without showing user notifications
+      console.debug('Image fallback used for:', src);
     }
   };
 

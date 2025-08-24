@@ -87,7 +87,8 @@ const SportsSection = () => {
           // Fallback to direct API call if cache miss
           const { data, error } = await supabase.rpc('get_facility_stats_by_type');
           if (error) {
-            console.error('Error fetching facility stats:', error);
+            // Log error silently without showing toast notifications
+            console.debug('Error fetching facility stats:', error);
             return;
           }
           facilityStats = data;
@@ -117,7 +118,8 @@ const SportsSection = () => {
         
         setSportsData(updatedSportsData);
       } catch (error) {
-        console.error('Error fetching sports data:', error);
+        // Log error silently without showing toast notifications
+        console.debug('Error fetching sports data:', error);
       }
     };
     
