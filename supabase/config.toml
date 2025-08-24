@@ -41,6 +41,9 @@ verify_jwt = true
 [functions.connect-dashboard-link]
 verify_jwt = true
 
+[functions.connect-sync-status]
+verify_jwt = true
+
 [realtime]
 enabled = true
 port = 54323

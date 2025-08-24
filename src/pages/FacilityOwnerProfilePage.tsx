@@ -11,8 +11,9 @@ import Footer from "@/components/Footer";
 import { deleteUserAccount } from "@/utils/deleteAccount";
 
 // Stripe Connect Component
-const StripeConnectCard = ({ userProfile }: { userProfile: any }) => {
+const StripeConnectCard = ({ userProfile, onStatusUpdate }: { userProfile: any, onStatusUpdate: (updatedProfile: any) => void }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const { toast } = useToast();
 
   const handleCreateAccount = async () => {
@@ -33,8 +34,8 @@ const StripeConnectCard = ({ userProfile }: { userProfile: any }) => {
         description: "Contul Stripe a fost creat cu succes. Acum poți începe onboarding-ul.",
       });
 
-      // Reload the page to show updated status
-      window.location.reload();
+      // Sync status after account creation
+      await syncStripeStatus();
     } catch (error: any) {
       console.error('Error creating Stripe account:', error);
       toast({
@@ -56,6 +57,14 @@ const StripeConnectCard = ({ userProfile }: { userProfile: any }) => {
 
       // Open Stripe onboarding in new tab
       window.open(data.url, '_blank');
+      
+      // Set up periodic status checking after opening onboarding
+      const checkInterval = setInterval(async () => {
+        await syncStripeStatus();
+      }, 30000); // Check every 30 seconds
+      
+      // Clear interval after 10 minutes
+      setTimeout(() => clearInterval(checkInterval), 600000);
     } catch (error: any) {
       console.error('Error creating onboarding link:', error);
       toast({
@@ -88,6 +97,46 @@ const StripeConnectCard = ({ userProfile }: { userProfile: any }) => {
       setIsLoading(false);
     }
   };
+
+  const syncStripeStatus = async () => {
+    if (!userProfile.stripe_account_id) return;
+    
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('connect-sync-status');
+
+      if (error) throw error;
+
+      // Update parent component with new status
+      onStatusUpdate({
+        ...userProfile,
+        stripe_onboarding_complete: data.details_submitted,
+        stripe_charges_enabled: data.charges_enabled,
+        stripe_payouts_enabled: data.payouts_enabled,
+      });
+
+      toast({
+        title: "Status actualizat",
+        description: "Statusul Stripe a fost sincronizat cu succes",
+      });
+    } catch (error: any) {
+      console.error('Error syncing Stripe status:', error);
+      toast({
+        title: "Eroare sincronizare",
+        description: "Nu s-a putut sincroniza statusul Stripe",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Auto-sync status on component mount if account exists
+  useEffect(() => {
+    if (userProfile.stripe_account_id && !userProfile.stripe_onboarding_complete) {
+      syncStripeStatus();
+    }
+  }, [userProfile.stripe_account_id]);
 
   const getStripeStatus = () => {
     if (!userProfile.stripe_account_id) {
@@ -163,6 +212,18 @@ const StripeConnectCard = ({ userProfile }: { userProfile: any }) => {
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             {isLoading ? "Se încarcă..." : "Dashboard Stripe"}
+          </Button>
+        )}
+        
+        {userProfile.stripe_account_id && (
+          <Button 
+            onClick={syncStripeStatus} 
+            disabled={isSyncing}
+            variant="ghost"
+            size="sm"
+            className="w-full mt-2"
+          >
+            {isSyncing ? "Se sincronizează..." : "Sincronizează Status"}
           </Button>
         )}
       </CardContent>
@@ -361,7 +422,7 @@ const FacilityOwnerProfilePage = () => {
             </Card>
 
             {/* Stripe Connect */}
-            <StripeConnectCard userProfile={userProfile} />
+            <StripeConnectCard userProfile={userProfile} onStatusUpdate={setUserProfile} />
 
             {/* Setări Bază */}
             <Card className="hover:shadow-lg transition-shadow cursor-pointer group" 
