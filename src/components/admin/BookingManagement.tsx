@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar as CalendarIcon, Clock, MapPin, User, DollarSign, Filter, Ban, Plus, X } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, User, DollarSign, Filter, Ban, X, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { ro } from "date-fns/locale";
 
@@ -357,36 +357,44 @@ const BookingManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
+    <div className="space-y-6 animate-fade-in">
+      <Card className="shadow-lg border-0 bg-gradient-to-r from-card/80 to-card/60 backdrop-blur-sm">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-primary/20">
           <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="h-6 w-6" />
-              Gestionare Rezervări ({filteredBookings.length})
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                <CalendarIcon className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">Gestionare Rezervări</h1>
+                <p className="text-sm text-muted-foreground">({filteredBookings.length} rezervări găsite)</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Dialog open={isBlockModalOpen} onOpenChange={setIsBlockModalOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="hover-scale shadow-sm">
                     <Ban className="h-4 w-4 mr-2" />
                     Blochează Dată/Oră
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="animate-scale-in">
                   <DialogHeader>
-                    <DialogTitle>Blochează Dată/Oră pentru Teren</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Ban className="h-5 w-5 text-destructive" />
+                      Blochează Dată/Oră pentru Teren
+                    </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
-                    <div>
+                    <div className="animate-fade-in">
                       <label className="text-sm font-medium mb-2 block">Teren</label>
                       <Select value={selectedFacilityForBlock} onValueChange={setSelectedFacilityForBlock}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-background">
                           <SelectValue placeholder="Selectează terenul" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-background border shadow-lg z-50">
                           {facilities.map(facility => (
-                            <SelectItem key={facility.id} value={facility.id}>
+                            <SelectItem key={facility.id} value={facility.id} className="hover:bg-accent">
                               {facility.name} - {facility.city}
                             </SelectItem>
                           ))}
@@ -394,22 +402,24 @@ const BookingManagement = () => {
                       </Select>
                     </div>
                     
-                    <div>
+                    <div className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
                       <label className="text-sm font-medium mb-2 block">Data</label>
                       <Input
                         type="date"
                         value={blockDate}
                         onChange={(e) => setBlockDate(e.target.value)}
+                        className="bg-background"
                       />
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 animate-fade-in" style={{ animationDelay: '0.2s' }}>
                       <div>
                         <label className="text-sm font-medium mb-2 block">Ora început (opțional)</label>
                         <Input
                           type="time"
                           value={blockStartTime}
                           onChange={(e) => setBlockStartTime(e.target.value)}
+                          className="bg-background"
                         />
                       </div>
                       <div>
@@ -418,24 +428,26 @@ const BookingManagement = () => {
                           type="time"
                           value={blockEndTime}
                           onChange={(e) => setBlockEndTime(e.target.value)}
+                          className="bg-background"
                         />
                       </div>
                     </div>
                     
-                    <div>
+                    <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
                       <label className="text-sm font-medium mb-2 block">Motiv (opțional)</label>
                       <Textarea
                         value={blockReason}
                         onChange={(e) => setBlockReason(e.target.value)}
                         placeholder="Ex: Mentenanță, întrerupere curent, etc."
+                        className="bg-background"
                       />
                     </div>
                     
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setIsBlockModalOpen(false)}>
+                    <div className="flex justify-end gap-2 pt-4 border-t animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                      <Button variant="outline" onClick={() => setIsBlockModalOpen(false)} className="hover-scale">
                         Anulează
                       </Button>
-                      <Button onClick={blockDateTime}>
+                      <Button onClick={blockDateTime} className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary hover-scale">
                         Blochează
                       </Button>
                     </div>
@@ -443,11 +455,12 @@ const BookingManagement = () => {
                 </DialogContent>
               </Dialog>
               
-              <div className="flex gap-1 border rounded-md">
+              <div className="flex gap-1 bg-secondary/50 p-1 rounded-lg shadow-sm">
                 <Button
                   variant={viewMode === 'calendar' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('calendar')}
+                  className="transition-all duration-200 hover-scale"
                 >
                   Calendar
                 </Button>
@@ -455,6 +468,7 @@ const BookingManagement = () => {
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
+                  className="transition-all duration-200 hover-scale"
                 >
                   Listă
                 </Button>
@@ -462,19 +476,22 @@ const BookingManagement = () => {
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {/* Filters */}
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Facilitate</label>
+          <div className="grid md:grid-cols-3 gap-6 mb-8 p-4 bg-gradient-to-r from-secondary/30 to-secondary/20 rounded-lg border animate-fade-in">
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                Facilitate
+              </label>
               <Select value={selectedFacility} onValueChange={setSelectedFacility}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background shadow-sm hover:shadow-md transition-shadow">
                   <SelectValue placeholder="Toate facilitățile" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toate facilitățile</SelectItem>
+                <SelectContent className="bg-background border shadow-lg z-50">
+                  <SelectItem value="all" className="hover:bg-accent">Toate facilitățile</SelectItem>
                   {facilities.map(facility => (
-                    <SelectItem key={facility.id} value={facility.id}>
+                    <SelectItem key={facility.id} value={facility.id} className="hover:bg-accent">
                       {facility.name} - {facility.city}
                     </SelectItem>
                   ))}
@@ -482,81 +499,99 @@ const BookingManagement = () => {
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Status</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Filter className="h-4 w-4 text-primary" />
+                Status
+              </label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background shadow-sm hover:shadow-md transition-shadow">
                   <SelectValue placeholder="Toate statusurile" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toate statusurile</SelectItem>
-                  <SelectItem value="pending">În așteptare</SelectItem>
-                  <SelectItem value="confirmed">Confirmată</SelectItem>
-                  <SelectItem value="cancelled">Anulată</SelectItem>
-                  <SelectItem value="completed">Finalizată</SelectItem>
+                <SelectContent className="bg-background border shadow-lg z-50">
+                  <SelectItem value="all" className="hover:bg-accent">Toate statusurile</SelectItem>
+                  <SelectItem value="pending" className="hover:bg-accent">În așteptare</SelectItem>
+                  <SelectItem value="confirmed" className="hover:bg-accent">Confirmată</SelectItem>
+                  <SelectItem value="cancelled" className="hover:bg-accent">Anulată</SelectItem>
+                  <SelectItem value="completed" className="hover:bg-accent">Finalizată</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Data</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4 text-primary" />
+                Data
+              </label>
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 locale={ro}
-                className="rounded-md border w-fit"
+                className="rounded-lg border bg-background shadow-sm hover:shadow-md transition-shadow w-fit"
               />
             </div>
           </div>
 
           {/* Calendar View */}
           {viewMode === 'calendar' && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4">Calendar Rezervări</h3>
+            <div className="mb-8 animate-fade-in">
+              <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-4 rounded-lg border border-primary/20 mb-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+                  <CalendarIcon className="h-5 w-5" />
+                  Calendar Rezervări
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">Click pe o zi pentru a filtra rezervările</p>
+              </div>
               <div className="grid grid-cols-7 gap-2 mb-4">
                 {['Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm', 'Dum'].map(day => (
-                  <div key={day} className="text-center text-sm font-medium p-2">
+                  <div key={day} className="text-center text-sm font-medium p-3 bg-secondary/30 rounded-lg border">
                     {day}
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-3">
                 {getCalendarDays().map((day, index) => (
                   <div
                     key={index}
-                    className={`min-h-24 border rounded-lg p-2 cursor-pointer transition-colors ${
-                      day.isToday ? 'bg-primary/10 border-primary' : 
-                      day.isSelected ? 'bg-secondary border-primary' : 
-                      'hover:bg-secondary/50'
+                    className={`min-h-28 border-2 rounded-xl p-3 cursor-pointer transition-all duration-300 hover-scale shadow-sm hover:shadow-lg ${
+                      day.isToday ? 'bg-gradient-to-br from-primary/20 to-primary/10 border-primary shadow-md' : 
+                      day.isSelected ? 'bg-gradient-to-br from-secondary/50 to-secondary/30 border-primary shadow-md' : 
+                      'bg-card/50 border-border hover:bg-secondary/30 hover:border-primary/50'
                     }`}
                     onClick={() => setSelectedDate(day.date)}
                   >
-                    <div className="text-sm font-medium mb-1">
+                    <div className={`text-sm font-semibold mb-2 ${day.isToday ? 'text-primary' : 'text-foreground'}`}>
                       {format(day.date, 'd')}
+                      {day.isToday && <span className="ml-1 text-xs">(azi)</span>}
                     </div>
                     <div className="space-y-1">
                       {day.bookings.slice(0, 2).map((booking, idx) => (
                         <div
                           key={idx}
-                          className={`text-xs p-1 rounded text-white ${
-                            booking.status === 'confirmed' ? 'bg-green-500' :
-                            booking.status === 'pending' ? 'bg-yellow-500' :
-                            booking.status === 'cancelled' ? 'bg-red-500' :
-                            'bg-gray-500'
+                          className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 ${
+                            booking.status === 'confirmed' ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                            booking.status === 'pending' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                            booking.status === 'cancelled' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                            'bg-gradient-to-r from-gray-500 to-gray-600'
                           }`}
                         >
-                          {booking.start_time}
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {booking.start_time}
+                          </div>
                         </div>
                       ))}
                       {day.blockedTimes.length > 0 && (
-                        <div className="text-xs p-1 rounded bg-black text-white">
-                          <Ban className="h-3 w-3 inline mr-1" />
-                          Blocat
+                        <div className="text-xs p-2 rounded-lg bg-gradient-to-r from-black to-gray-800 text-white shadow-sm">
+                          <div className="flex items-center gap-1">
+                            <Ban className="h-3 w-3" />
+                            Blocat
+                          </div>
                         </div>
                       )}
                       {day.bookings.length > 2 && (
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground font-medium bg-secondary/50 p-1 rounded">
                           +{day.bookings.length - 2} mai multe
                         </div>
                       )}
@@ -569,28 +604,45 @@ const BookingManagement = () => {
 
           {/* Blocked Times for Selected Date */}
           {filteredBlockedDates.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4">Date/Ore Blocate</h3>
-              <div className="grid gap-2">
-                {filteredBlockedDates.map((blocked) => {
+            <div className="mb-8 animate-fade-in">
+              <div className="bg-gradient-to-r from-destructive/5 to-destructive/10 p-4 rounded-lg border border-destructive/20 mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-destructive">
+                  <Ban className="h-5 w-5" />
+                  Date/Ore Blocate
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">Intervalele blocate pentru data selectată</p>
+              </div>
+              <div className="grid gap-3">
+                {filteredBlockedDates.map((blocked, index) => {
                   const facility = facilities.find(f => f.id === blocked.facility_id);
                   return (
-                    <Card key={blocked.id} className="border-l-4 border-l-red-500">
-                      <CardContent className="p-4">
+                    <Card key={blocked.id} className="border-l-4 border-l-destructive shadow-md hover:shadow-lg transition-all duration-300 hover-scale bg-gradient-to-r from-card to-card/80 animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <CardContent className="p-5">
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Ban className="h-4 w-4 text-red-500" />
-                              <span className="font-medium">{facility?.name || 'Teren necunoscut'}</span>
-                              <Badge variant="destructive">Blocat</Badge>
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-8 h-8 bg-destructive/20 rounded-full flex items-center justify-center">
+                                <Ban className="h-4 w-4 text-destructive" />
+                              </div>
+                              <span className="font-semibold text-lg">{facility?.name || 'Teren necunoscut'}</span>
+                              <Badge variant="destructive" className="shadow-sm">Blocat</Badge>
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              <div>Data: {format(new Date(blocked.blocked_date), 'dd MMMM yyyy', { locale: ro })}</div>
+                            <div className="text-sm text-muted-foreground space-y-1 ml-11">
+                              <div className="flex items-center gap-2">
+                                <CalendarIcon className="h-4 w-4" />
+                                <span className="font-medium">Data: {format(new Date(blocked.blocked_date), 'dd MMMM yyyy', { locale: ro })}</span>
+                              </div>
                               {blocked.start_time && blocked.end_time && (
-                                <div>Interval: {blocked.start_time} - {blocked.end_time}</div>
+                                <div className="flex items-center gap-2">
+                                  <Clock className="h-4 w-4" />
+                                  <span>Interval: {blocked.start_time} - {blocked.end_time}</span>
+                                </div>
                               )}
                               {blocked.reason && (
-                                <div>Motiv: {blocked.reason}</div>
+                                <div className="flex items-center gap-2">
+                                  <Filter className="h-4 w-4" />
+                                  <span>Motiv: {blocked.reason}</span>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -598,6 +650,7 @@ const BookingManagement = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => unblockDateTime(blocked.id)}
+                            className="hover-scale shadow-sm hover:shadow-md hover:border-destructive hover:text-destructive transition-all"
                           >
                             <X className="h-4 w-4 mr-2" />
                             Deblochează
@@ -613,28 +666,40 @@ const BookingManagement = () => {
 
           {/* List View */}
           {viewMode === 'list' && (
-            <>
+            <div className="animate-fade-in">
               {filteredBookings.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  Nu există rezervări pentru criteriile selectate.
-                </p>
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CalendarIcon className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-lg font-medium">
+                    Nu există rezervări pentru criteriile selectate.
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Încearcă să modifici filtrele pentru a vedea alte rezervări.
+                  </p>
+                </div>
               ) : (
                 <div className="grid gap-4">
-                  {filteredBookings.map((booking) => (
-                    <Card key={booking.id} className="border-l-4 border-l-blue-500">
+                  {filteredBookings.map((booking, index) => (
+                    <Card key={booking.id} className="border-l-4 border-l-blue-500 shadow-md hover:shadow-lg transition-all duration-300 hover-scale bg-gradient-to-r from-card to-card/80 animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-3">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
+                                <Building2 className="h-5 w-5 text-blue-600" />
+                              </div>
                               <h3 className="text-lg font-semibold">{booking.facility_name}</h3>
                               {getStatusBadge(booking.status)}
-                              <Badge variant="outline">
+                              <Badge variant="outline" className="shadow-sm">
                                 {getFacilityTypeLabel(booking.facility_type)}
                               </Badge>
                             </div>
                             
-                            <div className="grid md:grid-cols-2 gap-4 mb-4">
-                              <div className="space-y-2">
+                            <div className="grid md:grid-cols-2 gap-6 mb-4">
+                              <div className="space-y-3 p-4 bg-secondary/20 rounded-lg border">
+                                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Detalii Rezervare</h4>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <CalendarIcon className="h-4 w-4" />
                                   {format(new Date(booking.booking_date), 'dd MMMM yyyy', { locale: ro })}
@@ -649,7 +714,8 @@ const BookingManagement = () => {
                                 </div>
                               </div>
                               
-                              <div className="space-y-2">
+                              <div className="space-y-3 p-4 bg-secondary/20 rounded-lg border">
+                                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Detalii Client</h4>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <User className="h-4 w-4" />
                                   {booking.client_name} ({booking.client_email})
@@ -665,19 +731,21 @@ const BookingManagement = () => {
                             </div>
 
                             {booking.notes && (
-                              <p className="text-sm text-muted-foreground mb-4">
-                                <strong>Note:</strong> {booking.notes}
-                              </p>
+                              <div className="p-4 bg-muted/30 rounded-lg border mb-4">
+                                <p className="text-sm font-medium text-muted-foreground mb-2">Note suplimentare:</p>
+                                <p className="text-sm">{booking.notes}</p>
+                              </div>
                             )}
                           </div>
 
-                          <div className="flex flex-col gap-2 ml-4">
+                          <div className="flex flex-col gap-3 ml-6">
                             {booking.status === 'pending' && (
                               <>
                                 <Button
                                   variant="default"
                                   size="sm"
                                   onClick={() => updateBookingStatus(booking.id, 'confirmed')}
+                                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover-scale shadow-sm"
                                 >
                                   Confirmă
                                 </Button>
@@ -685,6 +753,7 @@ const BookingManagement = () => {
                                   variant="destructive"
                                   size="sm"
                                   onClick={() => updateBookingStatus(booking.id, 'cancelled')}
+                                  className="hover-scale shadow-sm"
                                 >
                                   Anulează
                                 </Button>
@@ -696,6 +765,7 @@ const BookingManagement = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => updateBookingStatus(booking.id, 'completed')}
+                                className="hover-scale shadow-sm hover:shadow-md transition-all"
                               >
                                 Marchează ca finalizată
                               </Button>
@@ -707,7 +777,7 @@ const BookingManagement = () => {
                   ))}
                 </div>
               )}
-            </>
+            </div>
           )}
         </CardContent>
       </Card>
