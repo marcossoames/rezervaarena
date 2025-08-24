@@ -30,7 +30,10 @@ interface Booking extends BasicBooking {
     name: string;
     facility_type: string;
     city: string;
+    address?: string;
     owner_id?: string;
+    sports_complex_name?: string;
+    sports_complex_address?: string;
     profiles?: {
       user_type_comment: string;
       full_name: string;
@@ -89,7 +92,7 @@ const MyReservationsPage = () => {
       const facilityIds = [...new Set(userBookings.map(b => b.facility_id))];
       console.log('Facility IDs:', facilityIds);
 
-      // Get all facilities with their owners
+      // Get all facilities with complete data
       const { data: facilities, error: facilitiesError } = await supabase
         .from('facilities')
         .select(`
@@ -97,6 +100,7 @@ const MyReservationsPage = () => {
           name,
           facility_type,
           city,
+          address,
           owner_id
         `)
         .in('id', facilityIds);
@@ -129,6 +133,28 @@ const MyReservationsPage = () => {
         const facility = facilities?.find(f => f.id === booking.facility_id);
         const profile = profiles?.find(p => p.user_id === facility?.owner_id);
 
+        // Extract sports complex name using the same logic as other pages
+        let sportsComplexName = 'Baza Sportivă';
+        if (profile?.user_type_comment) {
+          // Check for format: "Name - Proprietar bază sportivă"
+          if (profile.user_type_comment.match(/.+ - Proprietar bază sportivă$/)) {
+            sportsComplexName = profile.user_type_comment.replace(' - Proprietar bază sportivă', '');
+          }
+          // Check for format: "Proprietar bază sportivă - Name"
+          else if (profile.user_type_comment.match(/^Proprietar bază sportivă - .+/)) {
+            sportsComplexName = profile.user_type_comment.replace('Proprietar bază sportivă - ', '');
+          }
+          // If no standard format, use the whole comment if it doesn't contain standard text
+          else if (!profile.user_type_comment.includes('Proprietar bază sportivă')) {
+            sportsComplexName = profile.user_type_comment;
+          }
+        }
+
+        // Fallback to owner name and city if still generic
+        if (sportsComplexName === 'Baza Sportivă' && profile?.full_name) {
+          sportsComplexName = `Baza Sportivă ${profile.full_name.split(' ')[0]} - ${facility?.city}`;
+        }
+
         return {
           ...booking,
           facilities: {
@@ -136,7 +162,10 @@ const MyReservationsPage = () => {
             name: facility?.name || 'Teren nedefinit',
             facility_type: facility?.facility_type || 'nedefinit',
             city: facility?.city || 'Oraș nedefinit',
+            address: facility?.address || '',
             owner_id: facility?.owner_id,
+            sports_complex_name: sportsComplexName,
+            sports_complex_address: facility?.address ? `${facility.address}, ${facility.city}` : facility?.city || 'Adresă nedefinită',
             profiles: profile || null
           }
         };
@@ -278,9 +307,9 @@ const MyReservationsPage = () => {
                       <CardTitle className="text-xl mb-2">{booking.facilities.name}</CardTitle>
                       <div className="flex items-center text-muted-foreground mb-1">
                         <MapPin className="h-4 w-4 mr-2" />
-                        <span>{getSportsComplexName(booking.facilities.profiles?.user_type_comment || '', booking.facilities.profiles?.full_name || '')}</span>
+                        <span>{booking.facilities.sports_complex_name || 'Baza Sportivă'}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground">{booking.facilities.city}</p>
+                      <p className="text-sm text-muted-foreground">{booking.facilities.sports_complex_address || booking.facilities.city}</p>
                       {booking.facilities.profiles?.phone && (
                         <div className="flex items-center text-sm text-muted-foreground mt-1">
                           <span className="mr-2">📞</span>
