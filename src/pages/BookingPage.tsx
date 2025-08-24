@@ -101,22 +101,7 @@ const BookingPage = () => {
     const durationHours = durationMinutes / 60;
     
     // Simple calculation: base price * duration hours
-    // Peak hours (12:00-15:00) have 20% surcharge
-    const peakStartMinutes = 12 * 60; // 12:00
-    const peakEndMinutes = 15 * 60;   // 15:00
-    
-    let totalPrice = 0;
-
-    // Calculate price for each 30-minute slot
-    for (let time = startMinutes; time < endMinutes; time += 30) {
-      const slotHours = 0.5; // 30 minutes = 0.5 hours
-      
-      // Check if this slot is in peak hours
-      const isPeakSlot = time >= peakStartMinutes && time < peakEndMinutes;
-      const slotPrice = isPeakSlot ? facility.price_per_hour * 1.2 : facility.price_per_hour;
-      
-      totalPrice += slotPrice * slotHours;
-    }
+    const totalPrice = facility.price_per_hour * durationHours;
 
     // Format duration
     const hours = Math.floor(durationHours);
@@ -550,7 +535,7 @@ const BookingPage = () => {
                 </Button>
                 
                 <p className="text-xs text-muted-foreground text-center">
-                  Rezervarea poate fi anulată cu 2 ore înainte de începere
+                  Rezervarea poate fi anulată cu 24 de ore înainte de începere
                 </p>
               </CardContent>
             </Card>

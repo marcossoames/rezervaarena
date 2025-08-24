@@ -390,7 +390,7 @@ const PaymentPage = () => {
                 </div>
 
                 <div className="text-xs text-muted-foreground text-center pt-2">
-                  Rezervarea poate fi anulată cu 2 ore înainte de începere
+                  Rezervarea poate fi anulată cu 24 de ore înainte de începere
                 </div>
               </CardContent>
             </Card>
