@@ -142,9 +142,9 @@ const ImageCarousel = ({ images, facilityName, className = "" }: ImageCarouselPr
         {/* Close Button - Red and more visible */}
         <button 
           onClick={() => setIsModalOpen(false)}
-          className="absolute top-4 right-4 z-50 w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+          className="absolute top-4 right-4 z-50 w-10 h-10 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
         >
-          <X className="h-5 w-5" />
+          <X className="h-6 w-6" />
         </button>
         
         <div className="relative w-full h-[80vh] flex items-center justify-center">
@@ -178,9 +178,9 @@ const ImageCarousel = ({ images, facilityName, className = "" }: ImageCarouselPr
             </>
           )}
 
-          {/* Modal Image Counter */}
+          {/* Modal Image Counter - moved to avoid close button */}
           {images.length > 1 && (
-            <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-2 rounded-full">
+            <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-full z-40">
               {modalIndex + 1} / {images.length}
             </div>
           )}
