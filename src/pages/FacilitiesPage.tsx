@@ -383,109 +383,161 @@ const FacilitiesPage = () => {
         </div>
 
         {/* Search and Filters - Only for clients and admins */}
-        {userProfile?.role !== 'facility_owner' && <Card className="mb-8 animate-fade-in">
+        {userProfile?.role !== 'facility_owner' && (
+          <Card className="mb-8 animate-fade-in shadow-lg">
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Caută facilități..." className="pl-10" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+              {/* First Row: Search and Location */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Caută facilități</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Caută facilități..." 
+                      className="h-11 pl-10 bg-background border-border focus:border-primary" 
+                      value={searchTerm} 
+                      onChange={(e) => setSearchTerm(e.target.value)} 
+                    />
+                  </div>
                 </div>
                 
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Locație..." className="pl-10" value={locationFilter} onChange={e => setLocationFilter(e.target.value)} />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Locație</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Locație..." 
+                      className="h-11 pl-10 bg-background border-border focus:border-primary" 
+                      value={locationFilter} 
+                      onChange={(e) => setLocationFilter(e.target.value)} 
+                    />
+                  </div>
                 </div>
-                
-                <div className="relative">
+              </div>
+
+              {/* Second Row: Date and Time */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Data rezervării</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal pl-10", !selectedDate && "text-muted-foreground")}>
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                        {selectedDate ? format(selectedDate, "dd/MM/yyyy") : <span>Selectează data</span>}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      <Button 
+                        variant="outline" 
+                        className={cn(
+                          "w-full h-11 justify-start text-left font-normal bg-background border-border hover:border-primary", 
+                          !selectedDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-3 h-4 w-4" />
+                        {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "Selectează data"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent mode="single" selected={selectedDate} onSelect={setSelectedDate} disabled={date => {
-                    const today = new Date();
-                    const twoWeeksFromNow = new Date();
-                    twoWeeksFromNow.setDate(today.getDate() + 14);
-                    return date < today || date > twoWeeksFromNow;
-                  }} initialFocus className={cn("p-3 pointer-events-auto")} />
+                    <PopoverContent className="w-auto p-0 z-50" align="start">
+                      <CalendarComponent 
+                        mode="single" 
+                        selected={selectedDate} 
+                        onSelect={setSelectedDate} 
+                        disabled={(date) => {
+                          const today = new Date();
+                          const twoWeeksFromNow = new Date();
+                          twoWeeksFromNow.setDate(today.getDate() + 14);
+                          return date < today || date > twoWeeksFromNow;
+                        }} 
+                        initialFocus 
+                        className="p-3 pointer-events-auto" 
+                      />
                     </PopoverContent>
                   </Popover>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Intervalul orar</label>
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                       <Select value={startTime} onValueChange={setStartTime}>
-                        <SelectTrigger className="pl-10">
+                        <SelectTrigger className="h-11 pl-10 bg-background border-border focus:border-primary">
                           <SelectValue placeholder="De la" />
                         </SelectTrigger>
-                        <SelectContent className="bg-background border shadow-lg z-50">
-                          {getTimeOptions().filter(time => !endTime || time.value < endTime).map(time => <SelectItem key={time.value} value={time.value}>
+                        <SelectContent className="z-50">
+                          {getTimeOptions().filter(time => !endTime || time.value < endTime).map(time => (
+                            <SelectItem key={time.value} value={time.value}>
                               {time.label}
-                            </SelectItem>)}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="relative flex-1">
-                      <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                       <Select value={endTime} onValueChange={setEndTime} disabled={!startTime}>
-                        <SelectTrigger className="pl-10">
+                        <SelectTrigger className="h-11 pl-10 bg-background border-border focus:border-primary">
                           <SelectValue placeholder="Până la" />
                         </SelectTrigger>
-                        <SelectContent className="bg-background border shadow-lg z-50">
-                          {getTimeOptions().filter(time => startTime && time.value > startTime).map(time => <SelectItem key={time.value} value={time.value}>
+                        <SelectContent className="z-50">
+                          {getTimeOptions().filter(time => startTime && time.value > startTime).map(time => (
+                            <SelectItem key={time.value} value={time.value}>
                               {time.label}
-                            </SelectItem>)}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                 </div>
-                
-                <Button variant="sport" className="w-full" onClick={() => {
-              setSearchTerm('');
-              setLocationFilter('');
-              setSelectedDate(undefined);
-              setStartTime('');
-              setEndTime('');
-              setSelectedType(null);
-            }}>
+              </div>
+
+              {/* Third Row: Reset Button */}
+              <div className="flex justify-center">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="px-8 py-3 border-2 hover:bg-muted/50" 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setLocationFilter('');
+                    setSelectedDate(undefined);
+                    setStartTime('');
+                    setEndTime('');
+                    setSelectedType(null);
+                  }}
+                >
                   <Filter className="h-4 w-4 mr-2" />
-                  Resetează
+                  Resetează Filtrele
                 </Button>
               </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <Badge variant={selectedType === null ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter(null)}>
-                  Toate
-                </Badge>
-                <Badge variant={selectedType === "tennis" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("tennis")}>
-                  Tenis
-                </Badge>
-                <Badge variant={selectedType === "football" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("football")}>
-                  Fotbal
-                </Badge>
-                <Badge variant={selectedType === "padel" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("padel")}>
-                  Padel
-                </Badge>
-                <Badge variant={selectedType === "swimming" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("swimming")}>
-                  Înot
-                </Badge>
-                <Badge variant={selectedType === "basketball" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("basketball")}>
-                  Baschet
-                </Badge>
-                <Badge variant={selectedType === "volleyball" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("volleyball")}>
-                  Volei
-                </Badge>
-              </div>
             </CardContent>
-          </Card>}
+          </Card>
+        )}
+        
+        {/* Sport Type Filters */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex flex-wrap gap-2">
+              <Badge variant={selectedType === null ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter(null)}>
+                Toate
+              </Badge>
+              <Badge variant={selectedType === "tennis" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("tennis")}>
+                Tenis
+              </Badge>
+              <Badge variant={selectedType === "football" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("football")}>
+                Fotbal
+              </Badge>
+              <Badge variant={selectedType === "padel" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("padel")}>
+                Padel
+              </Badge>
+              <Badge variant={selectedType === "swimming" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("swimming")}>
+                Înot
+              </Badge>
+              <Badge variant={selectedType === "basketball" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("basketball")}>
+                Baschet
+              </Badge>
+              <Badge variant={selectedType === "volleyball" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("volleyball")}>
+                Volei
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Facilities Grid */}
         {facilities.length === 0 ? <div className="text-center py-12">
