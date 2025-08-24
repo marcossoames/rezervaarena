@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-interface Booking {
+interface BasicBooking {
   id: string;
   booking_date: string;
   start_time: string;
@@ -20,12 +20,18 @@ interface Booking {
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   payment_method: string;
   stripe_session_id?: string;
+  facility_id: string;
+  client_id: string;
+}
+
+interface Booking extends BasicBooking {
   facilities: {
     id: string;
     name: string;
     facility_type: string;
     city: string;
-    profiles: {
+    owner_id?: string;
+    profiles?: {
       user_type_comment: string;
       full_name: string;
       phone: string;
@@ -45,8 +51,13 @@ const MyReservationsPage = () => {
 
   const loadBookings = async () => {
     try {
+      console.log('Starting to load bookings...');
+      
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user?.id);
+      
       if (!user) {
+        console.log('No user found');
         toast({
           title: "Eroare",
           description: "Trebuie să fiți autentificat pentru a vedea rezervările",
@@ -55,39 +66,97 @@ const MyReservationsPage = () => {
         return;
       }
 
+      console.log('Fetching bookings for user:', user.id);
+
+      // Simplified query first - let's just get the basic bookings
+      const { data: basicBookings, error: basicError } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('client_id', user.id);
+
+      console.log('Basic bookings query result:', { basicBookings, basicError });
+
+      if (basicError) {
+        console.error('Basic query failed:', basicError);
+        throw basicError;
+      }
+
+      // If basic query works, try the full query
       const { data, error } = await supabase
         .from('bookings')
         .select(`
           *,
-          facilities!inner(
+          facilities(
             id,
             name,
             facility_type,
             city,
-            owner_id,
-            profiles:owner_id(
-              user_type_comment,
-              full_name,
-              phone
-            )
+            owner_id
           )
         `)
         .eq('client_id', user.id)
-        .order('booking_date', { ascending: false })
-        .order('start_time', { ascending: false });
+        .order('booking_date', { ascending: false });
+
+      console.log('Full query result:', { data, error });
 
       if (error) {
-        console.error('Database error:', error);
-        throw error;
+        console.error('Full query failed:', error);
+        // Fall back to basic bookings if full query fails - create dummy facilities
+        const fallbackBookings = (basicBookings || []).map((booking: BasicBooking) => ({
+          ...booking,
+          facilities: {
+            id: booking.facility_id,
+            name: 'Teren nedefinit',
+            facility_type: 'nedefinit',
+            city: 'Oraș nedefinit',
+            profiles: null
+          }
+        }));
+        setBookings(fallbackBookings);
+        toast({
+          title: "Atenție",
+          description: "Rezervările au fost încărcate parțial. Unele detalii pot lipsi.",
+          variant: "default"
+        });
+        return;
       }
 
-      console.log('Loaded bookings:', data);
-      setBookings((data as any) || []);
+      // Get facility owner profiles separately to avoid complex joins
+      const bookingsWithProfiles = await Promise.all(
+        (data || []).map(async (booking: any) => {
+          if (booking.facilities?.owner_id) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('user_type_comment, full_name, phone')
+              .eq('user_id', booking.facilities.owner_id)
+              .maybeSingle();
+            
+            return {
+              ...booking,
+              facilities: {
+                ...booking.facilities,
+                profiles: profile
+              }
+            };
+          }
+          return {
+            ...booking,
+            facilities: {
+              ...booking.facilities,
+              profiles: null
+            }
+          };
+        })
+      );
+
+      console.log('Final bookings with profiles:', bookingsWithProfiles);
+      setBookings(bookingsWithProfiles);
+      
     } catch (error) {
       console.error('Error loading bookings:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-au putut încărca rezervările",
+        description: "Nu s-au putut încărca rezervările: " + (error?.message || 'Eroare necunoscută'),
         variant: "destructive"
       });
     } finally {
