@@ -1,215 +1,327 @@
-import { Calendar, Clock, MapPin, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Calendar, Clock, MapPin, CreditCard, Banknote, X } from "lucide-react";
+import { format } from "date-fns";
+import { ro } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
+
+interface Booking {
+  id: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  total_price: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  payment_method: string;
+  stripe_session_id?: string;
+  facilities: {
+    id: string;
+    name: string;
+    facility_type: string;
+    city: string;
+    profiles: {
+      user_type_comment: string;
+      full_name: string;
+      phone: string;
+    } | null;
+  };
+}
+
 const MyReservationsPage = () => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [reservations, setReservations] = useState<any[]>([]);
-  const navigate = useNavigate();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const { toast } = useToast();
+
   useEffect(() => {
-    // Check for existing session
-    supabase.auth.getSession().then(({
-      data: {
-        session
-      }
-    }) => {
-      setSession(session);
-      setIsLoading(false);
-      if (!session) {
-        navigate('/client/login');
-      } else {
-        fetchReservations(session.user.id);
-        fetchUserProfile(session.user.id);
-      }
-    });
+    loadBookings();
+  }, []);
 
-    // Listen for auth changes
-    const {
-      data: {
-        subscription
-      }
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setIsLoading(false);
-      if (!session) {
-        navigate('/client/login');
-      } else {
-        fetchReservations(session.user.id);
-        fetchUserProfile(session.user.id);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-  const fetchReservations = async (userId: string) => {
+  const loadBookings = async () => {
     try {
-      const {
-        data,
-        error
-      } = await supabase.from('bookings').select(`
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Eroare",
+          description: "Trebuie să fiți autentificat pentru a vedea rezervările",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
           *,
-          facilities (
+          facilities!inner(
+            id,
             name,
-            address,
+            facility_type,
             city,
-            facility_type
+            profiles!facilities_owner_id_fkey(
+              user_type_comment,
+              full_name,
+              phone
+            )
           )
-        `).eq('client_id', userId).order('created_at', {
-        ascending: false
-      });
-      if (error) throw error;
-      setReservations(data || []);
-    } catch (error) {
-      console.error('Error fetching reservations:', error);
-      setReservations([]);
-    }
-  };
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const {
-        data,
-        error
-      } = await supabase.from('profiles').select('*').eq('user_id', userId).single();
-      if (!error) {
-        setUserProfile(data);
+        `)
+        .eq('client_id', user.id)
+        .order('booking_date', { ascending: false })
+        .order('start_time', { ascending: false });
+
+      if (error) {
+        throw error;
       }
+
+      setBookings((data as any) || []);
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('Error loading bookings:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-au putut încărca rezervările",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
-  const handleViewFacilities = () => {
-    const isFacilityOwner = userProfile?.user_type_comment?.includes('Proprietar bază sportivă');
-    if (isFacilityOwner) {
-      navigate('/manage-facilities');
-    } else {
-      navigate('/facilities');
+
+  const canCancelBooking = (booking: Booking) => {
+    if (booking.status === 'cancelled') return false;
+    
+    const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
+    const now = new Date();
+    const oneDayInMs = 24 * 60 * 60 * 1000;
+    const timeDifference = bookingDateTime.getTime() - now.getTime();
+    
+    return timeDifference >= oneDayInMs;
+  };
+
+  const handleCancelBooking = async (bookingId: string) => {
+    setCancellingId(bookingId);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Nu sunteți autentificat');
+      }
+
+      const { data, error } = await supabase.functions.invoke('cancel-booking', {
+        body: { bookingId },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Rezervare anulată",
+        description: data.message,
+      });
+
+      // Reload bookings to show updated status
+      loadBookings();
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      toast({
+        title: "Eroare",
+        description: error.message || "Nu s-a putut anula rezervarea",
+        variant: "destructive"
+      });
+    } finally {
+      setCancellingId(null);
     }
   };
-  // Show loading while checking authentication or fetching data
-  if (isLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Se încarcă...</p>
-        </div>
-      </div>;
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Confirmată</Badge>;
+      case 'pending':
+        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">În așteptare</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Anulată</Badge>;
+      case 'completed':
+        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Finalizată</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const getSportsComplexName = (userTypeComment: string, fullName: string) => {
+    if (userTypeComment && userTypeComment.includes('Proprietar bază sportivă - ')) {
+      return userTypeComment.replace('Proprietar bază sportivă - ', '');
+    }
+    if (userTypeComment && userTypeComment.includes(' - Proprietar bază sportivă')) {
+      return userTypeComment.replace(' - Proprietar bază sportivă', '');
+    }
+    return `Baza Sportivă ${fullName.split(' ')[0]}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-lg text-muted-foreground">Se încarcă rezervările...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
-  // Don't render the page if not authenticated
-  if (!session) {
-    return null;
-  }
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ro-RO');
-  };
-  const formatTime = (timeString: string) => {
-    return timeString.slice(0, 5);
-  };
-  const getStatusLabel = (status: string) => {
-    const statusMap: {
-      [key: string]: string;
-    } = {
-      pending: 'În așteptare',
-      confirmed: 'Confirmată',
-      cancelled: 'Anulată',
-      completed: 'Finalizată'
-    };
-    return statusMap[status] || status;
-  };
-  const getStatusColor = (status: string) => {
-    const colorMap: {
-      [key: string]: string;
-    } = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
-      completed: 'bg-blue-100 text-blue-800'
-    };
-    return colorMap[status] || 'bg-gray-100 text-gray-800';
-  };
-  return <div className="min-h-screen bg-background">
+  return (
+    <div className="min-h-screen bg-background">
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Rezervările Mele</h1>
-          
-          {reservations.length === 0 ? <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Nu ai rezervări</h3>
-                <p className="text-muted-foreground text-center mb-4">Când vei avea o rezervare, o vei vedea aici.</p>
-                <Button onClick={handleViewFacilities}>
-                  Vezi Facilități
-                </Button>
-              </CardContent>
-            </Card> : <div className="space-y-6">
-              {reservations.map(reservation => <Card key={reservation.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-xl">{reservation.facilities?.name}</CardTitle>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(reservation.status)}`}>
-                        {getStatusLabel(reservation.status)}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>{formatDate(reservation.booking_date)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>{formatTime(reservation.start_time)} - {formatTime(reservation.end_time)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          {reservation.facilities?.address}, {reservation.facilities?.city}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {reservation.notes && <div className="mb-4">
-                        <p className="text-sm text-muted-foreground">
-                          <strong>Note:</strong> {reservation.notes}
-                        </p>
-                      </div>}
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="text-lg font-semibold">
-                        {reservation.total_price} LEI
-                      </div>
-                      <div className="flex gap-2">
-                        {reservation.status === 'pending' && <>
-                            <Button variant="outline" size="sm">
-                              Modifică
-                            </Button>
-                            <Button variant="outline" size="sm" className="text-destructive">
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Anulează
-                            </Button>
-                          </>}
-                        {reservation.status === 'confirmed' && <Button variant="outline" size="sm" className="text-destructive">
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Anulează
-                          </Button>}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>)}
-            </div>}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
+          <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
         </div>
+
+        {bookings.length === 0 ? (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Nu ai rezervări</h3>
+              <p className="text-muted-foreground mb-6">Când vei face prima rezervare, o vei vedea aici.</p>
+              <Button asChild>
+                <a href="/facilities">Explorează Terenurile</a>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-6">
+            {bookings.map((booking) => (
+              <Card key={booking.id} className="transition-all duration-200 hover:shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-xl mb-2">{booking.facilities.name}</CardTitle>
+                      <div className="flex items-center text-muted-foreground mb-1">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        <span>{getSportsComplexName(booking.facilities.profiles?.user_type_comment || '', booking.facilities.profiles?.full_name || '')}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{booking.facilities.city}</p>
+                    </div>
+                    <div className="text-right">
+                      {getStatusBadge(booking.status)}
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {booking.facilities.facility_type}
+                      </p>
+                    </div>
+                  </div>
+                </CardHeader>
+                
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="flex items-center">
+                      <Calendar className="h-5 w-5 text-primary mr-3" />
+                      <div>
+                        <p className="font-medium">
+                          {format(new Date(booking.booking_date), 'EEEE, d MMMM yyyy', { locale: ro })}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Data rezervării</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <Clock className="h-5 w-5 text-primary mr-3" />
+                      <div>
+                        <p className="font-medium">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</p>
+                        <p className="text-sm text-muted-foreground">Interval orar</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      {booking.payment_method === 'card' ? (
+                        <CreditCard className="h-5 w-5 text-primary mr-3" />
+                      ) : (
+                        <Banknote className="h-5 w-5 text-primary mr-3" />
+                      )}
+                      <div>
+                        <p className="font-medium">{booking.total_price} RON</p>
+                        <p className="text-sm text-muted-foreground">
+                          {booking.payment_method === 'card' ? 'Plată cu cardul' : 'Plată cash'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {booking.status !== 'cancelled' && canCancelBooking(booking) && (
+                    <div className="flex justify-end pt-4 border-t">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            disabled={cancellingId === booking.id}
+                            className="text-red-600 border-red-200 hover:bg-red-50"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            {cancellingId === booking.id ? 'Se anulează...' : 'Anulează rezervarea'}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Anulezi această rezervare?</AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-2">
+                              <p>Această acțiune nu poate fi anulată.</p>
+                              {booking.payment_method === 'card' ? (
+                                <p className="font-medium text-green-600">
+                                  Banii vor fi returnați în 3-5 zile lucrătoare pe cardul folosit la plată.
+                                </p>
+                              ) : (
+                                <p className="font-medium text-amber-600">
+                                  Pentru plata cash, contactează direct baza sportivă pentru returnarea banilor.
+                                </p>
+                              )}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Înapoi</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleCancelBooking(booking.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Da, anulează
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
+
+                  {booking.status !== 'cancelled' && !canCancelBooking(booking) && (
+                    <div className="pt-4 border-t">
+                      <p className="text-sm text-muted-foreground text-center">
+                        Rezervarea nu mai poate fi anulată (mai puțin de 24h până la începere)
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </main>
       
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default MyReservationsPage;
