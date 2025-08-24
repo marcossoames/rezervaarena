@@ -9,9 +9,18 @@
     <meta name="author" content="SportBook" />
     <meta name="keywords" content="rezervare terenuri sportive, tenis, fotbal, padel, înot, sporturi România" />
     
-    <!-- DNS prefetch and preconnect for Supabase to reduce API call latency -->
+    <!-- Optimize critical request chains for better loading performance -->
+    <!-- Preconnect for Supabase API calls - with specific subdomain and proper attributes -->
+    <link rel="preconnect" href="https://ukopxkymzywfpobpcana.supabase.co" crossorigin="anonymous" />
     <link rel="dns-prefetch" href="//ukopxkymzywfpobpcana.supabase.co" />
-    <link rel="preconnect" href="https://ukopxkymzywfpobpcana.supabase.co" crossorigin />
+    
+    <!-- Prefetch critical API endpoints to reduce request chain delays -->
+    <link rel="prefetch" href="https://ukopxkymzywfpobpcana.supabase.co/rest/v1/rpc/get_facility_stats_by_type" crossorigin="anonymous" />
+    <link rel="prefetch" href="https://ukopxkymzywfpobpcana.supabase.co/rest/v1/articles?select=*&is_published=eq.true&order=created_at.desc" crossorigin="anonymous" />
+    
+    <!-- Early hints for better connection establishment -->
+    <link rel="preconnect" href="https://ukopxkymzywfpobpcana.supabase.co/rest" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://ukopxkymzywfpobpcana.supabase.co/storage" crossorigin="anonymous" />
     
     <!-- Critical CSS inlined to prevent render-blocking -->
     <style>
@@ -47,11 +56,15 @@
     <!-- Preload critical hero image for better LCP -->
     <link rel="preload" as="image" href="/src/assets/hero-sports.jpg" fetchpriority="high" />
     
-    <!-- Resource hints for better performance -->
-    <link rel="dns-prefetch" href="//images.unsplash.com" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <!-- Resource hints for critical third-party connections -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
-    <!-- Modern image format hints -->
+    <!-- Module preload for critical JavaScript chunks -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+    <link rel="modulepreload" href="/src/integrations/supabase/client.ts" />
+    
+    <!-- Modern image format hints for better optimization -->
     <meta name="imageFormat" content="webp,avif,jpeg" />
 
     <meta property="og:title" content="SportBook - Rezervă Terenuri Sportive Online" />

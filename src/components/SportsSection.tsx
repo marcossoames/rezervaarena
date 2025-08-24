@@ -70,25 +70,32 @@ const initialSportsData = [{
 }];
 const SportsSection = () => {
   const [sportsData, setSportsData] = useState<SportData[]>(initialSportsData);
+  
   useEffect(() => {
     const fetchSportsData = async () => {
       try {
-        // Use the new public function to get aggregated facility stats
-        const {
-          data: facilityStats,
-          error
-        } = await supabase.rpc('get_facility_stats_by_type');
-        if (error) {
-          console.error('Error fetching facility stats:', error);
-          return;
+        // Try to get cached data first to reduce request chain delays
+        const { getCachedFacilityStats } = await import('@/hooks/useCriticalDataPreloader');
+        const cachedStats = getCachedFacilityStats();
+        
+        let facilityStats;
+        
+        if (cachedStats) {
+          // Use cached data if available
+          facilityStats = cachedStats;
+        } else {
+          // Fallback to direct API call if cache miss
+          const { data, error } = await supabase.rpc('get_facility_stats_by_type');
+          if (error) {
+            console.error('Error fetching facility stats:', error);
+            return;
+          }
+          facilityStats = data;
         }
 
         // Create a map for easy lookup
-        const statsMap: Record<string, {
-          count: number;
-          minPrice: number;
-        }> = {};
-        facilityStats?.forEach(stat => {
+        const statsMap: Record<string, { count: number; minPrice: number }> = {};
+        facilityStats?.forEach((stat: any) => {
           statsMap[stat.facility_type] = {
             count: Number(stat.facility_count),
             minPrice: Number(stat.min_price)
@@ -107,11 +114,13 @@ const SportsSection = () => {
           }
           return sport;
         });
+        
         setSportsData(updatedSportsData);
       } catch (error) {
         console.error('Error fetching sports data:', error);
       }
     };
+    
     fetchSportsData();
   }, []);
   return <section id="terenuri" className="py-20 bg-secondary/20">
