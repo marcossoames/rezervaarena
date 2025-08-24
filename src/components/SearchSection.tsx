@@ -126,18 +126,28 @@ const SearchSection = () => {
                 <label className="text-sm font-medium text-foreground">Data rezervării</label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-background/50 border-border/50 hover:border-primary text-sm truncate", !selectedDate && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, "dd MMM yyyy", {
-                      locale: ro
-                    }) : "Selectează data"}
+                    <Button 
+                      variant="outline" 
+                      className={cn(
+                        "w-full h-11 justify-start text-left font-normal bg-background/50 border-border/50 hover:border-primary px-3",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">
+                        {selectedDate ? format(selectedDate, "dd MMM yyyy", { locale: ro }) : "Selectează data"}
+                      </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 z-50 bg-popover border shadow-lg" align="start">
-                    <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} disabled={date => isBefore(date, today) ||
-                  // Nu permite datele din trecut
-                  isBefore(maxSearchDate, date) // Nu permite datele peste 2 săptămâni
-                  } initialFocus className="p-3 pointer-events-auto bg-background rounded-md" />
+                    <Calendar 
+                      mode="single" 
+                      selected={selectedDate} 
+                      onSelect={setSelectedDate} 
+                      disabled={date => isBefore(date, today) || isBefore(maxSearchDate, date)} 
+                      initialFocus 
+                      className="p-3 pointer-events-auto bg-background rounded-md" 
+                    />
                     <div className="p-3 border-t bg-muted/50">
                       <p className="text-xs text-muted-foreground text-center">
                         📅 Poți căuta pentru următoarele 14 zile
@@ -150,30 +160,34 @@ const SearchSection = () => {
               {/* Time Range */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Intervalul orar</label>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <div className="relative flex-1">
-                    <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                     <Select value={startTime} onValueChange={setStartTime}>
-                      <SelectTrigger className="pl-10 bg-background/50 border-border/50 focus:border-primary">
+                      <SelectTrigger className="h-11 pl-10 bg-background/50 border-border/50 focus:border-primary">
                         <SelectValue placeholder="De la" />
                       </SelectTrigger>
                       <SelectContent className="bg-background border shadow-lg z-50">
-                        {getTimeOptions().filter(time => !endTime || time.value < endTime).map(time => <SelectItem key={time.value} value={time.value}>
+                        {getTimeOptions().filter(time => !endTime || time.value < endTime).map(time => 
+                          <SelectItem key={time.value} value={time.value}>
                             {time.label}
-                          </SelectItem>)}
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="relative flex-1">
-                    <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                     <Select value={endTime} onValueChange={setEndTime} disabled={!startTime}>
-                      <SelectTrigger className="pl-10 bg-background/50 border-border/50 focus:border-primary">
+                      <SelectTrigger className="h-11 pl-10 bg-background/50 border-border/50 focus:border-primary">
                         <SelectValue placeholder="Până la" />
                       </SelectTrigger>
                       <SelectContent className="bg-background border shadow-lg z-50">
-                        {getTimeOptions().filter(time => startTime && time.value > startTime).map(time => <SelectItem key={time.value} value={time.value}>
+                        {getTimeOptions().filter(time => startTime && time.value > startTime).map(time => 
+                          <SelectItem key={time.value} value={time.value}>
                             {time.label}
-                          </SelectItem>)}
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
