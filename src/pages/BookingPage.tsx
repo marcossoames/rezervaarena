@@ -315,6 +315,11 @@ const BookingPage = () => {
                     src={facility.images?.[0] || tennisImage} 
                     alt={facility.name}
                     className="w-full h-64 object-cover rounded-t-lg"
+                    loading="lazy"
+                    width="800"
+                    height="264"
+                    sizes="(max-width: 1024px) 100vw, 66vw"
+                    style={{ aspectRatio: '800/264' }}
                   />
                   <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">
                     {facility.facility_type}

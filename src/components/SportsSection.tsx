@@ -126,7 +126,16 @@ const SportsSection = () => {
           {sportsData.map(sport => <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none">
               <CardContent className="p-0">
                 <div className="relative overflow-hidden rounded-t-lg">
-                  <img src={sport.image} alt={sport.name} className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" />
+                  <img 
+                    src={sport.image} 
+                    alt={sport.name} 
+                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                    loading="lazy"
+                    width="800"
+                    height="372"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    style={{ aspectRatio: '800/372' }}
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
                     <h3 className="text-xl font-bold text-primary-foreground">{sport.name}</h3>
