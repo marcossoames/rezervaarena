@@ -143,19 +143,25 @@ const MyReservationsPage = () => {
               .eq('id', booking.facility_id)
               .single();
 
-            // Get client details
-            const { data: clientProfile } = await supabase
+            // Get client details with more comprehensive query
+            const { data: clientProfile, error: clientError } = await supabase
               .from('profiles')
-              .select('full_name, phone, user_type_comment')
+              .select('full_name, phone, email')
               .eq('user_id', booking.client_id)
               .single();
+            
+            console.log('Client profile for booking:', booking.id, 'Client ID:', booking.client_id, clientProfile, clientError);
 
             return {
               ...booking,
-              client_info: {
-                full_name: clientProfile?.full_name || 'Nume nedisponibil',
-                phone: clientProfile?.phone || 'Telefon nedisponibil',
-                email: 'Email nedisponibil' // We don't expose email for privacy
+              client_info: clientProfile ? {
+                full_name: clientProfile.full_name || 'Nume necompletat',
+                phone: clientProfile.phone || 'Telefon necompletat', 
+                email: 'Nu se afișează emailul' // Privacy protection
+              } : {
+                full_name: 'Profil client nu există',
+                phone: 'Contact indisponibil',
+                email: 'Nu se afișează emailul'
               },
               facilities: {
                 id: booking.facility_id,
