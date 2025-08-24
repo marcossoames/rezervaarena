@@ -54,8 +54,8 @@ serve(async (req) => {
     // Create account link for onboarding
     const accountLink = await stripe.accountLinks.create({
       account: profile.stripe_account_id,
-      refresh_url: `${req.headers.get("origin")}/facility-owner-profile?refresh=true`,
-      return_url: `${req.headers.get("origin")}/facility-owner-profile?success=true`,
+      refresh_url: `https://ukopxkymzywfpobpcana.supabase.co/facility-owner-profile?refresh=true`,
+      return_url: `https://ukopxkymzywfpobpcana.supabase.co/facility-owner-profile?success=true`,
       type: 'account_onboarding',
     });
 

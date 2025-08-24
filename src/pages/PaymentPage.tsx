@@ -186,7 +186,7 @@ const PaymentPage = () => {
           facilityId,
           date: selectedDate,
           time: startTime,
-          duration: parseInt(duration || '60')
+          duration: parseInt(duration || '60')  // Only send duration, server calculates price
         }
       });
 
