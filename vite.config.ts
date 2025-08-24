@@ -22,9 +22,28 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Optimize chunk splitting for better caching and code splitting
+    // Optimize chunk splitting and caching for better performance
     rollupOptions: {
       output: {
+        // Ensure consistent hashing for better caching
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name?.split('.') || [];
+          const ext = info[info.length - 1];
+          
+          // Different naming strategies for different asset types
+          if (/\.(png|jpe?g|webp|avif|svg|ico)$/i.test(assetInfo.name || '')) {
+            return `assets/images/[name]-[hash][extname]`;
+          }
+          if (/\.(css)$/i.test(assetInfo.name || '')) {
+            return `assets/styles/[name]-[hash][extname]`;
+          }
+          if (/\.(woff2?|eot|ttf|otf)$/i.test(assetInfo.name || '')) {
+            return `assets/fonts/[name]-[hash][extname]`;
+          }
+          return `assets/[name]-[hash][extname]`;
+        },
         manualChunks: {
           // Core React dependencies
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
@@ -40,22 +59,17 @@ export default defineConfig(({ mode }) => ({
           'chart-vendor': ['recharts'],
           // Icons
           'icon-vendor': ['lucide-react']
-        },
-        // Separate CSS files for better caching
-        assetFileNames: (assetInfo) => {
-          if (assetInfo.name?.endsWith('.css')) {
-            return 'assets/[name]-[hash][extname]';
-          }
-          return 'assets/[name]-[hash][extname]';
         }
       }
     },
-    // Compress assets without terser to avoid dependency issues
-    assetsInlineLimit: 2048, // Reduced inline limit to force external CSS
-    minify: 'esbuild', // Use esbuild instead of terser
-    cssCodeSplit: true, // Enable CSS code splitting
-    cssMinify: true, // Minify CSS
-    chunkSizeWarningLimit: 1000 // Warn for chunks larger than 1MB
+    // Optimize assets for caching
+    assetsInlineLimit: 2048, // Keep small assets inline for fewer requests
+    minify: 'esbuild',
+    cssCodeSplit: true,
+    cssMinify: true,
+    chunkSizeWarningLimit: 1000,
+    // Ensure source maps are generated for debugging but not in production bundle
+    sourcemap: false
   },
   // CSS preprocessing optimization
   css: {

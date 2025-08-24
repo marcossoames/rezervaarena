@@ -1,0 +1,197 @@
+// Service Worker for efficient caching strategy
+const CACHE_NAME = 'sportbook-v1';
+const STATIC_CACHE_NAME = 'sportbook-static-v1';
+const DYNAMIC_CACHE_NAME = 'sportbook-dynamic-v1';
+
+// Assets to cache immediately (critical resources)
+const STATIC_ASSETS = [
+  '/',
+  '/assets/hero-sports.jpg',
+  // Add other critical assets as needed
+];
+
+// Cache strategies
+const CACHE_STRATEGIES = {
+  // Cache images for 30 days
+  images: {
+    pattern: /\.(png|jpg|jpeg|webp|avif|svg|ico)$/i,
+    strategy: 'cache-first',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  },
+  // Cache JS/CSS for 1 year (they have hashes)
+  assets: {
+    pattern: /\.(js|css)$/i,
+    strategy: 'cache-first', 
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+  },
+  // Cache API responses for 5 minutes
+  api: {
+    pattern: /\/rest\/v1\//,
+    strategy: 'network-first',
+    maxAge: 5 * 60 * 1000, // 5 minutes
+  },
+  // Cache pages for 1 hour
+  pages: {
+    pattern: /\.html$/,
+    strategy: 'network-first',
+    maxAge: 60 * 60 * 1000, // 1 hour
+  }
+};
+
+// Install event - cache static assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE_NAME)
+      .then((cache) => {
+        return cache.addAll(STATIC_ASSETS);
+      })
+      .then(() => {
+        return self.skipWaiting();
+      })
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME && 
+                cacheName !== STATIC_CACHE_NAME && 
+                cacheName !== DYNAMIC_CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        return self.clients.claim();
+      })
+  );
+});
+
+// Fetch event - implement caching strategies
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  const url = new URL(request.url);
+
+  // Only handle GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Skip cross-origin requests except for known APIs
+  if (url.origin !== location.origin && !url.href.includes('supabase.co')) {
+    return;
+  }
+
+  // Determine cache strategy
+  let strategy = null;
+  let maxAge = null;
+  
+  for (const [key, config] of Object.entries(CACHE_STRATEGIES)) {
+    if (config.pattern.test(url.pathname) || config.pattern.test(url.href)) {
+      strategy = config.strategy;
+      maxAge = config.maxAge;
+      break;
+    }
+  }
+
+  if (strategy) {
+    event.respondWith(handleRequest(request, strategy, maxAge));
+  }
+});
+
+// Handle requests based on strategy
+async function handleRequest(request, strategy, maxAge) {
+  const url = new URL(request.url);
+  const cacheName = url.href.includes('supabase.co') ? DYNAMIC_CACHE_NAME : STATIC_CACHE_NAME;
+
+  if (strategy === 'cache-first') {
+    return cacheFirst(request, cacheName, maxAge);
+  } else if (strategy === 'network-first') {
+    return networkFirst(request, cacheName, maxAge);
+  }
+  
+  return fetch(request);
+}
+
+// Cache-first strategy (for static assets)
+async function cacheFirst(request, cacheName, maxAge) {
+  try {
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+    
+    if (cachedResponse) {
+      // Check if cache is still valid
+      const cachedTime = cachedResponse.headers.get('x-cached-time');
+      if (cachedTime && Date.now() - parseInt(cachedTime) < maxAge) {
+        return cachedResponse;
+      }
+    }
+    
+    // Fetch from network
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const responseToCache = networkResponse.clone();
+      // Add timestamp header
+      const headers = new Headers(responseToCache.headers);
+      headers.set('x-cached-time', Date.now().toString());
+      
+      const modifiedResponse = new Response(responseToCache.body, {
+        status: responseToCache.status,
+        statusText: responseToCache.statusText,
+        headers: headers
+      });
+      
+      cache.put(request, modifiedResponse);
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    // Return cached version if network fails
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+    return cachedResponse || new Response('Offline', { status: 503 });
+  }
+}
+
+// Network-first strategy (for dynamic content)
+async function networkFirst(request, cacheName, maxAge) {
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName);
+      const responseToCache = networkResponse.clone();
+      
+      // Add timestamp header
+      const headers = new Headers(responseToCache.headers);
+      headers.set('x-cached-time', Date.now().toString());
+      
+      const modifiedResponse = new Response(responseToCache.body, {
+        status: responseToCache.status,
+        statusText: responseToCache.statusText,
+        headers: headers
+      });
+      
+      cache.put(request, modifiedResponse);
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    // Fallback to cache
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+    
+    if (cachedResponse) {
+      const cachedTime = cachedResponse.headers.get('x-cached-time');
+      if (!cachedTime || Date.now() - parseInt(cachedTime) < maxAge) {
+        return cachedResponse;
+      }
+    }
+    
+    return new Response('Offline', { status: 503 });
+  }
+}
