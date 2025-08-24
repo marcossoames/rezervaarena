@@ -92,56 +92,33 @@ export const OptimizedImage = ({
 
   const targetDimensions = getTargetDimensions();
   
-  // Generate multiple format sources with proper sizing
+  // Generate simple sources - use original images for now
   const generateImageSources = () => {
-    const baseName = src.replace(/\.(jpg|jpeg|png)$/i, '');
-    const extension = src.match(/\.(jpg|jpeg|png)$/i)?.[1] || 'jpg';
-    
     return {
-      avif: `${baseName}.avif?w=${targetDimensions.width}&q=${quality}`,
-      webp: `${baseName}.webp?w=${targetDimensions.width}&q=${quality}`,
-      fallback: `${src}?w=${targetDimensions.width}&q=${quality}`
+      fallback: src // Use original image without modifications
     };
   };
 
   const sources = generateImageSources();
 
   return (
-    <picture>
-      {/* AVIF source for best compression (when available) */}
-      <source
-        srcSet={sources.avif}
-        type="image/avif"
-        sizes={getOptimalSizes()}
-        media="(min-width: 1px)" // Ensures it's considered by browsers that support AVIF
-      />
-      
-      {/* WebP source for modern browsers */}
-      <source
-        srcSet={sources.webp}
-        type="image/webp"
-        sizes={getOptimalSizes()}
-      />
-      
-      {/* JPEG/PNG fallback for older browsers */}
-      <img
-        src={imageError ? src : sources.fallback}
-        alt={alt}
-        className={`${className} ${!imageLoaded && loading === 'lazy' ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-        loading={loading}
-        fetchPriority={fetchPriority}
-        width={targetDimensions.width}
-        height={targetDimensions.height}
-        sizes={getOptimalSizes()}
-        style={{ ...style, aspectRatio: `${targetDimensions.width}/${targetDimensions.height}` }}
-        decoding="async"
-        onError={handleError}
-        onLoad={handleLoad}
-        // Add optimization attributes
-        data-optimized="true"
-        data-original-src={src}
-        data-target-size={`${targetDimensions.width}x${targetDimensions.height}`}
-      />
-    </picture>
+    <img
+      src={imageError ? src : sources.fallback}
+      alt={alt}
+      className={`${className} ${!imageLoaded && loading === 'lazy' ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+      loading={loading}
+      fetchPriority={fetchPriority}
+      width={targetDimensions.width}
+      height={targetDimensions.height}
+      sizes={getOptimalSizes()}
+      style={{ ...style, aspectRatio: `${targetDimensions.width}/${targetDimensions.height}` }}
+      decoding="async"
+      onError={handleError}
+      onLoad={handleLoad}
+      // Add optimization attributes
+      data-optimized="true"
+      data-original-src={src}
+      data-target-size={`${targetDimensions.width}x${targetDimensions.height}`}
+    />
   );
 };
