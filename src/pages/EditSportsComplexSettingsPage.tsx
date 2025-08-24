@@ -174,7 +174,7 @@ const EditSportsComplexSettingsPage = () => {
         description: "Setările au fost salvate cu succes",
       });
 
-      navigate("/manage-facilities");
+      navigate("/facility-owner-profile");
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
