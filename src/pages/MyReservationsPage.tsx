@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
-
 interface BasicBooking {
   id: string;
   booking_date: string;
@@ -24,7 +23,6 @@ interface BasicBooking {
   facility_id: string;
   client_id: string;
 }
-
 interface Booking extends BasicBooking {
   facilities: {
     id: string;
@@ -42,24 +40,25 @@ interface Booking extends BasicBooking {
     } | null;
   };
 }
-
 const MyReservationsPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     loadBookings();
   }, []);
-
   const loadBookings = async () => {
     try {
       console.log('Starting to load bookings...');
-      
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       console.log('Current user:', user?.id);
-      
       if (!user) {
         console.log('No user found');
         toast({
@@ -71,19 +70,17 @@ const MyReservationsPage = () => {
       }
 
       // First get all bookings for the user
-      const { data: userBookings, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('client_id', user.id)
-        .order('booking_date', { ascending: false });
-
+      const {
+        data: userBookings,
+        error: bookingsError
+      } = await supabase.from('bookings').select('*').eq('client_id', user.id).order('booking_date', {
+        ascending: false
+      });
       if (bookingsError) {
         console.error('Error fetching bookings:', bookingsError);
         throw bookingsError;
       }
-
       console.log('User bookings:', userBookings);
-
       if (!userBookings || userBookings.length === 0) {
         setBookings([]);
         return;
@@ -94,27 +91,24 @@ const MyReservationsPage = () => {
       console.log('Facility IDs:', facilityIds);
 
       // Use the same function as other pages to get complete facility data
-      const { data: allFacilities, error: facilitiesError } = await supabase
-        .rpc('get_facilities_for_authenticated_users');
-
+      const {
+        data: allFacilities,
+        error: facilitiesError
+      } = await supabase.rpc('get_facilities_for_authenticated_users');
       if (facilitiesError) {
         console.error('Error fetching facilities:', facilitiesError);
         throw facilitiesError;
       }
-
       console.log('All facilities from RPC:', allFacilities);
 
       // Filter only the facilities we need
       const facilities = allFacilities?.filter(f => facilityIds.includes(f.id)) || [];
-      
       console.log('Filtered facilities:', facilities);
 
       // Combine all data
       const completeBookings = userBookings.map(booking => {
         const facility = facilities.find(f => f.id === booking.facility_id);
-
         console.log('Facility for booking:', facility);
-
         return {
           ...booking,
           facilities: {
@@ -123,7 +117,8 @@ const MyReservationsPage = () => {
             facility_type: facility?.facility_type || 'nedefinit',
             city: facility?.city || 'Oraș nedefinit',
             address: facility?.sports_complex_address?.split(', ')[0] || '',
-            owner_id: facility?.id, // Not available in RPC response but not needed
+            owner_id: facility?.id,
+            // Not available in RPC response but not needed
             sports_complex_name: facility?.sports_complex_name || 'Baza Sportivă',
             sports_complex_address: facility?.sports_complex_address || facility?.city || 'Adresă nedefinită',
             profiles: facility?.phone_number ? {
@@ -134,10 +129,8 @@ const MyReservationsPage = () => {
           }
         };
       });
-
       console.log('Complete bookings:', completeBookings);
       setBookings(completeBookings);
-      
     } catch (error) {
       console.error('Error loading bookings:', error);
       toast({
@@ -149,41 +142,42 @@ const MyReservationsPage = () => {
       setLoading(false);
     }
   };
-
   const canCancelBooking = (booking: Booking) => {
     if (booking.status === 'cancelled') return false;
-    
     const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
     const now = new Date();
     const oneDayInMs = 24 * 60 * 60 * 1000;
     const timeDifference = bookingDateTime.getTime() - now.getTime();
-    
     return timeDifference >= oneDayInMs;
   };
-
   const handleCancelBooking = async (bookingId: string) => {
     setCancellingId(bookingId);
-    
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession();
       if (!session) {
         throw new Error('Nu sunteți autentificat');
       }
-
-      const { data, error } = await supabase.functions.invoke('cancel-booking', {
-        body: { bookingId },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('cancel-booking', {
+        body: {
+          bookingId
         },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
-
       if (error) {
         throw error;
       }
-
       toast({
         title: "Rezervare anulată",
-        description: data.message,
+        description: data.message
       });
 
       // Reload bookings to show updated status
@@ -199,7 +193,6 @@ const MyReservationsPage = () => {
       setCancellingId(null);
     }
   };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
@@ -214,11 +207,8 @@ const MyReservationsPage = () => {
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
-
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
+    return <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
@@ -227,12 +217,9 @@ const MyReservationsPage = () => {
           </div>
         </main>
         <Footer />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Header />
       
       <main className="container mx-auto px-4 py-8">
@@ -241,21 +228,17 @@ const MyReservationsPage = () => {
           <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
         </div>
 
-        {bookings.length === 0 ? (
-          <Card className="text-center py-12">
+        {bookings.length === 0 ? <Card className="text-center py-12">
             <CardContent>
               <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Nu ai rezervări</h3>
-              <p className="text-muted-foreground mb-6">Când vei face prima rezervare, o vei vedea aici.</p>
+              <p className="text-muted-foreground mb-6">Când vei avea rezervări le vei vedea aici.</p>
               <Button asChild>
                 <a href="/facilities">Explorează Terenurile</a>
               </Button>
             </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6">
-            {bookings.map((booking) => (
-              <Card key={booking.id} className="transition-all duration-200 hover:shadow-lg">
+          </Card> : <div className="grid gap-6">
+            {bookings.map(booking => <Card key={booking.id} className="transition-all duration-200 hover:shadow-lg">
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -265,14 +248,12 @@ const MyReservationsPage = () => {
                         <span>{booking.facilities.sports_complex_name || 'Baza Sportivă'}</span>
                       </div>
                       <p className="text-sm text-muted-foreground">{booking.facilities.sports_complex_address || booking.facilities.city}</p>
-                      {booking.facilities.profiles?.phone && (
-                        <div className="flex items-center text-sm text-muted-foreground mt-1">
+                      {booking.facilities.profiles?.phone && <div className="flex items-center text-sm text-muted-foreground mt-1">
                           <span className="mr-2">📞</span>
                           <a href={`tel:${booking.facilities.profiles.phone}`} className="text-primary hover:underline">
                             {booking.facilities.profiles.phone}
                           </a>
-                        </div>
-                      )}
+                        </div>}
                     </div>
                     <div className="text-right">
                       {getStatusBadge(booking.status)}
@@ -289,7 +270,9 @@ const MyReservationsPage = () => {
                       <Calendar className="h-5 w-5 text-primary mr-3" />
                       <div>
                         <p className="font-medium">
-                          {format(new Date(booking.booking_date), 'EEEE, d MMMM yyyy', { locale: ro })}
+                          {format(new Date(booking.booking_date), 'EEEE, d MMMM yyyy', {
+                      locale: ro
+                    })}
                         </p>
                         <p className="text-sm text-muted-foreground">Data rezervării</p>
                       </div>
@@ -304,11 +287,7 @@ const MyReservationsPage = () => {
                     </div>
                     
                     <div className="flex items-center">
-                      {booking.payment_method === 'card' ? (
-                        <CreditCard className="h-5 w-5 text-primary mr-3" />
-                      ) : (
-                        <Banknote className="h-5 w-5 text-primary mr-3" />
-                      )}
+                      {booking.payment_method === 'card' ? <CreditCard className="h-5 w-5 text-primary mr-3" /> : <Banknote className="h-5 w-5 text-primary mr-3" />}
                       <div>
                         <p className="font-medium">{booking.total_price} RON</p>
                         <p className="text-sm text-muted-foreground">
@@ -318,16 +297,10 @@ const MyReservationsPage = () => {
                     </div>
                   </div>
 
-                  {booking.status !== 'cancelled' && canCancelBooking(booking) && (
-                    <div className="flex justify-end pt-4 border-t">
+                  {booking.status !== 'cancelled' && canCancelBooking(booking) && <div className="flex justify-end pt-4 border-t">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            disabled={cancellingId === booking.id}
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                          >
+                          <Button variant="outline" size="sm" disabled={cancellingId === booking.id} className="text-red-600 border-red-200 hover:bg-red-50">
                             <X className="h-4 w-4 mr-2" />
                             {cancellingId === booking.id ? 'Se anulează...' : 'Anulează rezervarea'}
                           </Button>
@@ -337,44 +310,32 @@ const MyReservationsPage = () => {
                             <AlertDialogTitle>Anulezi această rezervare?</AlertDialogTitle>
                             <AlertDialogDescription className="space-y-2">
                               <p>Această acțiune nu poate fi anulată.</p>
-                              {booking.payment_method === 'card' && (
-                                <p className="font-medium text-green-600">
+                              {booking.payment_method === 'card' && <p className="font-medium text-green-600">
                                   Banii vor fi returnați în 3-5 zile lucrătoare pe cardul folosit la plată.
-                                </p>
-                              )}
+                                </p>}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Înapoi</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleCancelBooking(booking.id)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
+                            <AlertDialogAction onClick={() => handleCancelBooking(booking.id)} className="bg-red-600 hover:bg-red-700">
                               Da, anulează
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
-                    </div>
-                  )}
+                    </div>}
 
-                  {booking.status !== 'cancelled' && !canCancelBooking(booking) && (
-                    <div className="pt-4 border-t">
+                  {booking.status !== 'cancelled' && !canCancelBooking(booking) && <div className="pt-4 border-t">
                       <p className="text-sm text-muted-foreground text-center">
                         Rezervarea nu mai poate fi anulată (mai puțin de 24h până la începere)
                       </p>
-                    </div>
-                  )}
+                    </div>}
                 </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+              </Card>)}
+          </div>}
       </main>
       
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default MyReservationsPage;
