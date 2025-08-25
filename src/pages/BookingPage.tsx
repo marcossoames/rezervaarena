@@ -430,7 +430,7 @@ const BookingPage = () => {
                 />
                 
                 {/* Add "Go to Today" button */}
-                <div className="mt-4 flex justify-center">
+                <div className="mt-6 mb-4 flex justify-center">
                   <Button 
                     variant="outline" 
                     size="sm"

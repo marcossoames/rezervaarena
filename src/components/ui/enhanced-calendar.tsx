@@ -67,7 +67,7 @@ function EnhancedCalendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
-        Day: ({ date, ...dayProps }) => {
+        Day: ({ date, displayMonth }) => {
           const dateString = format(date, 'yyyy-MM-dd');
           const isBlocked = blockedDatesSet.has(dateString);
           const isToday = isSameDay(date, today);
@@ -80,11 +80,10 @@ function EnhancedCalendar({
           
           return (
             <div className="relative w-9 h-9">
-              <button
-                {...dayProps}
+              <div
                 className={cn(
                   buttonVariants({ variant: "ghost" }),
-                  "h-9 w-9 p-0 font-normal aria-selected:opacity-100 relative",
+                  "h-9 w-9 p-0 font-normal relative",
                   // Today styling - golden/orange gradient with bold border
                   isToday && !isSelected && "bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold shadow-lg border-2 border-amber-300",
                   // Selected styling - primary color
@@ -92,11 +91,10 @@ function EnhancedCalendar({
                   // Today + Selected styling - enhanced primary with gold accent
                   isToday && isSelected && "bg-primary text-primary-foreground border-2 border-amber-300 shadow-lg",
                   // Blocked styling
-                  isBlocked && "bg-red-100 text-red-600 line-through opacity-75 cursor-not-allowed",
+                  isBlocked && "bg-red-100 text-red-600 line-through opacity-75",
                   // Disabled styling
-                  isDisabled && "text-muted-foreground opacity-50 cursor-not-allowed"
+                  isDisabled && "text-muted-foreground opacity-50"
                 )}
-                disabled={isDisabled || isBlocked}
               >
                 <span className={cn(isBlocked && "relative z-10")}>
                   {date.getDate()}
@@ -104,7 +102,7 @@ function EnhancedCalendar({
                 {isBlocked && (
                   <X className="absolute inset-0 w-4 h-4 m-auto text-red-500 z-20" strokeWidth={3} />
                 )}
-              </button>
+              </div>
             </div>
           );
         },
