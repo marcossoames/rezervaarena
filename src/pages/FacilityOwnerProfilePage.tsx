@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Calendar, Building2, Settings, User, Trash2, CreditCard, CheckCircle, AlertCircle, Edit, Plus } from "lucide-react";
+import { ArrowLeft, Calendar, Building2, Settings, User, Trash2, CreditCard, CheckCircle, AlertCircle, Edit, Plus, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -535,7 +535,7 @@ const FacilityOwnerProfilePage = () => {
           </Dialog>
 
           {/* Navigation Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/my-reservations')}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -556,6 +556,18 @@ const FacilityOwnerProfilePage = () => {
                 </CardTitle>
                 <CardDescription>
                   Adaugă, editează sau șterge facilitățile sportive
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/facility-owner-income')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Venituri
+                </CardTitle>
+                <CardDescription>
+                  Vizualizează veniturile din rezervări și comisioane
                 </CardDescription>
               </CardHeader>
             </Card>

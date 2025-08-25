@@ -4,34 +4,40 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { DollarSign, Calendar, TrendingUp, CreditCard, Banknote, BarChart3, RefreshCw } from "lucide-react";
+import { DollarSign, Calendar, TrendingUp, CreditCard, Banknote, BarChart3, RefreshCw, Wallet } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear } from "date-fns";
 import { ro } from "date-fns/locale";
 
-interface IncomeData {
-  physicalIncome: number;
-  onlineIncome: number;
-  totalIncome: number;
+interface FacilityIncomeData {
+  totalReceivedCash: number;
+  totalReceivedCard: number;
+  totalReceived: number;
   totalBookings: number;
-  physicalBookings: number;
-  onlineBookings: number;
+  cashBookings: number;
+  cardBookings: number;
+  totalGrossCash: number;
+  totalGrossCard: number;
+  totalGross: number;
 }
 
-interface MonthlyIncomeData extends IncomeData {
+interface MonthlyFacilityIncomeData extends FacilityIncomeData {
   month: string;
   year: number;
 }
 
-const IncomeManagement = () => {
-  const [incomeData, setIncomeData] = useState<IncomeData>({
-    physicalIncome: 0,
-    onlineIncome: 0,
-    totalIncome: 0,
+const FacilityIncomeManagement = () => {
+  const [incomeData, setIncomeData] = useState<FacilityIncomeData>({
+    totalReceivedCash: 0,
+    totalReceivedCard: 0,
+    totalReceived: 0,
     totalBookings: 0,
-    physicalBookings: 0,
-    onlineBookings: 0
+    cashBookings: 0,
+    cardBookings: 0,
+    totalGrossCash: 0,
+    totalGrossCard: 0,
+    totalGross: 0
   });
-  const [monthlyData, setMonthlyData] = useState<MonthlyIncomeData[]>([]);
+  const [monthlyData, setMonthlyData] = useState<MonthlyFacilityIncomeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<string>("current_month");
   const { toast } = useToast();
@@ -43,6 +49,36 @@ const IncomeManagement = () => {
   const loadIncomeData = async () => {
     try {
       setIsLoading(true);
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      // Get user's facilities
+      const { data: facilities, error: facilitiesError } = await supabase
+        .from('facilities')
+        .select('id')
+        .eq('owner_id', user.id);
+
+      if (facilitiesError) throw facilitiesError;
+
+      const facilityIds = facilities?.map(f => f.id) || [];
+      
+      if (facilityIds.length === 0) {
+        setIncomeData({
+          totalReceivedCash: 0,
+          totalReceivedCard: 0,
+          totalReceived: 0,
+          totalBookings: 0,
+          cashBookings: 0,
+          cardBookings: 0,
+          totalGrossCash: 0,
+          totalGrossCard: 0,
+          totalGross: 0
+        });
+        setMonthlyData([]);
+        return;
+      }
       
       let startDate: Date;
       let endDate: Date;
@@ -71,47 +107,56 @@ const IncomeManagement = () => {
           endDate = endOfMonth(now);
       }
 
-      // Fetch all bookings for the selected period
+      // Fetch all bookings for the selected period and facilities
       const { data: bookings, error } = await supabase
         .from('bookings')
         .select('*')
+        .in('facility_id', facilityIds)
         .gte('booking_date', format(startDate, 'yyyy-MM-dd'))
         .lte('booking_date', format(endDate, 'yyyy-MM-dd'))
         .order('booking_date', { ascending: false });
 
       if (error) throw error;
 
-      let physicalIncome = 0;
-      let onlineIncome = 0;
-      let physicalBookings = 0;
-      let onlineBookings = 0;
+      let totalReceivedCash = 0;
+      let totalReceivedCard = 0;
+      let cashBookings = 0;
+      let cardBookings = 0;
+      let totalGrossCash = 0;
+      let totalGrossCard = 0;
 
       bookings?.forEach(booking => {
         if (booking.payment_method === 'cash' && booking.status === 'completed') {
-          // For cash payments, we take 10% commission only from completed bookings
-          physicalIncome += booking.total_price * 0.1;
-          physicalBookings++;
+          // For cash payments: facility gets 90%, platform gets 10%
+          totalReceivedCash += booking.total_price * 0.9;
+          totalGrossCash += booking.total_price;
+          cashBookings++;
         } else if (booking.payment_method === 'card' && ['confirmed', 'completed'].includes(booking.status)) {
-          // For online payments, we take the full amount from confirmed/completed bookings
-          onlineIncome += booking.total_price;
-          onlineBookings++;
+          // For card payments: facility gets 90%, platform gets 10%
+          totalReceivedCard += booking.total_price * 0.9;
+          totalGrossCard += booking.total_price;
+          cardBookings++;
         }
       });
 
-      const totalIncome = physicalIncome + onlineIncome;
-      const totalBookings = physicalBookings + onlineBookings;
+      const totalReceived = totalReceivedCash + totalReceivedCard;
+      const totalBookings = cashBookings + cardBookings;
+      const totalGross = totalGrossCash + totalGrossCard;
 
       setIncomeData({
-        physicalIncome,
-        onlineIncome,
-        totalIncome,
+        totalReceivedCash,
+        totalReceivedCard,
+        totalReceived,
         totalBookings,
-        physicalBookings,
-        onlineBookings
+        cashBookings,
+        cardBookings,
+        totalGrossCash,
+        totalGrossCard,
+        totalGross
       });
 
       // Load monthly data for the chart (last 3 months)
-      await loadMonthlyData();
+      await loadMonthlyData(facilityIds);
 
     } catch (error) {
       console.error('Error loading income data:', error);
@@ -125,9 +170,9 @@ const IncomeManagement = () => {
     }
   };
 
-  const loadMonthlyData = async () => {
+  const loadMonthlyData = async (facilityIds: string[]) => {
     try {
-      const monthsData: MonthlyIncomeData[] = [];
+      const monthsData: MonthlyFacilityIncomeData[] = [];
       const now = new Date();
 
       for (let i = 2; i >= 0; i--) {
@@ -138,35 +183,43 @@ const IncomeManagement = () => {
         const { data: bookings, error } = await supabase
           .from('bookings')
           .select('*')
+          .in('facility_id', facilityIds)
           .gte('booking_date', format(startDate, 'yyyy-MM-dd'))
           .lte('booking_date', format(endDate, 'yyyy-MM-dd'));
 
         if (error) throw error;
 
-        let physicalIncome = 0;
-        let onlineIncome = 0;
-        let physicalBookings = 0;
-        let onlineBookings = 0;
+        let totalReceivedCash = 0;
+        let totalReceivedCard = 0;
+        let cashBookings = 0;
+        let cardBookings = 0;
+        let totalGrossCash = 0;
+        let totalGrossCard = 0;
 
         bookings?.forEach(booking => {
           if (booking.payment_method === 'cash' && booking.status === 'completed') {
-            physicalIncome += booking.total_price * 0.1;
-            physicalBookings++;
+            totalReceivedCash += booking.total_price * 0.9;
+            totalGrossCash += booking.total_price;
+            cashBookings++;
           } else if (booking.payment_method === 'card' && ['confirmed', 'completed'].includes(booking.status)) {
-            onlineIncome += booking.total_price;
-            onlineBookings++;
+            totalReceivedCard += booking.total_price * 0.9;
+            totalGrossCard += booking.total_price;
+            cardBookings++;
           }
         });
 
         monthsData.push({
           month: format(monthDate, 'MMM', { locale: ro }),
           year: monthDate.getFullYear(),
-          physicalIncome,
-          onlineIncome,
-          totalIncome: physicalIncome + onlineIncome,
-          totalBookings: physicalBookings + onlineBookings,
-          physicalBookings,
-          onlineBookings
+          totalReceivedCash,
+          totalReceivedCard,
+          totalReceived: totalReceivedCash + totalReceivedCard,
+          totalBookings: cashBookings + cardBookings,
+          cashBookings,
+          cardBookings,
+          totalGrossCash,
+          totalGrossCard,
+          totalGross: totalGrossCash + totalGrossCard
         });
       }
 
@@ -215,10 +268,10 @@ const IncomeManagement = () => {
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-primary" />
+                <Wallet className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">Rapoarte Încasări</h1>
+                <h1 className="text-xl font-bold">Venituri Baza Sportivă</h1>
                 <p className="text-sm text-muted-foreground">Perioada: {getPeriodLabel()}</p>
               </div>
             </div>
@@ -249,42 +302,55 @@ const IncomeManagement = () => {
 
         <CardContent className="p-6">
           {/* Income Summary Cards */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
             <Card className="border-l-4 border-l-orange-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Încasări Fizice (Cash)</CardTitle>
+                <CardTitle className="text-sm font-medium">Încasări Cash (90%)</CardTitle>
                 <Banknote className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{incomeData.physicalIncome.toFixed(2)} RON</div>
+                <div className="text-2xl font-bold text-orange-600">{incomeData.totalReceivedCash.toFixed(2)} RON</div>
                 <p className="text-xs text-muted-foreground">
-                  10% comision din {incomeData.physicalBookings} rezervări cash finalizate
+                  Din {incomeData.totalGrossCash.toFixed(2)} RON total • {incomeData.cashBookings} rezervări
                 </p>
               </CardContent>
             </Card>
 
             <Card className="border-l-4 border-l-blue-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Încasări Online</CardTitle>
+                <CardTitle className="text-sm font-medium">Încasări Card (90%)</CardTitle>
                 <CreditCard className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{incomeData.onlineIncome.toFixed(2)} RON</div>
+                <div className="text-2xl font-bold text-blue-600">{incomeData.totalReceivedCard.toFixed(2)} RON</div>
                 <p className="text-xs text-muted-foreground">
-                  Suma completă din {incomeData.onlineBookings} rezervări online
+                  Din {incomeData.totalGrossCard.toFixed(2)} RON total • {incomeData.cardBookings} rezervări
                 </p>
               </CardContent>
             </Card>
 
             <Card className="border-l-4 border-l-green-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Încasări</CardTitle>
-                <TrendingUp className="h-4 w-4 text-green-600" />
+                <CardTitle className="text-sm font-medium">Total Primit</CardTitle>
+                <TrendingUp className="h-5 w-5 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{incomeData.totalIncome.toFixed(2)} RON</div>
+                <div className="text-2xl font-bold text-green-600">{incomeData.totalReceived.toFixed(2)} RON</div>
                 <p className="text-xs text-muted-foreground">
-                  Din {incomeData.totalBookings} rezervări procesate
+                  Din {incomeData.totalGross.toFixed(2)} RON total • {incomeData.totalBookings} rezervări
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-purple-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Comision Platformă</CardTitle>
+                <DollarSign className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">{(incomeData.totalGross - incomeData.totalReceived).toFixed(2)} RON</div>
+                <p className="text-xs text-muted-foreground">
+                  10% din totalul de {incomeData.totalGross.toFixed(2)} RON
                 </p>
               </CardContent>
             </Card>
@@ -310,10 +376,10 @@ const IncomeManagement = () => {
                       </h4>
                       <div className="text-right">
                         <div className="text-lg font-bold text-green-600">
-                          {month.totalIncome.toFixed(2)} RON
+                          {month.totalReceived.toFixed(2)} RON primit
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {month.totalBookings} rezervări
+                          din {month.totalGross.toFixed(2)} RON total • {month.totalBookings} rezervări
                         </div>
                       </div>
                     </div>
@@ -322,22 +388,22 @@ const IncomeManagement = () => {
                       <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
                         <div className="flex items-center gap-2">
                           <Banknote className="h-4 w-4 text-orange-600" />
-                          <span className="text-sm font-medium">Cash (10%)</span>
+                          <span className="text-sm font-medium">Cash (90%)</span>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold text-orange-600">{month.physicalIncome.toFixed(2)} RON</div>
-                          <div className="text-xs text-muted-foreground">{month.physicalBookings} rezervări</div>
+                          <div className="font-semibold text-orange-600">{month.totalReceivedCash.toFixed(2)} RON</div>
+                          <div className="text-xs text-muted-foreground">din {month.totalGrossCash.toFixed(2)} RON • {month.cashBookings} rezervări</div>
                         </div>
                       </div>
                       
                       <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                         <div className="flex items-center gap-2">
                           <CreditCard className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium">Online (100%)</span>
+                          <span className="text-sm font-medium">Card (90%)</span>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold text-blue-600">{month.onlineIncome.toFixed(2)} RON</div>
-                          <div className="text-xs text-muted-foreground">{month.onlineBookings} rezervări</div>
+                          <div className="font-semibold text-blue-600">{month.totalReceivedCard.toFixed(2)} RON</div>
+                          <div className="text-xs text-muted-foreground">din {month.totalGrossCard.toFixed(2)} RON • {month.cardBookings} rezervări</div>
                         </div>
                       </div>
                     </div>
@@ -359,9 +425,9 @@ const IncomeManagement = () => {
               <div className="flex items-start gap-3">
                 <Banknote className="h-5 w-5 text-orange-600 mt-0.5" />
                 <div>
-                  <p className="font-medium">Încasări Fizice (Cash)</p>
+                  <p className="font-medium">Încasări Cash</p>
                   <p className="text-sm text-muted-foreground">
-                    Se calculează 10% comision doar din rezervările cu plată cash care au fost finalizate (status: completed)
+                    Primiți 90% din rezervările cu plată cash finalizate. Platforma percepe 10% comision.
                   </p>
                 </div>
               </div>
@@ -369,9 +435,9 @@ const IncomeManagement = () => {
               <div className="flex items-start gap-3">
                 <CreditCard className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div>
-                  <p className="font-medium">Încasări Online</p>
+                  <p className="font-medium">Încasări Card</p>
                   <p className="text-sm text-muted-foreground">
-                    Se calculează suma completă din rezervările cu plată card care sunt confirmate sau finalizate
+                    Primiți 90% din rezervările cu plată card confirmate sau finalizate. Platforma percepe 10% comision.
                   </p>
                 </div>
               </div>
@@ -379,9 +445,9 @@ const IncomeManagement = () => {
               <div className="flex items-start gap-3">
                 <TrendingUp className="h-5 w-5 text-green-600 mt-0.5" />
                 <div>
-                  <p className="font-medium">Total Încasări</p>
+                  <p className="font-medium">Total Primit</p>
                   <p className="text-sm text-muted-foreground">
-                    Suma încasărilor fizice și online pentru perioada selectată
+                    Suma totală pe care o primiți din toate rezervările pentru perioada selectată
                   </p>
                 </div>
               </div>
@@ -393,4 +459,4 @@ const IncomeManagement = () => {
   );
 };
 
-export default IncomeManagement;
+export default FacilityIncomeManagement;

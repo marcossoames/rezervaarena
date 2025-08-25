@@ -35,6 +35,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const ArticlesPage = lazy(() => import("./pages/ArticlesPage"));
 const PaymentSuccessPage = lazy(() => import("./pages/PaymentSuccessPage"));
 const PlatformPaymentsPage = lazy(() => import("./pages/PlatformPaymentsPage"));
+const FacilityOwnerIncomePage = lazy(() => import("./pages/FacilityOwnerIncomePage"));
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ const App = () => (
             <Route path="/payment/:facilityId" element={<PaymentPage />} />
             <Route path="/payment-success" element={<PaymentSuccessPage />} />
             <Route path="/platform-payments" element={<PlatformPaymentsPage />} />
+            <Route path="/facility-owner-income" element={<FacilityOwnerIncomePage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
