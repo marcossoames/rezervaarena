@@ -53,10 +53,6 @@ const PaymentPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'cash' | 'card' | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [ownerStripeStatus, setOwnerStripeStatus] = useState<{
-    hasStripe: boolean;
-    chargesEnabled: boolean;
-  } | null>(null);
 
   useEffect(() => {
     const loadFacility = async () => {
@@ -105,9 +101,6 @@ const PaymentPage = () => {
 
         facilityWithSportsComplex.owner_id = facilityData.owner_id;
         setFacility(facilityWithSportsComplex);
-        
-        // Check owner's Stripe status
-        await checkOwnerStripeStatus(facilityData.owner_id);
       } catch (error) {
         console.error('Error loading facility:', error);
         toast({
@@ -122,30 +115,6 @@ const PaymentPage = () => {
 
     loadFacility();
   }, [facilityId, toast]);
-
-  const checkOwnerStripeStatus = async (ownerId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('stripe_account_id, stripe_charges_enabled, stripe_onboarding_complete')
-        .eq('user_id', ownerId)
-        .single();
-
-      if (error) {
-        console.error('Error checking owner Stripe status:', error);
-        setOwnerStripeStatus({ hasStripe: false, chargesEnabled: false });
-        return;
-      }
-
-      setOwnerStripeStatus({
-        hasStripe: !!data.stripe_account_id && data.stripe_onboarding_complete,
-        chargesEnabled: data.stripe_charges_enabled || false
-      });
-    } catch (error) {
-      console.error('Error checking owner Stripe status:', error);
-      setOwnerStripeStatus({ hasStripe: false, chargesEnabled: false });
-    }
-  };
 
   const handleCashPayment = async () => {
     if (!facility || !selectedDate || !startTime || !endTime) return;
@@ -398,50 +367,32 @@ const PaymentPage = () => {
                   </CardContent>
                 </Card>
 
-                {/* Card Payment Option - Only show if owner has Stripe connected */}
-                {ownerStripeStatus?.hasStripe && ownerStripeStatus?.chargesEnabled ? (
-                  <Card 
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      selectedPaymentMethod === 'card' 
-                        ? 'ring-2 ring-primary border-primary' 
-                        : 'border-border'
-                    }`}
-                    onClick={() => setSelectedPaymentMethod('card')}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex-shrink-0">
-                          <CreditCard className="h-8 w-8 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold">Plată cu cardul</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Plătești online cu cardul bancar (securizat prin Stripe)
-                          </p>
-                        </div>
-                        {selectedPaymentMethod === 'card' && (
-                          <CheckCircle className="h-6 w-6 text-primary" />
-                        )}
+                {/* Card Payment Option - Always available now */}
+                <Card 
+                  className={`cursor-pointer transition-all hover:shadow-md ${
+                    selectedPaymentMethod === 'card' 
+                      ? 'ring-2 ring-primary border-primary' 
+                      : 'border-border'
+                  }`}
+                  onClick={() => setSelectedPaymentMethod('card')}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex-shrink-0">
+                        <CreditCard className="h-8 w-8 text-blue-600" />
                       </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card className="border-border opacity-60">
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex-shrink-0">
-                          <CreditCard className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-muted-foreground">Plată cu cardul</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Nu este disponibilă - baza sportivă nu are plăți online configurate
-                          </p>
-                        </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold">Plată cu cardul</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Plătești online cu cardul bancar (securizat prin Stripe)
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                      {selectedPaymentMethod === 'card' && (
+                        <CheckCircle className="h-6 w-6 text-primary" />
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Action Buttons */}
                 <div className="pt-4 space-y-3">

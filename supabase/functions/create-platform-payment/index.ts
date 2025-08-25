@@ -85,17 +85,19 @@ serve(async (req) => {
       logStep("No existing customer, will create during checkout");
     }
 
-    // Calculate fees - 5% platform fee
-    const platformFeePercentage = 0.05;
+    // Calculate fees - Stripe fee is 1.5% + 1 RON
     const totalAmountCents = Math.round(totalPrice * 100);
-    const platformFeeCents = Math.round(totalAmountCents * platformFeePercentage);
-    const facilityOwnerAmountCents = totalAmountCents - platformFeeCents;
+    const stripeFeePercentage = 0.015; // 1.5%
+    const stripeFixedFeeCents = 100; // 1 RON in cents
+    const stripeTotalFeeCents = Math.round(totalAmountCents * stripeFeePercentage) + stripeFixedFeeCents;
+    const facilityOwnerAmountCents = totalAmountCents - stripeTotalFeeCents;
 
     logStep("Fee calculation", {
       totalAmountCents,
-      platformFeeCents,
+      stripeTotalFeeCents,
       facilityOwnerAmountCents,
-      platformFeePercentage
+      stripeFeePercentage,
+      stripeFixedFeeCents
     });
 
     // Create Stripe checkout session - all money goes to platform
@@ -169,7 +171,7 @@ serve(async (req) => {
         client_id: user.id,
         stripe_session_id: session.id,
         total_amount: totalPrice,
-        platform_fee_amount: platformFeeCents / 100,
+        platform_fee_amount: stripeTotalFeeCents / 100,
         facility_owner_amount: facilityOwnerAmountCents / 100,
         payment_status: 'pending',
         distributed_status: 'pending'

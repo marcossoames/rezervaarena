@@ -425,46 +425,43 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_holder_name: string | null
+          bank_name: string | null
           created_at: string
           email: string
           full_name: string
+          iban: string | null
           id: string
           phone: string
           role: Database["public"]["Enums"]["user_role"]
-          stripe_account_id: string | null
-          stripe_charges_enabled: boolean | null
-          stripe_onboarding_complete: boolean | null
-          stripe_payouts_enabled: boolean | null
           updated_at: string
           user_id: string
           user_type_comment: string | null
         }
         Insert: {
+          account_holder_name?: string | null
+          bank_name?: string | null
           created_at?: string
           email: string
           full_name: string
+          iban?: string | null
           id?: string
           phone: string
           role?: Database["public"]["Enums"]["user_role"]
-          stripe_account_id?: string | null
-          stripe_charges_enabled?: boolean | null
-          stripe_onboarding_complete?: boolean | null
-          stripe_payouts_enabled?: boolean | null
           updated_at?: string
           user_id: string
           user_type_comment?: string | null
         }
         Update: {
+          account_holder_name?: string | null
+          bank_name?: string | null
           created_at?: string
           email?: string
           full_name?: string
+          iban?: string | null
           id?: string
           phone?: string
           role?: Database["public"]["Enums"]["user_role"]
-          stripe_account_id?: string | null
-          stripe_charges_enabled?: boolean | null
-          stripe_onboarding_complete?: boolean | null
-          stripe_payouts_enabled?: boolean | null
           updated_at?: string
           user_id?: string
           user_type_comment?: string | null
