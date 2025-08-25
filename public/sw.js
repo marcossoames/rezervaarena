@@ -1,7 +1,7 @@
 // Service Worker for efficient caching strategy
-const CACHE_NAME = 'sportbook-v1';
-const STATIC_CACHE_NAME = 'sportbook-static-v1';
-const DYNAMIC_CACHE_NAME = 'sportbook-dynamic-v1';
+const CACHE_NAME = 'sportbook-v2';
+const STATIC_CACHE_NAME = 'sportbook-static-v2';
+const DYNAMIC_CACHE_NAME = 'sportbook-dynamic-v2';
 
 // Assets to cache immediately (critical resources)
 const STATIC_ASSETS = [
@@ -98,13 +98,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Always cache static assets from /assets/ path
+  // Handle static assets with simple caching
   if (url.pathname.startsWith('/assets/')) {
-    event.respondWith(handleStaticAsset(request));
+    event.respondWith(
+      caches.open(STATIC_CACHE_NAME).then(cache => {
+        return cache.match(request).then(cachedResponse => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          
+          return fetch(request).then(networkResponse => {
+            if (networkResponse.ok) {
+              cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          });
+        });
+      })
+    );
     return;
   }
 
-  // Determine cache strategy
+  // Determine cache strategy for other requests
   let strategy = null;
   let maxAge = null;
   
@@ -210,42 +225,5 @@ async function networkFirst(request, cacheName, maxAge) {
     }
     
     return new Response('Offline', { status: 503 });
-  }
-}
-
-// Optimized static asset caching with aggressive cache headers
-async function handleStaticAsset(request) {
-  const cache = await caches.open(STATIC_CACHE_NAME);
-  const cachedResponse = await cache.match(request);
-  
-  // Return cached version immediately if available
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-  
-  try {
-    // Fetch from network with cache headers
-    const networkResponse = await fetch(request);
-    
-    if (networkResponse.ok) {
-      // Clone and add aggressive cache headers
-      const headers = new Headers(networkResponse.headers);
-      headers.set('Cache-Control', 'public, max-age=31536000, immutable'); // 1 year
-      headers.set('x-cached-time', Date.now().toString());
-      
-      const cachedResponse = new Response(networkResponse.body, {
-        status: networkResponse.status,
-        statusText: networkResponse.statusText,
-        headers: headers
-      });
-      
-      // Cache the response
-      cache.put(request, cachedResponse.clone());
-      return cachedResponse;
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    return new Response('Asset not found', { status: 404 });
   }
 }
