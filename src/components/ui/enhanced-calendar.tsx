@@ -74,6 +74,32 @@ function EnhancedCalendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+        Day: ({ date, ...dayProps }) => {
+          const dateString = format(date, 'yyyy-MM-dd');
+          const isFullyBlocked = blockedDatesSet.has(dateString);
+          const isPartiallyBlocked = partiallyBlockedDatesSet.has(dateString);
+          
+          return (
+            <div className="relative">
+              <button 
+                {...dayProps}
+                className={cn(
+                  "h-9 w-9 p-0 font-normal relative flex items-center justify-center rounded-md",
+                  isFullyBlocked && "bg-red-100 text-red-600 line-through opacity-75",
+                  isPartiallyBlocked && "bg-orange-100 text-orange-600 border border-orange-300"
+                )}
+              >
+                {date.getDate()}
+                {isFullyBlocked && (
+                  <X className="absolute inset-0 w-4 h-4 m-auto text-red-500 z-10" strokeWidth={3} />
+                )}
+                {isPartiallyBlocked && (
+                  <div className="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full z-10" />
+                )}
+              </button>
+            </div>
+          );
+        },
       }}
       disabled={(date) => {
         const today = new Date();
@@ -84,7 +110,10 @@ function EnhancedCalendar({
         const targetDate = new Date(date);
         targetDate.setHours(0, 0, 0, 0);
         
-        return targetDate < today || targetDate > maxDate;
+        const dateString = format(date, 'yyyy-MM-dd');
+        const isFullyBlocked = blockedDatesSet.has(dateString);
+        
+        return targetDate < today || targetDate > maxDate || isFullyBlocked;
       }}
       {...props}
     />
