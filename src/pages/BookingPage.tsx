@@ -210,6 +210,18 @@ const BookingPage = () => {
             // If no start_time and end_time, it's a full day block
             if (!item.start_time && !item.end_time) {
               fullyBlocked.add(item.blocked_date);
+            } else if (item.start_time && item.end_time && facility) {
+              // Check if blocked time covers the entire operating hours
+              const isFullDayBlock = 
+                item.start_time <= facility.operating_hours_start && 
+                item.end_time >= facility.operating_hours_end;
+              
+              if (isFullDayBlock) {
+                fullyBlocked.add(item.blocked_date);
+              } else {
+                // If has specific times but doesn't cover full day, it's a partial block
+                partiallyBlocked.add(item.blocked_date);
+              }
             } else {
               // If has specific times, it's a partial block
               partiallyBlocked.add(item.blocked_date);
@@ -225,7 +237,7 @@ const BookingPage = () => {
     };
 
     loadBlockedDates();
-  }, [facilityId]);
+  }, [facilityId, facility]);
 
   // Load time slots based on selected date
   useEffect(() => {
