@@ -13,7 +13,8 @@ import Footer from "@/components/Footer";
 import ImageCarousel from "@/components/ImageCarousel";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { EnhancedCalendar } from "@/components/ui/enhanced-calendar";
+import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
@@ -60,6 +61,7 @@ const FacilitiesPage = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   useEffect(() => {
     // Check authentication status
@@ -189,6 +191,24 @@ const FacilitiesPage = () => {
       }
     };
     fetchFacilities();
+
+    // Load blocked dates for general calendar display
+    const loadBlockedDates = async () => {
+      try {
+        const { data: blockedDatesData } = await supabase
+          .from('blocked_dates')
+          .select('blocked_date')
+          .eq('start_time', null)
+          .eq('end_time', null); // Only full-day blocks for general display
+
+        const dates = new Set(blockedDatesData?.map(item => item.blocked_date) || []);
+        setBlockedDates(dates);
+      } catch (error) {
+        console.error('Error loading blocked dates:', error);
+      }
+    };
+
+    loadBlockedDates();
   }, [session, authChecked, userProfile, navigate]);
 
   // Apply filters whenever filters change
@@ -392,9 +412,10 @@ const FacilitiesPage = () => {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 z-50" align="start">
-                      <CalendarComponent 
+                      <EnhancedCalendar 
                         mode="single" 
                         selected={selectedDate} 
+                        blockedDates={blockedDates}
                         onSelect={(date) => {
                           setSelectedDate(date);
                           // Clear time selections when date changes to avoid past time selections
@@ -426,6 +447,24 @@ const FacilitiesPage = () => {
                         initialFocus 
                         className="p-3 pointer-events-auto" 
                       />
+                      
+                      {/* Add "Go to Today" button */}
+                      <div className="mt-4 flex justify-center">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            const today = new Date();
+                            setSelectedDate(today);
+                            // Clear time selections when going to today
+                            setStartTime('');
+                            setEndTime('');
+                          }}
+                          disabled={selectedDate && isSameDay(selectedDate, new Date())}
+                        >
+                          🏠 Mergi la Azi
+                        </Button>
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>

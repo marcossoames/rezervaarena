@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
+import { EnhancedCalendar } from "@/components/ui/enhanced-calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, MapPin, Wifi, Users, DollarSign, CalendarDays, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -398,9 +399,10 @@ const BookingPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Calendar
+                <EnhancedCalendar
                   mode="single"
                   selected={selectedDate}
+                  blockedDates={blockedDates}
                   onSelect={(date) => {
                     if (date) {
                       const normalizedDate = startOfDay(date);
@@ -419,11 +421,9 @@ const BookingPage = () => {
                     const normalizedDate = startOfDay(date);
                     const normalizedToday = startOfDay(new Date());
                     const normalizedMaxDate = startOfDay(maxBookingDate);
-                    const dateString = format(normalizedDate, 'yyyy-MM-dd');
                     
                     return isBefore(normalizedDate, normalizedToday) || 
-                           isAfter(normalizedDate, normalizedMaxDate) || 
-                           blockedDates.has(dateString);
+                           isAfter(normalizedDate, normalizedMaxDate);
                   }}
                   initialFocus
                   className="rounded-md border pointer-events-auto"
@@ -435,13 +435,14 @@ const BookingPage = () => {
                     variant="outline" 
                     size="sm"
                     onClick={() => {
-                      setSelectedDate(startOfDay(new Date()));
+                      const today = startOfDay(new Date());
+                      setSelectedDate(today);
                       setSelectedStartTime(null);
                       setSelectedEndTime(null);
                     }}
-                    disabled={isSameDay(selectedDate, startOfDay(new Date()))}
+                    disabled={selectedDate && isSameDay(selectedDate, startOfDay(new Date()))}
                   >
-                    Mergi la Azi
+                    🏠 Mergi la Azi
                   </Button>
                 </div>
                 
