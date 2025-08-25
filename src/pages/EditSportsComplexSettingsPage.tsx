@@ -98,6 +98,12 @@ const EditSportsComplexSettingsPage = () => {
           setValue("city", facilityData.city || "");
           setValue("description", facilityData.description || "");
           setValue("generalServices", facilityData.amenities || []);
+        } else {
+          // Set empty values if no facility data
+          setValue("address", "");
+          setValue("city", "");
+          setValue("description", "");
+          setValue("generalServices", []);
         }
 
       } catch (error) {
@@ -151,16 +157,17 @@ const EditSportsComplexSettingsPage = () => {
         throw profileError;
       }
 
-      // Update facility data only if user has a facility and data is provided
-      if (data.address || data.city || data.description || data.generalServices?.length) {
+      // Always try to update facility data, create if doesn't exist
+      const updateData: any = {};
+      if (data.address) updateData.address = data.address;
+      if (data.city) updateData.city = data.city;
+      if (data.description) updateData.description = data.description;
+      if (data.generalServices?.length) updateData.amenities = data.generalServices;
+
+      if (Object.keys(updateData).length > 0) {
         const { error: facilityError } = await supabase
           .from('facilities')
-          .update({
-            ...(data.address && { address: data.address }),
-            ...(data.city && { city: data.city }),
-            ...(data.description && { description: data.description }),
-            ...(data.generalServices?.length && { amenities: data.generalServices })
-          })
+          .update(updateData)
           .eq('owner_id', user.id);
 
         if (facilityError) {

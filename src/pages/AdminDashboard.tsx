@@ -11,11 +11,12 @@ import FacilityManagement from "@/components/admin/FacilityManagement";
 import BookingManagement from "@/components/admin/BookingManagement";
 import IncomeManagement from "@/components/admin/IncomeManagement";
 import ArticleManagement from "@/components/admin/ArticleManagement";
+import BankDetailsManagement from "@/components/admin/BankDetailsManagement";
 
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings' | 'income' | 'articles' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings' | 'income' | 'articles' | 'bank' | 'settings'>('dashboard');
   const [stats, setStats] = useState({
     totalUsers: 0,
     clients: 0,
@@ -228,56 +229,73 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex gap-4 mb-6">
-          <Button 
-            variant={activeTab === 'dashboard' ? 'default' : 'outline'} 
-            onClick={() => setActiveTab('dashboard')}
-          >
-            Dashboard
-          </Button>
-          <Button 
-            variant={activeTab === 'users' ? 'default' : 'outline'} 
-            onClick={() => setActiveTab('users')}
-          >
-            <Users className="h-4 w-4 mr-2" />
-            Utilizatori
-          </Button>
-          <Button 
-            variant={activeTab === 'facilities' ? 'default' : 'outline'} 
-            onClick={() => setActiveTab('facilities')}
-          >
-            <Building2 className="h-4 w-4 mr-2" />
-            Terenuri
-          </Button>
-          <Button 
-            variant={activeTab === 'bookings' ? 'default' : 'outline'} 
-            onClick={() => setActiveTab('bookings')}
-          >
-            <Calendar className="h-4 w-4 mr-2" />
-            Rezervări
-          </Button>
-          <Button 
-            variant={activeTab === 'income' ? 'default' : 'outline'} 
-            onClick={() => setActiveTab('income')}
-          >
-            <DollarSign className="h-4 w-4 mr-2" />
-            Încasări
-          </Button>
-          <Button 
-            variant={activeTab === 'articles' ? 'default' : 'outline'} 
-            onClick={() => setActiveTab('articles')}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Articole
-          </Button>
-          <Button 
-            variant={activeTab === 'settings' ? 'default' : 'outline'} 
-            onClick={() => setActiveTab('settings')}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Setări Sistem
-          </Button>
+        {/* Navigation Tabs - Responsive */}
+        <div className="overflow-x-auto mb-6">
+          <div className="flex gap-2 min-w-max p-2">
+            <Button 
+              variant={activeTab === 'dashboard' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('dashboard')}
+              className="whitespace-nowrap"
+            >
+              Dashboard
+            </Button>
+            <Button 
+              variant={activeTab === 'users' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('users')}
+              className="whitespace-nowrap"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Utilizatori
+            </Button>
+            <Button 
+              variant={activeTab === 'facilities' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('facilities')}
+              className="whitespace-nowrap"
+            >
+              <Building2 className="h-4 w-4 mr-2" />
+              Terenuri
+            </Button>
+            <Button 
+              variant={activeTab === 'bookings' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('bookings')}
+              className="whitespace-nowrap"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Rezervări
+            </Button>
+            <Button 
+              variant={activeTab === 'income' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('income')}
+              className="whitespace-nowrap"
+            >
+              <DollarSign className="h-4 w-4 mr-2" />
+              Încasări
+            </Button>
+            <Button 
+              variant={activeTab === 'articles' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('articles')}
+              className="whitespace-nowrap"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Articole
+            </Button>
+            <Button 
+              variant={activeTab === 'bank' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('bank')}
+              className="whitespace-nowrap"
+            >
+              <DollarSign className="h-4 w-4 mr-2" />
+              Conturi Bancare
+            </Button>
+            <Button 
+              variant={activeTab === 'settings' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('settings')}
+              className="whitespace-nowrap"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Setări Sistem
+            </Button>
+          </div>
         </div>
 
         {/* Content based on active tab */}
@@ -326,6 +344,8 @@ const AdminDashboard = () => {
         {activeTab === 'income' && <IncomeManagement />}
 
         {activeTab === 'articles' && <ArticleManagement />}
+
+        {activeTab === 'bank' && <BankDetailsManagement />}
 
         {activeTab === 'settings' && (
           <Card>

@@ -305,7 +305,7 @@ const FacilityManagement = () => {
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/admin/edit-sports-complex/${complex.owner_id}`);
+                                navigate(`/edit-sports-complex-settings`);
                               }}
                             >
                               <Edit className="h-3 w-3 mr-1" />
