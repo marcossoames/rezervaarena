@@ -144,6 +144,12 @@ serve(async (req) => {
         end_time: endTime,
         facility_owner_id: facility.owner_id,
         client_id: user.id
+      },
+      payment_intent_data: {
+        metadata: {
+          user_id: user.id,
+          facility_id: facilityId
+        }
       }
     });
 
