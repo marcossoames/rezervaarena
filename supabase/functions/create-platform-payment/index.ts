@@ -48,7 +48,7 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId: user.id });
 
     // Get facility details and owner
     const { data: facility, error: facilityError } = await supabase

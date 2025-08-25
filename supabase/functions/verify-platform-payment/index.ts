@@ -86,7 +86,7 @@ serve(async (req) => {
         throw new Error('Unauthorized: User does not own this booking');
       }
 
-      logStep("User verified as booking owner", { userId: user.id, clientId: booking.client_id });
+      logStep("User verified as booking owner");
 
       // Update booking status
       const { error: bookingError } = await supabaseService
