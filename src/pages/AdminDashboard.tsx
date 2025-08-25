@@ -229,20 +229,21 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Navigation Tabs - Responsive */}
-        <div className="overflow-x-auto mb-6">
-          <div className="flex gap-2 min-w-max p-2">
+        {/* Navigation Tabs - 2 rows of 4 buttons */}
+        <div className="mb-6 space-y-4">
+          {/* First row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Button 
               variant={activeTab === 'dashboard' ? 'default' : 'outline'} 
               onClick={() => setActiveTab('dashboard')}
-              className="whitespace-nowrap"
+              className="h-12 flex items-center justify-center"
             >
               Dashboard
             </Button>
             <Button 
               variant={activeTab === 'users' ? 'default' : 'outline'} 
               onClick={() => setActiveTab('users')}
-              className="whitespace-nowrap"
+              className="h-12 flex items-center justify-center"
             >
               <Users className="h-4 w-4 mr-2" />
               Utilizatori
@@ -250,7 +251,7 @@ const AdminDashboard = () => {
             <Button 
               variant={activeTab === 'facilities' ? 'default' : 'outline'} 
               onClick={() => setActiveTab('facilities')}
-              className="whitespace-nowrap"
+              className="h-12 flex items-center justify-center"
             >
               <Building2 className="h-4 w-4 mr-2" />
               Terenuri
@@ -258,15 +259,19 @@ const AdminDashboard = () => {
             <Button 
               variant={activeTab === 'bookings' ? 'default' : 'outline'} 
               onClick={() => setActiveTab('bookings')}
-              className="whitespace-nowrap"
+              className="h-12 flex items-center justify-center"
             >
               <Calendar className="h-4 w-4 mr-2" />
               Rezervări
             </Button>
+          </div>
+          
+          {/* Second row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Button 
               variant={activeTab === 'income' ? 'default' : 'outline'} 
               onClick={() => setActiveTab('income')}
-              className="whitespace-nowrap"
+              className="h-12 flex items-center justify-center"
             >
               <DollarSign className="h-4 w-4 mr-2" />
               Încasări
@@ -274,7 +279,7 @@ const AdminDashboard = () => {
             <Button 
               variant={activeTab === 'articles' ? 'default' : 'outline'} 
               onClick={() => setActiveTab('articles')}
-              className="whitespace-nowrap"
+              className="h-12 flex items-center justify-center"
             >
               <FileText className="h-4 w-4 mr-2" />
               Articole
@@ -282,7 +287,7 @@ const AdminDashboard = () => {
             <Button 
               variant={activeTab === 'bank' ? 'default' : 'outline'} 
               onClick={() => setActiveTab('bank')}
-              className="whitespace-nowrap"
+              className="h-12 flex items-center justify-center"
             >
               <DollarSign className="h-4 w-4 mr-2" />
               Conturi Bancare
@@ -290,7 +295,7 @@ const AdminDashboard = () => {
             <Button 
               variant={activeTab === 'settings' ? 'default' : 'outline'} 
               onClick={() => setActiveTab('settings')}
-              className="whitespace-nowrap"
+              className="h-12 flex items-center justify-center"
             >
               <Settings className="h-4 w-4 mr-2" />
               Setări Sistem
