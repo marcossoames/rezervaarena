@@ -1,21 +1,26 @@
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
-import SearchSection from "@/components/SearchSection";
-import SportsSection from "@/components/SportsSection";
-import FeaturesSection from "@/components/FeaturesSection";
-import Footer from "@/components/Footer";
+import { 
+  LazySearchSection, 
+  LazySportsSection, 
+  LazyFeaturesSection, 
+  LazyFooter 
+} from "@/components/LazyComponents";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
       <Header />
       <main>
+        {/* Above-the-fold content loaded immediately */}
         <HeroSection />
-        <SearchSection />
-        <SportsSection />
-        <FeaturesSection />
+        
+        {/* Below-the-fold content loaded lazily to reduce initial bundle */}
+        <LazySearchSection />
+        <LazySportsSection />
+        <LazyFeaturesSection />
       </main>
-      <Footer />
+      <LazyFooter />
     </div>
   );
 };
