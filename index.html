@@ -9,18 +9,21 @@
     <meta name="author" content="SportBook" />
     <meta name="keywords" content="rezervare terenuri sportive, tenis, fotbal, padel, înot, sporturi România" />
     
-    <!-- Optimize critical request chains for better loading performance -->
+    <!-- Critical request chain optimization -->
     <!-- Preconnect for Supabase API calls - with specific subdomain and proper attributes -->
     <link rel="preconnect" href="https://ukopxkymzywfpobpcana.supabase.co" crossorigin="anonymous" />
     <link rel="dns-prefetch" href="//ukopxkymzywfpobpcana.supabase.co" />
     
-    <!-- Prefetch critical API endpoints to reduce request chain delays -->
-    <link rel="prefetch" href="https://ukopxkymzywfpobpcana.supabase.co/rest/v1/rpc/get_facility_stats_by_type" crossorigin="anonymous" />
-    <link rel="prefetch" href="https://ukopxkymzywfpobpcana.supabase.co/rest/v1/articles?select=*&is_published=eq.true&order=created_at.desc" crossorigin="anonymous" />
-    
-    <!-- Early hints for better connection establishment -->
+    <!-- Preconnect to auth subdomain for faster authentication -->
+    <link rel="preconnect" href="https://ukopxkymzywfpobpcana.supabase.co/auth" crossorigin="anonymous" />
     <link rel="preconnect" href="https://ukopxkymzywfpobpcana.supabase.co/rest" crossorigin="anonymous" />
     <link rel="preconnect" href="https://ukopxkymzywfpobpcana.supabase.co/storage" crossorigin="anonymous" />
+    
+    <!-- Critical resource preloads to reduce dependency chain length -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+    <link rel="modulepreload" href="/src/integrations/supabase/client.ts" />
+    <link rel="modulepreload" href="/src/components/HeroSection.tsx" />
+    <link rel="modulepreload" href="/src/components/SportsSection.tsx" />
     
     <!-- Critical CSS inlined to prevent render-blocking -->
     <style>
@@ -80,9 +83,8 @@
     <link rel="dns-prefetch" href="//fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
-    <!-- Module preload for critical JavaScript chunks -->
-    <link rel="modulepreload" href="/src/main.tsx" />
-    <link rel="modulepreload" href="/src/integrations/supabase/client.ts" />
+    <!-- Module preload for critical JavaScript chunks moved earlier for better optimization -->
+    <!-- These were moved to the critical section above -->
     
     <!-- Modern image format hints for better optimization -->
     <meta name="imageFormat" content="webp,avif,jpeg" />
@@ -104,7 +106,7 @@
         <div class="loading-spinner"></div>
       </div>
     </div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" defer></script>
     
     <!-- Register service worker for efficient caching -->
     <script>
