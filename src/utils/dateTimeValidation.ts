@@ -19,20 +19,16 @@ export const isBookingTimeAllowed = (date: Date, timeString: string): boolean =>
   
   // For today, check time restrictions
   if (isToday(selectedDate)) {
-    const currentHour = now.getHours();
-    const currentMinutes = now.getMinutes();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
     
-    // Extract hour from time string (format: "HH:MM")
-    const [hourStr] = timeString.split(':');
+    // Extract hour and minutes from time string (format: "HH:MM")
+    const [hourStr, minuteStr] = timeString.split(':');
     const selectedHour = parseInt(hourStr, 10);
+    const selectedMinutes = parseInt(minuteStr, 10);
+    const selectedTime = selectedHour * 60 + selectedMinutes;
     
-    // If current time is past the selected hour, not allowed
-    if (selectedHour < currentHour) {
-      return false;
-    }
-    
-    // If it's the same hour but minutes have passed (e.g., 17:50 trying to book 17:00-18:00), not allowed
-    if (selectedHour === currentHour && currentMinutes > 0) {
+    // If selected time is in the past, not allowed
+    if (selectedTime <= currentTime) {
       return false;
     }
   }
@@ -55,18 +51,27 @@ export const getMinimumAllowedTime = (date: Date, facilityOpeningTime = "08:00")
     return facilityOpeningTime;
   }
   
-  // For today, calculate next available hour
+  // For today, calculate next available time slot
   if (isToday(selectedDate)) {
     const currentHour = now.getHours();
     const currentMinutes = now.getMinutes();
     
-    // If minutes > 0, next hour; otherwise current hour
-    const nextAvailableHour = currentMinutes > 0 ? currentHour + 1 : currentHour;
+    // Round up to next 30-minute slot
+    let nextMinutes = currentMinutes <= 0 ? 0 : currentMinutes <= 30 ? 30 : 60;
+    let nextHour = currentHour;
     
-    // Ensure we don't go beyond 23:00
-    const safeHour = Math.min(nextAvailableHour, 23);
+    if (nextMinutes === 60) {
+      nextHour = currentHour + 1;
+      nextMinutes = 0;
+    }
     
-    return `${safeHour.toString().padStart(2, '0')}:00`;
+    // Ensure we don't go beyond 23:30
+    if (nextHour >= 24) {
+      nextHour = 23;
+      nextMinutes = 30;
+    }
+    
+    return `${nextHour.toString().padStart(2, '0')}:${nextMinutes.toString().padStart(2, '0')}`;
   }
   
   return facilityOpeningTime;
@@ -107,19 +112,15 @@ export const isBlockingTimeAllowed = (date: string, timeString?: string): boolea
   
   // For today with specific time, check time restrictions
   if (isToday(selectedDate)) {
-    const currentHour = now.getHours();
-    const currentMinutes = now.getMinutes();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
     
-    const [hourStr] = timeString.split(':');
+    const [hourStr, minuteStr] = timeString.split(':');
     const selectedHour = parseInt(hourStr, 10);
+    const selectedMinutes = parseInt(minuteStr, 10);
+    const selectedTime = selectedHour * 60 + selectedMinutes;
     
-    // Can't block past hours
-    if (selectedHour < currentHour) {
-      return false;
-    }
-    
-    // Can't block current hour if minutes have passed
-    if (selectedHour === currentHour && currentMinutes > 0) {
+    // Can't block past times
+    if (selectedTime <= currentTime) {
       return false;
     }
   }
