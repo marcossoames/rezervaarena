@@ -76,54 +76,45 @@ function EnhancedCalendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
-        Day: (dayProps) => {
-          const { date } = dayProps;
+        Day: ({ date, ...dayProps }) => {
           const dateString = format(date, 'yyyy-MM-dd');
           const isFullyBlocked = blockedDatesSet.has(dateString);
-          const isPartiallyBlocked = partiallyBlockedDatesSet.has(dateString);
-          const isToday = isSameDay(date, today);
-          const isSelected = props.selected && isSameDay(date, props.selected as Date);
-          
-          // Check if the date is disabled by the parent disabled prop
-          const isDisabled = props.disabled && typeof props.disabled === 'function' 
-            ? props.disabled(date) 
-            : false;
+          const isPartiallyBlocked = partiallyBlockedDatesSet.has(dateString) && !isFullyBlocked;
           
           return (
-            <div className="relative w-9 h-9">
-              <button
-                {...dayProps}
-                className={cn(
-                  buttonVariants({ variant: "ghost" }),
-                  "h-9 w-9 p-0 font-normal relative",
-                  // Today styling - golden/orange gradient with bold border
-                  isToday && !isSelected && "bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold shadow-lg border-2 border-amber-300",
-                  // Selected styling - primary color
-                  isSelected && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                  // Today + Selected styling - enhanced primary with gold accent
-                  isToday && isSelected && "bg-primary text-primary-foreground border-2 border-amber-300 shadow-lg",
-                  // Fully blocked styling
-                  isFullyBlocked && "bg-red-100 text-red-600 line-through opacity-75 cursor-not-allowed",
-                  // Partially blocked styling
-                  isPartiallyBlocked && !isFullyBlocked && "bg-orange-100 text-orange-600 border border-orange-300",
-                  // Disabled styling
-                  isDisabled && "text-muted-foreground opacity-50"
-                )}
-                disabled={isDisabled || isFullyBlocked}
-              >
-                <span className={cn((isFullyBlocked || isPartiallyBlocked) && "relative z-10")}>
-                  {date.getDate()}
-                </span>
+            <div className="relative">
+              <button {...dayProps}>
+                {date.getDate()}
                 {isFullyBlocked && (
-                  <X className="absolute inset-0 w-4 h-4 m-auto text-red-500 z-20" strokeWidth={3} />
+                  <X className="absolute inset-0 w-4 h-4 m-auto text-red-500 z-10" strokeWidth={3} />
                 )}
-                {isPartiallyBlocked && !isFullyBlocked && (
-                  <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full z-20" />
+                {isPartiallyBlocked && (
+                  <div className="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full z-10" />
                 )}
               </button>
             </div>
           );
         },
+      }}
+      modifiers={{
+        blocked: (date) => {
+          const dateString = format(date, 'yyyy-MM-dd');
+          return blockedDatesSet.has(dateString);
+        },
+        partiallyBlocked: (date) => {
+          const dateString = format(date, 'yyyy-MM-dd');
+          return partiallyBlockedDatesSet.has(dateString) && !blockedDatesSet.has(dateString);
+        }
+      }}
+      modifiersClassNames={{
+        blocked: "bg-red-100 text-red-600 line-through opacity-75 cursor-not-allowed",
+        partiallyBlocked: "bg-orange-100 text-orange-600 border border-orange-300"
+      }}
+      disabled={(date) => {
+        const dateString = format(date, 'yyyy-MM-dd');
+        const isFullyBlocked = blockedDatesSet.has(dateString);
+        const originalDisabled = props.disabled && typeof props.disabled === 'function' ? props.disabled(date) : false;
+        return originalDisabled || isFullyBlocked;
       }}
       {...props}
     />
