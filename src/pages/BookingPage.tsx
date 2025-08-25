@@ -194,7 +194,7 @@ const BookingPage = () => {
   // Load blocked dates
   useEffect(() => {
     const loadBlockedDates = async () => {
-      if (!facilityId) return;
+      if (!facilityId || !facility) return;
 
       try {
         const { data } = await supabase
@@ -212,18 +212,24 @@ const BookingPage = () => {
               fullyBlocked.add(item.blocked_date);
             } else if (item.start_time && item.end_time && facility) {
               // Check if blocked time covers the entire operating hours
+              // Convert time strings to comparable format (HH:MM:SS)
+              const blockedStart = item.start_time;
+              const blockedEnd = item.end_time;
+              const facilityStart = facility.operating_hours_start;
+              const facilityEnd = facility.operating_hours_end;
+              
+              // Check if blocked period equals or exceeds facility operating hours
               const isFullDayBlock = 
-                item.start_time <= facility.operating_hours_start && 
-                item.end_time >= facility.operating_hours_end;
+                blockedStart <= facilityStart && 
+                blockedEnd >= facilityEnd;
               
               if (isFullDayBlock) {
                 fullyBlocked.add(item.blocked_date);
               } else {
-                // If has specific times but doesn't cover full day, it's a partial block
                 partiallyBlocked.add(item.blocked_date);
               }
             } else {
-              // If has specific times, it's a partial block
+              // If has specific times but facility not loaded, treat as partial
               partiallyBlocked.add(item.blocked_date);
             }
           });
