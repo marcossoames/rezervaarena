@@ -271,8 +271,15 @@ const BookingPage = () => {
             // Check against blocked times
             if (available && blockedTimes) {
               available = !blockedTimes.some(blocked => {
-                if (!blocked.start_time || !blocked.end_time) return false;
-                return slot.time >= blocked.start_time && slot.time < blocked.end_time;
+                // If no start_time and end_time, it's a full day block - mark all slots as unavailable
+                if (!blocked.start_time && !blocked.end_time) {
+                  return true; // Block all time slots for this date
+                }
+                // If has specific times, check if slot falls within blocked range
+                if (blocked.start_time && blocked.end_time) {
+                  return slot.time >= blocked.start_time && slot.time < blocked.end_time;
+                }
+                return false;
               });
             }
 
