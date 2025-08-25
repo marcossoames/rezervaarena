@@ -4,12 +4,19 @@ import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import tennisImage from "@/assets/tennis-court.jpg";
-import footballImage from "@/assets/football-field.jpg";
-import padelImage from "@/assets/padel-court.jpg";
-import swimmingImage from "@/assets/swimming-pool.jpg";
-import basketballImage from "@/assets/basketball-court.jpg";
-import volleyballImage from "@/assets/volleyball-court.jpg";
+
+// Debug logging for missing images
+console.log('Checking image imports...');
+
+// Temporary placeholder until we add real images
+const tennisImage = "/placeholder-tennis.jpg";
+const footballImage = "/placeholder-football.jpg"; 
+const padelImage = "/placeholder-padel.jpg";
+const swimmingImage = "/placeholder-swimming.jpg";
+const basketballImage = "/placeholder-basketball.jpg";
+const volleyballImage = "/placeholder-volleyball.jpg";
+
+console.log('Tennis image path:', tennisImage);
 interface SportData {
   id: number;
   name: string;

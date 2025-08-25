@@ -133,52 +133,25 @@ export const OptimizedImage = ({
   };
 
   return (
-    <picture>
-      {/* WebP source for modern browsers - up to 30-50% smaller files */}
-      <source
-        srcSet={generateWebPSrcSet()}
-        type="image/webp"
-        sizes={getOptimalSizes()}
-      />
-      
-      {/* AVIF source for cutting-edge browsers - even better compression */}
-      <source
-        srcSet={generateWebPSrcSet().replace(/\.webp/g, '.avif').replace(/f=webp/g, 'f=avif')}
-        type="image/avif"
-        sizes={getOptimalSizes()}
-      />
-      
-      {/* Original JPEG fallback with optimization */}
-      <source
-        srcSet={generateJPEGSrcSet()}
-        type={`image/${src.split('.').pop()?.toLowerCase()}`}
-        sizes={getOptimalSizes()}
-      />
-      
-      {/* Base img element with optimized fallback */}
-      <img
-        src={src}
-        alt={alt}
-        className={`${className} ${!imageLoaded && loading === 'lazy' ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-        loading={loading}
-        fetchPriority={fetchPriority}
-        width={targetDimensions.width}
-        height={targetDimensions.height}
-        style={{ 
-          ...style, 
-          aspectRatio: `${targetDimensions.width}/${targetDimensions.height}`,
-          maxWidth: '100%',
-          height: 'auto'
-        }}
-        decoding="async"
-        onError={handleError}
-        onLoad={handleLoad}
-        // Add optimization attributes for debugging and CDN hints
-        data-optimized="true"
-        data-original-src={src}
-        data-target-size={`${targetDimensions.width}x${targetDimensions.height}`}
-        data-supports-webp={supportsWebP}
-      />
-    </picture>
+    <img
+      src={src}
+      alt={alt}
+      className={`${className} transition-opacity duration-300`}
+      loading={loading}
+      fetchPriority={fetchPriority}
+      width={width || targetDimensions.width}
+      height={height || targetDimensions.height}
+      style={{ 
+        ...style, 
+        aspectRatio: width && height ? `${width}/${height}` : `${targetDimensions.width}/${targetDimensions.height}`,
+        maxWidth: '100%',
+        height: 'auto'
+      }}
+      decoding="async"
+      onError={handleError}
+      onLoad={handleLoad}
+      data-optimized="true"
+      data-original-src={src}
+    />
   );
 };
