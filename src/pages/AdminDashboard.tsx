@@ -229,113 +229,98 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Navigation Tabs - 2 rows of 4 buttons */}
-        <div className="mb-6 space-y-4">
-          {/* First row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Button 
-              variant={activeTab === 'dashboard' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('dashboard')}
-              className="h-12 flex items-center justify-center"
-            >
-              Dashboard
-            </Button>
-            <Button 
-              variant={activeTab === 'users' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('users')}
-              className="h-12 flex items-center justify-center"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Utilizatori
-            </Button>
-            <Button 
-              variant={activeTab === 'facilities' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('facilities')}
-              className="h-12 flex items-center justify-center"
-            >
-              <Building2 className="h-4 w-4 mr-2" />
-              Terenuri
-            </Button>
-            <Button 
-              variant={activeTab === 'bookings' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('bookings')}
-              className="h-12 flex items-center justify-center"
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              Rezervări
-            </Button>
+        {/* Navigation Tabs */}
+        <div className="mb-8">
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold text-foreground mb-2">Panou de Control</h3>
+            <p className="text-muted-foreground">Selectați secțiunea pe care doriți să o administrați</p>
           </div>
           
-          {/* Second row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Button 
-              variant={activeTab === 'income' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('income')}
-              className="h-12 flex items-center justify-center"
-            >
-              <DollarSign className="h-4 w-4 mr-2" />
-              Încasări
-            </Button>
-            <Button 
-              variant={activeTab === 'articles' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('articles')}
-              className="h-12 flex items-center justify-center"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Articole
-            </Button>
-            <Button 
-              variant={activeTab === 'bank' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('bank')}
-              className="h-12 flex items-center justify-center"
-            >
-              <DollarSign className="h-4 w-4 mr-2" />
-              Conturi Bancare
-            </Button>
-            <Button 
-              variant={activeTab === 'settings' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('settings')}
-              className="h-12 flex items-center justify-center"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Setări Sistem
-            </Button>
+          <div className="space-y-4">
+            {/* First row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Button 
+                variant={activeTab === 'dashboard' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('dashboard')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <Shield className="h-5 w-5" />
+                Dashboard
+              </Button>
+              <Button 
+                variant={activeTab === 'users' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('users')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <Users className="h-5 w-5" />
+                Utilizatori
+              </Button>
+              <Button 
+                variant={activeTab === 'facilities' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('facilities')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <Building2 className="h-5 w-5" />
+                Terenuri
+              </Button>
+              <Button 
+                variant={activeTab === 'bookings' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('bookings')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <Calendar className="h-5 w-5" />
+                Rezervări
+              </Button>
+            </div>
+            
+            {/* Second row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Button 
+                variant={activeTab === 'income' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('income')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <DollarSign className="h-5 w-5" />
+                Încasări
+              </Button>
+              <Button 
+                variant={activeTab === 'articles' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('articles')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <FileText className="h-5 w-5" />
+                Articole
+              </Button>
+              <Button 
+                variant={activeTab === 'bank' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('bank')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <DollarSign className="h-5 w-5" />
+                Conturi Bancare
+              </Button>
+              <Button 
+                variant={activeTab === 'settings' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('settings')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <Settings className="h-5 w-5" />
+                Setări Sistem
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Content based on active tab */}
         {activeTab === 'dashboard' && (
           <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle>Acțiuni rapide</CardTitle>
+              <CardTitle>Statistici Generale</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('users')}>
-                  <Users className="h-6 w-6 mb-2" />
-                  Gestionare Utilizatori
-                </Button>
-                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('facilities')}>
-                  <Building2 className="h-6 w-6 mb-2" />
-                  Gestionare Terenuri
-                </Button>
-                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('bookings')}>
-                  <Calendar className="h-6 w-6 mb-2" />
-                  Vizualizare Rezervări
-                </Button>
-                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('income')}>
-                  <DollarSign className="h-6 w-6 mb-2" />
-                  Rapoarte Încasări
-                </Button>
-                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('articles')}>
-                  <FileText className="h-6 w-6 mb-2" />
-                  Gestionare Articole
-                </Button>
-                <Button variant="outline" className="h-20 flex-col" onClick={() => setActiveTab('settings')}>
-                  <Settings className="h-6 w-6 mb-2" />
-                  Setări Sistem
-                </Button>
-              </div>
+              <p className="text-muted-foreground">
+                Vizualizați statisticile de mai sus pentru o privire de ansamblu asupra platformei SportBook.
+                Selectați una din secțiunile de administrare pentru a gestiona aspectele specifice ale platformei.
+              </p>
             </CardContent>
           </Card>
         )}
