@@ -340,6 +340,7 @@ const FacilityOwnerProfilePage = () => {
           .select('*')
           .in('facility_id', facilityIds)
           .gte('booking_date', monthStart)
+          .lte('booking_date', `${currentYear}-${(currentMonth).toString().padStart(2, '0')}-31`)
           .in('status', ['confirmed', 'pending']);
 
         console.log('Monthly bookings:', monthlyBookings);
