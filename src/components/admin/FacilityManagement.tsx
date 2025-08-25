@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, MapPin, Edit, Trash2, Plus, Users, DollarSign, ChevronDown, ChevronRight, CreditCard } from "lucide-react";
+import { Building2, MapPin, Edit, Trash2, Plus, Users, DollarSign, ChevronDown, ChevronRight, CreditCard, Phone, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Facility {
@@ -345,114 +347,196 @@ const FacilityManagement = () => {
                     
                     <CollapsibleContent>
                       <CardContent className="pt-0">
-                        {/* Bank Details Section */}
-                        {complex.bank_details && (
-                          <div className="ml-8 mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
-                              <CreditCard className="h-4 w-4" />
-                              Detalii Bancare
-                            </h4>
-                            <div className="grid md:grid-cols-3 gap-2 text-sm">
-                              <div>
-                                <span className="text-green-700 font-medium">Titular: </span>
-                                <span className="text-green-800">{complex.bank_details.account_holder_name}</span>
+                        <div className="ml-8">
+                          <Tabs defaultValue="facilities" className="w-full">
+                            <TabsList className="grid w-full grid-cols-3">
+                              <TabsTrigger value="facilities">
+                                <Building2 className="h-4 w-4 mr-2" />
+                                Facilități ({complex.total_facilities})
+                              </TabsTrigger>
+                              <TabsTrigger value="contact">
+                                <Phone className="h-4 w-4 mr-2" />
+                                Contact
+                              </TabsTrigger>
+                              <TabsTrigger value="banking">
+                                <CreditCard className="h-4 w-4 mr-2" />
+                                Cont Bancar
+                              </TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="facilities" className="mt-4">
+                              <div className="space-y-3">
+                                {complex.facilities.map((facility) => (
+                                  <Card key={facility.id} className="border border-border/50">
+                                    <CardContent className="p-4">
+                                      <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-3 mb-2">
+                                            <h4 className="font-semibold">{facility.name}</h4>
+                                            <Badge variant={facility.is_active ? "default" : "secondary"}>
+                                              {facility.is_active ? "Activă" : "Inactivă"}
+                                            </Badge>
+                                            <Badge variant="outline">
+                                              {getFacilityTypeLabel(facility.facility_type)}
+                                            </Badge>
+                                          </div>
+                                          
+                                          <div className="grid md:grid-cols-3 gap-2 text-sm text-muted-foreground mb-2">
+                                            <div className="flex items-center gap-1">
+                                              <MapPin className="h-3 w-3" />
+                                              {facility.address}
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                              <DollarSign className="h-3 w-3" />
+                                              {facility.price_per_hour} RON/oră
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                              <Users className="h-3 w-3" />
+                                              {facility.capacity} persoane
+                                            </div>
+                                          </div>
+
+                                          {facility.description && (
+                                            <p className="text-xs text-muted-foreground mb-2">
+                                              {facility.description}
+                                            </p>
+                                          )}
+
+                                          {facility.amenities && facility.amenities.length > 0 && (
+                                            <div className="flex flex-wrap gap-1">
+                                              {facility.amenities.slice(0, 3).map((amenity, index) => (
+                                                <Badge key={index} variant="secondary" className="text-xs">
+                                                  {amenity}
+                                                </Badge>
+                                              ))}
+                                              {facility.amenities.length > 3 && (
+                                                <Badge variant="secondary" className="text-xs">
+                                                  +{facility.amenities.length - 3} mai multe
+                                                </Badge>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        <div className="flex flex-col gap-1 ml-4 min-w-[120px]">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => navigate(`/edit-facility/${facility.id}`)}
+                                          >
+                                            <Edit className="h-3 w-3 mr-1" />
+                                            Editează
+                                          </Button>
+                                          
+                                          <Button
+                                            variant={facility.is_active ? "secondary" : "default"}
+                                            size="sm"
+                                            onClick={() => toggleFacilityStatus(facility.id, facility.is_active)}
+                                          >
+                                            {facility.is_active ? "Dezactivează" : "Activează"}
+                                          </Button>
+                                          
+                                          <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={() => deleteFacility(facility.id, facility.name)}
+                                          >
+                                            <Trash2 className="h-3 w-3 mr-1" />
+                                            Șterge
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
                               </div>
-                              <div>
-                                <span className="text-green-700 font-medium">Banca: </span>
-                                <span className="text-green-800">{complex.bank_details.bank_name}</span>
-                              </div>
-                              <div>
-                                <span className="text-green-700 font-medium">IBAN: </span>
-                                <span className="text-green-800 font-mono text-xs">{complex.bank_details.iban}</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="grid gap-3 ml-8">
-                          {complex.facilities.map((facility) => (
-                            <Card key={facility.id} className="border border-border/50">
-                              <CardContent className="p-4">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                      <h4 className="font-semibold">{facility.name}</h4>
-                                      <Badge variant={facility.is_active ? "default" : "secondary"}>
-                                        {facility.is_active ? "Activă" : "Inactivă"}
-                                      </Badge>
-                                      <Badge variant="outline">
-                                        {getFacilityTypeLabel(facility.facility_type)}
-                                      </Badge>
+                            </TabsContent>
+
+                            <TabsContent value="contact" className="mt-4">
+                              <Card>
+                                <CardContent className="p-4">
+                                  <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                      <Mail className="h-5 w-5 text-blue-600" />
+                                      <div>
+                                        <p className="font-medium">Email</p>
+                                        <p className="text-sm text-muted-foreground">{complex.owner_email}</p>
+                                      </div>
                                     </div>
                                     
-                                    <div className="grid md:grid-cols-3 gap-2 text-sm text-muted-foreground mb-2">
-                                      <div className="flex items-center gap-1">
-                                        <MapPin className="h-3 w-3" />
-                                        {facility.address}
+                                    {complex.owner_phone && (
+                                      <div className="flex items-center gap-3">
+                                        <Phone className="h-5 w-5 text-green-600" />
+                                        <div>
+                                          <p className="font-medium">Telefon</p>
+                                          <p className="text-sm text-muted-foreground">{complex.owner_phone}</p>
+                                        </div>
                                       </div>
-                                      <div className="flex items-center gap-1">
-                                        <DollarSign className="h-3 w-3" />
-                                        {facility.price_per_hour} RON/oră
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        <Users className="h-3 w-3" />
-                                        {facility.capacity} persoane
+                                    )}
+                                    
+                                    <Separator />
+                                    
+                                    <div className="flex items-center gap-3">
+                                      <Building2 className="h-5 w-5 text-purple-600" />
+                                      <div>
+                                        <p className="font-medium">Proprietar</p>
+                                        <p className="text-sm text-muted-foreground">{complex.owner_name}</p>
                                       </div>
                                     </div>
-
-                                    {facility.description && (
-                                      <p className="text-xs text-muted-foreground mb-2">
-                                        {facility.description}
-                                      </p>
-                                    )}
-
-                                    {facility.amenities && facility.amenities.length > 0 && (
-                                      <div className="flex flex-wrap gap-1">
-                                        {facility.amenities.slice(0, 3).map((amenity, index) => (
-                                          <Badge key={index} variant="secondary" className="text-xs">
-                                            {amenity}
-                                          </Badge>
-                                        ))}
-                                        {facility.amenities.length > 3 && (
-                                          <Badge variant="secondary" className="text-xs">
-                                            +{facility.amenities.length - 3} mai multe
-                                          </Badge>
-                                        )}
+                                    
+                                    <div className="flex items-center gap-3">
+                                      <MapPin className="h-5 w-5 text-orange-600" />
+                                      <div>
+                                        <p className="font-medium">Locație</p>
+                                        <p className="text-sm text-muted-foreground">{complex.city}</p>
                                       </div>
-                                    )}
+                                    </div>
                                   </div>
+                                </CardContent>
+                              </Card>
+                            </TabsContent>
 
-                                  <div className="flex flex-col gap-1 ml-4">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => navigate(`/edit-facility/${facility.id}`)}
-                                    >
-                                      <Edit className="h-3 w-3 mr-1" />
-                                      Editează
-                                    </Button>
-                                    
-                                    <Button
-                                      variant={facility.is_active ? "secondary" : "default"}
-                                      size="sm"
-                                      onClick={() => toggleFacilityStatus(facility.id, facility.is_active)}
-                                    >
-                                      {facility.is_active ? "Dezactivează" : "Activează"}
-                                    </Button>
-                                    
-                                    <Button
-                                      variant="destructive"
-                                      size="sm"
-                                      onClick={() => deleteFacility(facility.id, facility.name)}
-                                    >
-                                      <Trash2 className="h-3 w-3 mr-1" />
-                                      Șterge
-                                    </Button>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
+                            <TabsContent value="banking" className="mt-4">
+                              {complex.bank_details ? (
+                                <Card className="border-green-200 bg-green-50">
+                                  <CardContent className="p-4">
+                                    <div className="flex items-center gap-2 mb-4">
+                                      <CreditCard className="h-5 w-5 text-green-600" />
+                                      <h4 className="font-semibold text-green-800">Detalii Bancare Configurate</h4>
+                                    </div>
+                                    <div className="space-y-3">
+                                      <div>
+                                        <p className="text-sm font-medium text-green-700">Titular Cont</p>
+                                        <p className="text-green-800">{complex.bank_details.account_holder_name}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-medium text-green-700">Banca</p>
+                                        <p className="text-green-800">{complex.bank_details.bank_name}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-medium text-green-700">IBAN</p>
+                                        <p className="text-green-800 font-mono text-sm bg-white px-2 py-1 rounded border">
+                                          {complex.bank_details.iban}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              ) : (
+                                <Card className="border-orange-200 bg-orange-50">
+                                  <CardContent className="p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <CreditCard className="h-5 w-5 text-orange-600" />
+                                      <h4 className="font-semibold text-orange-800">Cont Bancar Neconfigurat</h4>
+                                    </div>
+                                    <p className="text-orange-700 text-sm">
+                                      Proprietarul nu și-a configurat încă datele bancare pentru a putea primi plăți.
+                                    </p>
+                                  </CardContent>
+                                </Card>
+                              )}
+                            </TabsContent>
+                          </Tabs>
                         </div>
                       </CardContent>
                     </CollapsibleContent>
