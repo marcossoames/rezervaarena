@@ -9,6 +9,7 @@ import { ArrowLeft, Mail, Lock, User, Phone, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
+import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 
 interface ClientFormData {
   email: string;
@@ -22,6 +23,8 @@ const ClientRegister = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const { register, handleSubmit, watch, formState: { errors } } = useForm<ClientFormData>();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -60,14 +63,8 @@ const ClientRegister = () => {
 
       if (authData.user && !authData.session) {
         // User was created but needs email confirmation
-        toast({
-          title: "Cont creat cu succes!",
-          description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul. Apoi te poți conecta.",
-          duration: 8000
-        });
-        
-        // Redirect to login page
-        navigate("/client/login");
+        setUserEmail(data.email);
+        setShowEmailVerification(true);
       } else if (authData.user && authData.session) {
         // User was created and automatically logged in
         toast({
@@ -91,7 +88,17 @@ const ClientRegister = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <>
+      <EmailVerificationDialog
+        isOpen={showEmailVerification}
+        onClose={() => {
+          setShowEmailVerification(false);
+          navigate("/client/login");
+        }}
+        email={userEmail}
+      />
+      
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       {/* Back Button */}
       <div className="container mx-auto max-w-md mb-4 text-center">
         <Link to="/client/login" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
@@ -257,6 +264,7 @@ const ClientRegister = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 

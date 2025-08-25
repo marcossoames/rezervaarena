@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 
 interface LoginFormData {
   email: string;
@@ -19,6 +20,8 @@ interface LoginFormData {
 const ClientLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [showEmailVerificationDialog, setShowEmailVerificationDialog] = useState(false);
+  const [userEmailForVerification, setUserEmailForVerification] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>();
   const { toast } = useToast();
@@ -38,11 +41,8 @@ const ClientLogin = () => {
         // Check if it's an email confirmation error
         if (error.message.includes('email not confirmed') || error.message.includes('Email not confirmed')) {
           setShowEmailConfirmation(true);
-          toast({
-            title: "Email neconfirmat",
-            description: "Te rugăm să-ți confirmi adresa de email înainte să te conectezi.",
-            variant: "destructive"
-          });
+          setUserEmailForVerification(data.email);
+          setShowEmailVerificationDialog(true);
         } else {
           toast({
             title: "Eroare la autentificare",
@@ -111,7 +111,14 @@ const ClientLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
+    <>
+      <EmailVerificationDialog
+        isOpen={showEmailVerificationDialog}
+        onClose={() => setShowEmailVerificationDialog(false)}
+        email={userEmailForVerification}
+      />
+      
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth">
@@ -231,6 +238,7 @@ const ClientLogin = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 
