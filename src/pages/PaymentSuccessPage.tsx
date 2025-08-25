@@ -27,7 +27,7 @@ const PaymentSuccessPage = () => {
       try {
         console.log('Verifying payment for session:', sessionId);
 
-        const { data, error } = await supabase.functions.invoke('verify-payment', {
+        const { data, error } = await supabase.functions.invoke('verify-platform-payment', {
           body: { sessionId }
         });
 
@@ -44,7 +44,7 @@ const PaymentSuccessPage = () => {
 
         console.log('Payment verification result:', data);
 
-        if (data.payment_status === 'paid') {
+        if (data.status === 'success') {
           setPaymentStatus('success');
           toast({
             title: "Plată reușită!",

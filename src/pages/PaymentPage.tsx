@@ -218,47 +218,47 @@ const PaymentPage = () => {
     setProcessingPayment(true);
     
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Eroare",
-          description: "Trebuie să fiți autentificat pentru a face o rezervare",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Create Stripe checkout session - server calculates price for security
-      const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: {
-          facilityId,
-          date: selectedDate,
-          time: startTime,
-          duration: parseInt(duration || '60')  // Only send duration, server calculates price
-        }
+      console.log('Creating platform payment with data:', {
+        facilityId: facility.id,
+        bookingDate: selectedDate,
+        startTime,
+        endTime,
+        totalPrice: parseFloat(totalPrice || '0')
       });
 
-      if (error || !data?.url) {
-        console.error('Error creating payment session:', error);
+      const { data, error } = await supabase.functions.invoke('create-platform-payment', {
+        body: {
+          facilityId: facility.id,
+          bookingDate: selectedDate,
+          startTime,
+          endTime,
+          totalPrice: parseFloat(totalPrice || '0'),
+        },
+      });
+
+      if (error) {
+        console.error('Payment creation error:', error);
         toast({
-          title: "Eroare",
-          description: "Nu s-a putut inițializa plata cu cardul",
-          variant: "destructive"
+          title: "Eroare la procesarea plății",
+          description: error.message || "A apărut o eroare la crearea sesiunii de plată.",
+          variant: "destructive",
         });
         return;
       }
 
-      // Redirect to Stripe Checkout
-      window.open(data.url, '_blank');
-      
+      if (data?.url) {
+        console.log('Redirecting to Stripe checkout:', data.url);
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error('Nu s-a primit URL-ul de checkout');
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error during payment:', error);
       toast({
         title: "Eroare",
-        description: "A apărut o eroare la procesarea plății",
-        variant: "destructive"
+        description: "A apărut o eroare neașteptată.",
+        variant: "destructive",
       });
     } finally {
       setProcessingPayment(false);

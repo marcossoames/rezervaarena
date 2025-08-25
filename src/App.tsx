@@ -32,6 +32,8 @@ const ClientProfilePage = lazy(() => import("./pages/ClientProfilePage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ArticlesPage = lazy(() => import("./pages/ArticlesPage"));
+const PaymentSuccessPage = lazy(() => import("./pages/PaymentSuccessPage"));
+const PlatformPaymentsPage = lazy(() => import("./pages/PlatformPaymentsPage"));
 
 const queryClient = new QueryClient();
 
@@ -73,6 +75,8 @@ const App = () => (
             <Route path="/my-reservations" element={<MyReservationsPage />} />
             <Route path="/booking/:facilityId" element={<BookingPage />} />
             <Route path="/payment/:facilityId" element={<PaymentPage />} />
+            <Route path="/payment-success" element={<PaymentSuccessPage />} />
+            <Route path="/platform-payments" element={<PlatformPaymentsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

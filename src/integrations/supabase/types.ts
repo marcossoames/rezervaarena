@@ -367,6 +367,62 @@ export type Database = {
           },
         ]
       }
+      platform_payments: {
+        Row: {
+          booking_id: string | null
+          client_id: string
+          created_at: string
+          distributed_at: string | null
+          distributed_status: string | null
+          facility_owner_amount: number
+          facility_owner_id: string
+          id: string
+          payment_status: string | null
+          platform_fee_amount: number
+          stripe_session_id: string | null
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          booking_id?: string | null
+          client_id: string
+          created_at?: string
+          distributed_at?: string | null
+          distributed_status?: string | null
+          facility_owner_amount: number
+          facility_owner_id: string
+          id?: string
+          payment_status?: string | null
+          platform_fee_amount?: number
+          stripe_session_id?: string | null
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string | null
+          client_id?: string
+          created_at?: string
+          distributed_at?: string | null
+          distributed_status?: string | null
+          facility_owner_amount?: number
+          facility_owner_id?: string
+          id?: string
+          payment_status?: string | null
+          platform_fee_amount?: number
+          stripe_session_id?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
