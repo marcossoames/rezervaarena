@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 
 export type EnhancedCalendarProps = React.ComponentProps<typeof DayPicker> & {
   blockedDates?: Set<string> | string[];
+  partiallyBlockedDates?: Set<string> | string[];
 };
 
 function EnhancedCalendar({
@@ -15,6 +16,7 @@ function EnhancedCalendar({
   classNames,
   showOutsideDays = true,
   blockedDates = new Set(),
+  partiallyBlockedDates = new Set(),
   ...props
 }: EnhancedCalendarProps) {
   const blockedDatesSet = React.useMemo(() => {
@@ -23,6 +25,13 @@ function EnhancedCalendar({
     }
     return blockedDates;
   }, [blockedDates]);
+
+  const partiallyBlockedDatesSet = React.useMemo(() => {
+    if (Array.isArray(partiallyBlockedDates)) {
+      return new Set(partiallyBlockedDates);
+    }
+    return partiallyBlockedDates;
+  }, [partiallyBlockedDates]);
 
   const today = React.useMemo(() => new Date(), []);
 
@@ -67,9 +76,11 @@ function EnhancedCalendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
-        Day: ({ date, displayMonth }) => {
+        Day: (dayProps) => {
+          const { date } = dayProps;
           const dateString = format(date, 'yyyy-MM-dd');
-          const isBlocked = blockedDatesSet.has(dateString);
+          const isFullyBlocked = blockedDatesSet.has(dateString);
+          const isPartiallyBlocked = partiallyBlockedDatesSet.has(dateString);
           const isToday = isSameDay(date, today);
           const isSelected = props.selected && isSameDay(date, props.selected as Date);
           
@@ -80,7 +91,8 @@ function EnhancedCalendar({
           
           return (
             <div className="relative w-9 h-9">
-              <div
+              <button
+                {...dayProps}
                 className={cn(
                   buttonVariants({ variant: "ghost" }),
                   "h-9 w-9 p-0 font-normal relative",
@@ -90,19 +102,25 @@ function EnhancedCalendar({
                   isSelected && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
                   // Today + Selected styling - enhanced primary with gold accent
                   isToday && isSelected && "bg-primary text-primary-foreground border-2 border-amber-300 shadow-lg",
-                  // Blocked styling
-                  isBlocked && "bg-red-100 text-red-600 line-through opacity-75",
+                  // Fully blocked styling
+                  isFullyBlocked && "bg-red-100 text-red-600 line-through opacity-75 cursor-not-allowed",
+                  // Partially blocked styling
+                  isPartiallyBlocked && !isFullyBlocked && "bg-orange-100 text-orange-600 border border-orange-300",
                   // Disabled styling
                   isDisabled && "text-muted-foreground opacity-50"
                 )}
+                disabled={isDisabled || isFullyBlocked}
               >
-                <span className={cn(isBlocked && "relative z-10")}>
+                <span className={cn((isFullyBlocked || isPartiallyBlocked) && "relative z-10")}>
                   {date.getDate()}
                 </span>
-                {isBlocked && (
+                {isFullyBlocked && (
                   <X className="absolute inset-0 w-4 h-4 m-auto text-red-500 z-20" strokeWidth={3} />
                 )}
-              </div>
+                {isPartiallyBlocked && !isFullyBlocked && (
+                  <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full z-20" />
+                )}
+              </button>
             </div>
           );
         },

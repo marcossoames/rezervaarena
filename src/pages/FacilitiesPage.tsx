@@ -62,6 +62,7 @@ const FacilitiesPage = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
+  const [partiallyBlockedDates, setPartiallyBlockedDates] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   useEffect(() => {
     // Check authentication status
@@ -197,12 +198,25 @@ const FacilitiesPage = () => {
       try {
         const { data: blockedDatesData } = await supabase
           .from('blocked_dates')
-          .select('blocked_date')
-          .eq('start_time', null)
-          .eq('end_time', null); // Only full-day blocks for general display
+          .select('blocked_date, start_time, end_time');
 
-        const dates = new Set(blockedDatesData?.map(item => item.blocked_date) || []);
-        setBlockedDates(dates);
+        if (blockedDatesData) {
+          const fullyBlocked = new Set<string>();
+          const partiallyBlocked = new Set<string>();
+          
+          blockedDatesData.forEach(item => {
+            // If no start_time and end_time, it's a full day block
+            if (!item.start_time && !item.end_time) {
+              fullyBlocked.add(item.blocked_date);
+            } else {
+              // If has specific times, it's a partial block
+              partiallyBlocked.add(item.blocked_date);
+            }
+          });
+          
+          setBlockedDates(fullyBlocked);
+          setPartiallyBlockedDates(partiallyBlocked);
+        }
       } catch (error) {
         console.error('Error loading blocked dates:', error);
       }
@@ -415,7 +429,8 @@ const FacilitiesPage = () => {
                       <EnhancedCalendar 
                         mode="single" 
                         selected={selectedDate} 
-                        blockedDates={blockedDates}
+                         blockedDates={blockedDates}
+                         partiallyBlockedDates={partiallyBlockedDates}
                         onSelect={(date) => {
                           setSelectedDate(date);
                           // Clear time selections when date changes to avoid past time selections

@@ -77,6 +77,7 @@ const BookingPage = () => {
   const [startTimeSlots, setStartTimeSlots] = useState<Array<{time: string, available: boolean, price: number}>>([]);
   const [endTimeSlots, setEndTimeSlots] = useState<Array<{time: string, available: boolean, price: number}>>([]);
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
+  const [partiallyBlockedDates, setPartiallyBlockedDates] = useState<Set<string>>(new Set());
   const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
   const [selectedEndTime, setSelectedEndTime] = useState<string | null>(null);
   
@@ -198,12 +199,25 @@ const BookingPage = () => {
       try {
         const { data } = await supabase
           .from('blocked_dates')
-          .select('blocked_date')
+          .select('blocked_date, start_time, end_time')
           .eq('facility_id', facilityId);
 
         if (data) {
-          const dates = new Set(data.map(item => item.blocked_date));
-          setBlockedDates(dates);
+          const fullyBlocked = new Set<string>();
+          const partiallyBlocked = new Set<string>();
+          
+          data.forEach(item => {
+            // If no start_time and end_time, it's a full day block
+            if (!item.start_time && !item.end_time) {
+              fullyBlocked.add(item.blocked_date);
+            } else {
+              // If has specific times, it's a partial block
+              partiallyBlocked.add(item.blocked_date);
+            }
+          });
+          
+          setBlockedDates(fullyBlocked);
+          setPartiallyBlockedDates(partiallyBlocked);
         }
       } catch (error) {
         console.error('Error loading blocked dates:', error);
@@ -403,6 +417,7 @@ const BookingPage = () => {
                   mode="single"
                   selected={selectedDate}
                   blockedDates={blockedDates}
+                  partiallyBlockedDates={partiallyBlockedDates}
                   onSelect={(date) => {
                     if (date) {
                       const normalizedDate = startOfDay(date);
