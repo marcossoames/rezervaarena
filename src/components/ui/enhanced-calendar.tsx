@@ -74,32 +74,20 @@ function EnhancedCalendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
-        Day: ({ date, ...dayProps }) => {
+      }}
+      modifiers={{
+        fullyBlocked: (date) => {
           const dateString = format(date, 'yyyy-MM-dd');
-          const isFullyBlocked = blockedDatesSet.has(dateString);
-          const isPartiallyBlocked = partiallyBlockedDatesSet.has(dateString);
-          
-          return (
-            <div className="relative">
-              <button 
-                {...dayProps}
-                className={cn(
-                  "h-9 w-9 p-0 font-normal relative flex items-center justify-center rounded-md",
-                  isFullyBlocked && "bg-red-100 text-red-600 line-through opacity-75",
-                  isPartiallyBlocked && "bg-orange-100 text-orange-600 border border-orange-300"
-                )}
-              >
-                {date.getDate()}
-                {isFullyBlocked && (
-                  <X className="absolute inset-0 w-4 h-4 m-auto text-red-500 z-10" strokeWidth={3} />
-                )}
-                {isPartiallyBlocked && (
-                  <div className="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full z-10" />
-                )}
-              </button>
-            </div>
-          );
+          return blockedDatesSet.has(dateString);
         },
+        partiallyBlocked: (date) => {
+          const dateString = format(date, 'yyyy-MM-dd');
+          return partiallyBlockedDatesSet.has(dateString) && !blockedDatesSet.has(dateString);
+        }
+      }}
+      modifiersClassNames={{
+        fullyBlocked: "bg-red-100 text-red-600 opacity-75 relative after:content-['✕'] after:absolute after:inset-0 after:flex after:items-center after:justify-center after:text-red-500 after:font-bold after:text-lg",
+        partiallyBlocked: "bg-orange-100 text-orange-600 border border-orange-300 relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-orange-500 after:rounded-full"
       }}
       disabled={(date) => {
         const today = new Date();
@@ -119,5 +107,6 @@ function EnhancedCalendar({
     />
   );
 }
+EnhancedCalendar.displayName = "EnhancedCalendar";
 
 export { EnhancedCalendar };
