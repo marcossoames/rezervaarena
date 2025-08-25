@@ -40,12 +40,21 @@ const EditSportsComplexSettingsPage = () => {
           return;
         }
 
+        console.log('Loading data for user:', user.id);
+
         // Get user profile
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
+
+        console.log('Profile data:', profile, 'Error:', profileError);
+
+        if (profileError) {
+          console.error('Profile error:', profileError);
+          throw profileError;
+        }
 
         const isAdmin = profile && profile.role === 'admin';
         const isFacilityOwner = profile && (
@@ -80,31 +89,44 @@ const EditSportsComplexSettingsPage = () => {
           }
         }
 
+        console.log('Sports complex name extracted:', sportsComplexName);
+
         // Get facility data - use all facilities and take the first one if multiple
-        const { data: facilitiesData } = await supabase
+        const { data: facilitiesData, error: facilitiesError } = await supabase
           .from('facilities')
           .select('id, address, city, description, amenities')
           .eq('owner_id', user.id)
           .limit(1);
 
+        console.log('Facilities data:', facilitiesData, 'Error:', facilitiesError);
+
+        if (facilitiesError) {
+          console.error('Facilities error:', facilitiesError);
+        }
+
         // Set form values only with actual database data
+        console.log('Setting form values...');
         setValue("sportsComplexName", sportsComplexName);
         setValue("phone", profile.phone || "");
         
         // Only set facility data if it exists
         if (facilitiesData && facilitiesData.length > 0) {
           const facilityData = facilitiesData[0];
+          console.log('Setting facility data:', facilityData);
           setValue("address", facilityData.address || "");
           setValue("city", facilityData.city || "");
           setValue("description", facilityData.description || "");
           setValue("generalServices", facilityData.amenities || []);
         } else {
+          console.log('No facility data found, setting empty values');
           // Set empty values if no facility data
           setValue("address", "");
           setValue("city", "");
           setValue("description", "");
           setValue("generalServices", []);
         }
+
+        console.log('Form values set successfully');
 
       } catch (error) {
         console.error('Error loading data:', error);
