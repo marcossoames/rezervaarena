@@ -134,18 +134,13 @@
     <link rel="preload" href="/src/index.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
     
-    <!-- Preload critical hero image for better LCP -->
+    <!-- Preload critical hero image in multiple formats for better performance -->
+    <link rel="preload" as="image" href="/src/assets/hero-sports.webp" type="image/webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/src/assets/hero-sports.jpg" fetchpriority="high" />
-    
-    <!-- Resource hints for critical third-party connections -->
-    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    
-    <!-- Module preload for critical JavaScript chunks moved earlier for better optimization -->
-    <!-- These were moved to the critical section above -->
     
     <!-- Modern image format hints for better optimization -->
     <meta name="imageFormat" content="webp,avif,jpeg" />
+    <meta name="imageOptimization" content="aggressive" />
 
     <meta property="og:title" content="SportBook - Rezervă Terenuri Sportive Online" />
     <meta property="og:description" content="Găsește și rezervă cele mai bune facilități sportive din România. Tenis, fotbal, padel, înot și multe altele." />

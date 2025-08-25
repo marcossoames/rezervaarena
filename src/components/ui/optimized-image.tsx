@@ -73,24 +73,36 @@ export const OptimizedImage = ({
     return '(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px';
   };
 
-  // Generate more aggressive srcset with exact target dimensions
-  const generateSrcSet = (format: 'webp' | 'original' = 'original') => {
-    const extension = format === 'webp' ? '.webp' : src.split('.').pop();
+  // Generate proper WebP sources with fallback support
+  const generateWebPSrcSet = () => {
     const baseName = src.replace(/\.[^/.]+$/, '');
-    
-    // Use more aggressive compression and exact dimensions
     return targetDimensions.breakpoints.map(breakpointWidth => {
       const breakpointHeight = Math.round((breakpointWidth * targetDimensions.height) / targetDimensions.width);
-      const imageSrc = format === 'webp' ? `${baseName}.webp` : src;
       
-      // More aggressive optimization parameters
-      const url = new URL(imageSrc, window.location.origin);
+      // Generate WebP URL with optimization parameters
+      const webpUrl = `${baseName}.webp`;
+      const url = new URL(webpUrl, window.location.origin);
       url.searchParams.set('w', breakpointWidth.toString());
       url.searchParams.set('h', breakpointHeight.toString());
-      url.searchParams.set('q', Math.max(60, quality - 20).toString()); // More aggressive compression
-      url.searchParams.set('f', format === 'webp' ? 'webp' : 'auto');
-      url.searchParams.set('fit', 'cover'); // Ensure proper cropping
-      url.searchParams.set('auto', 'compress,format'); // Auto optimization
+      url.searchParams.set('q', Math.max(60, quality - 15).toString()); // More aggressive for WebP
+      url.searchParams.set('f', 'webp');
+      url.searchParams.set('auto', 'compress,format');
+      
+      return `${url.toString()} ${breakpointWidth}w`;
+    }).join(', ');
+  };
+
+  // Generate fallback JPEG sources
+  const generateJPEGSrcSet = () => {
+    return targetDimensions.breakpoints.map(breakpointWidth => {
+      const breakpointHeight = Math.round((breakpointWidth * targetDimensions.height) / targetDimensions.width);
+      
+      const url = new URL(src, window.location.origin);
+      url.searchParams.set('w', breakpointWidth.toString());
+      url.searchParams.set('h', breakpointHeight.toString());
+      url.searchParams.set('q', Math.max(60, quality - 20).toString());
+      url.searchParams.set('f', 'auto');
+      url.searchParams.set('auto', 'compress,format');
       
       return `${url.toString()} ${breakpointWidth}w`;
     }).join(', ');
@@ -108,30 +120,44 @@ export const OptimizedImage = ({
     setImageLoaded(true);
   };
 
-  // Generate WebP version
-  const webpSrc = src.replace(/\.(jpg|jpeg|png)$/i, '.webp');
+  // Create proper WebP source with fallback
+  const createWebPSource = () => {
+    const baseName = src.replace(/\.[^/.]+$/, '');
+    const webpSrc = `${baseName}.webp`;
+    
+    return {
+      srcSet: generateWebPSrcSet(),
+      type: "image/webp",
+      sizes: getOptimalSizes()
+    };
+  };
 
   return (
     <picture>
-      {/* WebP source for modern browsers - significant file size reduction */}
-      {supportsWebP && (
-        <source
-          srcSet={generateSrcSet('webp')}
-          type="image/webp"
-          sizes={getOptimalSizes()}
-        />
-      )}
-      
-      {/* Original format fallback with responsive srcset */}
+      {/* WebP source for modern browsers - up to 30-50% smaller files */}
       <source
-        srcSet={generateSrcSet('original')}
+        srcSet={generateWebPSrcSet()}
+        type="image/webp"
+        sizes={getOptimalSizes()}
+      />
+      
+      {/* AVIF source for cutting-edge browsers - even better compression */}
+      <source
+        srcSet={generateWebPSrcSet().replace(/\.webp/g, '.avif').replace(/f=webp/g, 'f=avif')}
+        type="image/avif"
+        sizes={getOptimalSizes()}
+      />
+      
+      {/* Original JPEG fallback with optimization */}
+      <source
+        srcSet={generateJPEGSrcSet()}
         type={`image/${src.split('.').pop()?.toLowerCase()}`}
         sizes={getOptimalSizes()}
       />
       
-      {/* Base img element */}
+      {/* Base img element with optimized fallback */}
       <img
-        src={imageError ? src : src}
+        src={src}
         alt={alt}
         className={`${className} ${!imageLoaded && loading === 'lazy' ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         loading={loading}
@@ -147,10 +173,11 @@ export const OptimizedImage = ({
         decoding="async"
         onError={handleError}
         onLoad={handleLoad}
-        // Add optimization attributes for debugging
+        // Add optimization attributes for debugging and CDN hints
         data-optimized="true"
         data-original-src={src}
         data-target-size={`${targetDimensions.width}x${targetDimensions.height}`}
+        data-supports-webp={supportsWebP}
       />
     </picture>
   );
