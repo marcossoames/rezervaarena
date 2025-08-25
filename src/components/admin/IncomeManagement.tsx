@@ -22,6 +22,22 @@ interface MonthlyIncomeData extends IncomeData {
   year: number;
 }
 
+interface FacilityIncomeData {
+  facilityId: string;
+  facilityName: string;
+  ownerName: string;
+  phoneNumber: string;
+  // Câți bani trebuie să primim de la baza (comision 10% din cash)
+  commissionFromCash: number;
+  cashBookings: number;
+  // Câți bani trebuie să dăm la baza (90% din online)
+  paymentToFacility: number;
+  onlineBookings: number;
+  // Calculul final (pozitiv = baza ne datorează, negativ = noi datorăm)
+  netBalance: number;
+  totalOnlineAmount: number;
+}
+
 const IncomeManagement = () => {
   const [incomeData, setIncomeData] = useState<IncomeData>({
     physicalIncome: 0,
@@ -32,6 +48,7 @@ const IncomeManagement = () => {
     onlineBookings: 0
   });
   const [monthlyData, setMonthlyData] = useState<MonthlyIncomeData[]>([]);
+  const [facilityData, setFacilityData] = useState<FacilityIncomeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<string>("current_month");
   const { toast } = useToast();
@@ -112,6 +129,9 @@ const IncomeManagement = () => {
 
       // Load monthly data for the chart (last 3 months)
       await loadMonthlyData();
+      
+      // Load facility breakdown data
+      await loadFacilityData(startDate, endDate);
 
     } catch (error) {
       console.error('Error loading income data:', error);
@@ -173,6 +193,111 @@ const IncomeManagement = () => {
       setMonthlyData(monthsData);
     } catch (error) {
       console.error('Error loading monthly data:', error);
+    }
+  };
+
+  const loadFacilityData = async (startDate: Date, endDate: Date) => {
+    try {
+      // Get all bookings for the period
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('*')
+        .gte('booking_date', format(startDate, 'yyyy-MM-dd'))
+        .lte('booking_date', format(endDate, 'yyyy-MM-dd'))
+        .in('status', ['confirmed', 'completed']);
+
+      if (bookingsError) throw bookingsError;
+
+      // Get all unique facility IDs
+      const facilityIds = [...new Set(bookings?.map(b => b.facility_id) || [])];
+      
+      if (facilityIds.length === 0) {
+        setFacilityData([]);
+        return;
+      }
+
+      // Get facility details with owner information
+      const { data: facilities, error: facilitiesError } = await supabase
+        .from('facilities')
+        .select(`
+          id,
+          name,
+          owner_id,
+          profiles!facilities_owner_id_fkey (
+            full_name,
+            phone
+          )
+        `)
+        .in('id', facilityIds);
+
+      if (facilitiesError) throw facilitiesError;
+
+      // Create a map of facility details
+      const facilityDetailsMap = new Map();
+      facilities?.forEach(facility => {
+        facilityDetailsMap.set(facility.id, {
+          name: facility.name,
+          ownerName: facility.profiles?.full_name || 'Nume necunoscut',
+          phoneNumber: facility.profiles?.phone || 'Telefon necunoscut'
+        });
+      });
+
+      // Group bookings by facility
+      const facilityMap = new Map<string, FacilityIncomeData>();
+
+      bookings?.forEach(booking => {
+        const facilityId = booking.facility_id;
+        const facilityDetails = facilityDetailsMap.get(facilityId);
+        
+        if (!facilityDetails) return;
+
+        if (!facilityMap.has(facilityId)) {
+          facilityMap.set(facilityId, {
+            facilityId,
+            facilityName: facilityDetails.name,
+            ownerName: facilityDetails.ownerName,
+            phoneNumber: facilityDetails.phoneNumber,
+            commissionFromCash: 0,
+            cashBookings: 0,
+            paymentToFacility: 0,
+            onlineBookings: 0,
+            netBalance: 0,
+            totalOnlineAmount: 0
+          });
+        }
+
+        const facilityData = facilityMap.get(facilityId)!;
+
+        if (booking.payment_method === 'cash' && booking.status === 'completed') {
+          // Comision 10% din plățile cash finalizate
+          facilityData.commissionFromCash += booking.total_price * 0.1;
+          facilityData.cashBookings++;
+        } else if (booking.payment_method === 'card' && ['confirmed', 'completed'].includes(booking.status)) {
+          // 90% din plățile online merg la baza sportivă
+          facilityData.totalOnlineAmount += booking.total_price;
+          facilityData.paymentToFacility += booking.total_price * 0.9;
+          facilityData.onlineBookings++;
+        }
+      });
+
+      // Calculate net balance for each facility
+      const facilityArray = Array.from(facilityMap.values()).map(facility => ({
+        ...facility,
+        // Pozitiv = baza ne datorează, Negativ = noi datorăm la baza
+        netBalance: facility.commissionFromCash - facility.paymentToFacility
+      }));
+
+      // Sort by net balance (highest debt from facilities first)
+      facilityArray.sort((a, b) => b.netBalance - a.netBalance);
+
+      setFacilityData(facilityArray);
+    } catch (error) {
+      console.error('Error loading facility data:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-au putut încărca datele pentru facilități",
+        variant: "destructive"
+      });
     }
   };
 
@@ -347,6 +472,142 @@ const IncomeManagement = () => {
             </div>
           </div>
 
+          {/* Facility Breakdown */}
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-secondary/30 to-secondary/20 p-4 rounded-lg border mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-primary" />
+                Situația pe Baze Sportive
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Distribuția financiară cu fiecare proprietar de bază sportivă
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {facilityData.length > 0 ? (
+                facilityData.map((facility, index) => (
+                  <Card key={facility.facilityId} className="border shadow-sm hover:shadow-md transition-all">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-lg text-foreground">
+                            {facility.facilityName}
+                          </h4>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                            <span>👤 {facility.ownerName}</span>
+                            <span>📞 {facility.phoneNumber}</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-xl font-bold ${
+                            facility.netBalance > 0 
+                              ? 'text-green-600' 
+                              : facility.netBalance < 0 
+                                ? 'text-red-600' 
+                                : 'text-gray-600'
+                          }`}>
+                            {facility.netBalance > 0 ? '+' : ''}{facility.netBalance.toFixed(2)} RON
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {facility.netBalance > 0 
+                              ? 'Ne datorează' 
+                              : facility.netBalance < 0 
+                                ? 'Le datorăm' 
+                                : 'Echilibrat'
+                            }
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-3 gap-4">
+                        {/* Commission from Cash */}
+                        <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <Banknote className="h-4 w-4 text-orange-600" />
+                              <span className="text-sm font-medium">Comision Cash (10%)</span>
+                            </div>
+                          </div>
+                          <div className="text-lg font-semibold text-orange-600">
+                            +{facility.commissionFromCash.toFixed(2)} RON
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Din {facility.cashBookings} rezervări cash
+                          </div>
+                        </div>
+                        
+                        {/* Payment to Facility */}
+                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <CreditCard className="h-4 w-4 text-blue-600" />
+                              <span className="text-sm font-medium">Plată către bază (90%)</span>
+                            </div>
+                          </div>
+                          <div className="text-lg font-semibold text-blue-600">
+                            -{facility.paymentToFacility.toFixed(2)} RON
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Din {facility.onlineBookings} rezervări online ({facility.totalOnlineAmount.toFixed(2)} RON)
+                          </div>
+                        </div>
+
+                        {/* Net Balance */}
+                        <div className={`p-3 rounded-lg border ${
+                          facility.netBalance > 0 
+                            ? 'bg-green-50 border-green-200' 
+                            : facility.netBalance < 0 
+                              ? 'bg-red-50 border-red-200' 
+                              : 'bg-gray-50 border-gray-200'
+                        }`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className={`h-4 w-4 ${
+                                facility.netBalance > 0 
+                                  ? 'text-green-600' 
+                                  : facility.netBalance < 0 
+                                    ? 'text-red-600' 
+                                    : 'text-gray-600'
+                              }`} />
+                              <span className="text-sm font-medium">Situația Finală</span>
+                            </div>
+                          </div>
+                          <div className={`text-lg font-semibold ${
+                            facility.netBalance > 0 
+                              ? 'text-green-600' 
+                              : facility.netBalance < 0 
+                                ? 'text-red-600' 
+                                : 'text-gray-600'
+                          }`}>
+                            {facility.netBalance > 0 ? '+' : ''}{facility.netBalance.toFixed(2)} RON
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {facility.netBalance > 0 
+                              ? 'Să ne plătească' 
+                              : facility.netBalance < 0 
+                                ? 'Să le plătim' 
+                                : 'Echilibrat'
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">
+                      Nu există date financiare pentru perioada selectată
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+
           {/* Income Explanation */}
           <Card className="bg-gradient-to-r from-muted/30 to-muted/20 border-muted">
             <CardHeader>
@@ -359,9 +620,9 @@ const IncomeManagement = () => {
               <div className="flex items-start gap-3">
                 <Banknote className="h-5 w-5 text-orange-600 mt-0.5" />
                 <div>
-                  <p className="font-medium">Încasări Fizice (Cash)</p>
+                  <p className="font-medium">Comision din Plăți Cash</p>
                   <p className="text-sm text-muted-foreground">
-                    Se calculează 10% comision doar din rezervările cu plată cash care au fost finalizate (status: completed)
+                    Percepem 10% comision din rezervările cu plată cash finalizate. Baza sportivă ne datorează acești bani.
                   </p>
                 </div>
               </div>
@@ -369,9 +630,9 @@ const IncomeManagement = () => {
               <div className="flex items-start gap-3">
                 <CreditCard className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div>
-                  <p className="font-medium">Încasări Online</p>
+                  <p className="font-medium">Plăți către Baze Sportive</p>
                   <p className="text-sm text-muted-foreground">
-                    Se calculează suma completă din rezervările cu plată card care sunt confirmate sau finalizate
+                    Transferăm 90% din încasările online către bazele sportive (păstrăm 10% comision platformă)
                   </p>
                 </div>
               </div>
@@ -379,9 +640,9 @@ const IncomeManagement = () => {
               <div className="flex items-start gap-3">
                 <TrendingUp className="h-5 w-5 text-green-600 mt-0.5" />
                 <div>
-                  <p className="font-medium">Total Încasări</p>
+                  <p className="font-medium">Situația Finală per Bază</p>
                   <p className="text-sm text-muted-foreground">
-                    Suma încasărilor fizice și online pentru perioada selectată
+                    Calculul final: Comision Cash - Plăți Online. Pozitiv = ne datorează, Negativ = le datorăm
                   </p>
                 </div>
               </div>
