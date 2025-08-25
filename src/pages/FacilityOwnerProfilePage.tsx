@@ -548,18 +548,6 @@ const FacilityOwnerProfilePage = () => {
               </CardHeader>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/manage-facilities')}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  Gestionează Facilități
-                </CardTitle>
-                <CardDescription>
-                  Adaugă, editează sau șterge facilitățile sportive
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/facility-owner-income')}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -568,6 +556,18 @@ const FacilityOwnerProfilePage = () => {
                 </CardTitle>
                 <CardDescription>
                   Vizualizează veniturile din rezervări și comisioane
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/manage-facilities')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Gestionează Facilități
+                </CardTitle>
+                <CardDescription>
+                  Adaugă, editează sau șterge facilitățile sportive
                 </CardDescription>
               </CardHeader>
             </Card>
