@@ -510,21 +510,31 @@ const MyReservationsPage = () => {
 
                   {/* Booking Status Manager for facility owners and admins */}
                   {canManageBookingStatus(booking) && (
-                    <div className="mt-4 pt-4 border-t">
-                      <BookingStatusManager 
-                        booking={{
-                          id: booking.id,
-                          booking_date: booking.booking_date,
-                          start_time: booking.start_time,
-                          end_time: booking.end_time,
-                          status: booking.status,
-                          total_price: booking.total_price,
-                          payment_method: booking.payment_method,
-                          notes: booking.notes,
-                          client_id: booking.client_id
-                        }}
-                        onStatusUpdate={loadBookings}
-                      />
+                    <div className="mt-4 pt-4 border-t border-border/50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Gestionare Status
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Actualizează statusul rezervării
+                          </span>
+                        </div>
+                        <BookingStatusManager 
+                          booking={{
+                            id: booking.id,
+                            booking_date: booking.booking_date,
+                            start_time: booking.start_time,
+                            end_time: booking.end_time,
+                            status: booking.status,
+                            total_price: booking.total_price,
+                            payment_method: booking.payment_method,
+                            notes: booking.notes,
+                            client_id: booking.client_id
+                          }}
+                          onStatusUpdate={loadBookings}
+                        />
+                      </div>
                     </div>
                   )}
 
