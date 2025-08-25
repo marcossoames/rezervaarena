@@ -293,7 +293,7 @@ const FacilityManagement = () => {
                 >
                   <Card className="border-l-4 border-l-blue-500">
                     <CollapsibleTrigger asChild>
-                      <CardHeader className="cursor-pointer hover:bg-muted/50">
+                      <CardHeader className="cursor-pointer hover:bg-muted/50 pb-3">
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center gap-3">
                             {expandedComplexes.has(complex.owner_id) ? 
@@ -309,37 +309,9 @@ const FacilityManagement = () => {
                                 </span>
                               </CardTitle>
                               <p className="text-sm text-muted-foreground">
-                                {complex.city} • {complex.total_facilities} facilități ({complex.active_facilities} active)
-                                {complex.bank_details && (
-                                  <span className="ml-2 text-green-600">• Cont bancar configurat</span>
-                                )}
+                                {complex.city}
                               </p>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">
-                              {complex.owner_email}
-                            </Badge>
-                            <Badge variant={complex.active_facilities > 0 ? "default" : "secondary"}>
-                              {complex.active_facilities}/{complex.total_facilities} active
-                            </Badge>
-                            {complex.bank_details && (
-                              <Badge variant="outline" className="text-green-600 border-green-600">
-                                <CreditCard className="h-3 w-3 mr-1" />
-                                Cont Bancar
-                              </Badge>
-                            )}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/admin/edit-sports-complex/${complex.owner_id}`);
-                              }}
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              Editează Baza
-                            </Button>
                           </div>
                         </div>
                       </CardHeader>
@@ -347,6 +319,57 @@ const FacilityManagement = () => {
                     
                     <CollapsibleContent>
                       <CardContent className="pt-0">
+                        {/* Info Section - Above Tabs */}
+                        <div className="ml-8 mb-4 p-4 bg-muted/30 rounded-lg border">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-blue-600" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Email</p>
+                                <p className="text-sm font-medium">{complex.owner_email}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-green-600" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Facilități</p>
+                                <p className="text-sm font-medium">
+                                  {complex.active_facilities}/{complex.total_facilities} active
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <CreditCard className="h-4 w-4 text-purple-600" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Cont Bancar</p>
+                                <p className="text-sm font-medium">
+                                  {complex.bank_details ? (
+                                    <span className="text-green-600">Configurat</span>
+                                  ) : (
+                                    <span className="text-orange-600">Neconfigurat</span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/admin/edit-sports-complex/${complex.owner_id}`);
+                                }}
+                                className="w-full"
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                Editează Baza
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
                         <div className="ml-8">
                           <Tabs defaultValue="facilities" className="w-full">
                             <TabsList className="grid w-full grid-cols-3">
