@@ -79,15 +79,10 @@ function EnhancedCalendar({
         fullyBlocked: (date) => {
           const dateString = format(date, 'yyyy-MM-dd');
           return blockedDatesSet.has(dateString);
-        },
-        partiallyBlocked: (date) => {
-          const dateString = format(date, 'yyyy-MM-dd');
-          return partiallyBlockedDatesSet.has(dateString) && !blockedDatesSet.has(dateString);
         }
       }}
       modifiersClassNames={{
-        fullyBlocked: "bg-gradient-to-br from-red-50 to-red-100 text-red-700 border-2 border-red-200 shadow-sm relative after:content-['✕'] after:absolute after:inset-0 after:flex after:items-center after:justify-center after:text-red-500 after:font-bold after:text-lg after:drop-shadow-sm",
-        partiallyBlocked: "bg-gradient-to-br from-orange-50 to-orange-100 text-orange-700 border-2 border-orange-200 shadow-sm relative after:content-[''] after:absolute after:top-1 after:right-1 after:w-2 after:h-2 after:bg-orange-500 after:rounded-full after:shadow-sm after:border after:border-orange-300"
+        fullyBlocked: "bg-gradient-to-br from-red-50 to-red-100 text-red-700 border-2 border-red-200 shadow-sm relative after:content-['✕'] after:absolute after:inset-0 after:flex after:items-center after:justify-center after:text-red-500 after:font-bold after:text-lg after:drop-shadow-sm"
       }}
       disabled={(date) => {
         const today = new Date();
