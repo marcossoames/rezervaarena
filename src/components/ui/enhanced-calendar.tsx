@@ -61,8 +61,8 @@ function EnhancedCalendar({
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        day_today: "bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold shadow-lg border-2 border-amber-300",
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground shadow-lg border-2 border-primary/20",
+        day_today: "bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 text-white font-bold shadow-lg border-2 border-orange-300/50 ring-2 ring-orange-200/30",
         day_outside:
           "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
         day_disabled: "text-muted-foreground opacity-50",
@@ -86,8 +86,8 @@ function EnhancedCalendar({
         }
       }}
       modifiersClassNames={{
-        fullyBlocked: "bg-red-100 text-red-600 opacity-75 relative after:content-['✕'] after:absolute after:inset-0 after:flex after:items-center after:justify-center after:text-red-500 after:font-bold after:text-lg",
-        partiallyBlocked: "bg-orange-100 text-orange-600 border border-orange-300 relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-orange-500 after:rounded-full"
+        fullyBlocked: "bg-gradient-to-br from-red-50 to-red-100 text-red-700 border-2 border-red-200 shadow-sm relative after:content-['✕'] after:absolute after:inset-0 after:flex after:items-center after:justify-center after:text-red-500 after:font-bold after:text-lg after:drop-shadow-sm",
+        partiallyBlocked: "bg-gradient-to-br from-orange-50 to-orange-100 text-orange-700 border-2 border-orange-200 shadow-sm relative after:content-[''] after:absolute after:top-1 after:right-1 after:w-2 after:h-2 after:bg-orange-500 after:rounded-full after:shadow-sm after:border after:border-orange-300"
       }}
       disabled={(date) => {
         const today = new Date();
