@@ -10,29 +10,35 @@ const STATIC_ASSETS = [
   // Add other critical assets as needed
 ];
 
-// Cache strategies
+// Cache strategies - Aggressive caching for static assets
 const CACHE_STRATEGIES = {
-  // Cache images for 30 days
+  // Cache images for 1 year (static assets with hashes)
   images: {
     pattern: /\.(png|jpg|jpeg|webp|avif|svg|ico)$/i,
     strategy: 'cache-first',
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
   },
-  // Cache JS/CSS for 1 year (they have hashes)
+  // Cache JS/CSS for 1 year (they have content hashes)
   assets: {
-    pattern: /\.(js|css)$/i,
+    pattern: /\/assets\/.*\.(js|css)$/i,
     strategy: 'cache-first', 
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+  },
+  // Cache specific hashed assets aggressively
+  hashedAssets: {
+    pattern: /\/assets\/.+\-[a-zA-Z0-9_-]+\.(js|css|jpg|png|webp|avif)$/i,
+    strategy: 'cache-first',
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year for hashed assets
   },
   // Never cache authenticated API responses
   api: {
     pattern: /\/rest\/v1\//,
-    strategy: 'network-only', // Changed from network-first to prevent caching
-    maxAge: 0, // No caching
+    strategy: 'network-only',
+    maxAge: 0,
   },
-  // Cache pages for 1 hour
+  // Cache pages briefly
   pages: {
-    pattern: /\.html$/,
+    pattern: /\.html$|^\/$/,
     strategy: 'network-first',
     maxAge: 60 * 60 * 1000, // 1 hour
   }
@@ -89,6 +95,12 @@ self.addEventListener('fetch', (event) => {
 
   // Never cache authenticated requests to prevent security issues
   if (request.headers.get('Authorization') || url.href.includes('/rest/v1/')) {
+    return;
+  }
+
+  // Always cache static assets from /assets/ path
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(handleStaticAsset(request));
     return;
   }
 
@@ -198,5 +210,42 @@ async function networkFirst(request, cacheName, maxAge) {
     }
     
     return new Response('Offline', { status: 503 });
+  }
+}
+
+// Optimized static asset caching with aggressive cache headers
+async function handleStaticAsset(request) {
+  const cache = await caches.open(STATIC_CACHE_NAME);
+  const cachedResponse = await cache.match(request);
+  
+  // Return cached version immediately if available
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  try {
+    // Fetch from network with cache headers
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      // Clone and add aggressive cache headers
+      const headers = new Headers(networkResponse.headers);
+      headers.set('Cache-Control', 'public, max-age=31536000, immutable'); // 1 year
+      headers.set('x-cached-time', Date.now().toString());
+      
+      const cachedResponse = new Response(networkResponse.body, {
+        status: networkResponse.status,
+        statusText: networkResponse.statusText,
+        headers: headers
+      });
+      
+      // Cache the response
+      cache.put(request, cachedResponse.clone());
+      return cachedResponse;
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    return new Response('Asset not found', { status: 404 });
   }
 }
