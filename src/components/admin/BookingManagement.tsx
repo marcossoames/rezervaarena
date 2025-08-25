@@ -15,13 +15,15 @@ import { isBlockingTimeAllowed } from "@/utils/dateTimeValidation";
 import { Badge } from "@/components/ui/badge";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { Calendar as CalendarIcon, Clock, MapPin, User, DollarSign, Filter, Ban, X, Building2 } from "lucide-react";
+import BookingStatusManager from "@/components/booking/BookingStatusManager";
+import ClientBehaviorStats from "@/components/admin/ClientBehaviorStats";
 
 interface Booking {
   id: string;
   booking_date: string;
   start_time: string;
   end_time: string;
-  status: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   total_price: number;
   notes?: string;
   created_at: string;
@@ -172,7 +174,7 @@ const BookingManagement = () => {
     // The actual filtering is handled in the render method
   };
 
-  const updateBookingStatus = async (bookingId: string, newStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed') => {
+  const updateBookingStatus = async (bookingId: string, newStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show') => {
     try {
       const { error } = await supabase
         .from('bookings')
@@ -290,7 +292,8 @@ const BookingManagement = () => {
       pending: { label: "În așteptare", variant: "secondary" as const },
       confirmed: { label: "Confirmată", variant: "default" as const },
       cancelled: { label: "Anulată", variant: "destructive" as const },
-      completed: { label: "Finalizată", variant: "outline" as const }
+      completed: { label: "Finalizată", variant: "outline" as const },
+      no_show: { label: "Lipsă", variant: "destructive" as const }
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
@@ -559,9 +562,10 @@ const BookingManagement = () => {
                 <SelectContent className="bg-background border shadow-lg z-50">
                   <SelectItem value="all" className="hover:bg-accent">Toate statusurile</SelectItem>
                   <SelectItem value="pending" className="hover:bg-accent">În așteptare</SelectItem>
-                  <SelectItem value="confirmed" className="hover:bg-accent">Confirmată</SelectItem>
-                  <SelectItem value="cancelled" className="hover:bg-accent">Anulată</SelectItem>
-                  <SelectItem value="completed" className="hover:bg-accent">Finalizată</SelectItem>
+                   <SelectItem value="confirmed" className="hover:bg-accent">Confirmată</SelectItem>
+                   <SelectItem value="cancelled" className="hover:bg-accent">Anulată</SelectItem>
+                   <SelectItem value="completed" className="hover:bg-accent">Finalizată</SelectItem>
+                   <SelectItem value="no_show" className="hover:bg-accent">Lipsă</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -836,37 +840,21 @@ const BookingManagement = () => {
                           </div>
 
                           <div className="flex flex-col gap-3 ml-6">
-                            {booking.status === 'pending' && (
-                              <>
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={() => updateBookingStatus(booking.id, 'confirmed')}
-                                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover-scale shadow-sm"
-                                >
-                                  Confirmă
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => updateBookingStatus(booking.id, 'cancelled')}
-                                  className="hover-scale shadow-sm"
-                                >
-                                  Anulează
-                                </Button>
-                              </>
-                            )}
-                            
-                            {booking.status === 'confirmed' && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateBookingStatus(booking.id, 'completed')}
-                                className="hover-scale shadow-sm hover:shadow-md transition-all"
-                              >
-                                Marchează ca finalizată
-                              </Button>
-                            )}
+                            <BookingStatusManager 
+                              booking={{
+                                id: booking.id,
+                                booking_date: booking.booking_date,
+                                start_time: booking.start_time,
+                                end_time: booking.end_time,
+                                status: booking.status,
+                                total_price: booking.total_price,
+                                payment_method: 'cash', // You might want to add this field to the interface
+                                notes: booking.notes,
+                                client_id: booking.client_id
+                              }}
+                              onStatusUpdate={() => loadData()}
+                              showStatusUpdate={true}
+                            />
                           </div>
                         </div>
                       </CardContent>

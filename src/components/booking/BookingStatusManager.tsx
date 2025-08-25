@@ -1,0 +1,233 @@
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle,
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { CheckCircle, XCircle, Clock, AlertTriangle, Edit } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Booking {
+  id: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  total_price: number;
+  payment_method: string;
+  notes?: string;
+  client_id: string;
+}
+
+interface BookingStatusManagerProps {
+  booking: Booking;
+  onStatusUpdate: () => void;
+  showStatusUpdate?: boolean;
+}
+
+const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({ 
+  booking, 
+  onStatusUpdate, 
+  showStatusUpdate = true 
+}) => {
+  const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [selectedStatus, setSelectedStatus] = React.useState<string>(booking.status);
+  const [notes, setNotes] = React.useState(booking.notes || "");
+  const [isUpdating, setIsUpdating] = React.useState(false);
+
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return { 
+          label: 'În așteptare', 
+          variant: 'secondary' as const, 
+          icon: <Clock className="h-4 w-4" />,
+          description: 'Rezervarea așteaptă confirmarea' 
+        };
+      case 'confirmed':
+        return { 
+          label: 'Confirmată', 
+          variant: 'default' as const, 
+          icon: <CheckCircle className="h-4 w-4" />,
+          description: 'Rezervarea a fost confirmată' 
+        };
+      case 'completed':
+        return { 
+          label: 'Finalizată', 
+          variant: 'default' as const, 
+          icon: <CheckCircle className="h-4 w-4" />,
+          description: 'Clientul a venit și a plătit' 
+        };
+      case 'no_show':
+        return { 
+          label: 'Lipsă', 
+          variant: 'destructive' as const, 
+          icon: <AlertTriangle className="h-4 w-4" />,
+          description: 'Clientul nu s-a prezentat' 
+        };
+      case 'cancelled':
+        return { 
+          label: 'Anulată', 
+          variant: 'outline' as const, 
+          icon: <XCircle className="h-4 w-4" />,
+          description: 'Rezervarea a fost anulată' 
+        };
+      default:
+        return { 
+          label: status, 
+          variant: 'outline' as const, 
+          icon: <Clock className="h-4 w-4" />,
+          description: 'Status necunoscut' 
+        };
+    }
+  };
+
+  const handleStatusUpdate = async () => {
+    if (selectedStatus === booking.status && notes === (booking.notes || "")) {
+      setIsDialogOpen(false);
+      return;
+    }
+
+    setIsUpdating(true);
+    
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({
+          status: selectedStatus as any,
+          notes: notes.trim() || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', booking.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Status actualizat",
+        description: `Rezervarea a fost marcată ca "${getStatusInfo(selectedStatus).label.toLowerCase()}"`,
+      });
+
+      setIsDialogOpen(false);
+      onStatusUpdate();
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut actualiza statusul rezervării",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const getAvailableStatuses = () => {
+    // For cash payments that are confirmed/pending, allow completion or no-show
+    if (booking.payment_method === 'cash' && ['pending', 'confirmed'].includes(booking.status)) {
+      return [
+        { value: 'confirmed', label: 'Confirmată', description: 'Rezervarea este confirmată' },
+        { value: 'completed', label: 'Finalizată', description: 'Clientul a venit și a plătit' },
+        { value: 'no_show', label: 'Lipsă', description: 'Clientul nu s-a prezentat' },
+        { value: 'cancelled', label: 'Anulată', description: 'Anulează rezervarea' }
+      ];
+    }
+    
+    // For card payments or other cases
+    return [
+      { value: 'pending', label: 'În așteptare', description: 'Rezervarea așteaptă confirmarea' },
+      { value: 'confirmed', label: 'Confirmată', description: 'Rezervarea este confirmată' },
+      { value: 'completed', label: 'Finalizată', description: 'Serviciul a fost prestat' },
+      { value: 'no_show', label: 'Lipsă', description: 'Clientul nu s-a prezentat' },
+      { value: 'cancelled', label: 'Anulată', description: 'Rezervarea a fost anulată' }
+    ];
+  };
+
+  const statusInfo = getStatusInfo(booking.status);
+
+  return (
+    <div className="flex items-center gap-2">
+      <Badge variant={statusInfo.variant} className="flex items-center gap-1">
+        {statusInfo.icon}
+        {statusInfo.label}
+      </Badge>
+      
+      {showStatusUpdate && (
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+              <Edit className="h-3 w-3" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Actualizează Status Rezervare</DialogTitle>
+              <DialogDescription>
+                Modifică statusul rezervării și adaugă notițe dacă e necesar.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Status nou</Label>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selectează statusul" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getAvailableStatuses().map(status => (
+                      <SelectItem key={status.value} value={status.value}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{status.label}</span>
+                          <span className="text-xs text-muted-foreground">{status.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notițe (opțional)</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Adaugă notițe despre rezervare..."
+                  rows={3}
+                />
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsDialogOpen(false)}
+                  disabled={isUpdating}
+                >
+                  Anulează
+                </Button>
+                <Button 
+                  onClick={handleStatusUpdate}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? 'Se actualizează...' : 'Actualizează'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+};
+
+export default BookingStatusManager;

@@ -17,7 +17,7 @@ interface BasicBooking {
   start_time: string;
   end_time: string;
   total_price: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   payment_method: string;
   stripe_session_id?: string;
   facility_id: string;

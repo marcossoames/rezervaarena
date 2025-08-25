@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Mail, Calendar, Shield, UserCheck, Trash2, Building2, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Shield, Trash2, User, Calendar, Building2, MapPin, Phone, Mail, RefreshCw, Filter, AlertTriangle, Users } from "lucide-react";
+import { format } from "date-fns";
+import { ro } from "date-fns/locale";
+import ClientBehaviorStats from "@/components/admin/ClientBehaviorStats";
 
 interface Profile {
   id: string;
@@ -17,6 +20,10 @@ interface Profile {
   phone?: string;
   role: 'client' | 'facility_owner' | 'admin';
   created_at: string;
+  total_bookings?: number;
+  completed_bookings?: number;
+  no_show_bookings?: number;
+  cancelled_bookings?: number;
 }
 
 const UserManagement = () => {
@@ -43,10 +50,10 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      // Force refresh from server to get latest data
+      // Force refresh from server to get latest data including booking stats
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, total_bookings, completed_bookings, no_show_bookings, cancelled_bookings')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -184,6 +191,15 @@ const UserManagement = () => {
     setRoleFilter(role);
     if (role === 'all') {
       setFilteredUsers(users);
+    } else if (role === 'problematic') {
+      // Filter for problematic clients
+      const problematics = users.filter(user => {
+        if (user.role !== 'client') return false;
+        const noShowRate = user.total_bookings ? (user.no_show_bookings || 0) / user.total_bookings : 0;
+        const cancellationRate = user.total_bookings ? (user.cancelled_bookings || 0) / user.total_bookings : 0;
+        return (noShowRate > 0.15 || cancellationRate > 0.25); // High risk clients
+      });
+      setFilteredUsers(problematics);
     } else {
       setFilteredUsers(users.filter(user => user.role === role));
     }
@@ -295,6 +311,12 @@ const UserManagement = () => {
                 <SelectItem value="client">Clienți ({userStats.clients})</SelectItem>
                 <SelectItem value="facility_owner">Baze Sportive ({userStats.facilityOwners})</SelectItem>
                 <SelectItem value="admin">Administratori ({userStats.admins})</SelectItem>
+                <SelectItem value="problematic">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-orange-500" />
+                    Clienți problematici
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -361,7 +383,25 @@ const UserManagement = () => {
                         {user.phone || '-'}
                       </TableCell>
                       <TableCell>
-                        {getRoleBadge(user.role)}
+                        <div className="flex flex-col gap-2">
+                          {getRoleBadge(user.role)}
+                          
+                          {/* Show client behavior stats for clients */}
+                          {user.role === 'client' && (user.total_bookings || 0) > 0 && (
+                            <ClientBehaviorStats 
+                              stats={{
+                                user_id: user.user_id,
+                                full_name: user.full_name,
+                                email: user.email,
+                                total_bookings: user.total_bookings || 0,
+                                completed_bookings: user.completed_bookings || 0,
+                                no_show_bookings: user.no_show_bookings || 0,
+                                cancelled_bookings: user.cancelled_bookings || 0
+                              }}
+                              showDetailed={false}
+                            />
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
