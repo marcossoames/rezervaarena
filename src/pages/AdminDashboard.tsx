@@ -276,20 +276,20 @@ const AdminDashboard = () => {
             {/* Second row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Button 
-                variant={activeTab === 'income' ? 'default' : 'outline'} 
-                onClick={() => setActiveTab('income')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
-              >
-                <DollarSign className="h-5 w-5" />
-                Încasări
-              </Button>
-              <Button 
                 variant={activeTab === 'articles' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('articles')}
                 className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
               >
                 <FileText className="h-5 w-5" />
                 Articole
+              </Button>
+              <Button 
+                variant={activeTab === 'income' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('income')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <DollarSign className="h-5 w-5" />
+                Încasări
               </Button>
               <Button 
                 variant={activeTab === 'bank' ? 'default' : 'outline'} 
