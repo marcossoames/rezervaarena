@@ -16,6 +16,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
+import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
 interface Facility {
   id: string;
   name: string;
@@ -291,6 +292,12 @@ const FacilitiesPage = () => {
     for (let hour = 8; hour <= 22; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        
+        // Apply time validation if a date is selected
+        if (selectedDate && !isBookingTimeAllowed(selectedDate, timeString)) {
+          continue; // Skip past times for today
+        }
+        
         times.push({
           value: timeString,
           label: timeString
@@ -388,13 +395,34 @@ const FacilitiesPage = () => {
                       <CalendarComponent 
                         mode="single" 
                         selected={selectedDate} 
-                        onSelect={setSelectedDate} 
+                        onSelect={(date) => {
+                          setSelectedDate(date);
+                          // Clear time selections when date changes to avoid past time selections
+                          if (date) {
+                            const timeOptions = [];
+                            for (let hour = 8; hour <= 22; hour++) {
+                              for (let minute = 0; minute < 60; minute += 30) {
+                                const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                                if (isBookingTimeAllowed(date, timeString)) {
+                                  timeOptions.push(timeString);
+                                }
+                              }
+                            }
+                            // Clear current time selections if they're no longer valid
+                            if (startTime && !timeOptions.includes(startTime)) {
+                              setStartTime('');
+                            }
+                            if (endTime && !timeOptions.includes(endTime)) {
+                              setEndTime('');
+                            }
+                          }
+                        }} 
                         disabled={(date) => {
                           const today = new Date();
                           const twoWeeksFromNow = new Date();
                           twoWeeksFromNow.setDate(today.getDate() + 14);
                           return date < today || date > twoWeeksFromNow;
-                        }} 
+                        }}
                         initialFocus 
                         className="p-3 pointer-events-auto" 
                       />
@@ -407,12 +435,18 @@ const FacilitiesPage = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="relative">
                       <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                      <Select value={startTime} onValueChange={setStartTime}>
+                      <Select value={startTime} onValueChange={(value) => {
+                        setStartTime(value);
+                        // Clear end time if it's now invalid
+                        if (endTime && value >= endTime) {
+                          setEndTime('');
+                        }
+                      }}>
                         <SelectTrigger className="h-11 pl-10 bg-background border-border focus:border-primary">
                           <SelectValue placeholder="De la" />
                         </SelectTrigger>
                         <SelectContent className="z-50">
-                          {getTimeOptions().filter(time => !endTime || time.value < endTime).map(time => (
+                          {getTimeOptions().map(time => (
                             <SelectItem key={time.value} value={time.value}>
                               {time.label}
                             </SelectItem>
@@ -422,12 +456,14 @@ const FacilitiesPage = () => {
                     </div>
                     <div className="relative">
                       <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                      <Select value={endTime} onValueChange={setEndTime} disabled={!startTime}>
+                      <Select value={endTime} onValueChange={setEndTime}>
                         <SelectTrigger className="h-11 pl-10 bg-background border-border focus:border-primary">
                           <SelectValue placeholder="Până la" />
                         </SelectTrigger>
                         <SelectContent className="z-50">
-                          {getTimeOptions().filter(time => startTime && time.value > startTime).map(time => (
+                          {getTimeOptions()
+                            .filter(time => !startTime || time.value > startTime)
+                            .map(time => (
                             <SelectItem key={time.value} value={time.value}>
                               {time.label}
                             </SelectItem>
