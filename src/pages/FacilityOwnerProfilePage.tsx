@@ -511,7 +511,7 @@ const FacilityOwnerProfilePage = () => {
                     {...register("iban", { 
                       required: "IBAN-ul este obligatoriu",
                       pattern: {
-                        value: /^RO\d{2}[A-Z]{4}\d{16}$/,
+                        value: /^RO\d{2}[A-Z]{4}[A-Z0-9]{16}$/,
                         message: "IBAN-ul trebuie să fie în formatul: RO12ABCD1234567890123456"
                       }
                     })}
