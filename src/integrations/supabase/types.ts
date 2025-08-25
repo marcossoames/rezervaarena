@@ -455,34 +455,46 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cancelled_bookings: number | null
+          completed_bookings: number | null
           created_at: string
           email: string
           full_name: string
           id: string
+          no_show_bookings: number | null
           phone: string
           role: Database["public"]["Enums"]["user_role"]
+          total_bookings: number | null
           updated_at: string
           user_id: string
           user_type_comment: string | null
         }
         Insert: {
+          cancelled_bookings?: number | null
+          completed_bookings?: number | null
           created_at?: string
           email: string
           full_name: string
           id?: string
+          no_show_bookings?: number | null
           phone: string
           role?: Database["public"]["Enums"]["user_role"]
+          total_bookings?: number | null
           updated_at?: string
           user_id: string
           user_type_comment?: string | null
         }
         Update: {
+          cancelled_bookings?: number | null
+          completed_bookings?: number | null
           created_at?: string
           email?: string
           full_name?: string
           id?: string
+          no_show_bookings?: number | null
           phone?: string
           role?: Database["public"]["Enums"]["user_role"]
+          total_bookings?: number | null
           updated_at?: string
           user_id?: string
           user_type_comment?: string | null
@@ -654,7 +666,12 @@ export type Database = {
       }
     }
     Enums: {
-      booking_status: "pending" | "confirmed" | "cancelled" | "completed"
+      booking_status:
+        | "pending"
+        | "confirmed"
+        | "cancelled"
+        | "completed"
+        | "no_show"
       facility_type:
         | "tennis"
         | "football"
@@ -790,7 +807,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      booking_status: ["pending", "confirmed", "cancelled", "completed"],
+      booking_status: [
+        "pending",
+        "confirmed",
+        "cancelled",
+        "completed",
+        "no_show",
+      ],
       facility_type: [
         "tennis",
         "football",
