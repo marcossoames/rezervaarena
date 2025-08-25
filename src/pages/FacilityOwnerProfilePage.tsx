@@ -290,34 +290,71 @@ const FacilityOwnerProfilePage = () => {
         const today = new Date().toISOString().split('T')[0];
         const currentMonth = new Date().getMonth() + 1;
         const currentYear = new Date().getFullYear();
+        const monthStart = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-01`;
 
-        // Get today's bookings for user's facilities
-        const { data: todayBookings } = await supabase
-          .from('bookings')
-          .select('id, facility_id!inner(owner_id)')
-          .eq('booking_date', today)
-          .eq('facility_id.owner_id', userId)
-          .in('status', ['confirmed', 'pending']);
+        console.log('Loading stats for user:', userId);
+        console.log('Today:', today);
+        console.log('Month start:', monthStart);
 
-        // Get monthly bookings for user's facilities
-        const { data: monthlyBookings } = await supabase
-          .from('bookings')
-          .select('id, facility_id!inner(owner_id), booking_date')
-          .eq('facility_id.owner_id', userId)
-          .in('status', ['confirmed', 'pending'])
-          .gte('booking_date', `${currentYear}-${currentMonth.toString().padStart(2, '0')}-01`);
-
-        // Get active facilities count
-        const { data: facilities } = await supabase
+        // First, get user's facilities
+        const { data: userFacilities, error: facilitiesError } = await supabase
           .from('facilities')
           .select('id')
           .eq('owner_id', userId)
           .eq('is_active', true);
 
+        console.log('User facilities:', userFacilities);
+
+        if (facilitiesError) {
+          console.error('Error fetching facilities:', facilitiesError);
+          return;
+        }
+
+        if (!userFacilities || userFacilities.length === 0) {
+          console.log('No facilities found for user');
+          setStats({
+            todayBookings: 0,
+            monthlyBookings: 0,
+            activeFacilities: 0
+          });
+          return;
+        }
+
+        const facilityIds = userFacilities.map(f => f.id);
+        console.log('Facility IDs:', facilityIds);
+
+        // Get today's bookings
+        const { data: todayBookings, error: todayError } = await supabase
+          .from('bookings')
+          .select('*')
+          .in('facility_id', facilityIds)
+          .eq('booking_date', today)
+          .in('status', ['confirmed', 'pending']);
+
+        console.log('Today bookings:', todayBookings);
+        if (todayError) console.error('Today bookings error:', todayError);
+
+        // Get monthly bookings
+        const { data: monthlyBookings, error: monthlyError } = await supabase
+          .from('bookings')
+          .select('*')
+          .in('facility_id', facilityIds)
+          .gte('booking_date', monthStart)
+          .in('status', ['confirmed', 'pending']);
+
+        console.log('Monthly bookings:', monthlyBookings);
+        if (monthlyError) console.error('Monthly bookings error:', monthlyError);
+
         setStats({
           todayBookings: todayBookings?.length || 0,
           monthlyBookings: monthlyBookings?.length || 0,
-          activeFacilities: facilities?.length || 0
+          activeFacilities: userFacilities.length
+        });
+
+        console.log('Final stats:', {
+          todayBookings: todayBookings?.length || 0,
+          monthlyBookings: monthlyBookings?.length || 0,
+          activeFacilities: userFacilities.length
         });
       } catch (error) {
         console.error('Error loading stats:', error);
