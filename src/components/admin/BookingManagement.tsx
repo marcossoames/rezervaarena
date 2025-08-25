@@ -155,7 +155,13 @@ const BookingManagement = () => {
         .order('blocked_date', { ascending: false });
 
       if (blockedError) throw blockedError;
-      setBlockedDates(blockedDatesData || []);
+      
+      // Remove duplicates based on id to prevent display issues
+      const uniqueBlockedDates = blockedDatesData?.filter((item, index, arr) => 
+        arr.findIndex(x => x.id === item.id) === index
+      ) || [];
+      
+      setBlockedDates(uniqueBlockedDates);
 
     } catch (error) {
       console.error('Error loading data:', error);
@@ -276,7 +282,11 @@ const BookingManagement = () => {
         description: "Blocarea a fost eliminată",
       });
 
-      loadData();
+      // Immediately remove from local state to prevent duplicates
+      setBlockedDates(prev => prev.filter(blocked => blocked.id !== blockId));
+      
+      // Also reload fresh data from server
+      setTimeout(() => loadData(), 100);
     } catch (error) {
       console.error('Error unblocking date/time:', error);
       toast({
