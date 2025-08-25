@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, MapPin, Edit, Trash2, Plus, Users, DollarSign, ChevronDown, ChevronRight } from "lucide-react";
+import { Building2, MapPin, Edit, Trash2, Plus, Users, DollarSign, ChevronDown, ChevronRight, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Facility {
@@ -34,6 +34,11 @@ interface SportsComplex {
   facilities: Facility[];
   total_facilities: number;
   active_facilities: number;
+  bank_details?: {
+    account_holder_name: string;
+    bank_name: string;
+    iban: string;
+  };
 }
 
 const FacilityManagement = () => {
@@ -66,8 +71,15 @@ const FacilityManagement = () => {
         .select('user_id, full_name, email, phone, user_type_comment')
         .in('user_id', ownerIds);
 
-      // Create lookup map
+      // Get bank details for each owner
+      const { data: bankData } = await supabase
+        .from('bank_details')
+        .select('user_id, account_holder_name, bank_name, iban')
+        .in('user_id', ownerIds);
+
+      // Create lookup maps
       const ownerMap = new Map(ownersData?.map(o => [o.user_id, o]) || []);
+      const bankMap = new Map(bankData?.map(b => [b.user_id, b]) || []);
 
       // Group facilities by owner (sports complex)
       const complexMap = new Map<string, SportsComplex>();
@@ -78,6 +90,7 @@ const FacilityManagement = () => {
         
         if (!complexMap.has(ownerId)) {
           const owner = ownerMap.get(ownerId);
+          const bankDetails = bankMap.get(ownerId);
           
           // Extract business name from user_type_comment
           let complexName = 'Baza Sportivă';
@@ -105,7 +118,12 @@ const FacilityManagement = () => {
             city: facility.city,
             facilities: [],
             total_facilities: 0,
-            active_facilities: 0
+            active_facilities: 0,
+            bank_details: bankDetails ? {
+              account_holder_name: bankDetails.account_holder_name,
+              bank_name: bankDetails.bank_name,
+              iban: bankDetails.iban
+            } : undefined
           });
         }
         
@@ -290,6 +308,9 @@ const FacilityManagement = () => {
                               </CardTitle>
                               <p className="text-sm text-muted-foreground">
                                 {complex.city} • {complex.total_facilities} facilități ({complex.active_facilities} active)
+                                {complex.bank_details && (
+                                  <span className="ml-2 text-green-600">• Cont bancar configurat</span>
+                                )}
                               </p>
                             </div>
                           </div>
@@ -300,6 +321,12 @@ const FacilityManagement = () => {
                             <Badge variant={complex.active_facilities > 0 ? "default" : "secondary"}>
                               {complex.active_facilities}/{complex.total_facilities} active
                             </Badge>
+                            {complex.bank_details && (
+                              <Badge variant="outline" className="text-green-600 border-green-600">
+                                <CreditCard className="h-3 w-3 mr-1" />
+                                Cont Bancar
+                              </Badge>
+                            )}
                             <Button
                               variant="outline"
                               size="sm"
@@ -318,6 +345,30 @@ const FacilityManagement = () => {
                     
                     <CollapsibleContent>
                       <CardContent className="pt-0">
+                        {/* Bank Details Section */}
+                        {complex.bank_details && (
+                          <div className="ml-8 mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
+                              <CreditCard className="h-4 w-4" />
+                              Detalii Bancare
+                            </h4>
+                            <div className="grid md:grid-cols-3 gap-2 text-sm">
+                              <div>
+                                <span className="text-green-700 font-medium">Titular: </span>
+                                <span className="text-green-800">{complex.bank_details.account_holder_name}</span>
+                              </div>
+                              <div>
+                                <span className="text-green-700 font-medium">Banca: </span>
+                                <span className="text-green-800">{complex.bank_details.bank_name}</span>
+                              </div>
+                              <div>
+                                <span className="text-green-700 font-medium">IBAN: </span>
+                                <span className="text-green-800 font-mono text-xs">{complex.bank_details.iban}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
                         <div className="grid gap-3 ml-8">
                           {complex.facilities.map((facility) => (
                             <Card key={facility.id} className="border border-border/50">

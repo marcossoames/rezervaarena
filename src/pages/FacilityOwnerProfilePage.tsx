@@ -3,145 +3,41 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Calendar, Building2, Settings, User, Trash2, CreditCard, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, Building2, Settings, User, Trash2, CreditCard, CheckCircle, AlertCircle, Edit, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { deleteUserAccount } from "@/utils/deleteAccount";
 
-// Bank Account Management Component
-const BankAccountCard = () => {
-  const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [bankInfo, setBankInfo] = useState({
-    bank_name: '',
-    iban: '',
-    account_holder_name: ''
-  });
+interface BankDetails {
+  id: string;
+  account_holder_name: string;
+  bank_name: string;
+  iban: string;
+  created_at: string;
+  updated_at: string;
+}
 
-  useEffect(() => {
-    loadBankInfo();
-  }, []);
-
-  const loadBankInfo = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Bank details are now in a separate table accessible only to admins
-      // Regular users will see a message that admin manages this
-      setBankInfo({
-        bank_name: '',
-        iban: '',
-        account_holder_name: ''
-      });
-    } catch (error) {
-      console.error('Error loading bank info:', error);
-    }
-  };
-
-  const handleSave = async () => {
-    // Bank details are now managed only by admins for security
-    toast({
-      title: "Informare",
-      description: "Datele bancare sunt gestionate de administrator pentru securitate",
-      variant: "default"
-    });
-    setIsEditing(false);
-  };
-
-  const hasBankInfo = bankInfo.bank_name || bankInfo.iban || bankInfo.account_holder_name;
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Cont Bancar pentru Plăți
-          </CardTitle>
-          <div className="text-xs text-muted-foreground">
-            Gestionat de administrator
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {isEditing ? (
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Nume bancă</label>
-              <Input
-                value={bankInfo.bank_name}
-                onChange={(e) => setBankInfo(prev => ({ ...prev, bank_name: e.target.value }))}
-                placeholder="Ex: BRD, BCR, ING, Raiffeisen"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">IBAN</label>
-              <Input
-                value={bankInfo.iban}
-                onChange={(e) => setBankInfo(prev => ({ ...prev, iban: e.target.value }))}
-                placeholder="RO49AAAA1B31007593840000"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Titular cont</label>
-              <Input
-                value={bankInfo.account_holder_name}
-                onChange={(e) => setBankInfo(prev => ({ ...prev, account_holder_name: e.target.value }))}
-                placeholder="Numele complet al titularului"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSave}
-                disabled={loading}
-                className="flex-1"
-              >
-                {loading ? 'Se salvează...' : 'Salvează'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsEditing(false);
-                  loadBankInfo(); // Reset to original values
-                }}
-                disabled={loading}
-              >
-                Anulează
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center text-muted-foreground py-6">
-            <div className="flex flex-col items-center gap-3">
-              <CreditCard className="h-12 w-12 text-muted-foreground" />
-              <div>
-                <p className="font-medium">Datele bancare sunt gestionate de administrator</p>
-                <p className="text-sm">Pentru securitate, doar administratorul poate configura datele bancare</p>
-              </div>
-              <div className="text-xs p-3 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <p>Clienții pot face rezervări cu cardul, iar administratorul va distribui banii către contul dvs. bancar în siguranță.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+interface BankFormData {
+  account_holder_name: string;
+  bank_name: string;
+  iban: string;
+}
 
 const FacilityOwnerProfilePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
+  const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBankDialogOpen, setIsBankDialogOpen] = useState(false);
+  const [isEditingBank, setIsEditingBank] = useState(false);
+  const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<BankFormData>();
   const [stats, setStats] = useState({
     todayBookings: 0,
     monthlyBookings: 0,
@@ -150,6 +46,7 @@ const FacilityOwnerProfilePage = () => {
 
   useEffect(() => {
     checkAuth();
+    loadBankDetails();
   }, []);
 
   const checkAuth = async () => {
@@ -231,8 +128,6 @@ const FacilityOwnerProfilePage = () => {
         .eq('booking_date', today)
         .in('status', ['confirmed', 'pending']);
 
-      console.log('Today bookings:', todayBookings);
-
       // Get monthly bookings
       const { data: monthlyBookings, error: monthlyError } = await supabase
         .from('bookings')
@@ -241,8 +136,6 @@ const FacilityOwnerProfilePage = () => {
         .gte('booking_date', monthStart)
         .lte('booking_date', `${currentYear}-${(currentMonth).toString().padStart(2, '0')}-31`)
         .in('status', ['confirmed', 'pending']);
-
-      console.log('Monthly bookings:', monthlyBookings);
 
       if (todayError) throw todayError;
       if (monthlyError) throw monthlyError;
@@ -257,6 +150,119 @@ const FacilityOwnerProfilePage = () => {
       console.error('Error loading stats:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadBankDetails = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: bankData, error } = await supabase
+        .from('bank_details')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading bank details:', error);
+        return;
+      }
+
+      setBankDetails(bankData);
+    } catch (error) {
+      console.error('Error loading bank details:', error);
+    }
+  };
+
+  const openBankDialog = (editing = false) => {
+    setIsEditingBank(editing);
+    if (editing && bankDetails) {
+      setValue('account_holder_name', bankDetails.account_holder_name);
+      setValue('bank_name', bankDetails.bank_name);
+      setValue('iban', bankDetails.iban);
+    } else {
+      reset();
+    }
+    setIsBankDialogOpen(true);
+  };
+
+  const onBankSubmit = async (data: BankFormData) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      if (isEditingBank && bankDetails) {
+        // Update existing bank details
+        const { error } = await supabase
+          .from('bank_details')
+          .update(data)
+          .eq('id', bankDetails.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Succes",
+          description: "Detaliile bancare au fost actualizate",
+        });
+      } else {
+        // Create new bank details
+        const { error } = await supabase
+          .from('bank_details')
+          .insert([
+            {
+              user_id: user.id,
+              ...data
+            }
+          ]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Succes",
+          description: "Detaliile bancare au fost adăugate",
+        });
+      }
+
+      setIsBankDialogOpen(false);
+      reset();
+      loadBankDetails();
+    } catch (error) {
+      console.error('Error saving bank details:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-au putut salva detaliile bancare",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteBankDetails = async () => {
+    if (!bankDetails || !confirm('Ești sigur că vrei să ștergi detaliile bancare?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bank_details')
+        .delete()
+        .eq('id', bankDetails.id);
+
+      if (error) throw error;
+
+      setBankDetails(null);
+      
+      toast({
+        title: "Succes",
+        description: "Detaliile bancare au fost șterse",
+      });
+    } catch (error) {
+      console.error('Error deleting bank details:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-au putut șterge detaliile bancare",
+        variant: "destructive"
+      });
     }
   };
 
@@ -406,8 +412,127 @@ const FacilityOwnerProfilePage = () => {
             </CardContent>
           </Card>
 
-          {/* Bank Account Card */}
-          <BankAccountCard />
+          {/* Bank Account Details Section */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-6 w-6" />
+                Detalii Bancare
+              </CardTitle>
+              {bankDetails ? (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openBankDialog(true)}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editează
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={deleteBankDetails}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Șterge
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={() => openBankDialog(false)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adaugă Cont Bancar
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent>
+              {bankDetails ? (
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Titular Cont:</p>
+                    <p className="font-medium">{bankDetails.account_holder_name}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-muted-foreground">Banca:</p>
+                    <p className="font-medium">{bankDetails.bank_name}</p>
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <p className="text-muted-foreground">IBAN:</p>
+                    <p className="font-mono text-xs">{bankDetails.iban}</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-4">
+                  Nu aveți încă detalii bancare adăugate. Adăugați un cont bancar pentru a primi plăți.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Bank Details Dialog */}
+          <Dialog open={isBankDialogOpen} onOpenChange={setIsBankDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {isEditingBank ? 'Editează Detalii Bancare' : 'Adaugă Detalii Bancare'}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit(onBankSubmit)} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="account_holder_name">Numele Titularului</Label>
+                  <Input
+                    id="account_holder_name"
+                    {...register("account_holder_name", { required: "Numele titularului este obligatoriu" })}
+                    placeholder="ex: SC SportComplex SRL"
+                  />
+                  {errors.account_holder_name && (
+                    <p className="text-sm text-destructive">{errors.account_holder_name.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bank_name">Numele Băncii</Label>
+                  <Input
+                    id="bank_name"
+                    {...register("bank_name", { required: "Numele băncii este obligatoriu" })}
+                    placeholder="ex: Banca Transilvania"
+                  />
+                  {errors.bank_name && (
+                    <p className="text-sm text-destructive">{errors.bank_name.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="iban">IBAN</Label>
+                  <Input
+                    id="iban"
+                    {...register("iban", { 
+                      required: "IBAN-ul este obligatoriu",
+                      pattern: {
+                        value: /^RO\d{2}[A-Z]{4}\d{16}$/,
+                        message: "IBAN-ul trebuie să fie în formatul: RO12ABCD1234567890123456"
+                      }
+                    })}
+                    placeholder="ex: RO12ABCD1234567890123456"
+                  />
+                  {errors.iban && (
+                    <p className="text-sm text-destructive">{errors.iban.message}</p>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => setIsBankDialogOpen(false)} className="flex-1">
+                    Anulează
+                  </Button>
+                  <Button type="submit" className="flex-1">
+                    {isEditingBank ? 'Actualizează' : 'Adaugă'}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
 
           {/* Navigation Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
