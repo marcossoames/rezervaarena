@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
+import BookingStatusManager from "@/components/booking/BookingStatusManager";
 interface BasicBooking {
   id: string;
   booking_date: string;
@@ -22,6 +23,7 @@ interface BasicBooking {
   stripe_session_id?: string;
   facility_id: string;
   client_id: string;
+  notes?: string;
 }
 
 interface Booking extends BasicBooking {
@@ -50,9 +52,9 @@ const MyReservationsPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const {
-    toast
-  } = useToast();
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const { toast } = useToast();
+  
   useEffect(() => {
     loadBookings();
   }, []);
@@ -60,7 +62,7 @@ const MyReservationsPage = () => {
   const checkUserRole = async (user: any) => {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, user_type_comment, full_name, phone')
+      .select('user_id, role, user_type_comment, full_name, phone')
       .eq('user_id', user.id)
       .single();
     
@@ -87,29 +89,48 @@ const MyReservationsPage = () => {
 
       // Check user role to determine what bookings to show
       const profile = await checkUserRole(user);
+      setUserProfile(profile);
+      
       const isFacilityOwner = profile?.role === 'facility_owner' || 
                              profile?.user_type_comment?.includes('Proprietar bază sportivă');
+      const isAdmin = profile?.role === 'admin';
 
-      if (isFacilityOwner) {
-        // For facility owners, get bookings for their facilities
-        const { data: facilitiesData, error: facilitiesError } = await supabase
-          .from('facilities')
-          .select('id')
-          .eq('owner_id', user.id);
-
-        if (facilitiesError) {
-          console.error('Error fetching facilities:', facilitiesError);
-          throw facilitiesError;
-        }
-
-        if (!facilitiesData || facilitiesData.length === 0) {
-          setBookings([]);
-          return;
-        }
-
-        const facilityIds = facilitiesData.map(f => f.id);
+      if (isFacilityOwner || isAdmin) {
+        let facilityIds = [];
         
-        // Get bookings for all facilities owned by this user
+        if (isAdmin) {
+          // Admins can see all bookings from all facilities
+          const { data: allFacilitiesData, error: allFacilitiesError } = await supabase
+            .from('facilities')
+            .select('id');
+
+          if (allFacilitiesError) {
+            console.error('Error fetching all facilities:', allFacilitiesError);
+            throw allFacilitiesError;
+          }
+
+          facilityIds = allFacilitiesData?.map(f => f.id) || [];
+        } else {
+          // For facility owners, get bookings for their facilities
+          const { data: facilitiesData, error: facilitiesError } = await supabase
+            .from('facilities')
+            .select('id')
+            .eq('owner_id', user.id);
+
+          if (facilitiesError) {
+            console.error('Error fetching facilities:', facilitiesError);
+            throw facilitiesError;
+          }
+
+          if (!facilitiesData || facilitiesData.length === 0) {
+            setBookings([]);
+            return;
+          }
+
+          facilityIds = facilitiesData.map(f => f.id);
+        }
+        
+        // Get bookings for all facilities owned by this user or all if admin
         const {
           data: userBookings,
           error: bookingsError
@@ -124,18 +145,37 @@ const MyReservationsPage = () => {
           throw bookingsError;
         }
 
-        console.log('Facility owner bookings:', userBookings);
+        console.log('Facility owner/admin bookings:', userBookings);
 
         if (!userBookings || userBookings.length === 0) {
           setBookings([]);
           return;
         }
 
-        // Get client contact information using the secure function
-        const { data: clientsInfo, error: clientsError } = await supabase
-          .rpc('get_client_info_for_facility_bookings', { facility_owner_id: user.id });
+        // Get client contact information 
+        let clientsInfo = [];
+        if (isAdmin) {
+          // For admins, get all client info (this might need a different approach)
+          const { data: allClientsInfo, error: allClientsError } = await supabase
+            .from('profiles')
+            .select('user_id, full_name, phone, email');
+            
+          if (!allClientsError && allClientsInfo) {
+            clientsInfo = allClientsInfo.map(client => ({
+              client_id: client.user_id,
+              client_name: client.full_name,
+              client_phone: client.phone,
+              client_email: client.email
+            }));
+          }
+        } else {
+          // For facility owners, use the secure function
+          const { data: ownerClientsInfo, error: ownerClientsError } = await supabase
+            .rpc('get_client_info_for_facility_bookings', { facility_owner_id: user.id });
+          clientsInfo = ownerClientsInfo || [];
+        }
 
-        console.log('Clients info from RPC:', clientsInfo, clientsError);
+        console.log('Clients info:', clientsInfo);
 
         // Get facility details for each booking
         const completeBookings = await Promise.all(
@@ -321,9 +361,25 @@ const MyReservationsPage = () => {
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Anulată</Badge>;
       case 'completed':
         return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Finalizată</Badge>;
+      case 'no_show':
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Nu s-a prezentat</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
+  };
+
+  // Function to check if user can manage booking status
+  const canManageBookingStatus = (booking: Booking) => {
+    if (!userProfile) return false;
+    
+    // Admins can manage all bookings
+    if (userProfile.role === 'admin') return true;
+    
+    // Facility owners can manage bookings for their facilities
+    const isFacilityOwner = userProfile.role === 'facility_owner' || 
+                           userProfile.user_type_comment?.includes('Proprietar bază sportivă');
+    
+    return isFacilityOwner && booking.facilities.owner_id === userProfile.user_id;
   };
   if (loading) {
     return <div className="min-h-screen bg-background">
@@ -449,6 +505,26 @@ const MyReservationsPage = () => {
                       <a href={`tel:${booking.facilities.profiles.phone}`} className="text-primary hover:underline">
                         {booking.facilities.profiles.phone}
                       </a>
+                    </div>
+                   )}
+
+                  {/* Booking Status Manager for facility owners and admins */}
+                  {canManageBookingStatus(booking) && (
+                    <div className="mt-4 pt-4 border-t">
+                      <BookingStatusManager 
+                        booking={{
+                          id: booking.id,
+                          booking_date: booking.booking_date,
+                          start_time: booking.start_time,
+                          end_time: booking.end_time,
+                          status: booking.status,
+                          total_price: booking.total_price,
+                          payment_method: booking.payment_method,
+                          notes: booking.notes,
+                          client_id: booking.client_id
+                        }}
+                        onStatusUpdate={loadBookings}
+                      />
                     </div>
                   )}
 
