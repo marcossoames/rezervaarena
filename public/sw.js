@@ -24,11 +24,11 @@ const CACHE_STRATEGIES = {
     strategy: 'cache-first', 
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
   },
-  // Cache API responses for 5 minutes
+  // Never cache authenticated API responses
   api: {
     pattern: /\/rest\/v1\//,
-    strategy: 'network-first',
-    maxAge: 5 * 60 * 1000, // 5 minutes
+    strategy: 'network-only', // Changed from network-first to prevent caching
+    maxAge: 0, // No caching
   },
   // Cache pages for 1 hour
   pages: {
@@ -84,6 +84,11 @@ self.addEventListener('fetch', (event) => {
 
   // Skip cross-origin requests except for known APIs
   if (url.origin !== location.origin && !url.href.includes('supabase.co')) {
+    return;
+  }
+
+  // Never cache authenticated requests to prevent security issues
+  if (request.headers.get('Authorization') || url.href.includes('/rest/v1/')) {
     return;
   }
 

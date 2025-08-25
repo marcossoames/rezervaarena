@@ -31,56 +31,26 @@ const BankAccountCard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
-        .from('profiles')
-        .select('bank_name, iban, account_holder_name')
-        .eq('user_id', user.id)
-        .single();
-
-      if (data) {
-        setBankInfo({
-          bank_name: data.bank_name || '',
-          iban: data.iban || '',
-          account_holder_name: data.account_holder_name || ''
-        });
-      }
+      // Bank details are now in a separate table accessible only to admins
+      // Regular users will see a message that admin manages this
+      setBankInfo({
+        bank_name: '',
+        iban: '',
+        account_holder_name: ''
+      });
     } catch (error) {
       console.error('Error loading bank info:', error);
     }
   };
 
   const handleSave = async () => {
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          bank_name: bankInfo.bank_name.trim(),
-          iban: bankInfo.iban.trim().replace(/\s/g, ''),
-          account_holder_name: bankInfo.account_holder_name.trim()
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Succes",
-        description: "Datele bancare au fost salvate"
-      });
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error saving bank info:', error);
-      toast({
-        title: "Eroare",
-        description: "Nu s-au putut salva datele bancare",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Bank details are now managed only by admins for security
+    toast({
+      title: "Informare",
+      description: "Datele bancare sunt gestionate de administrator pentru securitate",
+      variant: "default"
+    });
+    setIsEditing(false);
   };
 
   const hasBankInfo = bankInfo.bank_name || bankInfo.iban || bankInfo.account_holder_name;
@@ -93,15 +63,9 @@ const BankAccountCard = () => {
             <CreditCard className="h-5 w-5" />
             Cont Bancar pentru Plăți
           </CardTitle>
-          {!isEditing && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEditing(true)}
-            >
-              {hasBankInfo ? 'Editează' : 'Adaugă cont bancar'}
-            </Button>
-          )}
+          <div className="text-xs text-muted-foreground">
+            Gestionat de administrator
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -152,53 +116,20 @@ const BankAccountCard = () => {
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            {hasBankInfo ? (
-              <>
-                <div>
-                  <span className="text-sm text-muted-foreground">Bancă:</span>
-                  <p className="font-medium">{bankInfo.bank_name || 'Nu este specificată'}</p>
-                </div>
-                <div>
-                  <span className="text-sm text-muted-foreground">IBAN:</span>
-                  <p className="font-mono font-medium">
-                    {bankInfo.iban ? 
-                      `${bankInfo.iban.slice(0, 4)} **** **** ${bankInfo.iban.slice(-4)}` : 
-                      'Nu este specificat'
-                    }
-                  </p>
-                </div>
-                <div>
-                  <span className="text-sm text-muted-foreground">Titular:</span>
-                  <p className="font-medium">{bankInfo.account_holder_name || 'Nu este specificat'}</p>
-                </div>
-                <div className="text-xs text-muted-foreground p-3 bg-green-50 border border-green-200 rounded-md">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-green-800">Datele bancare sunt configurate</p>
-                      <p className="text-green-700">Administratorul va putea trimite plățile din rezervări direct la acest cont bancar.</p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="text-center text-muted-foreground py-6">
-                <div className="flex flex-col items-center gap-3">
-                  <CreditCard className="h-12 w-12 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">Nu aveți date bancare configurate</p>
-                    <p className="text-sm">Adăugați datele contului bancar pentru a primi plățile din rezervări</p>
-                  </div>
-                  <div className="text-xs p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                      <p>Clienții pot face rezervări cu cardul, iar administratorul va distribui banii către contul dvs. bancar.</p>
-                    </div>
-                  </div>
+          <div className="text-center text-muted-foreground py-6">
+            <div className="flex flex-col items-center gap-3">
+              <CreditCard className="h-12 w-12 text-muted-foreground" />
+              <div>
+                <p className="font-medium">Datele bancare sunt gestionate de administrator</p>
+                <p className="text-sm">Pentru securitate, doar administratorul poate configura datele bancare</p>
+              </div>
+              <div className="text-xs p-3 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <p>Clienții pot face rezervări cu cardul, iar administratorul va distribui banii către contul dvs. bancar în siguranță.</p>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         )}
       </CardContent>

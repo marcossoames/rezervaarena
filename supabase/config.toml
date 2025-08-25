@@ -26,28 +26,13 @@ enable_confirmations = false
 enabled = true
 port = 54322
 
-[functions.create-payment]
-verify_jwt = true
-
-[functions.verify-payment]
-verify_jwt = true
-
 [functions.create-platform-payment]
 verify_jwt = true
 
 [functions.verify-platform-payment]
 verify_jwt = true
 
-[functions.connect-create-account]
-verify_jwt = true
-
-[functions.connect-onboarding-link]
-verify_jwt = true
-
-[functions.connect-dashboard-link]
-verify_jwt = true
-
-[functions.connect-sync-status]
+[functions.cancel-booking]
 verify_jwt = true
 
 [realtime]

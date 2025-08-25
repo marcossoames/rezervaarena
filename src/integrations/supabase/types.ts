@@ -77,6 +77,36 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_details: {
+        Row: {
+          account_holder_name: string | null
+          bank_name: string | null
+          created_at: string
+          iban: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_holder_name?: string | null
+          bank_name?: string | null
+          created_at?: string
+          iban?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_holder_name?: string | null
+          bank_name?: string | null
+          created_at?: string
+          iban?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blocked_dates: {
         Row: {
           blocked_date: string
@@ -425,12 +455,9 @@ export type Database = {
       }
       profiles: {
         Row: {
-          account_holder_name: string | null
-          bank_name: string | null
           created_at: string
           email: string
           full_name: string
-          iban: string | null
           id: string
           phone: string
           role: Database["public"]["Enums"]["user_role"]
@@ -439,12 +466,9 @@ export type Database = {
           user_type_comment: string | null
         }
         Insert: {
-          account_holder_name?: string | null
-          bank_name?: string | null
           created_at?: string
           email: string
           full_name: string
-          iban?: string | null
           id?: string
           phone: string
           role?: Database["public"]["Enums"]["user_role"]
@@ -453,12 +477,9 @@ export type Database = {
           user_type_comment?: string | null
         }
         Update: {
-          account_holder_name?: string | null
-          bank_name?: string | null
           created_at?: string
           email?: string
           full_name?: string
-          iban?: string | null
           id?: string
           phone?: string
           role?: Database["public"]["Enums"]["user_role"]
