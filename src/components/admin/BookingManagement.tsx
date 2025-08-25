@@ -1,17 +1,20 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar as CalendarIcon, Clock, MapPin, User, DollarSign, Filter, Ban, X, Building2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { ro } from "date-fns/locale";
+import { isBlockingTimeAllowed } from "@/utils/dateTimeValidation";
+import { Badge } from "@/components/ui/badge";
+import { DialogTrigger } from "@/components/ui/dialog";
+import { Calendar as CalendarIcon, Clock, MapPin, User, DollarSign, Filter, Ban, X, Building2 } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -203,6 +206,16 @@ const BookingManagement = () => {
       toast({
         title: "Eroare",
         description: "Selectați facilitatea și data",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate date and time restrictions
+    if (!isBlockingTimeAllowed(blockDate, blockStartTime)) {
+      toast({
+        title: "Eroare",
+        description: "Nu puteți bloca date/ore din trecut sau ore care au trecut deja astăzi",
         variant: "destructive"
       });
       return;

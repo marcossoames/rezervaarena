@@ -1,29 +1,21 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  CalendarDays, 
-  MapPin, 
-  Star, 
-  Clock, 
-  Users, 
-  Wifi, 
-  Car, 
-  Coffee,
-  ChevronLeft,
-  ChevronRight
-} from "lucide-react";
-import { Link, useParams, useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import tennisImage from "@/assets/tennis-court.jpg";
 import { useState, useEffect } from "react";
-import { addDays, format, isSameDay, isAfter, isBefore, startOfDay } from "date-fns";
-import { ro } from "date-fns/locale";
+import { useParams, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChevronLeft, MapPin, Wifi, Users, DollarSign, CalendarDays, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar } from "@/components/ui/calendar";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { format, addDays, isBefore, isAfter, startOfDay, isSameDay } from "date-fns";
+import { ro } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
+import { filterAllowedTimeSlots, getMinimumAllowedTime } from "@/utils/dateTimeValidation";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
+import tennisImage from "@/assets/tennis-court.jpg";
 
 interface Facility {
   id: string;
@@ -273,8 +265,31 @@ const BookingPage = () => {
           });
         };
 
-        setStartTimeSlots(markUnavailableSlots(startSlots));
-        setEndTimeSlots(markUnavailableSlots(endSlots));
+        // Apply time-based restrictions and mark unavailable slots
+        const filteredStartSlots = filterAllowedTimeSlots(markUnavailableSlots(startSlots).map(slot => ({
+          time: slot.time,
+          available: slot.available,
+          label: slot.time
+        })), selectedDate);
+        
+        const filteredEndSlots = filterAllowedTimeSlots(markUnavailableSlots(endSlots).map(slot => ({
+          time: slot.time,
+          available: slot.available,
+          label: slot.time
+        })), selectedDate);
+        
+        // Convert back to original format
+        setStartTimeSlots(filteredStartSlots.map(slot => ({
+          time: slot.time,
+          available: slot.available,
+          price: startSlots.find(s => s.time === slot.time)?.price || facility.price_per_hour
+        })));
+        
+        setEndTimeSlots(filteredEndSlots.map(slot => ({
+          time: slot.time,
+          available: slot.available,
+          price: endSlots.find(s => s.time === slot.time)?.price || facility.price_per_hour
+        })));
       } catch (error) {
         console.error('Error loading time slots:', error);
         setStartTimeSlots(startSlots);

@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, startOfDay, endOfDay, isAfter, isBefore, isSameDay } from "date-fns";
 import { ro } from "date-fns/locale";
+import { isBlockingTimeAllowed } from "@/utils/dateTimeValidation";
 
 interface Facility {
   id: string;
@@ -165,20 +166,24 @@ const FacilityCalendarPage = () => {
   };
 
   const blockDate = async () => {
-    if (!selectedDate || !blockReason.trim()) {
+    if (!selectedDate) return;
+    
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    
+    // Validate date and time restrictions
+    if (!isBlockingTimeAllowed(dateStr, blockStartTime)) {
       toast({
         title: "Eroare",
-        description: "Te rugăm să completezi motivul blocării",
+        description: "Nu puteți bloca date/ore din trecut sau ore care au trecut deja astăzi",
         variant: "destructive"
       });
       return;
     }
-    
-    // Verifică că data este de la astăzi înainte
-    if (isBefore(selectedDate, today)) {
+
+    if (!blockReason.trim()) {
       toast({
         title: "Eroare",
-        description: "Nu poți bloca date din trecut",
+        description: "Te rugăm să completezi motivul blocării",
         variant: "destructive"
       });
       return;
@@ -194,7 +199,6 @@ const FacilityCalendarPage = () => {
       return;
     }
 
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
     let startTime = null;
     let endTime = null;
     
