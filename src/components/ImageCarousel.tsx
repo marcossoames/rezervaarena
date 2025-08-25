@@ -20,7 +20,7 @@ const ImageCarousel = ({ images, facilityName, className = "" }: ImageCarouselPr
         <img 
           src="/placeholder.svg" 
           alt={facilityName}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-inherit"
         />
       </div>
     );
@@ -70,7 +70,7 @@ const ImageCarousel = ({ images, facilityName, className = "" }: ImageCarouselPr
           <img
             src={images[currentIndex]}
             alt={`${facilityName} - imagine ${currentIndex + 1}`}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 rounded-inherit"
           />
 
           {/* Navigation Arrows - Only show if more than 1 image */}
