@@ -242,9 +242,9 @@ const ManageFacilitiesPage = () => {
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-6">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm mb-4">
+          <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm mb-4">
             <ArrowLeft className="h-4 w-4" />
-            Înapoi la pagina principală
+            Înapoi la profil
           </Link>
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
