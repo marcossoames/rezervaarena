@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format, addDays, startOfDay, endOfDay, isAfter, isBefore, isSameDay } from "date-fns";
 import { ro } from "date-fns/locale";
 import { isBlockingTimeAllowed } from "@/utils/dateTimeValidation";
+import BookingStatusManager from "@/components/booking/BookingStatusManager";
 
 interface Facility {
   id: string;
@@ -36,6 +37,7 @@ interface Booking {
   end_time: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   total_price: number;
+  payment_method: string;
   notes?: string;
   client_id: string;
 }
@@ -102,7 +104,7 @@ const FacilityCalendarPage = () => {
 
       const { data: bookingsData } = await supabase
         .from('bookings')
-        .select('*')
+        .select('id, booking_date, start_time, end_time, status, total_price, payment_method, notes, client_id')
         .eq('facility_id', facilityId)
         .gte('booking_date', format(startDate, 'yyyy-MM-dd'))
         .lte('booking_date', format(endDate, 'yyyy-MM-dd'))
@@ -308,6 +310,8 @@ const FacilityCalendarPage = () => {
       case 'confirmed': return 'default';
       case 'pending': return 'secondary';
       case 'cancelled': return 'destructive';
+      case 'completed': return 'default';
+      case 'no_show': return 'destructive';
       default: return 'outline';
     }
   };
@@ -318,8 +322,26 @@ const FacilityCalendarPage = () => {
       case 'pending': return 'În așteptare';
       case 'cancelled': return 'Anulată';
       case 'completed': return 'Finalizată';
+      case 'no_show': return 'Nu s-a prezentat';
       default: return status;
     }
+  };
+
+  const refreshBookings = async () => {
+    if (!facilityId) return;
+    
+    const startDate = startOfDay(new Date());
+    const endDate = endOfDay(addDays(new Date(), 90));
+
+    const { data: bookingsData } = await supabase
+      .from('bookings')
+      .select('id, booking_date, start_time, end_time, status, total_price, payment_method, notes, client_id')
+      .eq('facility_id', facilityId)
+      .gte('booking_date', format(startDate, 'yyyy-MM-dd'))
+      .lte('booking_date', format(endDate, 'yyyy-MM-dd'))
+      .order('booking_date', { ascending: true });
+
+    setBookings(bookingsData || []);
   };
 
   if (isLoading) {
@@ -557,6 +579,10 @@ const FacilityCalendarPage = () => {
                               {booking.notes}
                             </div>
                           )}
+                          <BookingStatusManager 
+                            booking={booking}
+                            onStatusUpdate={refreshBookings}
+                          />
                         </div>
                       ))}
                     </div>
@@ -599,6 +625,11 @@ const FacilityCalendarPage = () => {
                       <div className="text-sm font-medium">
                         {booking.total_price} RON
                       </div>
+                      <BookingStatusManager 
+                        booking={booking}
+                        onStatusUpdate={refreshBookings}
+                        showStatusUpdate={true}
+                      />
                     </div>
                   </div>
                 ))}
