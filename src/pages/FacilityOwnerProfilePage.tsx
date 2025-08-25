@@ -235,6 +235,11 @@ const FacilityOwnerProfilePage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [stats, setStats] = useState({
+    todayBookings: 0,
+    monthlyBookings: 0,
+    activeFacilities: 0
+  });
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -265,6 +270,9 @@ const FacilityOwnerProfilePage = () => {
         }
 
         setUserProfile(profile);
+        
+        // Load stats after profile is loaded
+        await loadStats(user.id);
       } catch (error) {
         console.error('Error loading profile:', error);
         toast({
@@ -274,6 +282,45 @@ const FacilityOwnerProfilePage = () => {
         });
       } finally {
         setIsLoading(false);
+      }
+    };
+
+    const loadStats = async (userId: string) => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const currentMonth = new Date().getMonth() + 1;
+        const currentYear = new Date().getFullYear();
+
+        // Get today's bookings for user's facilities
+        const { data: todayBookings } = await supabase
+          .from('bookings')
+          .select('id, facility_id!inner(owner_id)')
+          .eq('booking_date', today)
+          .eq('facility_id.owner_id', userId)
+          .in('status', ['confirmed', 'pending']);
+
+        // Get monthly bookings for user's facilities
+        const { data: monthlyBookings } = await supabase
+          .from('bookings')
+          .select('id, facility_id!inner(owner_id), booking_date')
+          .eq('facility_id.owner_id', userId)
+          .in('status', ['confirmed', 'pending'])
+          .gte('booking_date', `${currentYear}-${currentMonth.toString().padStart(2, '0')}-01`);
+
+        // Get active facilities count
+        const { data: facilities } = await supabase
+          .from('facilities')
+          .select('id')
+          .eq('owner_id', userId)
+          .eq('is_active', true);
+
+        setStats({
+          todayBookings: todayBookings?.length || 0,
+          monthlyBookings: monthlyBookings?.length || 0,
+          activeFacilities: facilities?.length || 0
+        });
+      } catch (error) {
+        console.error('Error loading stats:', error);
       }
     };
 
@@ -492,15 +539,15 @@ const FacilityOwnerProfilePage = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-primary">0</div>
+                  <div className="text-2xl font-bold text-primary">{stats.todayBookings}</div>
                   <div className="text-sm text-gray-600">Rezervări Astăzi</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-green-600">0</div>
+                  <div className="text-2xl font-bold text-green-600">{stats.monthlyBookings}</div>
                   <div className="text-sm text-gray-600">Rezervări Luna Aceasta</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-blue-600">0</div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.activeFacilities}</div>
                   <div className="text-sm text-gray-600">Terenuri Active</div>
                 </div>
               </div>
