@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,14 +19,15 @@ interface FormData {
   generalServices: string[];
 }
 
-const EditSportsComplexSettingsPage = () => {
+const AdminEditSportsComplexPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [targetUserProfile, setTargetUserProfile] = useState<any>(null);
   const [newService, setNewService] = useState("");
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { ownerId } = useParams();
 
   const generalServices = watch("generalServices") || [];
 
@@ -36,54 +37,56 @@ const EditSportsComplexSettingsPage = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          navigate("/facility/login");
+          navigate("/admin/login");
           return;
         }
 
-        console.log('Loading data for user:', user.id);
-
-        // Get user profile
-        const { data: profile, error: profileError } = await supabase
+        // Check if current user is admin
+        const { data: currentUserProfile } = await supabase
           .from('profiles')
-          .select('*')
+          .select('role')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        console.log('Profile data:', profile, 'Error:', profileError);
-
-        if (profileError) {
-          console.error('Profile error:', profileError);
-          throw profileError;
-        }
-
-        const isAdmin = profile && profile.role === 'admin';
-        const isFacilityOwner = profile && (
-          profile.role === 'facility_owner' || 
-          (profile.user_type_comment && profile.user_type_comment.includes('Proprietar bază sportivă'))
-        );
-
-        if (!profile || (!isAdmin && !isFacilityOwner)) {
+        if (!currentUserProfile || currentUserProfile.role !== 'admin') {
           toast({
-            title: "Acces restricționat",
-            description: "Doar proprietarii de baze sportive pot edita setările",
+            title: "Acces interzis",
+            description: "Doar administratorii pot accesa această pagină",
             variant: "destructive"
-          });
-          navigate("/");
-          return;
-        }
-
-        // If admin, redirect to admin panel
-        if (isAdmin) {
-          toast({
-            title: "Acces Admin",
-            description: "Administratorii gestionează bazele sportive din panoul de administrare",
-            variant: "default"
           });
           navigate("/admin/dashboard");
           return;
         }
 
-        setUserProfile(profile);
+        if (!ownerId) {
+          toast({
+            title: "Eroare",
+            description: "ID proprietar lipsă",
+            variant: "destructive"
+          });
+          navigate("/admin/dashboard");
+          return;
+        }
+
+        // Get target user profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', ownerId)
+          .maybeSingle();
+
+        if (profileError || !profile) {
+          console.error('Profile error:', profileError);
+          toast({
+            title: "Eroare",
+            description: "Nu s-a putut încărca profilul proprietarului",
+            variant: "destructive"
+          });
+          navigate("/admin/dashboard");
+          return;
+        }
+
+        setTargetUserProfile(profile);
 
         // Extract sports complex name from user_type_comment
         let sportsComplexName = profile.full_name || "";
@@ -100,44 +103,35 @@ const EditSportsComplexSettingsPage = () => {
           }
         }
 
-        console.log('Sports complex name extracted:', sportsComplexName);
-
         // Get facility data - use all facilities and take the first one if multiple
         const { data: facilitiesData, error: facilitiesError } = await supabase
           .from('facilities')
           .select('id, address, city, description, amenities')
-          .eq('owner_id', user.id)
+          .eq('owner_id', ownerId)
           .limit(1);
-
-        console.log('Facilities data:', facilitiesData, 'Error:', facilitiesError);
 
         if (facilitiesError) {
           console.error('Facilities error:', facilitiesError);
         }
 
-        // Set form values only with actual database data
-        console.log('Setting form values...');
+        // Set form values
         setValue("sportsComplexName", sportsComplexName);
         setValue("phone", profile.phone || "");
         
         // Only set facility data if it exists
         if (facilitiesData && facilitiesData.length > 0) {
           const facilityData = facilitiesData[0];
-          console.log('Setting facility data:', facilityData);
           setValue("address", facilityData.address || "");
           setValue("city", facilityData.city || "");
           setValue("description", facilityData.description || "");
           setValue("generalServices", facilityData.amenities || []);
         } else {
-          console.log('No facility data found, setting empty values');
           // Set empty values if no facility data
           setValue("address", "");
           setValue("city", "");
           setValue("description", "");
           setValue("generalServices", []);
         }
-
-        console.log('Form values set successfully');
 
       } catch (error) {
         console.error('Error loading data:', error);
@@ -152,7 +146,7 @@ const EditSportsComplexSettingsPage = () => {
     };
 
     loadData();
-  }, []);
+  }, [ownerId]);
 
   const addGeneralService = () => {
     if (newService.trim()) {
@@ -170,8 +164,7 @@ const EditSportsComplexSettingsPage = () => {
   const onSubmit = async (data: FormData) => {
     setIsSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!ownerId) return;
 
       // Update profile with new information
       const userTypeComment = data.sportsComplexName ? 
@@ -184,13 +177,13 @@ const EditSportsComplexSettingsPage = () => {
           phone: data.phone,
           user_type_comment: userTypeComment
         })
-        .eq('user_id', user.id);
+        .eq('user_id', ownerId);
 
       if (profileError) {
         throw profileError;
       }
 
-      // Always try to update facility data, create if doesn't exist
+      // Always try to update facility data
       const updateData: any = {};
       if (data.address) updateData.address = data.address;
       if (data.city) updateData.city = data.city;
@@ -201,7 +194,7 @@ const EditSportsComplexSettingsPage = () => {
         const { error: facilityError } = await supabase
           .from('facilities')
           .update(updateData)
-          .eq('owner_id', user.id);
+          .eq('owner_id', ownerId);
 
         if (facilityError) {
           console.error('Error updating facility:', facilityError);
@@ -214,7 +207,7 @@ const EditSportsComplexSettingsPage = () => {
         description: "Setările au fost salvate cu succes",
       });
 
-      navigate("/facility-owner-profile");
+      navigate("/admin/dashboard");
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
@@ -244,13 +237,15 @@ const EditSportsComplexSettingsPage = () => {
           <div className="flex justify-center mb-4">
             <Button
               variant="ghost"
-              onClick={() => navigate("/manage-facilities")}
+              onClick={() => navigate("/admin/dashboard")}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Înapoi la Facilități
+              Înapoi la Dashboard
             </Button>
           </div>
-          <h1 className="text-3xl font-bold text-center">Setări Bază Sportivă</h1>
+          <h1 className="text-3xl font-bold text-center">
+            Editare Bază Sportivă - {targetUserProfile?.full_name}
+          </h1>
         </div>
 
         <Card>
@@ -361,7 +356,7 @@ const EditSportsComplexSettingsPage = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate("/manage-facilities")}
+                  onClick={() => navigate("/admin/dashboard")}
                   className="flex-1"
                 >
                   Anulează
@@ -379,4 +374,4 @@ const EditSportsComplexSettingsPage = () => {
   );
 };
 
-export default EditSportsComplexSettingsPage;
+export default AdminEditSportsComplexPage;
