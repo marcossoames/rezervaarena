@@ -33,12 +33,10 @@ function EnhancedCalendar({
     return partiallyBlockedDates;
   }, [partiallyBlockedDates]);
 
-  const today = React.useMemo(() => new Date(), []);
-
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-3 pointer-events-auto", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
@@ -76,50 +74,21 @@ function EnhancedCalendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
-        Day: ({ date, ...dayProps }) => {
-          const dateString = format(date, 'yyyy-MM-dd');
-          const isFullyBlocked = blockedDatesSet.has(dateString);
-          const isPartiallyBlocked = partiallyBlockedDatesSet.has(dateString) && !isFullyBlocked;
-          
-          return (
-            <div className="relative">
-              <button {...dayProps}>
-                {date.getDate()}
-                {isFullyBlocked && (
-                  <X className="absolute inset-0 w-4 h-4 m-auto text-red-500 z-10" strokeWidth={3} />
-                )}
-                {isPartiallyBlocked && (
-                  <div className="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full z-10" />
-                )}
-              </button>
-            </div>
-          );
-        },
-      }}
-      modifiers={{
-        blocked: (date) => {
-          const dateString = format(date, 'yyyy-MM-dd');
-          return blockedDatesSet.has(dateString);
-        },
-        partiallyBlocked: (date) => {
-          const dateString = format(date, 'yyyy-MM-dd');
-          return partiallyBlockedDatesSet.has(dateString) && !blockedDatesSet.has(dateString);
-        }
-      }}
-      modifiersClassNames={{
-        blocked: "bg-red-100 text-red-600 line-through opacity-75 cursor-not-allowed",
-        partiallyBlocked: "bg-orange-100 text-orange-600 border border-orange-300"
       }}
       disabled={(date) => {
-        const dateString = format(date, 'yyyy-MM-dd');
-        const isFullyBlocked = blockedDatesSet.has(dateString);
-        const originalDisabled = props.disabled && typeof props.disabled === 'function' ? props.disabled(date) : false;
-        return originalDisabled || isFullyBlocked;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const maxDate = new Date(today);
+        maxDate.setDate(today.getDate() + 14);
+        
+        const targetDate = new Date(date);
+        targetDate.setHours(0, 0, 0, 0);
+        
+        return targetDate < today || targetDate > maxDate;
       }}
       {...props}
     />
   );
 }
-EnhancedCalendar.displayName = "EnhancedCalendar";
 
 export { EnhancedCalendar };
