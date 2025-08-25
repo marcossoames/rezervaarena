@@ -191,8 +191,7 @@ const PaymentPage = () => {
         facilityId: facility.id,
         bookingDate: selectedDate,
         startTime,
-        endTime,
-        totalPrice: parseFloat(totalPrice || '0')
+        endTime
       });
 
       const { data, error } = await supabase.functions.invoke('create-platform-payment', {
@@ -200,8 +199,7 @@ const PaymentPage = () => {
           facilityId: facility.id,
           bookingDate: selectedDate,
           startTime,
-          endTime,
-          totalPrice: parseFloat(totalPrice || '0'),
+          endTime
         },
       });
 

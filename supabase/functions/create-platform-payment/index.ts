@@ -22,13 +22,13 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { facilityId, bookingDate, startTime, endTime, totalPrice } = await req.json();
+    const { facilityId, bookingDate, startTime, endTime } = await req.json();
     
-    if (!facilityId || !bookingDate || !startTime || !endTime || !totalPrice) {
+    if (!facilityId || !bookingDate || !startTime || !endTime) {
       throw new Error('Missing required booking information');
     }
 
-    logStep("Booking details received", { facilityId, bookingDate, startTime, endTime, totalPrice });
+    logStep("Booking details received", { facilityId, bookingDate, startTime, endTime });
 
     // Authenticate user
     const authHeader = req.headers.get('Authorization');
@@ -53,7 +53,7 @@ serve(async (req) => {
     // Get facility details and owner
     const { data: facility, error: facilityError } = await supabase
       .from('facilities')
-      .select('*, owner_id')
+      .select('name, price_per_hour, owner_id, is_active')
       .eq('id', facilityId)
       .single();
 
@@ -61,7 +61,24 @@ serve(async (req) => {
       throw new Error('Facility not found');
     }
 
-    logStep("Facility found", { facilityName: facility.name, ownerId: facility.owner_id });
+    if (!facility.is_active) {
+      throw new Error('Facility is not active');
+    }
+
+    // Calculate total price SERVER-SIDE (never trust client)
+    const startDate = new Date(`2000-01-01T${startTime}:00`);
+    const endDate = new Date(`2000-01-01T${endTime}:00`);
+    const durationMs = endDate.getTime() - startDate.getTime();
+    const durationHours = durationMs / (1000 * 60 * 60);
+    const totalPrice = durationHours * facility.price_per_hour;
+
+    logStep("Facility found and price calculated", { 
+      facilityName: facility.name, 
+      ownerId: facility.owner_id,
+      pricePerHour: facility.price_per_hour,
+      durationHours,
+      calculatedTotalPrice: totalPrice
+    });
 
     // Initialize Stripe
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');

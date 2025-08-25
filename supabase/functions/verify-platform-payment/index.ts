@@ -57,6 +57,37 @@ serve(async (req) => {
     );
 
     if (session.payment_status === 'paid') {
+      // Get booking to verify ownership
+      const { data: booking, error: getBookingError } = await supabaseService
+        .from('bookings')
+        .select('client_id')
+        .eq('stripe_session_id', sessionId)
+        .single();
+
+      if (getBookingError || !booking) {
+        throw new Error('Booking not found for session');
+      }
+
+      // Get user from auth header for security verification
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        throw new Error('No authorization header provided');
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: authError } = await supabaseService.auth.getUser(token);
+      
+      if (authError || !user) {
+        throw new Error('Invalid authentication token');
+      }
+
+      // Verify that the authenticated user is the booking owner
+      if (booking.client_id !== user.id) {
+        throw new Error('Unauthorized: User does not own this booking');
+      }
+
+      logStep("User verified as booking owner", { userId: user.id, clientId: booking.client_id });
+
       // Update booking status
       const { error: bookingError } = await supabaseService
         .from('bookings')
