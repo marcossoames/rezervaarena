@@ -141,10 +141,22 @@ const FacilityCalendarPage = () => {
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        
+        // Check if this time is allowed for the selected date
+        if (selectedDate && !isBlockingTimeAllowed(format(selectedDate, 'yyyy-MM-dd'), timeString)) {
+          continue; // Skip past times for today
+        }
+        
         times.push({ value: timeString, label: timeString });
       }
     }
-    times.push({ value: `${endHour.toString().padStart(2, '0')}:00`, label: `${endHour.toString().padStart(2, '0')}:00` });
+    
+    // Add end hour if it's allowed
+    const endTimeString = `${endHour.toString().padStart(2, '0')}:00`;
+    if (!selectedDate || isBlockingTimeAllowed(format(selectedDate, 'yyyy-MM-dd'), endTimeString)) {
+      times.push({ value: endTimeString, label: endTimeString });
+    }
+    
     return times;
   };
 
