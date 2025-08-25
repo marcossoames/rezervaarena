@@ -30,6 +30,7 @@ interface Facility {
   capacity: number;
   amenities: string[];
   images: string[];
+  owner_id: string;
   // Sports complex information
   sports_complex_name?: string;
   sports_complex_address?: string;
@@ -52,6 +53,10 @@ const PaymentPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'cash' | 'card' | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [ownerStripeStatus, setOwnerStripeStatus] = useState<{
+    hasStripe: boolean;
+    chargesEnabled: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const loadFacility = async () => {
@@ -75,13 +80,34 @@ const PaymentPage = () => {
         // The function already provides sports complex information
         const facilityWithSportsComplex = {
           ...data,
+          owner_id: data.id, // We need to get owner_id from a separate query
           address: data.sports_complex_address?.split(', ')[0] || data.city, // Extract address part
           sports_complex_name: data.sports_complex_name,
           sports_complex_address: data.sports_complex_address,
           phone_number: data.phone_number
         };
 
+        // Get owner_id from facilities table
+        const { data: facilityData, error: facilityError } = await supabase
+          .from('facilities')
+          .select('owner_id')
+          .eq('id', facilityId)
+          .single();
+
+        if (facilityError || !facilityData) {
+          toast({
+            title: "Eroare",
+            description: "Nu s-a putut verifica proprietarul facilității",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        facilityWithSportsComplex.owner_id = facilityData.owner_id;
         setFacility(facilityWithSportsComplex);
+        
+        // Check owner's Stripe status
+        await checkOwnerStripeStatus(facilityData.owner_id);
       } catch (error) {
         console.error('Error loading facility:', error);
         toast({
@@ -96,6 +122,30 @@ const PaymentPage = () => {
 
     loadFacility();
   }, [facilityId, toast]);
+
+  const checkOwnerStripeStatus = async (ownerId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('stripe_account_id, stripe_charges_enabled, stripe_onboarding_complete')
+        .eq('user_id', ownerId)
+        .single();
+
+      if (error) {
+        console.error('Error checking owner Stripe status:', error);
+        setOwnerStripeStatus({ hasStripe: false, chargesEnabled: false });
+        return;
+      }
+
+      setOwnerStripeStatus({
+        hasStripe: !!data.stripe_account_id && data.stripe_onboarding_complete,
+        chargesEnabled: data.stripe_charges_enabled || false
+      });
+    } catch (error) {
+      console.error('Error checking owner Stripe status:', error);
+      setOwnerStripeStatus({ hasStripe: false, chargesEnabled: false });
+    }
+  };
 
   const handleCashPayment = async () => {
     if (!facility || !selectedDate || !startTime || !endTime) return;
@@ -348,32 +398,50 @@ const PaymentPage = () => {
                   </CardContent>
                 </Card>
 
-                {/* Card Payment Option */}
-                <Card 
-                  className={`cursor-pointer transition-all hover:shadow-md ${
-                    selectedPaymentMethod === 'card' 
-                      ? 'ring-2 ring-primary border-primary' 
-                      : 'border-border'
-                  }`}
-                  onClick={() => setSelectedPaymentMethod('card')}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex-shrink-0">
-                        <CreditCard className="h-8 w-8 text-blue-600" />
+                {/* Card Payment Option - Only show if owner has Stripe connected */}
+                {ownerStripeStatus?.hasStripe && ownerStripeStatus?.chargesEnabled ? (
+                  <Card 
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      selectedPaymentMethod === 'card' 
+                        ? 'ring-2 ring-primary border-primary' 
+                        : 'border-border'
+                    }`}
+                    onClick={() => setSelectedPaymentMethod('card')}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          <CreditCard className="h-8 w-8 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold">Plată cu cardul</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Plătești online cu cardul bancar (securizat prin Stripe)
+                          </p>
+                        </div>
+                        {selectedPaymentMethod === 'card' && (
+                          <CheckCircle className="h-6 w-6 text-primary" />
+                        )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold">Plată cu cardul</h3>
-                         <p className="text-sm text-muted-foreground">
-                           Plătești online cu cardul bancar (securizat prin Stripe)
-                         </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="border-border opacity-60">
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          <CreditCard className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-muted-foreground">Plată cu cardul</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Nu este disponibilă - baza sportivă nu are plăți online configurate
+                          </p>
+                        </div>
                       </div>
-                      {selectedPaymentMethod === 'card' && (
-                        <CheckCircle className="h-6 w-6 text-primary" />
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Action Buttons */}
                 <div className="pt-4 space-y-3">
