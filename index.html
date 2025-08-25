@@ -25,19 +25,20 @@
     <link rel="modulepreload" href="/src/components/HeroSection.tsx" />
     <link rel="modulepreload" href="/src/components/SportsSection.tsx" />
     
-    <!-- Critical CSS inlined to prevent render-blocking -->
+    <!-- Critical CSS inlined to prevent render-blocking and reduce unused CSS -->
     <style>
       /* Critical base styles for immediate rendering */
       *, ::before, ::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: #e5e7eb; }
       html { line-height: 1.5; -webkit-text-size-adjust: 100%; -moz-tab-size: 4; tab-size: 4; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; }
       body { margin: 0; background-color: hsl(0 0% 99%); color: hsl(210 15% 15%); }
       
-      /* Critical design system variables - only essential ones */
+      /* Critical design system variables for homepage */
       :root {
         --background: 0 0% 99%;
         --foreground: 210 15% 15%;
         --primary: 210 100% 12%;
         --primary-foreground: 0 0% 98%;
+        --primary-light: 210 60% 25%;
         --card: 0 0% 100%;
         --card-foreground: 210 15% 15%;
         --border: 210 15% 90%;
@@ -45,11 +46,14 @@
         --muted-foreground: 210 10% 45%;
         --secondary: 210 15% 96%;
         --secondary-foreground: 210 15% 15%;
+        --accent: 210 60% 25%;
         --gradient-hero: linear-gradient(135deg, hsl(210 100% 12%), hsl(210 60% 25%));
+        --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 15% 96%));
         --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --shadow-elegant: 0 10px 30px -10px hsl(210 100% 12% / 0.2);
       }
       
-      /* Critical layout utilities */
+      /* Critical layout utilities for above-the-fold content */
       .min-h-screen { min-height: 100vh; }
       .container { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
       @media (min-width: 640px) { .container { max-width: 640px; } }
@@ -57,23 +61,77 @@
       @media (min-width: 1024px) { .container { max-width: 1024px; } }
       @media (min-width: 1280px) { .container { max-width: 1280px; } }
       
+      /* Critical header styles */
+      .fixed { position: fixed; }
+      .top-0 { top: 0; }
+      .left-0 { left: 0; }
+      .right-0 { right: 0; }
+      .z-50 { z-index: 50; }
+      .bg-card { background-color: hsl(var(--card)); }
+      .shadow-sm { box-shadow: 0 1px 2px 0 hsl(210 15% 15% / 0.05); }
+      .flex { display: flex; }
+      .items-center { align-items: center; }
+      .justify-between { justify-content: space-between; }
+      .px-4 { padding-left: 1rem; padding-right: 1rem; }
+      .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+      
+      /* Critical hero section styles */
+      .relative { position: relative; }
+      .bg-gradient-hero { background: var(--gradient-hero); }
+      .min-h-\\[600px\\] { min-height: 600px; }
+      .absolute { position: absolute; }
+      .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+      .w-full { width: 100%; }
+      .h-full { height: 100%; }
+      .object-cover { object-fit: cover; }
+      .opacity-20 { opacity: 0.2; }
+      .z-10 { z-index: 10; }
+      .max-w-4xl { max-width: 56rem; }
+      .mx-auto { margin-left: auto; margin-right: auto; }
+      .text-center { text-align: center; }
+      
+      /* Critical typography for hero */
+      .text-5xl { font-size: 3rem; line-height: 1; }
+      .text-6xl { font-size: 3.75rem; line-height: 1; }
+      .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+      .font-bold { font-weight: 700; }
+      .text-primary-foreground { color: hsl(var(--primary-foreground)); }
+      .mb-6 { margin-bottom: 1.5rem; }
+      .mb-8 { margin-bottom: 2rem; }
+      .max-w-2xl { max-width: 42rem; }
+      
+      /* Critical button styles */
+      .inline-flex { display: inline-flex; }
+      .gap-4 { gap: 1rem; }
+      .justify-center { justify-content: center; }
+      .rounded-md { border-radius: 0.375rem; }
+      .px-8 { padding-left: 2rem; padding-right: 2rem; }
+      .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+      .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+      .font-medium { font-weight: 500; }
+      .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+      .bg-primary { background-color: hsl(var(--primary)); }
+      .text-primary-foreground { color: hsl(var(--primary-foreground)); }
+      .hover\\:bg-primary\\/90:hover { background-color: hsl(var(--primary) / 0.9); }
+      
+      /* Critical responsive utilities */
+      @media (min-width: 640px) { 
+        .sm\\:flex-row { flex-direction: row; }
+      }
+      @media (min-width: 768px) { 
+        .md\\:text-6xl { font-size: 3.75rem; line-height: 1; }
+      }
+      .flex-col { flex-direction: column; }
+      
       /* Critical loading state */
       .loading-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
       .loading-spinner { width: 32px; height: 32px; border: 2px solid hsl(210 15% 90%); border-top: 2px solid hsl(210 100% 12%); border-radius: 50%; animation: spin 1s linear infinite; }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-      
-      /* Critical typography */
-      .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
-      .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
-      .font-bold { font-weight: 700; }
-      .text-center { text-align: center; }
-      .mb-4 { margin-bottom: 1rem; }
-      .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
-      .px-4 { padding-left: 1rem; padding-right: 1rem; }
     </style>
     
-    <!-- Load main CSS non-blocking using media attribute technique -->
-    <link rel="stylesheet" href="/src/index.css" media="print" onload="this.media='all'; this.onload=null;" />
+    
+    <!-- Load non-critical CSS asynchronously to reduce unused CSS impact -->
+    <link rel="preload" href="/src/index.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
     
     <!-- Preload critical hero image for better LCP -->
@@ -123,14 +181,27 @@
       }
     </script>
     
-    <!-- Simplified CSS loading check -->
+    <!-- Optimized CSS loading and app initialization -->
     <script>
-      // Remove loading fallback once app mounts
+      // Remove loading fallback once app mounts and ensure CSS is loaded
       document.addEventListener('DOMContentLoaded', function() {
+        // Ensure critical styles are applied immediately
+        const loadingEl = document.querySelector('.loading-container');
+        
+        // Wait for fonts and critical resources to load
         setTimeout(function() {
-          var loadingEl = document.querySelector('.loading-container');
-          if (loadingEl) loadingEl.style.display = 'none';
-        }, 100);
+          if (loadingEl && document.querySelector('main')) {
+            loadingEl.style.display = 'none';
+          }
+        }, 50);
+        
+        // Fallback CSS loading for browsers that don't support onload
+        if (!window.CSS || !CSS.supports('display', 'grid')) {
+          var cssLink = document.createElement('link');
+          cssLink.rel = 'stylesheet';
+          cssLink.href = '/src/index.css';
+          document.head.appendChild(cssLink);
+        }
       });
     </script>
   </body>
