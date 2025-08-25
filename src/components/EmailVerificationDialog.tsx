@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mail, CheckCircle, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { Mail, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,7 +29,36 @@ export const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = (
 }) => {
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [showResendPrompt, setShowResendPrompt] = useState(false);
   const { toast } = useToast();
+
+  // Timer to track elapsed time and show resend prompt after 1 minute
+  useEffect(() => {
+    if (!isOpen) {
+      setTimeElapsed(0);
+      setShowResendPrompt(false);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeElapsed(prev => {
+        const newTime = prev + 1;
+        if (newTime >= 60 && !showResendPrompt) {
+          setShowResendPrompt(true);
+        }
+        return newTime;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isOpen, showResendPrompt]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleResendConfirmation = async () => {
     setIsResending(true);
@@ -46,15 +75,18 @@ export const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = (
       }
 
       setResendSuccess(true);
+      setShowResendPrompt(false);
+      setTimeElapsed(0);
       toast({
-        title: "Email retrimis!",
-        description: "Verifică-ți din nou emailul pentru confirmarea contului.",
+        title: "Email retrimis cu succes!",
+        description: "Am retrimis emailul de confirmare. Verifică-ți inbox-ul și folderul spam.",
         duration: 5000
       });
     } catch (error: any) {
+      console.error('Resend error:', error);
       toast({
-        title: "Eroare",
-        description: error.message || "Nu s-a putut retrimite emailul de confirmare",
+        title: "Eroare la retrimiterea emailului",
+        description: error.message || "Nu s-a putut retrimite emailul de confirmare. Încearcă din nou.",
         variant: "destructive"
       });
     } finally {
@@ -81,6 +113,14 @@ export const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = (
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Timp așteptare:</span>
+            </div>
+            <span className="text-sm font-mono">{formatTime(timeElapsed)}</span>
+          </div>
+
           <Alert className="border-primary/20 bg-primary/5">
             <CheckCircle className="h-4 w-4 text-primary" />
             <AlertDescription className="text-sm">
@@ -93,6 +133,16 @@ export const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = (
             </AlertDescription>
           </Alert>
 
+          {showResendPrompt && (
+            <Alert className="border-amber-500 bg-amber-50 animate-pulse">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-700">
+                <strong>A trecut mai mult de un minut.</strong> Nu ai primit emailul? 
+                Verifică folderul spam sau retrimite emailul de confirmare.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {resendSuccess && (
             <Alert className="border-green-200 bg-green-50">
               <CheckCircle className="h-4 w-4 text-green-600" />
@@ -102,26 +152,29 @@ export const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = (
             </Alert>
           )}
 
-          <Alert className="border-amber-200 bg-amber-50">
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-700 text-sm">
-              <strong>Nu ai primit emailul?</strong> Verifică folderul spam sau retrimite-l.
-            </AlertDescription>
-          </Alert>
+          {!showResendPrompt && timeElapsed < 60 && (
+            <Alert className="border-blue-200 bg-blue-50">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-700 text-sm">
+                <strong>Nu ai primit emailul?</strong> Verifică folderul spam. 
+                Dacă nu îl găsești după un minut, poți retrimite emailul.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
           {isResendAvailable && (
             <Button
-              variant="outline"
+              variant={showResendPrompt ? "default" : "outline"}
               onClick={handleResendConfirmation}
               disabled={isResending}
-              className="w-full sm:w-auto"
+              className={`w-full sm:w-auto ${showResendPrompt ? 'animate-pulse bg-primary text-primary-foreground' : ''}`}
             >
               {isResending ? "Se retrimite..." : "Retrimite emailul"}
             </Button>
           )}
-          <Button onClick={onClose} className="w-full sm:w-auto">
+          <Button onClick={onClose} variant="secondary" className="w-full sm:w-auto">
             Am înțeles
           </Button>
         </DialogFooter>
