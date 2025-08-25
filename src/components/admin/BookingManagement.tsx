@@ -313,6 +313,19 @@ const BookingManagement = () => {
     return types[type] || type;
   };
 
+  const getFacilityTypeColor = (type: string) => {
+    const colors: { [key: string]: string } = {
+      'football': 'bg-gradient-to-r from-green-500 to-green-600',
+      'tennis': 'bg-gradient-to-r from-orange-500 to-orange-600', 
+      'basketball': 'bg-gradient-to-r from-purple-500 to-purple-600',
+      'volleyball': 'bg-gradient-to-r from-blue-500 to-blue-600',
+      'swimming': 'bg-gradient-to-r from-cyan-500 to-cyan-600',
+      'padel': 'bg-gradient-to-r from-pink-500 to-pink-600',
+      'other': 'bg-gradient-to-r from-gray-500 to-gray-600'
+    };
+    return colors[type] || colors['other'];
+  };
+
   const getSportTypes = () => {
     const types = [
       { value: 'football', label: 'Fotbal' },
@@ -665,11 +678,10 @@ const BookingManagement = () => {
                         {day.bookings.slice(0, 2).map((booking, idx) => (
                           <div
                             key={idx}
-                            className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 ${
-                              booking.status === 'confirmed' ? 'bg-gradient-to-r from-green-500 to-green-600' :
-                              booking.status === 'pending' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
-                              booking.status === 'cancelled' ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                              'bg-gradient-to-r from-gray-500 to-gray-600'
+                            className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 ${getFacilityTypeColor(booking.facility_type)} ${
+                              booking.status === 'cancelled' ? 'opacity-60 line-through' :
+                              booking.status === 'pending' ? 'ring-2 ring-yellow-400/50' :
+                              ''
                             }`}
                             title={`${booking.start_time} - ${booking.facility_name} (${getFacilityTypeLabel(booking.facility_type)})`}
                           >
