@@ -39,56 +39,58 @@ export const OptimizedImage = ({
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Calculate precise dimensions based on actual display requirements
+  // Calculate precise dimensions based on actual audit display requirements
   const getTargetDimensions = () => {
     if (fetchPriority === 'high') {
-      // Hero image: optimize for actual viewport width (1335px max based on audit)
+      // Hero image: exact dimensions from audit boundingRect (1335x600)
       return { 
         width: 1335, 
-        height: 751, // Based on the audit data showing 1335x751 display
+        height: 600, // Exact height from audit data
         breakpoints: [640, 768, 1024, 1280, 1335]
       };
     }
     
-    // Card images: optimize for actual display size (395px based on audit)
+    // Card images: exact dimensions from audit boundingRect (395x192)
     return { 
       width: 395, 
-      height: 296, // Aspect ratio maintained for card images
+      height: 192, // Exact height from audit data (was 296)
       breakpoints: [320, 395]
     };
   };
 
   const targetDimensions = getTargetDimensions();
 
-  // Generate optimized sizes attribute for precise loading
+  // Generate optimized sizes attribute for exact display dimensions
   const getOptimalSizes = () => {
     if (sizes) return sizes;
     
     if (fetchPriority === 'high') {
-      // Hero image: precise sizing to avoid over-downloading
+      // Hero image: exact sizing for 1335x600 display to prevent waste
       return '(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px';
     }
     
-    // Card images: precise sizing for grid layout
+    // Card images: exact sizing for 395x192 display to prevent 88% waste
     return '(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px';
   };
 
-  // Generate srcset for responsive loading with precise breakpoints
+  // Generate more aggressive srcset with exact target dimensions
   const generateSrcSet = (format: 'webp' | 'original' = 'original') => {
     const extension = format === 'webp' ? '.webp' : src.split('.').pop();
     const baseName = src.replace(/\.[^/.]+$/, '');
     
+    // Use more aggressive compression and exact dimensions
     return targetDimensions.breakpoints.map(breakpointWidth => {
       const breakpointHeight = Math.round((breakpointWidth * targetDimensions.height) / targetDimensions.width);
       const imageSrc = format === 'webp' ? `${baseName}.webp` : src;
       
-      // In production, this would be handled by a CDN with actual resized images
-      // For now, we add size hints that modern CDNs can process
+      // More aggressive optimization parameters
       const url = new URL(imageSrc, window.location.origin);
       url.searchParams.set('w', breakpointWidth.toString());
       url.searchParams.set('h', breakpointHeight.toString());
-      url.searchParams.set('q', quality.toString());
+      url.searchParams.set('q', Math.max(60, quality - 20).toString()); // More aggressive compression
       url.searchParams.set('f', format === 'webp' ? 'webp' : 'auto');
+      url.searchParams.set('fit', 'cover'); // Ensure proper cropping
+      url.searchParams.set('auto', 'compress,format'); // Auto optimization
       
       return `${url.toString()} ${breakpointWidth}w`;
     }).join(', ');

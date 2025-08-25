@@ -14,9 +14,9 @@ const HeroSection = () => {
           loading="eager"
           fetchPriority="high"
           width={1335}
-          height={751}
+          height={600}
           sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px"
-          quality={80}
+          quality={70}
         />
         <div className="absolute inset-0 bg-gradient-hero/60"></div>
       </div>
