@@ -72,9 +72,11 @@ const FacilityRegister = () => {
     { value: "tennis", label: "Tenis" },
     { value: "football", label: "Fotbal" },
     { value: "padel", label: "Padel" },
-    { value: "swimming", label: "Înot" },
+    { value: "squash", label: "Squash" },
     { value: "basketball", label: "Baschet" },
-    { value: "volleyball", label: "Volei" }
+    { value: "volleyball", label: "Volei" },
+    { value: "ping_pong", label: "Ping Pong" },
+    { value: "foot_tennis", label: "Tenis de Picior" }
   ];
 
   const addAmenityToFacility = (facilityIndex: number, amenity: string) => {
@@ -290,7 +292,7 @@ const FacilityRegister = () => {
               p_phone: accountData.phone || '',
               p_facility_name: facility.name,
               p_description: facility.description || '',
-              p_facility_type: facility.facilityType as "tennis" | "football" | "padel" | "swimming" | "basketball" | "volleyball",
+              p_facility_type: facility.facilityType as "tennis" | "football" | "padel" | "squash" | "basketball" | "volleyball" | "ping_pong" | "foot_tennis",
               p_address: accountData.address,
               p_city: accountData.city,
               p_price_per_hour: facility.pricePerHour,

@@ -229,8 +229,10 @@ const FacilityManagement = () => {
       'tennis': 'Tenis',
       'basketball': 'Baschet',
       'volleyball': 'Volei',
-      'swimming': 'Înot',
+      'squash': 'Squash',
       'padel': 'Padel',
+      'ping_pong': 'Ping Pong',
+      'foot_tennis': 'Tenis de Picior',
       'other': 'Altele'
     };
     return types[type] || type;

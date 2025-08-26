@@ -567,8 +567,14 @@ const FacilitiesPage = () => {
               <Badge variant={selectedType === "padel" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("padel")}>
                 Padel
               </Badge>
-              <Badge variant={selectedType === "swimming" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("swimming")}>
-                Înot
+              <Badge variant={selectedType === "squash" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("squash")}>
+                Squash
+              </Badge>
+              <Badge variant={selectedType === "ping_pong" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("ping_pong")}>
+                Ping Pong
+              </Badge>
+              <Badge variant={selectedType === "foot_tennis" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("foot_tennis")}>
+                Tenis de Picior
               </Badge>
               <Badge variant={selectedType === "basketball" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("basketball")}>
                 Baschet

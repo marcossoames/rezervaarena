@@ -247,7 +247,7 @@ const AddFacilityPage = () => {
           owner_id: userProfile.role === 'admin' ? selectedOwnerId : userProfile.user_id,
           name: data.facilityName,
           description: data.description,
-          facility_type: data.facilityType as "tennis" | "football" | "padel" | "swimming" | "basketball" | "volleyball",
+          facility_type: data.facilityType as "tennis" | "football" | "padel" | "squash" | "basketball" | "volleyball" | "ping_pong" | "foot_tennis",
           address: data.address,
           city: data.city,
           price_per_hour: data.pricePerHour,

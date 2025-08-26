@@ -316,8 +316,10 @@ const BookingManagement = () => {
       'tennis': 'Tenis',
       'basketball': 'Baschet',
       'volleyball': 'Volei',
-      'swimming': 'Înot',
+      'squash': 'Squash',
       'padel': 'Padel',
+      'ping_pong': 'Ping Pong',
+      'foot_tennis': 'Tenis de Picior',
       'other': 'Altele'
     };
     return types[type] || type;
@@ -329,8 +331,10 @@ const BookingManagement = () => {
       'tennis': 'bg-gradient-to-r from-orange-500 to-orange-600', 
       'basketball': 'bg-gradient-to-r from-purple-500 to-purple-600',
       'volleyball': 'bg-gradient-to-r from-blue-500 to-blue-600',
-      'swimming': 'bg-gradient-to-r from-cyan-500 to-cyan-600',
+      'squash': 'bg-gradient-to-r from-cyan-500 to-cyan-600',
       'padel': 'bg-gradient-to-r from-pink-500 to-pink-600',
+      'ping_pong': 'bg-gradient-to-r from-yellow-500 to-yellow-600',
+      'foot_tennis': 'bg-gradient-to-r from-red-500 to-red-600',
       'other': 'bg-gradient-to-r from-gray-500 to-gray-600'
     };
     return colors[type] || colors['other'];
@@ -342,8 +346,10 @@ const BookingManagement = () => {
       { value: 'tennis', label: 'Tenis' },
       { value: 'basketball', label: 'Baschet' },
       { value: 'volleyball', label: 'Volei' },
-      { value: 'swimming', label: 'Înot' },
+      { value: 'squash', label: 'Squash' },
       { value: 'padel', label: 'Padel' },
+      { value: 'ping_pong', label: 'Ping Pong' },
+      { value: 'foot_tennis', label: 'Tenis de Picior' },
       { value: 'other', label: 'Altele' }
     ];
     return types;

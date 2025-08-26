@@ -4,9 +4,11 @@ export const getFacilityTypeLabel = (facilityType: string): string => {
     'tennis': 'Tenis',
     'football': 'Fotbal',
     'padel': 'Padel',
-    'swimming': 'Înot',
+    'squash': 'Squash',
     'basketball': 'Baschet',
-    'volleyball': 'Volei'
+    'volleyball': 'Volei',
+    'ping_pong': 'Ping Pong',
+    'foot_tennis': 'Tenis de Picior'
   };
 
   return facilityTypeLabels[facilityType] || facilityType;
@@ -17,7 +19,9 @@ export const facilityTypeOptions = [
   { value: "tennis", label: "Tenis" },
   { value: "football", label: "Fotbal" },
   { value: "padel", label: "Padel" },
-  { value: "swimming", label: "Înot" },
+  { value: "squash", label: "Squash" },
   { value: "basketball", label: "Baschet" },
-  { value: "volleyball", label: "Volei" }
+  { value: "volleyball", label: "Volei" },
+  { value: "ping_pong", label: "Ping Pong" },
+  { value: "foot_tennis", label: "Tenis de Picior" }
 ];

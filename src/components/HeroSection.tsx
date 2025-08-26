@@ -30,7 +30,7 @@ const HeroSection = () => {
           
           <p className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
             Găsește și rezervă cele mai bune facilități sportive din orașul tău. 
-            Tenis, fotbal, padel, înot și multe altele.
+            Tenis, fotbal, padel, squash, ping pong și multe altele.
           </p>
 
 

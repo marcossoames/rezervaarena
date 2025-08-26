@@ -12,9 +12,11 @@ console.log('Checking image imports...');
 const tennisImage = "/placeholder-tennis.jpg";
 const footballImage = "/placeholder-football.jpg"; 
 const padelImage = "/placeholder-padel.jpg";
-const swimmingImage = "/placeholder-swimming.jpg";
+const squashImage = "/placeholder-squash.jpg";
 const basketballImage = "/placeholder-basketball.jpg";
 const volleyballImage = "/placeholder-volleyball.jpg";
+const pingPongImage = "/placeholder-ping-pong.jpg";
+const footTennisImage = "/placeholder-foot-tennis.jpg";
 
 console.log('Tennis image path:', tennisImage);
 interface SportData {
@@ -52,10 +54,10 @@ const initialSportsData = [{
   minPrice: "0 RON/oră"
 }, {
   id: 4,
-  name: "Înot",
-  type: "swimming",
-  image: swimmingImage,
-  description: "Piscine profesionale pentru antrenament și relaxare",
+  name: "Squash",
+  type: "squash",
+  image: squashImage,
+  description: "Terenuri moderne de squash pentru antrenament și competiții",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -72,6 +74,22 @@ const initialSportsData = [{
   type: "volleyball",
   image: volleyballImage,
   description: "Terenuri de volei pentru competiții și antrenamente",
+  facilities: 0,
+  minPrice: "0 RON/oră"
+}, {
+  id: 7,
+  name: "Ping Pong",
+  type: "ping_pong",
+  image: pingPongImage,
+  description: "Mese profesionale de tenis de masă pentru toate nivelurile",
+  facilities: 0,
+  minPrice: "0 RON/oră"
+}, {
+  id: 8,
+  name: "Tenis de Picior",
+  type: "foot_tennis",
+  image: footTennisImage,
+  description: "Terenuri de tenis de picior pentru jocuri dinamice și distractive",
   facilities: 0,
   minPrice: "0 RON/oră"
 }];
