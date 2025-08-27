@@ -302,7 +302,7 @@ const FacilityIncomeManagement = () => {
 
         <CardContent className="p-6">
           {/* Income Summary Cards */}
-          <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
             <Card className="border-l-4 border-l-orange-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Încasări Cash (90%)</CardTitle>
@@ -338,19 +338,6 @@ const FacilityIncomeManagement = () => {
                 <div className="text-2xl font-bold text-green-600">{incomeData.totalReceived.toFixed(2)} RON</div>
                 <p className="text-xs text-muted-foreground">
                   Din {incomeData.totalGross.toFixed(2)} RON total • {incomeData.totalBookings} rezervări
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-purple-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Comision Platformă</CardTitle>
-                <DollarSign className="h-4 w-4 text-purple-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-purple-600">{(incomeData.totalGross - incomeData.totalReceived).toFixed(2)} RON</div>
-                <p className="text-xs text-muted-foreground">
-                  10% din totalul de {incomeData.totalGross.toFixed(2)} RON
                 </p>
               </CardContent>
             </Card>
