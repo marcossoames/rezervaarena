@@ -227,12 +227,12 @@ const FacilityManagement = () => {
     const types: { [key: string]: string } = {
       'football': 'Fotbal',
       'tennis': 'Tenis',
+      'padel': 'Padel',
+      'squash': 'Squash',
       'basketball': 'Baschet',
       'volleyball': 'Volei',
-      'squash': 'Squash',
-      'padel': 'Padel',
-      'ping_pong': 'Ping Pong',
       'foot_tennis': 'Tenis de Picior',
+      'ping_pong': 'Ping Pong',
       'other': 'Altele'
     };
     return types[type] || type;

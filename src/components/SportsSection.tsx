@@ -30,18 +30,18 @@ interface SportData {
 }
 const initialSportsData = [{
   id: 1,
-  name: "Tenis",
-  type: "tennis",
-  image: tennisImage,
-  description: "Terenuri profesionale de tenis cu suprafețe moderne",
-  facilities: 0,
-  minPrice: "0 RON/oră"
-}, {
-  id: 2,
   name: "Fotbal",
   type: "football",
   image: footballImage,
   description: "Terenuri de fotbal cu gazon sintetic și natural",
+  facilities: 0,
+  minPrice: "0 RON/oră"
+}, {
+  id: 2,
+  name: "Tenis",
+  type: "tennis",
+  image: tennisImage,
+  description: "Terenuri profesionale de tenis cu suprafețe moderne",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -78,18 +78,18 @@ const initialSportsData = [{
   minPrice: "0 RON/oră"
 }, {
   id: 7,
-  name: "Ping Pong",
-  type: "ping_pong",
-  image: pingPongImage,
-  description: "Mese profesionale de tenis de masă pentru toate nivelurile",
-  facilities: 0,
-  minPrice: "0 RON/oră"
-}, {
-  id: 8,
   name: "Tenis de Picior",
   type: "foot_tennis",
   image: footTennisImage,
   description: "Terenuri de tenis de picior pentru jocuri dinamice și distractive",
+  facilities: 0,
+  minPrice: "0 RON/oră"
+}, {
+  id: 8,
+  name: "Ping Pong",
+  type: "ping_pong",
+  image: pingPongImage,
+  description: "Mese profesionale de tenis de masă pentru toate nivelurile",
   facilities: 0,
   minPrice: "0 RON/oră"
 }];
