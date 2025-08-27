@@ -8,10 +8,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Calendar as CalendarIcon, Ban, Edit, Eye, Clock, Users, MapPin } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Calendar as CalendarIcon, Ban, Edit, Eye, Clock, Users, MapPin, Repeat } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format, addDays, startOfDay, endOfDay, isAfter, isBefore, isSameDay } from "date-fns";
+import { format, addDays, addWeeks, addMonths, startOfDay, endOfDay, isAfter, isBefore, isSameDay, getDay } from "date-fns";
 import { ro } from "date-fns/locale";
 import { isBlockingTimeAllowed } from "@/utils/dateTimeValidation";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
@@ -65,6 +67,12 @@ const FacilityCalendarPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [blockReason, setBlockReason] = useState("");
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
+  
+  // Stati pentru blocarea recurentă
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringType, setRecurringType] = useState<'weekly' | 'monthly'>('weekly');
+  const [recurringEndDate, setRecurringEndDate] = useState<Date>();
+  const [weeklyDays, setWeeklyDays] = useState<number[]>([]);
   
   // Restricții pentru proprietarii de facilități: modificări doar de la astăzi înainte
   const today = startOfDay(new Date());
@@ -180,8 +188,75 @@ const FacilityCalendarPage = () => {
     return slots;
   };
 
+  // Helper pentru zilele săptămânii
+  const weekdayLabels = [
+    { value: 1, label: 'Luni' },
+    { value: 2, label: 'Marți' },
+    { value: 3, label: 'Miercuri' },
+    { value: 4, label: 'Joi' },
+    { value: 5, label: 'Vineri' },
+    { value: 6, label: 'Sâmbătă' },
+    { value: 0, label: 'Duminică' }
+  ];
+
+  // Generare date recurente
+  const generateRecurringDates = (startDate: Date, endDate: Date, type: 'weekly' | 'monthly', selectedDays?: number[]) => {
+    const dates = [];
+    let currentDate = new Date(startDate);
+    
+    if (type === 'weekly' && selectedDays && selectedDays.length > 0) {
+      while (currentDate <= endDate) {
+        const dayOfWeek = getDay(currentDate);
+        if (selectedDays.includes(dayOfWeek)) {
+          dates.push(new Date(currentDate));
+        }
+        currentDate = addDays(currentDate, 1);
+      }
+    } else if (type === 'monthly') {
+      const startDay = startDate.getDate();
+      while (currentDate <= endDate) {
+        if (currentDate.getDate() === startDay) {
+          dates.push(new Date(currentDate));
+        }
+        currentDate = addDays(currentDate, 1);
+      }
+    } else if (type === 'weekly') {
+      // Weekly pentru aceeași zi din săptămână ca startDate
+      const startDayOfWeek = getDay(startDate);
+      while (currentDate <= endDate) {
+        if (getDay(currentDate) === startDayOfWeek) {
+          dates.push(new Date(currentDate));
+        }
+        currentDate = addDays(currentDate, 1);
+      }
+    }
+    
+    return dates;
+  };
+
   const blockDate = async () => {
     if (!selectedDate) return;
+    
+    // Validare date recurente
+    if (isRecurring) {
+      if (!recurringEndDate) {
+        toast({
+          title: "Eroare",
+          description: "Te rugăm să selectezi data de sfârșit pentru blocarea recurentă",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (recurringType === 'weekly' && weeklyDays.length === 0) {
+        toast({
+          title: "Eroare",
+          description: "Te rugăm să selectezi cel puțin o zi din săptămână",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
     
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     
@@ -225,43 +300,75 @@ const FacilityCalendarPage = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
-      .from('blocked_dates')
-      .insert({
+    try {
+      let datesToBlock = [selectedDate];
+      
+      // Generare date recurente dacă este cazul
+      if (isRecurring && recurringEndDate) {
+        if (recurringType === 'weekly') {
+          if (weeklyDays.length > 0) {
+            datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'weekly', weeklyDays);
+          } else {
+            datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'weekly');
+          }
+        } else {
+          datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'monthly');
+        }
+      }
+
+      // Inserare pentru toate datele
+      const blocksToInsert = datesToBlock.map(date => ({
         facility_id: facilityId,
-        blocked_date: dateStr,
+        blocked_date: format(date, 'yyyy-MM-dd'),
         start_time: startTime,
         end_time: endTime,
         reason: blockReason,
         created_by: user.id
-      });
+      }));
 
-    if (error) {
+      const { error } = await supabase
+        .from('blocked_dates')
+        .insert(blocksToInsert);
+
+      if (error) {
+        toast({
+          title: "Eroare",
+          description: "Nu s-au putut bloca datele",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Reload blocked dates
+      const { data: blockedDatesData } = await supabase
+        .from('blocked_dates')
+        .select('*')
+        .eq('facility_id', facilityId);
+
+      setBlockedDates(blockedDatesData || []);
+      setBlockReason("");
+      setBlockStartTime("");
+      setBlockEndTime("");
+      setIsRecurring(false);
+      setRecurringEndDate(undefined);
+      setWeeklyDays([]);
+      setIsBlockDialogOpen(false);
+      
+      const timeInfo = startTime && endTime ? ` între ${startTime} - ${endTime}` : '';
+      const countInfo = datesToBlock.length > 1 ? ` (${datesToBlock.length} date)` : '';
+      
+      toast({
+        title: "Date blocate",
+        description: `${datesToBlock.length === 1 ? 'Data' : 'Datele'} ${timeInfo} ${datesToBlock.length === 1 ? 'a fost blocată' : 'au fost blocate'}${countInfo}`
+      });
+    } catch (error) {
+      console.error('Error blocking dates:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-a putut bloca data",
+        description: "Nu s-au putut bloca datele",
         variant: "destructive"
       });
-      return;
     }
-
-    // Reload blocked dates
-    const { data: blockedDatesData } = await supabase
-      .from('blocked_dates')
-      .select('*')
-      .eq('facility_id', facilityId);
-
-    setBlockedDates(blockedDatesData || []);
-    setBlockReason("");
-    setBlockStartTime("");
-    setBlockEndTime("");
-    setIsBlockDialogOpen(false);
-    
-    const timeInfo = startTime && endTime ? ` între ${startTime} - ${endTime}` : '';
-    toast({
-      title: "Data blocată",
-      description: `Data de ${format(selectedDate, 'dd MMMM yyyy', { locale: ro })}${timeInfo} a fost blocată`
-    });
   };
 
   const unblockDate = async (date: Date) => {
@@ -527,29 +634,105 @@ const FacilityCalendarPage = () => {
                             <p className="text-xs text-muted-foreground">
                               Lasă gol pentru a bloca toată ziua
                             </p>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="reason">Motivul blocării *</Label>
-                            <Textarea
-                              id="reason"
-                              value={blockReason}
-                              onChange={(e) => setBlockReason(e.target.value)}
-                              placeholder="ex: Lucrări de mentenanță, eveniment privat, etc."
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <Button onClick={blockDate} disabled={!blockReason.trim()}>
-                              Blochează
-                            </Button>
-                            <Button variant="outline" onClick={() => {
-                              setIsBlockDialogOpen(false);
-                              setBlockStartTime("");
-                              setBlockEndTime("");
-                              setBlockReason("");
-                            }}>
-                              Anulează
-                            </Button>
-                          </div>
+                           </div>
+                           
+                           {/* Blocarea recurentă */}
+                           <div className="space-y-3">
+                             <div className="flex items-center space-x-2">
+                               <Checkbox 
+                                 id="recurring" 
+                                 checked={isRecurring}
+                                 onCheckedChange={(checked) => setIsRecurring(!!checked)}
+                               />
+                               <Label htmlFor="recurring" className="flex items-center gap-2">
+                                 <Repeat className="h-4 w-4" />
+                                 Blocare recurentă
+                               </Label>
+                             </div>
+                             
+                             {isRecurring && (
+                               <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
+                                 <div className="space-y-2">
+                                   <Label>Tip recurență</Label>
+                                   <Select value={recurringType} onValueChange={(value: 'weekly' | 'monthly') => setRecurringType(value)}>
+                                     <SelectTrigger>
+                                       <SelectValue />
+                                     </SelectTrigger>
+                                     <SelectContent>
+                                       <SelectItem value="weekly">Săptămânal</SelectItem>
+                                       <SelectItem value="monthly">Lunar</SelectItem>
+                                     </SelectContent>
+                                   </Select>
+                                 </div>
+                                 
+                                 {recurringType === 'weekly' && (
+                                   <div className="space-y-2">
+                                     <Label>Zilele săptămânii</Label>
+                                     <div className="grid grid-cols-2 gap-2">
+                                       {weekdayLabels.map((day) => (
+                                         <div key={day.value} className="flex items-center space-x-2">
+                                           <Checkbox
+                                             id={`day-${day.value}`}
+                                             checked={weeklyDays.includes(day.value)}
+                                             onCheckedChange={(checked) => {
+                                               if (checked) {
+                                                 setWeeklyDays([...weeklyDays, day.value]);
+                                               } else {
+                                                 setWeeklyDays(weeklyDays.filter(d => d !== day.value));
+                                               }
+                                             }}
+                                           />
+                                           <Label htmlFor={`day-${day.value}`} className="text-sm">
+                                             {day.label}
+                                           </Label>
+                                         </div>
+                                       ))}
+                                     </div>
+                                     <p className="text-xs text-muted-foreground">
+                                       Lasă necompletat pentru aceeași zi din săptămână ca data selectată
+                                     </p>
+                                   </div>
+                                 )}
+                                 
+                                 <div className="space-y-2">
+                                   <Label>Data de sfârșit</Label>
+                                   <Calendar
+                                     mode="single"
+                                     selected={recurringEndDate}
+                                     onSelect={setRecurringEndDate}
+                                     disabled={(date) => isBefore(date, selectedDate) || isBefore(date, today)}
+                                     className="rounded-md border p-3 pointer-events-auto"
+                                   />
+                                 </div>
+                               </div>
+                             )}
+                           </div>
+                           
+                           <div className="space-y-2">
+                             <Label htmlFor="reason">Motivul blocării *</Label>
+                             <Textarea
+                               id="reason"
+                               value={blockReason}
+                               onChange={(e) => setBlockReason(e.target.value)}
+                               placeholder="ex: Lucrări de mentenanță, eveniment privat, rezervări recurente, etc."
+                             />
+                           </div>
+                           <div className="flex gap-2">
+                             <Button onClick={blockDate} disabled={!blockReason.trim()}>
+                               {isRecurring ? 'Blochează Datele' : 'Blochează'}
+                             </Button>
+                             <Button variant="outline" onClick={() => {
+                               setIsBlockDialogOpen(false);
+                               setBlockStartTime("");
+                               setBlockEndTime("");
+                               setBlockReason("");
+                               setIsRecurring(false);
+                               setRecurringEndDate(undefined);
+                               setWeeklyDays([]);
+                             }}>
+                               Anulează
+                             </Button>
+                           </div>
                         </div>
                       </DialogContent>
                     </Dialog>
