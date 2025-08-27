@@ -18,6 +18,7 @@ import { Calendar as CalendarIcon, Clock, MapPin, User, DollarSign, Filter, Ban,
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
 import ClientBehaviorStats from "@/components/admin/ClientBehaviorStats";
 import BookingDetailsDialog from "@/components/admin/BookingDetailsDialog";
+import DayBookingsDialog from "@/components/admin/DayBookingsDialog";
 
 interface Booking {
   id: string;
@@ -85,6 +86,10 @@ const BookingManagement = () => {
   // Booking details modal state
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
+  
+  // Day bookings dialog state
+  const [selectedDayDate, setSelectedDayDate] = useState<Date | null>(null);
+  const [isDayBookingsOpen, setIsDayBookingsOpen] = useState(false);
 
   const { toast } = useToast();
 
@@ -686,6 +691,11 @@ const BookingManagement = () => {
                         if (!isCurrentMonth) {
                           setCurrentMonth(new Date(day.date.getFullYear(), day.date.getMonth(), 1));
                         }
+                        // If there are multiple bookings for this day, show selection dialog
+                        if (day.bookings.length > 0) {
+                          setSelectedDayDate(day.date);
+                          setIsDayBookingsOpen(true);
+                        }
                       }}
                     >
                       <div className={`text-sm font-semibold mb-2 ${
@@ -904,6 +914,26 @@ const BookingManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Day Bookings Dialog */}
+      <DayBookingsDialog
+        date={selectedDayDate}
+        bookings={selectedDayDate ? bookings.filter(booking => 
+          booking.booking_date === format(selectedDayDate, 'yyyy-MM-dd') &&
+          (selectedFacility === "all" || booking.facility_id === selectedFacility) &&
+          (selectedStatus === "all" || booking.status === selectedStatus) &&
+          (selectedSportType === "all" || booking.facility_type === selectedSportType)
+        ) : []}
+        isOpen={isDayBookingsOpen}
+        onClose={() => {
+          setIsDayBookingsOpen(false);
+          setSelectedDayDate(null);
+        }}
+        onSelectBooking={(bookingId) => {
+          setSelectedBookingId(bookingId);
+          setIsBookingDetailsOpen(true);
+        }}
+      />
 
       {/* Booking Details Dialog */}
       <BookingDetailsDialog
