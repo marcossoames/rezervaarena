@@ -135,8 +135,8 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/facilities`,
+      success_url: `https://sportbook.lovable.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://sportbook.lovable.app/facilities`,
       metadata: {
         facility_id: facilityId,
         booking_date: bookingDate,
