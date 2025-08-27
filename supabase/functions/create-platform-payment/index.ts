@@ -135,8 +135,8 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `https://sportbook.lovable.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://sportbook.lovable.app/facilities`,
+      success_url: `${Deno.env.get('APP_BASE_URL') || 'https://sportspot-booker.lovable.app'}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${Deno.env.get('APP_BASE_URL') || 'https://sportspot-booker.lovable.app'}/facilities`,
       metadata: {
         facility_id: facilityId,
         booking_date: bookingDate,
