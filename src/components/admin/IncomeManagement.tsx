@@ -269,11 +269,12 @@ const IncomeManagement = () => {
         const facilityData = facilityMap.get(facilityId)!;
 
         if (booking.payment_method === 'cash' && booking.status === 'completed') {
-          // Comision 10% din plățile cash finalizate
+          // For cash payments: we get 10% commission only when completed
+          // The facility gets the full amount and owes us 10%
           facilityData.commissionFromCash += booking.total_price * 0.1;
           facilityData.cashBookings++;
         } else if (booking.payment_method === 'card' && ['confirmed', 'completed'].includes(booking.status)) {
-          // 90% din plățile online merg la baza sportivă
+          // For card payments: we receive full amount and must transfer 90% to facility
           facilityData.totalOnlineAmount += booking.total_price;
           facilityData.paymentToFacility += booking.total_price * 0.9;
           facilityData.onlineBookings++;
