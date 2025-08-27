@@ -330,28 +330,35 @@ const ManageFacilitiesPage = () => {
                       )}
                     </div>
                   </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline">
-                        {getFacilityTypeLabel(facility.facility_type)}
-                      </Badge>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          <span className="font-medium">
-                            {facility.exact_capacity_max 
-                              ? `${facility.exact_capacity}-${facility.exact_capacity_max} persoane`
-                              : `${facility.exact_capacity} persoane`
-                            }
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {facility.exact_price_per_hour} RON/h
-                        </div>
-                      </div>
-                    </div>
+                   
+                   <CardContent className="space-y-4">
+                     <div className="flex items-center justify-between">
+                       <Badge variant="outline" className="text-xs">
+                         {getFacilityTypeLabel(facility.facility_type)}
+                       </Badge>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-3 text-sm">
+                       <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
+                         <Users className="h-4 w-4 text-primary" />
+                         <div className="flex flex-col">
+                           <span className="text-xs text-muted-foreground">Capacitate</span>
+                           <span className="font-medium text-foreground">
+                             {facility.exact_capacity_max 
+                               ? `${facility.exact_capacity}-${facility.exact_capacity_max} persoane`
+                               : `${facility.exact_capacity} persoane`
+                             }
+                           </span>
+                         </div>
+                       </div>
+                       <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
+                         <Clock className="h-4 w-4 text-primary" />
+                         <div className="flex flex-col">
+                           <span className="text-xs text-muted-foreground">Preț</span>
+                           <span className="font-medium text-foreground">{facility.exact_price_per_hour} RON/h</span>
+                         </div>
+                       </div>
+                     </div>
 
                     {facility.description && (
                       <p className="text-sm text-muted-foreground line-clamp-2">
