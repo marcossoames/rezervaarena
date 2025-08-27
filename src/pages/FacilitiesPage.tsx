@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn, Plus, Settings, Phone, CalendarIcon } from "lucide-react";
+import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn, Plus, Settings, Phone, CalendarIcon, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -661,31 +661,41 @@ const FacilitiesPage = () => {
                              </Badge>)}
                          </div>}
                        
-                        <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                         <div className="flex items-center">
-                           <span className="text-muted-foreground">
-                             Capacitate: {facility.capacity ? `${facility.capacity} persoane` : facility.capacity_info || 'Disponibil'}
-                           </span>
-                         </div>
-                       </div>
-                      
-                       <div className="flex justify-between items-center">
-                         <div className="text-2xl font-bold text-primary">
-                           {facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : facility.price_range || facility.base_price_info || 'Preț disponibil la rezervare'}
-                         </div>
-                         {session ? <Button variant="sport" asChild>
-                             <Link to={`/booking/${facility.id}`}>
-                               Rezervă Acum
-                             </Link>
-                            </Button> : <Button variant="outline" onClick={() => {
-                              // Store current location before redirecting to login
-                              sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
-                              navigate('/client/login');
-                            }} className="w-full">
-                             <LogIn className="h-4 w-4 mr-2" />
-                             Autentifică-te pentru a face o rezervare
-                           </Button>}
-                      </div>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Users className="h-4 w-4 mr-1" />
+                            <span>
+                              {facility.capacity ? `${facility.capacity} persoane` : facility.capacity_info || 'Disponibil'}
+                            </span>
+                          </div>
+                          <div className="text-lg font-bold text-primary">
+                            {facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : facility.price_range || facility.base_price_info || 'Preț la cerere'}
+                          </div>
+                        </div>
+                       
+                        <div className="flex gap-3">
+                          {session ? (
+                            <Button variant="sport" asChild className="flex-1">
+                              <Link to={`/booking/${facility.id}`}>
+                                Rezervă Acum
+                              </Link>
+                            </Button>
+                          ) : (
+                            <div className="flex-1">
+                              <Button 
+                                variant="outline" 
+                                onClick={() => {
+                                  sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+                                  navigate('/client/login');
+                                }} 
+                                className="w-full text-sm"
+                              >
+                                <LogIn className="h-4 w-4 mr-2" />
+                                Autentifică-te pentru rezervare
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                     </div>
                   </div>
                 </CardContent>
