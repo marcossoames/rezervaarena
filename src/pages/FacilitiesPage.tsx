@@ -323,12 +323,14 @@ const FacilitiesPage = () => {
   }, [allFacilities, selectedType, locationFilter, searchTerm, selectedDate, startTime, endTime]);
   const getTimeOptions = () => {
     const times = [];
+    const dateToCheck = selectedDate || new Date(); // Use today if no date selected
+    
     for (let hour = 8; hour <= 22; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         
-        // Apply time validation if a date is selected
-        if (selectedDate && !isBookingTimeAllowed(selectedDate, timeString)) {
+        // Apply time validation for the selected date or today
+        if (!isBookingTimeAllowed(dateToCheck, timeString)) {
           continue; // Skip past times for today
         }
         
