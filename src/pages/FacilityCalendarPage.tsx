@@ -23,6 +23,7 @@ interface Facility {
   description: string;
   price_per_hour: number;
   capacity: number;
+  capacity_max?: number; // For capacity ranges
   images: string[];
   address: string;
   city: string;
@@ -374,7 +375,10 @@ const FacilityCalendarPage = () => {
                 </div>
                 <div className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
-                  {facility.capacity} persoane
+                  {facility.capacity_max 
+                    ? `${facility.capacity}-${facility.capacity_max} persoane`
+                    : `${facility.capacity} persoane`
+                  }
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />

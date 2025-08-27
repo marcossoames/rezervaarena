@@ -22,6 +22,7 @@ interface Facility {
   city: string;
   exact_price_per_hour: number; // Renamed to match RPC return
   exact_capacity: number; // Renamed to match RPC return
+  exact_capacity_max?: number; // For capacity ranges
   amenities: string[];
   images: string[];
   main_image_url?: string;
@@ -338,7 +339,10 @@ const ManageFacilitiesPage = () => {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          {facility.exact_capacity}
+                          {facility.exact_capacity_max 
+                            ? `${facility.exact_capacity}-${facility.exact_capacity_max} persoane`
+                            : `${facility.exact_capacity} persoane`
+                          }
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
