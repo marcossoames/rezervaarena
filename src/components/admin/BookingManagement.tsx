@@ -17,6 +17,7 @@ import { DialogTrigger } from "@/components/ui/dialog";
 import { Calendar as CalendarIcon, Clock, MapPin, User, DollarSign, Filter, Ban, X, Building2 } from "lucide-react";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
 import ClientBehaviorStats from "@/components/admin/ClientBehaviorStats";
+import BookingDetailsDialog from "@/components/admin/BookingDetailsDialog";
 
 interface Booking {
   id: string;
@@ -80,6 +81,10 @@ const BookingManagement = () => {
   const [blockEndTime, setBlockEndTime] = useState('');
   const [blockReason, setBlockReason] = useState('');
   const [selectedFacilityForBlock, setSelectedFacilityForBlock] = useState('');
+  
+  // Booking details modal state
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
 
   const { toast } = useToast();
 
@@ -690,25 +695,30 @@ const BookingManagement = () => {
                         {format(day.date, 'd')}
                         {day.isToday && <span className="ml-1 text-xs">(azi)</span>}
                       </div>
-                      <div className="space-y-1">
-                        {day.bookings.slice(0, 2).map((booking, idx) => (
-                          <div
-                            key={idx}
-                            className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 ${getFacilityTypeColor(booking.facility_type)} ${
-                              booking.status === 'cancelled' ? 'opacity-60 line-through' :
-                              booking.status === 'pending' ? 'ring-2 ring-yellow-400/50' :
-                              ''
-                            }`}
-                            title={`${booking.start_time} - ${booking.facility_name} (${getFacilityTypeLabel(booking.facility_type)})`}
-                          >
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {booking.start_time}
-                            </div>
-                            <div className="text-[10px] opacity-90 truncate">
-                              {getFacilityTypeLabel(booking.facility_type)}
-                            </div>
-                          </div>
+                       <div className="space-y-1">
+                         {day.bookings.slice(0, 2).map((booking, idx) => (
+                           <div
+                             key={idx}
+                             className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 cursor-pointer ${getFacilityTypeColor(booking.facility_type)} ${
+                               booking.status === 'cancelled' ? 'opacity-60 line-through' :
+                               booking.status === 'pending' ? 'ring-2 ring-yellow-400/50' :
+                               ''
+                             }`}
+                             title={`Click pentru detalii - ${booking.start_time} - ${booking.facility_name} (${getFacilityTypeLabel(booking.facility_type)})`}
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setSelectedBookingId(booking.id);
+                               setIsBookingDetailsOpen(true);
+                             }}
+                           >
+                             <div className="flex items-center gap-1">
+                               <Clock className="h-3 w-3" />
+                               {booking.start_time}
+                             </div>
+                             <div className="text-[10px] opacity-90 truncate">
+                               {getFacilityTypeLabel(booking.facility_type)}
+                             </div>
+                           </div>
                         ))}
                         {day.blockedTimes.length > 0 && (
                           <div className="text-xs p-2 rounded-lg bg-gradient-to-r from-black to-gray-800 text-white shadow-sm">
@@ -894,6 +904,19 @@ const BookingManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Booking Details Dialog */}
+      <BookingDetailsDialog
+        bookingId={selectedBookingId}
+        isOpen={isBookingDetailsOpen}
+        onClose={() => {
+          setIsBookingDetailsOpen(false);
+          setSelectedBookingId(null);
+        }}
+        onUpdate={() => {
+          loadData();
+        }}
+      />
     </div>
   );
 };
