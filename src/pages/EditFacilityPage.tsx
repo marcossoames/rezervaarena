@@ -23,6 +23,7 @@ interface FacilityFormData {
   city: string;
   pricePerHour: number;
   capacity: number;
+  capacityMax?: number; // For capacity ranges
   operatingHoursStart: string;
   operatingHoursEnd: string;
 }
@@ -36,6 +37,7 @@ interface FacilityData {
   city: string;
   exact_price_per_hour: number;
   exact_capacity: number;
+  exact_capacity_max?: number; // For capacity ranges
   amenities: string[];
   images: string[];
   main_image_url: string;
@@ -56,8 +58,9 @@ const EditFacilityPage = () => {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [isCapacityRange, setIsCapacityRange] = useState(false);
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FacilityFormData>();
+  const { register, handleSubmit, setValue, formState: { errors }, getValues } = useForm<FacilityFormData>();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -124,7 +127,8 @@ const EditFacilityPage = () => {
               ...data,
               full_address: data.address,
               exact_price_per_hour: data.price_per_hour,
-              exact_capacity: data.capacity
+              exact_capacity: data.capacity,
+              exact_capacity_max: data.capacity_max
             };
           } else {
             // Facility owners can only see their own facilities
@@ -168,6 +172,10 @@ const EditFacilityPage = () => {
           setValue("city", facilityData.city);
           setValue("pricePerHour", facilityData.exact_price_per_hour);
           setValue("capacity", facilityData.exact_capacity);
+          if (facilityData.exact_capacity_max) {
+            setValue("capacityMax", facilityData.exact_capacity_max);
+            setIsCapacityRange(true);
+          }
           setValue("operatingHoursStart", (facilityData as any).operating_hours_start || "08:00");
           setValue("operatingHoursEnd", (facilityData as any).operating_hours_end || "22:00");
         }
@@ -346,6 +354,7 @@ const EditFacilityPage = () => {
           city: data.city,
           price_per_hour: data.pricePerHour,
           capacity: data.capacity,
+          capacity_max: isCapacityRange ? data.capacityMax : null,
           amenities: amenities,
           images: allImages,
           main_image_url: mainImageUrl,
@@ -464,25 +473,70 @@ const EditFacilityPage = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="capacity">Capacitate *</Label>
-                    <Input
-                      id="capacity"
-                      type="number"
-                      min="1"
-                      {...register("capacity", { 
-                        required: "Capacitatea este obligatorie",
-                        valueAsNumber: true,
-                        min: {
-                          value: 1,
-                          message: "Capacitatea trebuie să fie cel puțin 1"
-                        }
-                      })}
-                      className="bg-background/50"
-                    />
-                    {errors.capacity && (
-                      <p className="text-sm text-destructive">{errors.capacity.message}</p>
-                    )}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="capacityRange"
+                        checked={isCapacityRange}
+                        onChange={(e) => setIsCapacityRange(e.target.checked)}
+                        className="rounded border-border"
+                      />
+                      <Label htmlFor="capacityRange">Capacitate interval (ex: 4-8 persoane)</Label>
+                    </div>
+                    
+                    <div className={isCapacityRange ? "grid grid-cols-2 gap-4" : ""}>
+                      <div className="space-y-2">
+                        <Label htmlFor="capacity">
+                          {isCapacityRange ? "Capacitate minimă *" : "Capacitate *"}
+                        </Label>
+                        <Input
+                          id="capacity"
+                          type="number"
+                          min="1"
+                          {...register("capacity", { 
+                            required: "Capacitatea este obligatorie",
+                            valueAsNumber: true,
+                            min: {
+                              value: 1,
+                              message: "Capacitatea trebuie să fie cel puțin 1"
+                            }
+                          })}
+                          className="bg-background/50"
+                        />
+                        {errors.capacity && (
+                          <p className="text-sm text-destructive">{errors.capacity.message}</p>
+                        )}
+                      </div>
+                      
+                      {isCapacityRange && (
+                        <div className="space-y-2">
+                          <Label htmlFor="capacityMax">Capacitate maximă *</Label>
+                          <Input
+                            id="capacityMax"
+                            type="number"
+                            min="2"
+                            {...register("capacityMax", { 
+                              required: isCapacityRange ? "Capacitatea maximă este obligatorie" : false,
+                              valueAsNumber: true,
+                              validate: (value) => {
+                                if (isCapacityRange) {
+                                  const minCapacity = getValues("capacity");
+                                  if (value <= minCapacity) {
+                                    return "Capacitatea maximă trebuie să fie mai mare decât cea minimă";
+                                  }
+                                }
+                                return true;
+                              }
+                            })}
+                            className="bg-background/50"
+                          />
+                          {errors.capacityMax && (
+                            <p className="text-sm text-destructive">{errors.capacityMax.message}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 

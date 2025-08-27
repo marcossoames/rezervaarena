@@ -28,21 +28,22 @@ interface Facility {
   area_info?: string; // For client/public view - general area only
   general_area?: string; // For legacy public browsing
   city: string;
-  price_per_hour?: number; // Now available for public browsing too
-  base_price_info?: string; // For client view - generic pricing
-  price_range?: string; // For legacy public browsing
-  capacity?: number; // Now available for public browsing too
-  capacity_info?: string; // For client view - generic capacity
-  amenities?: string[]; // Now available for public browsing too
-  available_amenities?: string[]; // For legacy public browsing
-  images?: string[]; // Now available for public browsing too
+  price_per_hour?: number;
+  base_price_info?: string;
+  price_range?: string;
+  capacity?: number;
+  capacity_max?: number; // For capacity ranges
+  capacity_info?: string;
+  amenities?: string[];
+  available_amenities?: string[];
+  images?: string[];
   main_image_url?: string;
-  has_images?: boolean; // For legacy public browsing
-  rating_display?: string; // For legacy public browsing
-  created_at?: string; // Optional for clients
-  sports_complex_name?: string; // Sports complex name
-  sports_complex_address?: string; // Sports complex address
-  phone_number?: string; // Contact phone number
+  has_images?: boolean;
+  rating_display?: string;
+  created_at?: string;
+  sports_complex_name?: string;
+  sports_complex_address?: string;
+  phone_number?: string;
 }
 interface UserProfile {
   role: 'client' | 'facility_owner' | 'admin';
@@ -718,7 +719,12 @@ applyFilters();
                           <div className="flex items-center text-sm text-muted-foreground">
                             <Users className="h-4 w-4 mr-1" />
                             <span>
-                              {facility.capacity ? `${facility.capacity} persoane` : facility.capacity_info || 'Disponibil'}
+                              {facility.capacity && facility.capacity_max 
+                                ? `${facility.capacity}-${facility.capacity_max} persoane`
+                                : facility.capacity 
+                                  ? `${facility.capacity} persoane` 
+                                  : facility.capacity_info || 'Disponibil'
+                              }
                             </span>
                           </div>
                           <div className="text-lg font-bold text-primary">
