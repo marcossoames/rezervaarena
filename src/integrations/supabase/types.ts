@@ -594,6 +594,7 @@ export type Database = {
           created_at: string
           description: string
           exact_capacity: number
+          exact_capacity_max: number
           exact_price_per_hour: number
           facility_type: Database["public"]["Enums"]["facility_type"]
           full_address: string
