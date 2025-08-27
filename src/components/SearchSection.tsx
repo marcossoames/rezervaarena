@@ -11,6 +11,7 @@ import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { ro } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { facilityTypeOptions } from "@/utils/facilityTypes";
+import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
 const SearchSection = () => {
   const [location, setLocation] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -29,13 +30,19 @@ const SearchSection = () => {
   }, ...facilityTypeOptions];
   const getTimeOptions = () => {
     const times = [];
+    const dateToCheck = selectedDate || today;
+    
     for (let hour = 8; hour <= 22; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        times.push({
-          value: timeString,
-          label: timeString
-        });
+        
+        // Only include times that are allowed for the selected date
+        if (isBookingTimeAllowed(dateToCheck, timeString)) {
+          times.push({
+            value: timeString,
+            label: timeString
+          });
+        }
       }
     }
     return times;
@@ -135,10 +142,17 @@ const SearchSection = () => {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 z-50" align="start">
-                      <Calendar 
+                       <Calendar 
                         mode="single" 
                         selected={selectedDate} 
-                        onSelect={setSelectedDate} 
+                        onSelect={(date) => {
+                          setSelectedDate(date);
+                          // Clear time selections when date changes to avoid invalid times
+                          if (date) {
+                            setStartTime("");
+                            setEndTime("");
+                          }
+                        }} 
                         disabled={date => isBefore(date, today) || isBefore(maxSearchDate, date)} 
                         initialFocus 
                         className="p-3 pointer-events-auto"
@@ -157,7 +171,13 @@ const SearchSection = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="relative">
                       <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                      <Select value={startTime} onValueChange={setStartTime}>
+                       <Select value={startTime} onValueChange={(value) => {
+                         setStartTime(value);
+                         // Clear end time if it's now invalid
+                         if (endTime && value >= endTime) {
+                           setEndTime("");
+                         }
+                       }}>
                         <SelectTrigger className="h-12 pl-10 bg-background border-border focus:border-primary">
                           <SelectValue placeholder="De la" />
                         </SelectTrigger>
