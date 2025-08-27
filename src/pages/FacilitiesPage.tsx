@@ -150,37 +150,15 @@ const FacilitiesPage = () => {
         let allFacilities;
         let error;
 
-        // Use different functions based on user authentication status
-        if (session && userProfile?.role === 'client') {
-          // Authenticated clients get exact data with sports complex info
-          const {
-            data: facilitiesData,
-            error: facilitiesError
-          } = await supabase.rpc('get_facilities_for_authenticated_users');
-          allFacilities = facilitiesData;
-          error = facilitiesError;
-        } else if (session && userProfile?.role === 'admin') {
-          // Admins get full data
-          const {
-            data,
-            error: rpcError
-          } = await supabase.rpc('get_public_facilities');
-          allFacilities = data;
-          error = rpcError;
-        } else if (session) {
-          // Authenticated users get enhanced data with contact info
-          const {
-            data,
-            error: rpcError
-          } = await supabase.rpc('get_facilities_for_authenticated_users');
+        // Check if user is authenticated to determine which data to fetch
+        if (session) {
+          // Authenticated users get enhanced data
+          const { data, error: rpcError } = await supabase.rpc('get_facilities_for_authenticated_users');
           allFacilities = data;
           error = rpcError;
         } else {
-          // Non-authenticated users get safe public facility data
-          const {
-            data,
-            error: rpcError
-          } = await supabase.rpc('get_facilities_for_public_browsing_safe');
+          // Anonymous users get safe public data
+          const { data, error: rpcError } = await supabase.rpc('get_facilities_for_public_browsing_safe');
           allFacilities = data;
           error = rpcError;
         }
