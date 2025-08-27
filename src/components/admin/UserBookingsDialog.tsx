@@ -64,7 +64,7 @@ const UserBookingsDialog = ({ userId, userName, userEmail, isOpen, onClose }: Us
         .from('bookings')
         .select(`
           *,
-          facility:facilities!facility_id (
+          facility:facilities!bookings_facility_id_fkey (
             name,
             facility_type,
             city,
