@@ -297,10 +297,10 @@ const ManageFacilitiesPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {facilities.map((facility) => (
-                <Card key={facility.id} className="relative overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
+                <Card key={facility.id} className="relative overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
                   {/* Image Section */}
                   {facility.images && facility.images.length > 0 && (
-                    <div className="relative h-48">
+                    <div className="relative h-48 flex-shrink-0">
                       <ImageCarousel
                         images={facility.images}
                         facilityName={facility.name}
@@ -315,87 +315,91 @@ const ManageFacilitiesPage = () => {
                     </div>
                   )}
                   
-                  <CardHeader className={facility.images && facility.images.length > 0 ? "pb-2" : ""}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">{facility.name}</CardTitle>
-                        <CardDescription className="flex items-center gap-1 mt-1">
-                          <MapPin className="h-3 w-3" />
-                          {facility.full_address}, {facility.city}
+                  <CardHeader className={`${facility.images && facility.images.length > 0 ? "pb-2" : ""} flex-shrink-0`}>
+                    <div className="flex items-start justify-between min-h-[70px]">
+                      <div className="flex-1 pr-2">
+                        <CardTitle className="text-lg leading-tight line-clamp-2">{facility.name}</CardTitle>
+                        <CardDescription className="flex items-start gap-1 mt-1 text-xs">
+                          <MapPin className="h-3 w-3 flex-shrink-0 mt-0.5" />
+                          <span className="line-clamp-2 leading-tight">{facility.full_address}, {facility.city}</span>
                         </CardDescription>
                       </div>
                       {(!facility.images || facility.images.length === 0) && (
-                        <Badge variant={facility.is_active ? "default" : "secondary"}>
+                        <Badge variant={facility.is_active ? "default" : "secondary"} className="flex-shrink-0">
                           {facility.is_active ? "Activ" : "Inactiv"}
                         </Badge>
                       )}
                     </div>
                   </CardHeader>
                    
-                   <CardContent className="space-y-4 flex-1 flex flex-col">
-                     <div className="flex items-center justify-between">
-                       <Badge variant="outline" className="text-xs">
-                         {getFacilityTypeLabel(facility.facility_type)}
-                       </Badge>
-                     </div>
+                   <CardContent className="flex-1 flex flex-col justify-between p-4">
+                     <div className="space-y-4 flex-1">
+                       {/* Type Badge */}
+                       <div className="flex items-center justify-between">
+                         <Badge variant="outline" className="text-xs">
+                           {getFacilityTypeLabel(facility.facility_type)}
+                         </Badge>
+                       </div>
 
-                     <div className="grid grid-cols-2 gap-3 text-sm">
-                       <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-                         <Users className="h-4 w-4 text-primary" />
-                         <div className="flex flex-col">
-                           <span className="text-xs text-muted-foreground">Capacitate</span>
-                           <span className="font-medium text-foreground">
-                             {facility.exact_capacity_max 
-                               ? `${facility.exact_capacity}-${facility.exact_capacity_max} persoane`
-                               : `${facility.exact_capacity} persoane`
-                             }
-                           </span>
+                       {/* Capacity and Price - Fixed Height */}
+                       <div className="grid grid-cols-2 gap-3 text-sm">
+                         <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md min-h-[60px]">
+                           <Users className="h-4 w-4 text-primary flex-shrink-0" />
+                           <div className="flex flex-col justify-center min-w-0">
+                             <span className="text-xs text-muted-foreground">Capacitate</span>
+                             <span className="font-medium text-foreground text-xs leading-tight">
+                               {facility.exact_capacity_max 
+                                 ? `${facility.exact_capacity}-${facility.exact_capacity_max} pers.`
+                                 : `${facility.exact_capacity} pers.`
+                               }
+                             </span>
+                           </div>
+                         </div>
+                         <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md min-h-[60px]">
+                           <Clock className="h-4 w-4 text-primary flex-shrink-0" />
+                           <div className="flex flex-col justify-center min-w-0">
+                             <span className="text-xs text-muted-foreground">Preț</span>
+                             <span className="font-medium text-foreground text-xs leading-tight">{facility.exact_price_per_hour} RON/h</span>
+                           </div>
                          </div>
                        </div>
-                       <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-                         <Clock className="h-4 w-4 text-primary" />
-                         <div className="flex flex-col">
-                           <span className="text-xs text-muted-foreground">Preț</span>
-                           <span className="font-medium text-foreground">{facility.exact_price_per_hour} RON/h</span>
-                         </div>
+
+                       {/* Description section - Fixed Height */}
+                       <div className="h-[44px] flex items-start">
+                         {facility.description ? (
+                           <p className="text-sm text-muted-foreground line-clamp-2 leading-tight">
+                             {facility.description}
+                           </p>
+                         ) : (
+                           <p className="text-sm text-muted-foreground italic">Fără descriere</p>
+                         )}
+                       </div>
+
+                       {/* Amenities section - Fixed Height */}
+                       <div className="h-[52px] flex flex-col justify-start">
+                         {facility.amenities && facility.amenities.length > 0 ? (
+                           <div className="flex flex-wrap gap-1">
+                             {facility.amenities.slice(0, 3).map((amenity) => (
+                               <Badge key={amenity} variant="secondary" className="text-xs">
+                                 {amenity}
+                               </Badge>
+                             ))}
+                             {facility.amenities.length > 3 && (
+                               <Badge variant="secondary" className="text-xs">
+                                 +{facility.amenities.length - 3} mai multe
+                               </Badge>
+                             )}
+                           </div>
+                         ) : (
+                           <div className="text-xs text-muted-foreground italic">
+                             Fără dotări suplimentare
+                           </div>
+                         )}
                        </div>
                      </div>
 
-                     {/* Description section with fixed height */}
-                     <div className="min-h-[48px] flex items-start">
-                       {facility.description ? (
-                         <p className="text-sm text-muted-foreground line-clamp-2">
-                           {facility.description}
-                         </p>
-                       ) : (
-                         <div></div>
-                       )}
-                     </div>
-
-                     {/* Amenities section with fixed minimum height for alignment */}
-                     <div className="min-h-[60px] flex flex-col justify-start">
-                       {facility.amenities && facility.amenities.length > 0 ? (
-                         <div className="flex flex-wrap gap-1">
-                           {facility.amenities.slice(0, 3).map((amenity) => (
-                             <Badge key={amenity} variant="secondary" className="text-xs">
-                               {amenity}
-                             </Badge>
-                           ))}
-                           {facility.amenities.length > 3 && (
-                             <Badge variant="secondary" className="text-xs">
-                               +{facility.amenities.length - 3} mai multe
-                             </Badge>
-                           )}
-                         </div>
-                       ) : (
-                         <div className="text-xs text-muted-foreground italic">
-                           Fără dotări suplimentare
-                         </div>
-                       )}
-                     </div>
-
-                    {/* Buttons always at bottom */}
-                    <div className="flex gap-2 pt-2 mt-auto">
+                     {/* Buttons - Always at bottom */}
+                     <div className="flex gap-2 pt-3 mt-auto border-t border-border/30">
                       <Button
                         variant="default"
                         size="sm"
