@@ -573,7 +573,7 @@ const BookingPage = () => {
 
           {/* Booking Summary */}
           <div className="space-y-6">
-            <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
               <Card className="animate-fade-in" style={{animationDelay: '0.3s'}}>
               <CardHeader>
                 <CardTitle>Sumar Rezervare</CardTitle>
