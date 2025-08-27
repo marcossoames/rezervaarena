@@ -360,33 +360,38 @@ const ManageFacilitiesPage = () => {
                        </div>
                      </div>
 
-                    {facility.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {facility.description}
-                      </p>
-                    )}
+                     {/* Description section with fixed height */}
+                     <div className="min-h-[48px] flex items-start">
+                       {facility.description ? (
+                         <p className="text-sm text-muted-foreground line-clamp-2">
+                           {facility.description}
+                         </p>
+                       ) : (
+                         <div></div>
+                       )}
+                     </div>
 
-                    {/* Amenities section with fixed minimum height for alignment */}
-                    <div className="min-h-[60px] flex flex-col justify-start">
-                      {facility.amenities && facility.amenities.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {facility.amenities.slice(0, 3).map((amenity) => (
-                            <Badge key={amenity} variant="secondary" className="text-xs">
-                              {amenity}
-                            </Badge>
-                          ))}
-                          {facility.amenities.length > 3 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{facility.amenities.length - 3} mai multe
-                            </Badge>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-xs text-muted-foreground italic">
-                          Fără dotări suplimentare
-                        </div>
-                      )}
-                    </div>
+                     {/* Amenities section with fixed minimum height for alignment */}
+                     <div className="min-h-[60px] flex flex-col justify-start">
+                       {facility.amenities && facility.amenities.length > 0 ? (
+                         <div className="flex flex-wrap gap-1">
+                           {facility.amenities.slice(0, 3).map((amenity) => (
+                             <Badge key={amenity} variant="secondary" className="text-xs">
+                               {amenity}
+                             </Badge>
+                           ))}
+                           {facility.amenities.length > 3 && (
+                             <Badge variant="secondary" className="text-xs">
+                               +{facility.amenities.length - 3} mai multe
+                             </Badge>
+                           )}
+                         </div>
+                       ) : (
+                         <div className="text-xs text-muted-foreground italic">
+                           Fără dotări suplimentare
+                         </div>
+                       )}
+                     </div>
 
                     {/* Buttons always at bottom */}
                     <div className="flex gap-2 pt-2 mt-auto">
