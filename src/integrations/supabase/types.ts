@@ -527,6 +527,47 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_facilities_for_authenticated_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amenities: string[]
+          area_info: string
+          capacity: number
+          city: string
+          description: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          id: string
+          images: string[]
+          name: string
+          phone_number: string
+          price_per_hour: number
+          sports_complex_address: string
+          sports_complex_name: string
+        }[]
+      }
+      get_facilities_for_booking: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amenities: string[]
+          area_info: string
+          capacity: number
+          city: string
+          description: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          id: string
+          images: string[]
+          name: string
+          price_per_hour: number
+        }[]
+      }
+      get_facility_stats_by_type: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          facility_count: number
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          min_price: number
+        }[]
+      }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
