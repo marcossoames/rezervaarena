@@ -527,98 +527,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
       }
-      get_facilities_for_authenticated_users: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          amenities: string[]
-          area_info: string
-          capacity: number
-          city: string
-          description: string
-          facility_type: Database["public"]["Enums"]["facility_type"]
-          id: string
-          images: string[]
-          name: string
-          phone_number: string
-          price_per_hour: number
-          sports_complex_address: string
-          sports_complex_name: string
-        }[]
-      }
-      get_facilities_for_booking: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          amenities: string[]
-          area_info: string
-          capacity: number
-          city: string
-          description: string
-          facility_type: Database["public"]["Enums"]["facility_type"]
-          id: string
-          images: string[]
-          name: string
-          price_per_hour: number
-        }[]
-      }
-      get_facilities_for_public_browsing_safe: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          amenities: string[]
-          capacity: number
-          city: string
-          description: string
-          facility_type: Database["public"]["Enums"]["facility_type"]
-          id: string
-          images: string[]
-          name: string
-          price_per_hour: number
-          sports_complex_name: string
-        }[]
-      }
-      get_facility_stats_by_type: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          facility_count: number
-          facility_type: Database["public"]["Enums"]["facility_type"]
-          min_price: number
-        }[]
-      }
-      get_owner_facility_details: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          amenities: string[]
-          city: string
-          created_at: string
-          description: string
-          exact_capacity: number
-          exact_price_per_hour: number
-          facility_type: Database["public"]["Enums"]["facility_type"]
-          full_address: string
-          id: string
-          images: string[]
-          is_active: boolean
-          main_image_url: string
-          name: string
-          owner_id: string
-          updated_at: string
-        }[]
-      }
-      get_public_facilities: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          address: string
-          amenities: string[]
-          capacity: number
-          city: string
-          created_at: string
-          description: string
-          facility_type: Database["public"]["Enums"]["facility_type"]
-          id: string
-          images: string[]
-          name: string
-          price_per_hour: number
-        }[]
-      }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
@@ -630,39 +538,6 @@ export type Database = {
       promote_user_to_facility_owner_secure: {
         Args: { _user_id: string }
         Returns: boolean
-      }
-      register_facility_with_profile: {
-        Args: {
-          p_address: string
-          p_amenities: string[]
-          p_capacity: number
-          p_city: string
-          p_description: string
-          p_email: string
-          p_facility_name: string
-          p_facility_type: Database["public"]["Enums"]["facility_type"]
-          p_full_name: string
-          p_phone: string
-          p_price_per_hour: number
-          p_user_id: string
-        }
-        Returns: string
-      }
-      register_facility_with_profile_secure: {
-        Args: {
-          p_address: string
-          p_amenities: string[]
-          p_capacity: number
-          p_city: string
-          p_description: string
-          p_email: string
-          p_facility_name: string
-          p_facility_type: Database["public"]["Enums"]["facility_type"]
-          p_full_name: string
-          p_phone: string
-          p_price_per_hour: number
-        }
-        Returns: string
       }
     }
     Enums: {
@@ -676,9 +551,11 @@ export type Database = {
         | "tennis"
         | "football"
         | "padel"
-        | "swimming"
+        | "squash"
         | "basketball"
         | "volleyball"
+        | "ping_pong"
+        | "foot_tennis"
       user_role: "client" | "facility_owner" | "admin"
     }
     CompositeTypes: {
@@ -818,9 +695,11 @@ export const Constants = {
         "tennis",
         "football",
         "padel",
-        "swimming",
+        "squash",
         "basketball",
         "volleyball",
+        "ping_pong",
+        "foot_tennis",
       ],
       user_role: ["client", "facility_owner", "admin"],
     },
