@@ -296,7 +296,7 @@ const ManageFacilitiesPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {facilities.map((facility) => (
-                <Card key={facility.id} className="relative overflow-hidden hover:shadow-lg transition-shadow">
+                <Card key={facility.id} className="relative overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
                   {/* Image Section */}
                   {facility.images && facility.images.length > 0 && (
                     <div className="relative h-48">
@@ -331,7 +331,7 @@ const ManageFacilitiesPage = () => {
                     </div>
                   </CardHeader>
                    
-                   <CardContent className="space-y-4">
+                   <CardContent className="space-y-4 flex-1 flex flex-col">
                      <div className="flex items-center justify-between">
                        <Badge variant="outline" className="text-xs">
                          {getFacilityTypeLabel(facility.facility_type)}
@@ -366,22 +366,30 @@ const ManageFacilitiesPage = () => {
                       </p>
                     )}
 
-                    {facility.amenities && facility.amenities.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {facility.amenities.slice(0, 3).map((amenity) => (
-                          <Badge key={amenity} variant="secondary" className="text-xs">
-                            {amenity}
-                          </Badge>
-                        ))}
-                        {facility.amenities.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{facility.amenities.length - 3} mai multe
-                          </Badge>
-                        )}
-                      </div>
-                    )}
+                    {/* Amenities section with fixed minimum height for alignment */}
+                    <div className="min-h-[60px] flex flex-col justify-start">
+                      {facility.amenities && facility.amenities.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {facility.amenities.slice(0, 3).map((amenity) => (
+                            <Badge key={amenity} variant="secondary" className="text-xs">
+                              {amenity}
+                            </Badge>
+                          ))}
+                          {facility.amenities.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{facility.amenities.length - 3} mai multe
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-muted-foreground italic">
+                          Fără dotări suplimentare
+                        </div>
+                      )}
+                    </div>
 
-                    <div className="flex gap-2 pt-2">
+                    {/* Buttons always at bottom */}
+                    <div className="flex gap-2 pt-2 mt-auto">
                       <Button
                         variant="default"
                         size="sm"
