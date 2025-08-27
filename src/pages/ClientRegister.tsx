@@ -72,8 +72,14 @@ const ClientRegister = () => {
           description: "Te-ai înregistrat și conectat cu succes!",
         });
         
-        // Redirect to home page
-        navigate("/");
+        // Check if there's a redirect location stored
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+        if (redirectPath) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate(redirectPath);
+        } else {
+          navigate("/");
+        }
       }
     } catch (error: any) {
       console.error('Error creating account:', error);
@@ -93,7 +99,14 @@ const ClientRegister = () => {
         isOpen={showEmailVerification}
         onClose={() => {
           setShowEmailVerification(false);
-          navigate("/client/login");
+          // Check if there's a redirect location stored
+          const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+          if (redirectPath) {
+            sessionStorage.removeItem('redirectAfterLogin');
+            navigate(redirectPath);
+          } else {
+            navigate("/client/login");
+          }
         }}
         email={userEmail}
       />

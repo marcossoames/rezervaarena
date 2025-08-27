@@ -677,7 +677,11 @@ const FacilitiesPage = () => {
                              <Link to={`/booking/${facility.id}`}>
                                Rezervă Acum
                              </Link>
-                           </Button> : <Button variant="outline" onClick={() => navigate('/client/login')}>
+                            </Button> : <Button variant="outline" onClick={() => {
+                              // Store current location before redirecting to login
+                              sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+                              navigate('/client/login');
+                            }}>
                             <LogIn className="h-4 w-4 mr-2" />
                             Autentifică-te
                           </Button>}

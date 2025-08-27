@@ -58,7 +58,15 @@ const ClientLogin = () => {
           title: "Conectare reușită!",
           description: "Te-ai conectat cu succes."
         });
-        navigate("/");
+        
+        // Check if there's a redirect location stored
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+        if (redirectPath) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate(redirectPath);
+        } else {
+          navigate("/");
+        }
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -204,7 +212,17 @@ const ClientLogin = () => {
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <Link to="/client/register" className="text-primary hover:underline">
+                <Link 
+                  to="/client/register" 
+                  onClick={() => {
+                    // Preserve redirect path when going to register
+                    const currentRedirect = sessionStorage.getItem('redirectAfterLogin');
+                    if (currentRedirect) {
+                      sessionStorage.setItem('redirectAfterLogin', currentRedirect);
+                    }
+                  }}
+                  className="text-primary hover:underline"
+                >
                   Creează cont nou
                 </Link>
                 <Link to="/forgot-password" className="text-muted-foreground hover:text-primary transition-smooth">
@@ -232,7 +250,15 @@ const ClientLogin = () => {
             </div>
 
             <Button variant="outline" className="w-full" asChild>
-              <Link to="/">Continuă ca vizitator</Link>
+              <Link 
+                to="/" 
+                onClick={() => {
+                  // Clear redirect path when continuing as visitor
+                  sessionStorage.removeItem('redirectAfterLogin');
+                }}
+              >
+                Continuă ca vizitator
+              </Link>
             </Button>
           </CardContent>
         </Card>
