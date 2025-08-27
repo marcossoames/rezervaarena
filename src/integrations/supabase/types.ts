@@ -560,12 +560,63 @@ export type Database = {
           price_per_hour: number
         }[]
       }
+      get_facilities_for_public_browsing_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amenities: string[]
+          capacity: number
+          city: string
+          description: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          id: string
+          images: string[]
+          name: string
+          price_per_hour: number
+          sports_complex_name: string
+        }[]
+      }
       get_facility_stats_by_type: {
         Args: Record<PropertyKey, never>
         Returns: {
           facility_count: number
           facility_type: Database["public"]["Enums"]["facility_type"]
           min_price: number
+        }[]
+      }
+      get_owner_facility_details: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amenities: string[]
+          city: string
+          created_at: string
+          description: string
+          exact_capacity: number
+          exact_price_per_hour: number
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          full_address: string
+          id: string
+          images: string[]
+          is_active: boolean
+          main_image_url: string
+          name: string
+          owner_id: string
+          updated_at: string
+        }[]
+      }
+      get_public_facilities: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address: string
+          amenities: string[]
+          capacity: number
+          city: string
+          created_at: string
+          description: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          id: string
+          images: string[]
+          name: string
+          price_per_hour: number
         }[]
       }
       has_role: {
