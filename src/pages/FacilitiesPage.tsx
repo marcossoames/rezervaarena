@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn, Plus, Settings, Phone, CalendarIcon, Users } from "lucide-react";
+import { Calendar, MapPin, Clock, Star, Filter, Search, LogIn, Plus, Settings, Phone, CalendarIcon, Users, ArrowUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,6 +63,7 @@ const FacilitiesPage = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
   const [partiallyBlockedDates, setPartiallyBlockedDates] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<string>('newest');
   const navigate = useNavigate();
   
   // Check if user came from homepage
@@ -313,17 +314,41 @@ const FacilitiesPage = () => {
             });
           }
 
-          // Filter out unavailable facilities
-          filteredFacilities = filteredFacilities.filter(f => !unavailableFacilities.has(f.id));
-        } catch (error) {
-          console.error('Error checking availability:', error);
-        }
-      }
-      setFacilities(filteredFacilities);
-      setLoading(false);
-    };
-    applyFilters();
-  }, [allFacilities, selectedType, locationFilter, searchTerm, selectedDate, startTime, endTime]);
+      // Filter out unavailable facilities
+      filteredFacilities = filteredFacilities.filter(f => !unavailableFacilities.has(f.id));
+    } catch (error) {
+      console.error('Error checking availability:', error);
+    }
+  }
+
+  // Apply sorting
+  filteredFacilities.sort((a, b) => {
+    switch (sortBy) {
+      case 'price-low':
+        return (a.price_per_hour || 0) - (b.price_per_hour || 0);
+      case 'price-high':
+        return (b.price_per_hour || 0) - (a.price_per_hour || 0);
+      case 'name-az':
+        return a.name.localeCompare(b.name);
+      case 'name-za':
+        return b.name.localeCompare(a.name);
+      case 'capacity-high':
+        return (b.capacity || 0) - (a.capacity || 0);
+      case 'capacity-low':
+        return (a.capacity || 0) - (b.capacity || 0);
+      case 'oldest':
+        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      case 'newest':
+      default:
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    }
+  });
+
+  setFacilities(filteredFacilities);
+  setLoading(false);
+};
+applyFilters();
+}, [allFacilities, selectedType, locationFilter, searchTerm, selectedDate, startTime, endTime, sortBy]);
   const getTimeOptions = () => {
     const times = [];
     const dateToCheck = selectedDate || new Date(); // Use today if no date selected
@@ -563,6 +588,7 @@ const FacilitiesPage = () => {
                     setStartTime('');
                     setEndTime('');
                     setSelectedType(null);
+                    setSortBy('newest');
                   }}
                 >
                   <Filter className="h-4 w-4 mr-2" />
@@ -576,34 +602,61 @@ const FacilitiesPage = () => {
         {/* Sport Type Filters */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <div className="flex flex-wrap gap-2">
-              <Badge variant={selectedType === null ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter(null)}>
-                Toate
-              </Badge>
-              <Badge variant={selectedType === "tennis" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("tennis")}>
-                Tenis
-              </Badge>
-              <Badge variant={selectedType === "football" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("football")}>
-                Fotbal
-              </Badge>
-              <Badge variant={selectedType === "padel" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("padel")}>
-                Padel
-              </Badge>
-              <Badge variant={selectedType === "squash" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("squash")}>
-                Squash
-              </Badge>
-              <Badge variant={selectedType === "ping_pong" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("ping_pong")}>
-                Ping Pong
-              </Badge>
-              <Badge variant={selectedType === "foot_tennis" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("foot_tennis")}>
-                Tenis de Picior
-              </Badge>
-              <Badge variant={selectedType === "basketball" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("basketball")}>
-                Baschet
-              </Badge>
-              <Badge variant={selectedType === "volleyball" ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter("volleyball")}>
-                Volei
-              </Badge>
+            <div className="flex flex-col space-y-4">
+              {/* Sport Type Badges */}
+              <div>
+                <label className="text-sm font-medium text-foreground mb-3 block">Filtrează după tipul de sport</label>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={selectedType === null ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter(null)}>
+                    Toate
+                  </Badge>
+                  <Badge variant={selectedType === 'football' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('football')}>
+                    Fotbal
+                  </Badge>
+                  <Badge variant={selectedType === 'tennis' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('tennis')}>
+                    Tenis
+                  </Badge>
+                  <Badge variant={selectedType === 'padel' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('padel')}>
+                    Padel
+                  </Badge>
+                  <Badge variant={selectedType === 'squash' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('squash')}>
+                    Squash
+                  </Badge>
+                  <Badge variant={selectedType === 'basketball' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('basketball')}>
+                    Baschet
+                  </Badge>
+                  <Badge variant={selectedType === 'volleyball' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('volleyball')}>
+                    Volei
+                  </Badge>
+                  <Badge variant={selectedType === 'foot_tennis' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('foot_tennis')}>
+                    Tenis de picior
+                  </Badge>
+                  <Badge variant={selectedType === 'ping_pong' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('ping_pong')}>
+                    Ping Pong
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Sorting Options */}
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-medium text-foreground">Sortează după:</label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-64">
+                    <ArrowUpDown className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Selectează sortarea" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Cele mai noi adăugate</SelectItem>
+                    <SelectItem value="oldest">Cele mai vechi adăugate</SelectItem>
+                    <SelectItem value="price-low">Preț: Crescător</SelectItem>
+                    <SelectItem value="price-high">Preț: Descrescător</SelectItem>
+                    <SelectItem value="name-az">Nume: A-Z</SelectItem>
+                    <SelectItem value="name-za">Nume: Z-A</SelectItem>
+                    <SelectItem value="capacity-high">Capacitate: Mare-Mică</SelectItem>
+                    <SelectItem value="capacity-low">Capacitate: Mică-Mare</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
