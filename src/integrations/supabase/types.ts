@@ -536,6 +536,7 @@ export type Database = {
           amenities: string[]
           area_info: string
           capacity: number
+          capacity_max: number
           city: string
           description: string
           facility_type: Database["public"]["Enums"]["facility_type"]
@@ -568,6 +569,7 @@ export type Database = {
         Returns: {
           amenities: string[]
           capacity: number
+          capacity_max: number
           city: string
           description: string
           facility_type: Database["public"]["Enums"]["facility_type"]
@@ -613,6 +615,7 @@ export type Database = {
           address: string
           amenities: string[]
           capacity: number
+          capacity_max: number
           city: string
           created_at: string
           description: string

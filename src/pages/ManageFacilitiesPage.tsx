@@ -339,10 +339,12 @@ const ManageFacilitiesPage = () => {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          {facility.exact_capacity_max 
-                            ? `${facility.exact_capacity}-${facility.exact_capacity_max} persoane`
-                            : `${facility.exact_capacity} persoane`
-                          }
+                          <span className="font-medium">
+                            {facility.exact_capacity_max 
+                              ? `${facility.exact_capacity}-${facility.exact_capacity_max} persoane`
+                              : `${facility.exact_capacity} persoane`
+                            }
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
