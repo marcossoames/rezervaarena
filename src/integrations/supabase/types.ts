@@ -251,6 +251,7 @@ export type Database = {
           address: string
           amenities: string[] | null
           capacity: number
+          capacity_max: number | null
           city: string
           created_at: string
           description: string | null
@@ -270,6 +271,7 @@ export type Database = {
           address: string
           amenities?: string[] | null
           capacity?: number
+          capacity_max?: number | null
           city: string
           created_at?: string
           description?: string | null
@@ -289,6 +291,7 @@ export type Database = {
           address?: string
           amenities?: string[] | null
           capacity?: number
+          capacity_max?: number | null
           city?: string
           created_at?: string
           description?: string | null
