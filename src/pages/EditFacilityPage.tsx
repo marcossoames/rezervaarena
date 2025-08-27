@@ -474,68 +474,83 @@ const EditFacilityPage = () => {
                   </div>
 
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="capacityRange"
-                        checked={isCapacityRange}
-                        onChange={(e) => setIsCapacityRange(e.target.checked)}
-                        className="rounded border-border"
-                      />
-                      <Label htmlFor="capacityRange">Capacitate interval (ex: 4-8 persoane)</Label>
-                    </div>
+                    <Label className="text-base font-medium">Capacitate persoane *</Label>
                     
-                    <div className={isCapacityRange ? "grid grid-cols-2 gap-4" : ""}>
-                      <div className="space-y-2">
-                        <Label htmlFor="capacity">
-                          {isCapacityRange ? "Capacitate minimă *" : "Capacitate *"}
-                        </Label>
-                        <Input
-                          id="capacity"
-                          type="number"
-                          min="1"
-                          {...register("capacity", { 
-                            required: "Capacitatea este obligatorie",
-                            valueAsNumber: true,
-                            min: {
-                              value: 1,
-                              message: "Capacitatea trebuie să fie cel puțin 1"
-                            }
-                          })}
-                          className="bg-background/50"
+                    <div className="p-4 border border-border rounded-lg bg-muted/30 space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="capacityRange"
+                          checked={isCapacityRange}
+                          onChange={(e) => setIsCapacityRange(e.target.checked)}
+                          className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary"
                         />
-                        {errors.capacity && (
-                          <p className="text-sm text-destructive">{errors.capacity.message}</p>
+                        <Label htmlFor="capacityRange" className="text-sm text-muted-foreground cursor-pointer">
+                          Capacitate interval (ex: 4-8 persoane)
+                        </Label>
+                      </div>
+                      
+                      <div className={`grid gap-4 ${isCapacityRange ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+                        <div className="space-y-2">
+                          <Label htmlFor="capacity" className="text-sm font-medium">
+                            {isCapacityRange ? "Capacitate minimă" : "Numărul de persoane"}
+                          </Label>
+                          <Input
+                            id="capacity"
+                            type="number"
+                            min="1"
+                            placeholder={isCapacityRange ? "Ex: 4" : "Ex: 6"}
+                            {...register("capacity", { 
+                              required: "Capacitatea este obligatorie",
+                              valueAsNumber: true,
+                              min: {
+                                value: 1,
+                                message: "Capacitatea trebuie să fie cel puțin 1"
+                              }
+                            })}
+                            className="bg-background"
+                          />
+                          {errors.capacity && (
+                            <p className="text-sm text-destructive">{errors.capacity.message}</p>
+                          )}
+                        </div>
+                        
+                        {isCapacityRange && (
+                          <div className="space-y-2">
+                            <Label htmlFor="capacityMax" className="text-sm font-medium">Capacitate maximă</Label>
+                            <Input
+                              id="capacityMax"
+                              type="number"
+                              min="2"
+                              placeholder="Ex: 8"
+                              {...register("capacityMax", { 
+                                required: isCapacityRange ? "Capacitatea maximă este obligatorie" : false,
+                                valueAsNumber: true,
+                                validate: (value) => {
+                                  if (isCapacityRange) {
+                                    const minCapacity = getValues("capacity");
+                                    if (value <= minCapacity) {
+                                      return "Capacitatea maximă trebuie să fie mai mare decât cea minimă";
+                                    }
+                                  }
+                                  return true;
+                                }
+                              })}
+                              className="bg-background"
+                            />
+                            {errors.capacityMax && (
+                              <p className="text-sm text-destructive">{errors.capacityMax.message}</p>
+                            )}
+                          </div>
                         )}
                       </div>
                       
-                      {isCapacityRange && (
-                        <div className="space-y-2">
-                          <Label htmlFor="capacityMax">Capacitate maximă *</Label>
-                          <Input
-                            id="capacityMax"
-                            type="number"
-                            min="2"
-                            {...register("capacityMax", { 
-                              required: isCapacityRange ? "Capacitatea maximă este obligatorie" : false,
-                              valueAsNumber: true,
-                              validate: (value) => {
-                                if (isCapacityRange) {
-                                  const minCapacity = getValues("capacity");
-                                  if (value <= minCapacity) {
-                                    return "Capacitatea maximă trebuie să fie mai mare decât cea minimă";
-                                  }
-                                }
-                                return true;
-                              }
-                            })}
-                            className="bg-background/50"
-                          />
-                          {errors.capacityMax && (
-                            <p className="text-sm text-destructive">{errors.capacityMax.message}</p>
-                          )}
-                        </div>
-                      )}
+                      <div className="text-xs text-muted-foreground">
+                        {isCapacityRange 
+                          ? "Specifică intervalul de persoane pe care îl poate găzdui terenul"
+                          : "Specifică numărul fix de persoane pe care îl poate găzdui terenul"
+                        }
+                      </div>
                     </div>
                   </div>
                 </div>
