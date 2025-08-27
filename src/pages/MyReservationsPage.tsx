@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Calendar, Clock, MapPin, CreditCard, Banknote, X, User } from "lucide-react";
+import { Calendar, Clock, MapPin, CreditCard, Banknote, X, User, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { ro } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +55,11 @@ const MyReservationsPage = () => {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check if user came from manage-facilities
+  const cameFromManageFacilities = location.state?.from === 'manage-facilities';
   
   useEffect(() => {
     loadBookings();
@@ -398,6 +404,16 @@ const MyReservationsPage = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(cameFromManageFacilities ? '/manage-facilities' : '/client-profile')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {cameFromManageFacilities ? 'Înapoi la Facilități' : 'Înapoi la Profil'}
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
           <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
         </div>
