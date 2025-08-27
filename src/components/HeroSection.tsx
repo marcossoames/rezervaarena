@@ -35,7 +35,7 @@ const HeroSection = () => {
 
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/facilities">
+            <Link to="/facilities?from=home">
               <Button variant="hero" size="lg" className="text-lg px-8 py-6">
                 Explorează Terenurile
               </Button>

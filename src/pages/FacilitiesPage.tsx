@@ -64,6 +64,9 @@ const FacilitiesPage = () => {
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
   const [partiallyBlockedDates, setPartiallyBlockedDates] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
+  
+  // Check if user came from homepage
+  const fromHome = searchParams.get('from') === 'home';
   useEffect(() => {
     // Check authentication status
     supabase.auth.getSession().then(({
@@ -368,6 +371,23 @@ const FacilitiesPage = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
+        {/* Highlight banner when coming from homepage */}
+        {fromHome && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 bg-primary/20 rounded-full flex items-center justify-center">
+                <span className="text-primary font-bold">🏠</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Bine ai venit!</h3>
+                <p className="text-sm text-muted-foreground">
+                  Acum poți explora toate terenurile disponibile și să faci rezervări în funcție de preferințele tale.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-4xl font-bold text-foreground mb-4">
