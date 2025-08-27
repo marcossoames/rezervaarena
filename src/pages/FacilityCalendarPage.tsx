@@ -689,7 +689,7 @@ const FacilityCalendarPage = () => {
                 }}
                 modifiersClassNames={{
                   booked: "bg-primary/20 text-primary-foreground font-semibold",
-                  fullyBlocked: "bg-pink-200 text-pink-800 font-semibold relative after:content-['×'] after:absolute after:top-1 after:right-1 after:text-lg after:font-bold",
+                  fullyBlocked: "bg-pink-200 text-pink-800 font-semibold relative after:content-['×'] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:text-lg after:font-bold after:pointer-events-none",
                   past: "text-muted-foreground opacity-50"
                 }}
               />
