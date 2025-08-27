@@ -382,11 +382,11 @@ const FacilitiesPage = () => {
               {/* First Row: Search and Location */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Caută facilități</label>
+                  <label className="text-sm font-medium text-foreground">Caută bază sportivă</label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
-                      placeholder="CAUTĂ NUME BAZĂ SPORTIVĂ" 
+                      placeholder="Caută nume bază sportivă" 
                       className="h-11 pl-10 bg-background border-border focus:border-primary" 
                       value={searchTerm} 
                       onChange={(e) => setSearchTerm(e.target.value)} 
