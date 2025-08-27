@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { ro } from "date-fns/locale";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import ImageCarousel from "@/components/ImageCarousel";
+import BookingStatusManager from "@/components/booking/BookingStatusManager";
 
 interface Facility {
   id: string;
@@ -516,20 +517,48 @@ const ManageFacilitiesPage = () => {
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                      <div className="text-lg font-semibold text-primary">
-                        {booking.total_price} RON
-                        <span className="text-sm font-normal text-muted-foreground ml-2">
-                          ({booking.payment_method === 'card' ? 'Plată cu cardul' : 'Plată cash'})
-                        </span>
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex justify-between items-center mb-4">
+                        <div className="text-lg font-semibold text-primary">
+                          {booking.total_price} RON
+                          <span className="text-sm font-normal text-muted-foreground ml-2">
+                            ({booking.payment_method === 'card' ? 'Plată cu cardul' : 'Plată cash'})
+                          </span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/facility-calendar/${booking.facility_id}`)}
+                        >
+                          Vezi Calendarul
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/facility-calendar/${booking.facility_id}`)}
-                      >
-                        Vezi Calendarul
-                      </Button>
+
+                      {/* Booking Status Manager */}
+                      <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Gestionare Status
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Actualizează statusul rezervării
+                          </span>
+                        </div>
+                        <BookingStatusManager 
+                          booking={{
+                            id: booking.id,
+                            booking_date: booking.booking_date,
+                            start_time: booking.start_time,
+                            end_time: booking.end_time,
+                            status: booking.status,
+                            total_price: booking.total_price,
+                            payment_method: booking.payment_method,
+                            notes: '',
+                            client_id: booking.client_id
+                          }}
+                          onStatusUpdate={() => loadBookings(facilities.map(f => f.id))}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
