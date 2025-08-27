@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { DollarSign, Calendar, TrendingUp, CreditCard, Banknote, BarChart3, RefreshCw } from "lucide-react";
+import { TrendingUp, Calendar, CreditCard, Banknote, BarChart3, RefreshCw, Coins, Wallet } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear } from "date-fns";
 import { ro } from "date-fns/locale";
 
@@ -341,7 +341,7 @@ const IncomeManagement = () => {
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-primary" />
+                <Coins className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h1 className="text-xl font-bold">Rapoarte Încasări</h1>
@@ -477,7 +477,7 @@ const IncomeManagement = () => {
           <div className="mb-8">
             <div className="bg-gradient-to-r from-secondary/30 to-secondary/20 p-4 rounded-lg border mb-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-primary" />
+                <Wallet className="h-5 w-5 text-primary" />
                 Situația pe Baze Sportive
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
@@ -599,7 +599,7 @@ const IncomeManagement = () => {
               ) : (
                 <Card>
                   <CardContent className="p-8 text-center">
-                    <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <Wallet className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">
                       Nu există date financiare pentru perioada selectată
                     </p>

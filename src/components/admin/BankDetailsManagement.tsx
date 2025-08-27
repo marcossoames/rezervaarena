@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Plus, Edit, Trash2, CreditCard } from "lucide-react";
+import { Building2, Plus, Edit, Trash2, CreditCard, Landmark } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 interface BankDetails {
@@ -234,7 +234,7 @@ const BankDetailsManagement = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-6 w-6" />
+            <Landmark className="h-6 w-6" />
             Detalii Bancare ({bankDetails.length})
           </CardTitle>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
