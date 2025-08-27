@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Building2, Calendar, LogOut, Settings, DollarSign, FileText } from "lucide-react";
+import { Shield, Users, Building2, Calendar, LogOut, Settings, Coins, FileText, Landmark } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { secureSignOut } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
@@ -288,7 +288,7 @@ const AdminDashboard = () => {
                 onClick={() => setActiveTab('income')}
                 className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
               >
-                <DollarSign className="h-5 w-5" />
+                <Coins className="h-5 w-5" />
                 Încasări
               </Button>
               <Button 
@@ -296,7 +296,7 @@ const AdminDashboard = () => {
                 onClick={() => setActiveTab('bank')}
                 className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
               >
-                <DollarSign className="h-5 w-5" />
+                <Landmark className="h-5 w-5" />
                 Conturi Bancare
               </Button>
               <Button 

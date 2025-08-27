@@ -109,8 +109,14 @@ const IncomeManagement = () => {
           physicalIncome += booking.total_price * 0.1;
           physicalBookings++;
         } else if (booking.payment_method === 'card' && ['confirmed', 'completed'].includes(booking.status)) {
-          // For online payments, we take the full amount from confirmed/completed bookings
-          onlineIncome += booking.total_price;
+          // For online payments: 
+          // - We receive the full amount initially
+          // - Payment processor takes 1.15%
+          // - We keep 10% - 1.15% = 8.85% (net platform fee)
+          // - We transfer 90% to facility
+          const processorFee = booking.total_price * 0.0115; // 1.15%
+          const netPlatformFee = (booking.total_price * 0.1) - processorFee; // 10% - 1.15%
+          onlineIncome += netPlatformFee; // Only count our net income
           onlineBookings++;
         }
       });
@@ -173,7 +179,10 @@ const IncomeManagement = () => {
             physicalIncome += booking.total_price * 0.1;
             physicalBookings++;
           } else if (booking.payment_method === 'card' && ['confirmed', 'completed'].includes(booking.status)) {
-            onlineIncome += booking.total_price;
+            // For online payments: calculate net platform fee after processor fee
+            const processorFee = booking.total_price * 0.0115; // 1.15%
+            const netPlatformFee = (booking.total_price * 0.1) - processorFee; // 10% - 1.15%
+            onlineIncome += netPlatformFee;
             onlineBookings++;
           }
         });
@@ -397,7 +406,7 @@ const IncomeManagement = () => {
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">{incomeData.onlineIncome.toFixed(2)} RON</div>
                 <p className="text-xs text-muted-foreground">
-                  Suma completă din {incomeData.onlineBookings} rezervări online
+                  Comision net (8.85%) din {incomeData.onlineBookings} rezervări online (10% - 1.15% taxa procesor)
                 </p>
               </CardContent>
             </Card>
@@ -459,7 +468,7 @@ const IncomeManagement = () => {
                       <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                         <div className="flex items-center gap-2">
                           <CreditCard className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium">Online (100%)</span>
+                          <span className="text-sm font-medium">Online (8.85%)</span>
                         </div>
                         <div className="text-right">
                           <div className="font-semibold text-blue-600">{month.onlineIncome.toFixed(2)} RON</div>
@@ -631,9 +640,9 @@ const IncomeManagement = () => {
               <div className="flex items-start gap-3">
                 <CreditCard className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div>
-                  <p className="font-medium">Plăți către Baze Sportive</p>
+                  <p className="font-medium">Comisioane din Plăți Online</p>
                   <p className="text-sm text-muted-foreground">
-                    Transferăm 90% din încasările online către bazele sportive (păstrăm 10% comision platformă)
+                    Încasăm 100% online, transferăm 90% către baze, păstrăm 8.85% net (10% - 1.15% taxa procesor plăți)
                   </p>
                 </div>
               </div>
