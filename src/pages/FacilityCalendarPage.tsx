@@ -700,8 +700,8 @@ const FacilityCalendarPage = () => {
                    <span>Zile cu rezervări / ore blocate</span>
                  </div>
                  <div className="flex items-center gap-2 text-sm">
-                   <div className="w-3 h-3 bg-pink-200 rounded border relative">
-                     <span className="absolute -top-1 -right-1 text-xs font-bold text-pink-800">×</span>
+                   <div className="w-3 h-3 bg-pink-200 rounded border flex items-center justify-center">
+                     <span className="text-xs font-bold text-pink-800 leading-none">×</span>
                    </div>
                    <span>Zile blocate complet</span>
                  </div>
