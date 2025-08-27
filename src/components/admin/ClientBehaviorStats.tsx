@@ -37,10 +37,23 @@ const ClientBehaviorStats: React.FC<ClientBehaviorStatsProps> = ({
   const noShowRate = total_bookings > 0 ? (no_show_bookings / total_bookings) * 100 : 0;
   const cancellationRate = total_bookings > 0 ? (cancelled_bookings / total_bookings) * 100 : 0;
 
-  // Risk assessment
+  // Risk assessment - improved logic
   const getRiskLevel = () => {
-    if (noShowRate > 30 || cancellationRate > 40) return 'high';
-    if (noShowRate > 15 || cancellationRate > 25) return 'medium';
+    // If no bookings, consider low risk
+    if (total_bookings === 0) return 'low';
+    
+    // Calculate combined problematic rate (no shows + cancellations)
+    const problematicRate = ((no_show_bookings + cancelled_bookings) / total_bookings) * 100;
+    
+    // More nuanced risk assessment based on both rates and absolute numbers
+    if (problematicRate > 50 || (no_show_bookings >= 3 && noShowRate > 25) || (cancelled_bookings >= 4 && cancellationRate > 30)) {
+      return 'high';
+    }
+    
+    if (problematicRate > 25 || (no_show_bookings >= 2 && noShowRate > 15) || (cancelled_bookings >= 3 && cancellationRate > 20)) {
+      return 'medium';
+    }
+    
     return 'low';
   };
 
