@@ -229,6 +229,16 @@ const AddFacilityPage = () => {
   const onSubmit = async (data: FacilityFormData) => {
     if (!userProfile) return;
 
+    // Validate capacity range
+    if (isCapacityRange && data.capacityMax && data.capacityMax < data.capacity) {
+      toast({
+        title: "Eroare",
+        description: "Capacitatea maximă nu poate fi mai mică decât capacitatea minimă",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Validate owner selection for admin users
     if (userProfile.role === 'admin' && !selectedOwnerId) {
       toast({
