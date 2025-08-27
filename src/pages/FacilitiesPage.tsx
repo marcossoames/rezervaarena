@@ -386,7 +386,7 @@ const FacilitiesPage = () => {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
-                      placeholder="Caută facilități..." 
+                      placeholder="CAUTĂ NUME BAZĂ SPORTIVĂ" 
                       className="h-11 pl-10 bg-background border-border focus:border-primary" 
                       value={searchTerm} 
                       onChange={(e) => setSearchTerm(e.target.value)} 
