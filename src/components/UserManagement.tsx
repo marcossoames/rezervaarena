@@ -7,10 +7,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Trash2, User, Calendar, Building2, MapPin, Phone, Mail, RefreshCw, Filter, AlertTriangle, Users } from "lucide-react";
+import { Shield, Trash2, User, Calendar, Building2, MapPin, Phone, Mail, RefreshCw, Filter, AlertTriangle, Users, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { ro } from "date-fns/locale";
 import ClientBehaviorStats from "@/components/admin/ClientBehaviorStats";
+import UserBookingsDialog from "@/components/admin/UserBookingsDialog";
 
 interface Profile {
   id: string;
@@ -31,6 +32,7 @@ const UserManagement = () => {
   const [filteredUsers, setFilteredUsers] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [selectedUser, setSelectedUser] = useState<{ userId: string; userName: string; userEmail: string } | null>(null);
   const [userStats, setUserStats] = useState({
     clients: 0,
     facilityOwners: 0,
@@ -409,9 +411,23 @@ const UserManagement = () => {
                           {formatDate(user.created_at)}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {user.role !== 'admin' && user.role !== 'facility_owner' && (
+                       <TableCell>
+                         <div className="flex items-center gap-2 flex-wrap">
+                           {/* View Bookings Button */}
+                           <Button 
+                             variant="outline" 
+                             size="sm" 
+                             onClick={() => setSelectedUser({
+                               userId: user.user_id,
+                               userName: user.full_name,
+                               userEmail: user.email
+                             })}
+                           >
+                             <Eye className="h-4 w-4 mr-1" />
+                             Vezi Rezervări
+                           </Button>
+                           
+                           {user.role !== 'admin' && user.role !== 'facility_owner' && (
                             <Button variant="outline" size="sm" onClick={() => promoteToFacilityOwner(user.user_id, user.email)}>
                               <Building2 className="h-4 w-4 mr-1" />
                               Promovează Bază Sportivă
@@ -479,6 +495,17 @@ const UserManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* User Bookings Dialog */}
+      {selectedUser && (
+        <UserBookingsDialog
+          userId={selectedUser.userId}
+          userName={selectedUser.userName}
+          userEmail={selectedUser.userEmail}
+          isOpen={!!selectedUser}
+          onClose={() => setSelectedUser(null)}
+        />
+      )}
     </div>
   );
 };
