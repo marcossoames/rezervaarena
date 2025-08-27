@@ -617,7 +617,7 @@ const FacilitiesPage = () => {
             <Button variant="sport" asChild>
               <a href="/facility/register">Înregistrează prima facilitate</a>
             </Button>
-          </div> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          </div> : <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             {facilities.map((facility, index) => <Card key={facility.id} className="group hover:shadow-elegant transition-all duration-300 animate-fade-in" style={{
           animationDelay: `${index * 0.1}s`
         }}>
@@ -681,10 +681,10 @@ const FacilitiesPage = () => {
                               // Store current location before redirecting to login
                               sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
                               navigate('/client/login');
-                            }}>
-                            <LogIn className="h-4 w-4 mr-2" />
-                            Autentifică-te
-                          </Button>}
+                            }} className="w-full">
+                             <LogIn className="h-4 w-4 mr-2" />
+                             Autentifică-te pentru a face o rezervare
+                           </Button>}
                       </div>
                     </div>
                   </div>
