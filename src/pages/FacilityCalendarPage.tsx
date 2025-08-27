@@ -584,20 +584,20 @@ const FacilityCalendarPage = () => {
                         Deblochează Data
                       </Button>
                     ) : (
-                    <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full">
-                          <Ban className="h-4 w-4 mr-2" />
-                          Blochează Data
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Blochează Data</DialogTitle>
-                          <DialogDescription>
-                            Blochează data de {format(selectedDate, 'dd MMMM yyyy', { locale: ro })} pentru rezervări noi
-                          </DialogDescription>
-                        </DialogHeader>
+                      <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" className="w-full">
+                            <Ban className="h-4 w-4 mr-2" />
+                            Blochează Data/Ora
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>Blochează Data/Ora</DialogTitle>
+                            <DialogDescription>
+                              Blochează data de {format(selectedDate, 'dd MMMM yyyy', { locale: ro })} pentru rezervări noi
+                            </DialogDescription>
+                          </DialogHeader>
                         <div className="space-y-4">
                           <div className="space-y-2">
                             <Label htmlFor="timeRange">Interval orar (opțional)</Label>
@@ -719,7 +719,10 @@ const FacilityCalendarPage = () => {
                            </div>
                            <div className="flex gap-2">
                              <Button onClick={blockDate} disabled={!blockReason.trim()}>
-                               {isRecurring ? 'Blochează Datele' : 'Blochează'}
+                               {isRecurring 
+                                 ? (blockStartTime && blockEndTime ? 'Blochează Datele/Orele' : 'Blochează Datele')
+                                 : (blockStartTime && blockEndTime ? 'Blochează Data/Ora' : 'Blochează Data')
+                               }
                              </Button>
                              <Button variant="outline" onClick={() => {
                                setIsBlockDialogOpen(false);
