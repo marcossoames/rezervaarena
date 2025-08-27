@@ -37,20 +37,30 @@ const ClientBehaviorStats: React.FC<ClientBehaviorStatsProps> = ({
   const noShowRate = total_bookings > 0 ? (no_show_bookings / total_bookings) * 100 : 0;
   const cancellationRate = total_bookings > 0 ? (cancelled_bookings / total_bookings) * 100 : 0;
 
-  // Risk assessment - improved logic
+  // Risk assessment - improved logic based on realistic thresholds
   const getRiskLevel = () => {
     // If no bookings, consider low risk
     if (total_bookings === 0) return 'low';
     
     // Calculate combined problematic rate (no shows + cancellations)
-    const problematicRate = ((no_show_bookings + cancelled_bookings) / total_bookings) * 100;
+    const problematicBookings = no_show_bookings + cancelled_bookings;
+    const problematicRate = (problematicBookings / total_bookings) * 100;
     
-    // More nuanced risk assessment based on both rates and absolute numbers
-    if (problematicRate > 50 || (no_show_bookings >= 3 && noShowRate > 25) || (cancelled_bookings >= 4 && cancellationRate > 30)) {
+    // High risk: Very problematic behavior
+    // - More than 60% problematic rate OR
+    // - 3+ problematic bookings with rate over 50% OR  
+    // - 100% problematic rate (even with few bookings)
+    if (problematicRate >= 100 || 
+        problematicRate > 60 || 
+        (problematicBookings >= 3 && problematicRate > 50)) {
       return 'high';
     }
     
-    if (problematicRate > 25 || (no_show_bookings >= 2 && noShowRate > 15) || (cancelled_bookings >= 3 && cancellationRate > 20)) {
+    // Medium risk: Moderate problematic behavior
+    // - Between 30-60% problematic rate OR
+    // - 2+ problematic bookings with rate over 25%
+    if (problematicRate > 30 || 
+        (problematicBookings >= 2 && problematicRate > 25)) {
       return 'medium';
     }
     
