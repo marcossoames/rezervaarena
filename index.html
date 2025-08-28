@@ -134,6 +134,26 @@
     <link rel="preload" href="/src/index.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
     
+    <!-- Enhanced async CSS loading for better render performance -->
+    <script>
+      // Immediate async CSS loading to prevent render blocking
+      (function() {
+        var cssLink = document.createElement('link');
+        cssLink.rel = 'stylesheet';
+        cssLink.href = '/src/index.css';
+        cssLink.media = 'print';
+        cssLink.onload = function() { this.media = 'all'; };
+        document.head.appendChild(cssLink);
+        
+        // Fallback for browsers without onload support
+        setTimeout(function() {
+          if (cssLink.media === 'print') {
+            cssLink.media = 'all';
+          }
+        }, 100);
+      })();
+    </script>
+    
     <!-- Preload critical hero image in multiple formats for better performance -->
     <link rel="preload" as="image" href="/src/assets/hero-sports.webp" type="image/webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/src/assets/hero-sports.jpg" fetchpriority="high" />
