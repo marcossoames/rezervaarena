@@ -509,6 +509,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_cash_booking_secure: {
+        Args: {
+          p_booking_date: string
+          p_end_time: string
+          p_facility_id: string
+          p_start_time: string
+        }
+        Returns: string
+      }
       delete_current_user_account: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -642,24 +651,6 @@ export type Database = {
       promote_user_to_facility_owner_secure: {
         Args: { _user_id: string }
         Returns: boolean
-      }
-      register_facility_with_profile: {
-        Args: {
-          p_address: string
-          p_amenities: string[]
-          p_capacity: number
-          p_capacity_max?: number
-          p_city: string
-          p_description: string
-          p_email: string
-          p_facility_name: string
-          p_facility_type: Database["public"]["Enums"]["facility_type"]
-          p_full_name: string
-          p_phone: string
-          p_price_per_hour: number
-          p_user_id: string
-        }
-        Returns: string
       }
       register_facility_with_profile_secure: {
         Args:

@@ -134,26 +134,18 @@ const PaymentPage = () => {
         return;
       }
 
-      // Create booking with cash payment
-      const { error } = await supabase
-        .from('bookings')
-        .insert({
-          facility_id: facilityId,
-          client_id: user.id,
-          booking_date: selectedDate,
-          start_time: startTime,
-          end_time: endTime,
-          total_price: parseFloat(totalPrice || '0'),
-          total_amount: parseFloat(totalPrice || '0'),
-          status: 'pending',
-          payment_method: 'cash',
-          notes: 'Plată cu numerar la fața locului'
-        });
+      // Use the secure server-side booking function
+      const { data: bookingId, error } = await supabase.rpc('create_cash_booking_secure', {
+        p_facility_id: facilityId,
+        p_booking_date: selectedDate,
+        p_start_time: startTime,
+        p_end_time: endTime
+      });
 
       if (error) {
         toast({
           title: "Eroare",
-          description: "Nu s-a putut crea rezervarea",
+          description: error.message || "Nu s-a putut crea rezervarea",
           variant: "destructive"
         });
         return;
