@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { OptimizedImage } from "@/components/ui/optimized-image";
-import heroImage from "@/assets/hero-sports-1335x751.webp";
+import heroImage from "@/assets/hero-sports-optimized.webp";
 
 const HeroSection = () => {
   return (
@@ -14,7 +14,7 @@ const HeroSection = () => {
           loading="eager"
           fetchPriority="high"
           width={1335}
-          height={751}
+          height={600}
           sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px"
           quality={85}
         />

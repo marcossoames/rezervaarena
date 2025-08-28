@@ -127,14 +127,16 @@ export const OptimizedImage = ({
 
   return (
     <picture style={{ display: 'block', maxWidth: `${targetDimensions.width}px` }}>
-      {/* WebP source for modern browsers */}
+      {/* WebP source for modern browsers - only if WebP version exists */}
       <source 
         srcSet={webpSrc}
         type="image/webp"
         sizes={getOptimalSizes()}
-        media={`(max-width: ${targetDimensions.width}px)`}
+        onError={() => {
+          // If WebP fails to load, the img fallback will be used
+        }}
       />
-      {/* Fallback with exact sizing constraints */}
+      {/* JPEG fallback with exact sizing constraints */}
       <img
         src={src}
         alt={alt}
