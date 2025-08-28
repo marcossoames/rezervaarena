@@ -590,6 +590,14 @@ export type Database = {
           sports_complex_name: string
         }[]
       }
+      get_facility_availability_secure: {
+        Args: { booking_date_param: string; facility_id_param: string }
+        Returns: {
+          end_time: string
+          start_time: string
+          unavailable_type: string
+        }[]
+      }
       get_facility_for_payment_secure: {
         Args: { facility_id_param: string }
         Returns: {
