@@ -88,11 +88,17 @@ export const OptimizedImage = ({
     return `${src} ${targetDimensions.width}w`;
   };
 
-  // Handle image load errors silently
-  const handleError = () => {
+  // Handle image load errors with better fallback
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     if (!imageError) {
       setImageError(true);
-      console.debug('Image fallback used for:', src);
+      console.debug('Image failed to load:', src);
+      
+      // Try to use the original src without any modifications
+      const target = e.target as HTMLImageElement;
+      if (target.src !== src) {
+        target.src = src;
+      }
     }
   };
 
@@ -104,25 +110,25 @@ export const OptimizedImage = ({
   return (
     <img
       src={src}
-      srcSet={generateJPEGSrcSet()}
       alt={alt}
-      className={`${className} transition-opacity duration-300`}
+      className={`${className} transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-90'}`}
       loading={loading}
       fetchPriority={fetchPriority}
       width={width || targetDimensions.width}
       height={height || targetDimensions.height}
-      sizes={getOptimalSizes()}
       style={{ 
         ...style, 
         aspectRatio: width && height ? `${width}/${height}` : `${targetDimensions.width}/${targetDimensions.height}`,
         maxWidth: '100%',
-        height: 'auto'
+        height: 'auto',
+        backgroundColor: imageLoaded ? 'transparent' : 'hsl(var(--muted))'
       }}
       decoding="async"
       onError={handleError}
       onLoad={handleLoad}
       data-optimized="true"
       data-original-src={src}
+      data-error={imageError}
     />
   );
 };

@@ -24,10 +24,22 @@ console.log('Available image files:', {
   tennis: tennisImage,
   football: footballImage,
   padel: padelImage,
+  squash: squashImage,
   basketball: basketballImage,
   volleyball: volleyballImage,
-  swimming: swimmingImage
+  swimming: swimmingImage,
+  footTennis: footTennisImage,
+  pingPong: pingPongImage
 });
+
+// Check if all required images are defined
+const missingImages = [];
+if (!squashImage) missingImages.push('squash');
+if (!volleyballImage) missingImages.push('volleyball');
+if (!footTennisImage) missingImages.push('footTennis');
+if (missingImages.length > 0) {
+  console.warn('Missing images for:', missingImages);
+}
 interface SportData {
   id: number;
   name: string;
