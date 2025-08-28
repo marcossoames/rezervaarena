@@ -255,15 +255,44 @@ const FacilitiesPage = () => {
         try {
           const dateString = format(selectedDate, 'yyyy-MM-dd');
 
-          // Get bookings for the selected date
-          const {
-            data: bookings
-          } = await supabase.from('bookings').select('facility_id, start_time, end_time').eq('booking_date', dateString).in('status', ['confirmed', 'pending']);
+          // Use secure RPC to get unavailable time slots for each facility
+          const facilityAvailabilityPromises = filteredFacilities.map(async (facility) => {
+            const { data: unavailableSlots, error } = await supabase
+              .rpc('get_facility_availability_secure', {
+                facility_id_param: facility.id,
+                booking_date_param: dateString
+              });
+            
+            if (error) {
+              console.error('Error fetching availability for facility:', facility.id, error);
+              return { facilityId: facility.id, unavailableSlots: [] };
+            }
+            
+            return { facilityId: facility.id, unavailableSlots: unavailableSlots || [] };
+          });
 
-          // Get blocked dates for the selected date
-          const {
-            data: blockedDates
-          } = await supabase.from('blocked_dates').select('facility_id, start_time, end_time').eq('blocked_date', dateString);
+          const facilityAvailabilities = await Promise.all(facilityAvailabilityPromises);
+          
+          // Convert to the expected format for backward compatibility
+          const bookings = facilityAvailabilities.flatMap(({ facilityId, unavailableSlots }) => 
+            unavailableSlots
+              .filter(slot => slot.unavailable_type === 'booking')
+              .map(slot => ({
+                facility_id: facilityId,
+                start_time: slot.start_time,
+                end_time: slot.end_time
+              }))
+          );
+
+          const blockedDates = facilityAvailabilities.flatMap(({ facilityId, unavailableSlots }) => 
+            unavailableSlots
+              .filter(slot => slot.unavailable_type === 'blocked')
+              .map(slot => ({
+                facility_id: facilityId,
+                start_time: slot.start_time,
+                end_time: slot.end_time
+              }))
+          );
           const unavailableFacilities = new Set();
           if (startTime && endTime) {
             // Specific time range selected - check exact availability

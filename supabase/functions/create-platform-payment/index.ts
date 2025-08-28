@@ -50,17 +50,22 @@ serve(async (req) => {
 
     logStep("User authenticated", { userId: user.id });
 
-    // Get facility details and owner
-    const { data: facility, error: facilityError } = await supabase
-      .from('facilities')
-      .select('name, price_per_hour, owner_id, is_active')
-      .eq('id', facilityId)
-      .single();
+    // Create service client for secure facility access
+    const supabaseService = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
 
-    if (facilityError || !facility) {
+    // Get facility details using secure RPC to bypass RLS
+    const { data: facilityData, error: facilityError } = await supabaseService
+      .rpc('get_facility_for_payment_processing', { facility_id_param: facilityId });
+
+    if (facilityError || !facilityData || facilityData.length === 0) {
       throw new Error('Facility not found');
     }
 
+    const facility = facilityData[0];
     if (!facility.is_active) {
       throw new Error('Facility is not active');
     }
@@ -155,12 +160,7 @@ serve(async (req) => {
 
     logStep("Stripe session created", { sessionId: session.id, url: session.url });
 
-    // Create the booking first
-    const supabaseService = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
-    );
+    // Create the booking using the existing service client
 
     const { data: booking, error: bookingError } = await supabaseService
       .from('bookings')

@@ -598,6 +598,18 @@ export type Database = {
           unavailable_type: string
         }[]
       }
+      get_facility_for_payment_processing: {
+        Args: { facility_id_param: string }
+        Returns: {
+          id: string
+          is_active: boolean
+          name: string
+          operating_hours_end: string
+          operating_hours_start: string
+          owner_id: string
+          price_per_hour: number
+        }[]
+      }
       get_facility_for_payment_secure: {
         Args: { facility_id_param: string }
         Returns: {
