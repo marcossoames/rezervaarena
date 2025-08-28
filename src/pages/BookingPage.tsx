@@ -183,7 +183,8 @@ const BookingPage = () => {
           operating_hours_end: "22:00", // Default value
           sports_complex_name: data.sports_complex_name,
           sports_complex_address: data.sports_complex_address,
-          phone_number: data.phone_number
+          // Note: phone_number removed to protect personal information
+          // Contact info will be provided only when booking is confirmed
         };
 
         setFacility(facilityWithSportsComplex);

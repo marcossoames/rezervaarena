@@ -552,7 +552,6 @@ export type Database = {
           id: string
           images: string[]
           name: string
-          phone_number: string
           price_per_hour: number
           sports_complex_address: string
           sports_complex_name: string
@@ -596,6 +595,14 @@ export type Database = {
           end_time: string
           start_time: string
           unavailable_type: string
+        }[]
+      }
+      get_facility_contact_for_booking: {
+        Args: { facility_id_param: string }
+        Returns: {
+          phone_number: string
+          sports_complex_address: string
+          sports_complex_name: string
         }[]
       }
       get_facility_for_payment_processing: {
