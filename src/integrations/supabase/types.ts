@@ -580,6 +580,10 @@ export type Database = {
           sports_complex_name: string
         }[]
       }
+      get_facility_owner_id: {
+        Args: { _facility_id: string }
+        Returns: string
+      }
       get_facility_stats_by_type: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -639,36 +643,21 @@ export type Database = {
         Returns: boolean
       }
       register_facility_with_profile: {
-        Args:
-          | {
-              p_address: string
-              p_amenities: string[]
-              p_capacity: number
-              p_capacity_max?: number
-              p_city: string
-              p_description: string
-              p_email: string
-              p_facility_name: string
-              p_facility_type: Database["public"]["Enums"]["facility_type"]
-              p_full_name: string
-              p_phone: string
-              p_price_per_hour: number
-              p_user_id: string
-            }
-          | {
-              p_address: string
-              p_amenities: string[]
-              p_capacity: number
-              p_city: string
-              p_description: string
-              p_email: string
-              p_facility_name: string
-              p_facility_type: Database["public"]["Enums"]["facility_type"]
-              p_full_name: string
-              p_phone: string
-              p_price_per_hour: number
-              p_user_id: string
-            }
+        Args: {
+          p_address: string
+          p_amenities: string[]
+          p_capacity: number
+          p_capacity_max?: number
+          p_city: string
+          p_description: string
+          p_email: string
+          p_facility_name: string
+          p_facility_type: Database["public"]["Enums"]["facility_type"]
+          p_full_name: string
+          p_phone: string
+          p_price_per_hour: number
+          p_user_id: string
+        }
         Returns: string
       }
       register_facility_with_profile_secure: {
