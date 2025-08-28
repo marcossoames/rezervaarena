@@ -151,19 +151,13 @@ const BookingPage = () => {
       }
 
       try {
-        // First, get facility basic data
-        const { data: facilityData, error: facilityError } = await supabase
-          .from('facilities')
-          .select(`
-            id, name, description, facility_type, city, address, 
-            price_per_hour, capacity, capacity_max, amenities, images,
-            operating_hours_start, operating_hours_end, owner_id
-          `)
+        // Use the secure RPC function to get facility data with sports complex info
+        const { data, error } = await supabase
+          .rpc('get_facilities_for_authenticated_users')
           .eq('id', facilityId)
-          .eq('is_active', true)
           .single();
 
-        if (facilityError || !facilityData) {
+        if (error || !data) {
           toast({
             title: "Eroare",
             description: "Facilitatea nu a fost găsită",
@@ -172,25 +166,24 @@ const BookingPage = () => {
           return;
         }
 
-        // Get owner profile information for sports complex details
-        const { data: ownerProfile, error: ownerError } = await supabase
-          .from('profiles')
-          .select('full_name, phone, user_type_comment')
-          .eq('user_id', facilityData.owner_id)
-          .single();
-
-        // Create facility object with sports complex information
-        const facilityWithSportsComplex = {
-          ...facilityData,
-          sports_complex_name: ownerProfile?.user_type_comment ? 
-            (ownerProfile.user_type_comment.includes(' - Proprietar bază sportivă') ?
-              ownerProfile.user_type_comment.replace(' - Proprietar bază sportivă', '') :
-              ownerProfile.user_type_comment.startsWith('Proprietar bază sportivă - ') ?
-                ownerProfile.user_type_comment.replace('Proprietar bază sportivă - ', '') :
-                `Baza Sportivă - ${facilityData.city}`) :
-            `Baza Sportivă - ${facilityData.city}`,
-          sports_complex_address: `${facilityData.address}, ${facilityData.city}`,
-          phone_number: ownerProfile?.phone || 'Telefon indisponibil'
+        // The RPC function already provides complete facility information
+        // Map from RPC response to Facility interface
+        const facilityWithSportsComplex: Facility = {
+          id: data.id,
+          name: data.name,
+          description: data.description,
+          facility_type: data.facility_type,
+          city: data.city,
+          address: data.sports_complex_address?.split(', ')[0] || data.city,
+          price_per_hour: data.price_per_hour,
+          capacity: data.capacity,
+          amenities: data.amenities,
+          images: data.images,
+          operating_hours_start: "08:00", // Default value
+          operating_hours_end: "22:00", // Default value
+          sports_complex_name: data.sports_complex_name,
+          sports_complex_address: data.sports_complex_address,
+          phone_number: data.phone_number
         };
 
         setFacility(facilityWithSportsComplex);
