@@ -725,12 +725,7 @@ applyFilters();
                             <MapPin className="h-4 w-4 mr-1" />
                             {/* Show sports complex address for better UX */}
                             {facility.sports_complex_address || facility.area_info || facility.general_area || (facility.address ? `${facility.address}, ${facility.city}` : `${facility.city} area`)}
-                          </div>
-                          {/* Show contact phone number */}
-                          {facility.phone_number && <div className="flex items-center text-muted-foreground text-sm">
-                              <Phone className="h-4 w-4 mr-1" />
-                              {facility.phone_number}
-                            </div>}
+                           </div>
                         </div>
                       </div>
                       

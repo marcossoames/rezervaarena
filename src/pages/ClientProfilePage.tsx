@@ -65,30 +65,59 @@ const ClientProfilePage = () => {
 
   const loadBookingStats = async (userId: string) => {
     try {
+      console.log('Loading booking stats for user:', userId);
+      
       // Get all bookings for the user
-      const { data: bookings } = await supabase
+      const { data: bookings, error } = await supabase
         .from('bookings')
         .select('status, booking_date')
         .eq('client_id', userId);
+
+      console.log('Bookings query result:', { bookings, error });
+
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        return;
+      }
 
       if (bookings) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
+        console.log('Today date for comparison:', today);
+        console.log('All bookings:', bookings);
+        
         // Calculate active bookings (confirmed or pending, future dates)
         const activeBookings = bookings.filter(booking => {
           const bookingDate = new Date(booking.booking_date);
-          return (booking.status === 'confirmed' || booking.status === 'pending') && 
-                 bookingDate >= today;
+          const isActiveStatus = booking.status === 'confirmed' || booking.status === 'pending';
+          const isFutureDate = bookingDate >= today;
+          
+          console.log('Booking check:', {
+            booking,
+            bookingDate,
+            isActiveStatus,
+            isFutureDate,
+            willInclude: isActiveStatus && isFutureDate
+          });
+          
+          return isActiveStatus && isFutureDate;
         }).length;
 
         // Total bookings count
         const totalBookings = bookings.length;
 
+        console.log('Final booking stats:', {
+          active: activeBookings,
+          total: totalBookings
+        });
+
         setBookingStats({
           active: activeBookings,
           total: totalBookings
         });
+      } else {
+        console.log('No bookings data returned');
       }
     } catch (error) {
       console.error('Error loading booking stats:', error);

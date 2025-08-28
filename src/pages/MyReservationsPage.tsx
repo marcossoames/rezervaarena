@@ -319,11 +319,7 @@ const MyReservationsPage = () => {
               // Not available in RPC response but not needed
               sports_complex_name: facility?.sports_complex_name || 'Baza Sportivă',
               sports_complex_address: facility?.sports_complex_address || facility?.city || 'Adresă nedefinită',
-              profiles: facility?.phone_number ? {
-                user_type_comment: '',
-                full_name: '',
-                phone: facility.phone_number
-              } : null
+              profiles: null // Contact info removed for privacy protection
             }
           };
         });
