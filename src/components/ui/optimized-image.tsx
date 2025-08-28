@@ -112,12 +112,12 @@ export const OptimizedImage = ({
     ? src.replace(/\.(jpg|jpeg)$/, '.webp')
     : src.endsWith('.webp') ? src : `${src}.webp`;
 
-  // Calculate scale factor to force exact display dimensions
+  // Responsive styles that don't break layout
   const getImageStyles = () => {
     const baseStyle = {
       ...style,
-      width: `${targetDimensions.width}px`,
-      height: `${targetDimensions.height}px`,
+      width: '100%',
+      height: 'auto',
       objectFit: 'cover' as const,
       backgroundColor: imageLoaded ? 'transparent' : 'hsl(var(--muted))',
     };
@@ -126,17 +126,16 @@ export const OptimizedImage = ({
   };
 
   return (
-    <picture style={{ display: 'block', maxWidth: `${targetDimensions.width}px` }}>
-      {/* WebP source for modern browsers - only if WebP version exists */}
-      <source 
-        srcSet={webpSrc}
-        type="image/webp"
-        sizes={getOptimalSizes()}
-        onError={() => {
-          // If WebP fails to load, the img fallback will be used
-        }}
-      />
-      {/* JPEG fallback with exact sizing constraints */}
+    <picture>
+      {/* Only try WebP if original is not already WebP */}
+      {!src.endsWith('.webp') && (
+        <source 
+          srcSet={webpSrc}
+          type="image/webp"
+          sizes={getOptimalSizes()}
+        />
+      )}
+      {/* Primary image with proper responsive behavior */}
       <img
         src={src}
         alt={alt}
@@ -150,9 +149,6 @@ export const OptimizedImage = ({
         onError={handleError}
         onLoad={handleLoad}
         data-optimized="true"
-        data-original-src={src}
-        data-error={imageError}
-        data-target-size={`${targetDimensions.width}x${targetDimensions.height}`}
         sizes={getOptimalSizes()}
       />
     </picture>

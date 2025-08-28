@@ -2,15 +2,17 @@ import { Button } from "@/components/ui/button";
 import { User, Building2, Shield, LogOut, Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
+import { secureSignOut } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useDeferredSupabase } from "@/hooks/useDeferredSupabase";
 
 const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { supabase, session } = useDeferredSupabase();
+  const [session, setSession] = useState<Session | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{
     role: string;
@@ -19,7 +21,23 @@ const Header = () => {
   } | null>(null);
 
   useEffect(() => {
-    if (!session || !supabase) return;
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // Listen for changes on auth state (logged in, signed out, etc.)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
 
     const fetchUserProfile = async () => {
       try {
@@ -38,14 +56,10 @@ const Header = () => {
     };
 
     fetchUserProfile();
-  }, [session, supabase]);
+  }, [session]);
 
   const handleSignOut = async () => {
-    if (!supabase) return;
-    
     try {
-      // Import secureSignOut only when needed to reduce initial bundle
-      const { secureSignOut } = await import('@/utils/authCleanup');
       await secureSignOut(supabase);
     } catch (error) {
       toast({

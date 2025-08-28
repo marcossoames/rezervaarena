@@ -165,9 +165,8 @@
     </style>
     
     
-    <!-- Defer main CSS loading until after page is interactive to reduce unused CSS impact -->
-    <link rel="preload" href="/src/index.css" as="style" onload="setTimeout(() => { this.onload=null; this.rel='stylesheet'; }, 100)" />
-    <noscript><link rel="stylesheet" href="/src/index.css" /></noscript>
+    <!-- Load main CSS normally for better performance -->
+    <link rel="stylesheet" href="/src/index.css" />
     
     <!-- Preload critical hero image in multiple formats for better performance -->
     <link rel="preload" as="image" href="/src/assets/hero-sports.webp" type="image/webp" fetchpriority="high" />

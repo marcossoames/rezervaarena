@@ -2,8 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { OptimizedImage } from "@/components/ui/optimized-image";
-import { useDeferredSupabaseQuery } from "@/hooks/useDeferredSupabase";
+import { supabase } from "@/integrations/supabase/client";
 
 // Debug logging for missing images
 console.log('Checking image imports...');
@@ -123,48 +122,47 @@ const initialSportsData = [{
   minPrice: "0 RON/oră"
 }];
 const SportsSection = () => {
-  // Use deferred Supabase query to reduce initial bundle size
-  const { data: facilityStats } = useDeferredSupabaseQuery(
-    async (supabase) => {
-      const { data, error } = await supabase.rpc('get_facility_stats_by_type');
-      if (error) {
-        console.debug('Error fetching facility stats:', error);
-        return null;
-      }
-      return data;
-    },
-    null
-  );
-
   const [sportsData, setSportsData] = useState(initialSportsData);
   
   useEffect(() => {
-    if (!facilityStats) return;
+    const fetchSportsData = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_facility_stats_by_type');
+        if (error) {
+          console.debug('Error fetching facility stats:', error);
+          return;
+        }
 
-    // Create a map for easy lookup
-    const statsMap: Record<string, { count: number; minPrice: number }> = {};
-    facilityStats.forEach((stat: any) => {
-      statsMap[stat.facility_type] = {
-        count: Number(stat.facility_count),
-        minPrice: Number(stat.min_price)
-      };
-    });
+        // Create a map for easy lookup
+        const statsMap: Record<string, { count: number; minPrice: number }> = {};
+        data?.forEach((stat: any) => {
+          statsMap[stat.facility_type] = {
+            count: Number(stat.facility_count),
+            minPrice: Number(stat.min_price)
+          };
+        });
 
-    // Update sports data with real stats
-    const updatedSportsData = initialSportsData.map(sport => {
-      const sportStats = statsMap[sport.type];
-      if (sportStats) {
-        return {
-          ...sport,
-          facilities: sportStats.count,
-          minPrice: `${sportStats.minPrice} RON/oră`
-        };
+        // Update sports data with real stats
+        const updatedSportsData = initialSportsData.map(sport => {
+          const sportStats = statsMap[sport.type];
+          if (sportStats) {
+            return {
+              ...sport,
+              facilities: sportStats.count,
+              minPrice: `${sportStats.minPrice} RON/oră`
+            };
+          }
+          return sport;
+        });
+        
+        setSportsData(updatedSportsData);
+      } catch (error) {
+        console.debug('Error fetching sports data:', error);
       }
-      return sport;
-    });
+    };
     
-    setSportsData(updatedSportsData);
-  }, [facilityStats]);
+    fetchSportsData();
+  }, []);
   return <section id="terenuri" className="py-20 bg-secondary/20">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
@@ -181,14 +179,13 @@ const SportsSection = () => {
               <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none">
                 <CardContent className="p-0">
                   <div className="relative overflow-hidden rounded-t-lg">
-                    <OptimizedImage 
+                    <img 
                       src={sport.image} 
                       alt={`Teren de ${sport.name} - facilități sportive moderne`}
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                       loading="lazy"
                       width={395}
                       height={192}
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px"
                     />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
