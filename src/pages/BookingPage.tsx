@@ -151,13 +151,19 @@ const BookingPage = () => {
       }
 
       try {
-        // Use the function to get proper sports complex data for authenticated users
-        const { data, error } = await supabase
-          .rpc('get_facilities_for_authenticated_users')
+        // First, get facility basic data
+        const { data: facilityData, error: facilityError } = await supabase
+          .from('facilities')
+          .select(`
+            id, name, description, facility_type, city, address, 
+            price_per_hour, capacity, capacity_max, amenities, images,
+            operating_hours_start, operating_hours_end, owner_id
+          `)
           .eq('id', facilityId)
+          .eq('is_active', true)
           .single();
 
-        if (error || !data) {
+        if (facilityError || !facilityData) {
           toast({
             title: "Eroare",
             description: "Facilitatea nu a fost găsită",
@@ -166,13 +172,25 @@ const BookingPage = () => {
           return;
         }
 
-        // The function already provides sports complex information
+        // Get owner profile information for sports complex details
+        const { data: ownerProfile, error: ownerError } = await supabase
+          .from('profiles')
+          .select('full_name, phone, user_type_comment')
+          .eq('user_id', facilityData.owner_id)
+          .single();
+
+        // Create facility object with sports complex information
         const facilityWithSportsComplex = {
-          ...data,
-          address: data.sports_complex_address?.split(', ')[0] || data.city, // Extract address part
-          sports_complex_name: data.sports_complex_name,
-          sports_complex_address: data.sports_complex_address,
-          phone_number: data.phone_number
+          ...facilityData,
+          sports_complex_name: ownerProfile?.user_type_comment ? 
+            (ownerProfile.user_type_comment.includes(' - Proprietar bază sportivă') ?
+              ownerProfile.user_type_comment.replace(' - Proprietar bază sportivă', '') :
+              ownerProfile.user_type_comment.startsWith('Proprietar bază sportivă - ') ?
+                ownerProfile.user_type_comment.replace('Proprietar bază sportivă - ', '') :
+                `Baza Sportivă - ${facilityData.city}`) :
+            `Baza Sportivă - ${facilityData.city}`,
+          sports_complex_address: `${facilityData.address}, ${facilityData.city}`,
+          phone_number: ownerProfile?.phone || 'Telefon indisponibil'
         };
 
         setFacility(facilityWithSportsComplex);
