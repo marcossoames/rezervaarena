@@ -19,7 +19,7 @@ interface BasicBooking {
   start_time: string;
   end_time: string;
   total_price: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   payment_method: string;
   stripe_session_id?: string;
   facility_id: string;
@@ -260,7 +260,10 @@ const MyReservationsPage = () => {
         );
 
         console.log('Complete facility bookings:', completeBookings);
-        setBookings(completeBookings);
+        setBookings(completeBookings.map(booking => ({
+          ...booking,
+          status: booking.status === 'pending' ? 'confirmed' : booking.status
+        })));
 
       } else {
         // For regular clients, get their own bookings
@@ -325,7 +328,10 @@ const MyReservationsPage = () => {
           };
         });
         console.log('Complete bookings:', completeBookings);
-        setBookings(completeBookings);
+        setBookings(completeBookings.map(booking => ({
+          ...booking,
+          status: booking.status === 'pending' ? 'confirmed' : booking.status
+        })));
       }
     } catch (error) {
       console.error('Error loading bookings:', error);
@@ -423,7 +429,7 @@ const MyReservationsPage = () => {
       case 'upcoming':
         return bookings.filter(booking => {
           const bookingDate = new Date(booking.booking_date);
-          return (booking.status === 'confirmed' || booking.status === 'pending') && bookingDate >= now;
+          return booking.status === 'confirmed' && bookingDate >= now;
         });
       case 'completed':
         return bookings.filter(booking => {
@@ -490,10 +496,9 @@ const MyReservationsPage = () => {
                 className="ml-2 px-3 py-1 border border-border rounded-md bg-background text-foreground"
               >
                 <option value="all">Toate rezervările</option>
-                <option value="upcoming">Viitoare (Confirmate + În procesare)</option>
+                <option value="upcoming">Viitoare (Confirmate)</option>
                 <option value="completed">Terminate (Finalizate + Anulate + Lipsă)</option>
                 <option value="confirmed">Doar confirmate</option>
-                <option value="pending">În procesare</option>
                 <option value="cancelled">Anulate</option>
                 <option value="completed_only">Finalizate</option>
                 <option value="no_show">Lipsă</option>

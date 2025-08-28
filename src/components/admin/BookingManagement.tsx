@@ -25,7 +25,7 @@ interface Booking {
   booking_date: string;
   start_time: string;
   end_time: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   total_price: number;
   notes?: string;
   created_at: string;
@@ -142,8 +142,10 @@ const BookingManagement = () => {
           facility_type: facility?.facility_type || 'Unknown',
           facility_city: facility?.city || 'Unknown',
           client_name: client?.full_name || 'Unknown',
-          client_email: client?.email || 'Unknown'
-        };
+          client_email: client?.email || 'Unknown',
+          // Ensure status is properly typed (filter out any pending statuses)
+          status: booking.status === 'pending' ? 'confirmed' : booking.status
+        } as Booking;
       }) || [];
 
       setBookings(formattedBookings);
@@ -190,7 +192,7 @@ const BookingManagement = () => {
     // The actual filtering is handled in the render method
   };
 
-  const updateBookingStatus = async (bookingId: string, newStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show') => {
+  const updateBookingStatus = async (bookingId: string, newStatus: 'confirmed' | 'cancelled' | 'completed' | 'no_show') => {
     try {
       const { error } = await supabase
         .from('bookings')
@@ -347,14 +349,13 @@ const BookingManagement = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { label: "În așteptare", variant: "secondary" as const },
       confirmed: { label: "Confirmată", variant: "default" as const },
       cancelled: { label: "Anulată", variant: "destructive" as const },
       completed: { label: "Finalizată", variant: "outline" as const },
       no_show: { label: "Lipsă", variant: "destructive" as const }
     };
     
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.confirmed;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
@@ -636,9 +637,7 @@ const BookingManagement = () => {
                 <SelectTrigger className="bg-background shadow-sm hover:shadow-md transition-shadow">
                   <SelectValue placeholder="Toate statusurile" />
                 </SelectTrigger>
-                <SelectContent className="bg-background border shadow-lg z-50">
-                  <SelectItem value="all" className="hover:bg-accent">Toate statusurile</SelectItem>
-                  <SelectItem value="pending" className="hover:bg-accent">În așteptare</SelectItem>
+                 <SelectContent className="bg-background border shadow-lg z-50">
                    <SelectItem value="confirmed" className="hover:bg-accent">Confirmată</SelectItem>
                    <SelectItem value="cancelled" className="hover:bg-accent">Anulată</SelectItem>
                    <SelectItem value="completed" className="hover:bg-accent">Finalizată</SelectItem>
@@ -747,11 +746,10 @@ const BookingManagement = () => {
                          {day.bookings.slice(0, 2).map((booking, idx) => (
                            <div
                              key={idx}
-                             className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 cursor-pointer ${getFacilityTypeColor(booking.facility_type)} ${
-                               booking.status === 'cancelled' ? 'opacity-60 line-through' :
-                               booking.status === 'pending' ? 'ring-2 ring-yellow-400/50' :
-                               ''
-                             }`}
+                              className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 cursor-pointer ${getFacilityTypeColor(booking.facility_type)} ${
+                                booking.status === 'cancelled' ? 'opacity-60 line-through' :
+                                ''
+                              }`}
                              title={`Click pentru detalii - ${booking.start_time} - ${booking.facility_name} (${getFacilityTypeLabel(booking.facility_type)})`}
                              onClick={(e) => {
                                e.stopPropagation();

@@ -38,7 +38,7 @@ interface BookingWithDetails {
   start_time: string;
   end_time: string;
   total_price: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   payment_method: string;
   facility_id: string;
   client_id: string;
@@ -161,8 +161,10 @@ const ManageFacilitiesPage = () => {
             facility_type: facility?.facility_type || 'unknown',
             client_name: clientProfile?.full_name || 'Nume nedisponibil',
             client_phone: clientProfile?.phone || 'Telefon nedisponibil',
-            client_email: clientProfile?.email || 'Email nedisponibil'
-          };
+            client_email: clientProfile?.email || 'Email nedisponibil',
+            // Convert any pending status to confirmed
+            status: booking.status === 'pending' ? 'confirmed' : booking.status
+          } as BookingWithDetails;
         })
       );
 

@@ -38,7 +38,7 @@ interface Booking {
   booking_date: string;
   start_time: string;
   end_time: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   total_price: number;
   payment_method: string;
   notes?: string;
@@ -126,7 +126,10 @@ const FacilityCalendarPage = () => {
         .eq('facility_id', facilityId)
         .gte('blocked_date', format(startDate, 'yyyy-MM-dd'));
 
-      setBookings(bookingsData || []);
+      setBookings((bookingsData || []).map(booking => ({
+        ...booking,
+        status: booking.status === 'pending' ? 'confirmed' : booking.status
+      })) as Booking[]);
       setBlockedDates(blockedDatesData || []);
       setIsLoading(false);
     };
@@ -596,7 +599,10 @@ const FacilityCalendarPage = () => {
       .lte('booking_date', format(endDate, 'yyyy-MM-dd'))
       .order('booking_date', { ascending: true });
 
-    setBookings(bookingsData || []);
+    setBookings((bookingsData || []).map(booking => ({
+      ...booking,
+      status: booking.status === 'pending' ? 'confirmed' : booking.status
+    })) as Booking[]);
   };
 
   if (isLoading) {

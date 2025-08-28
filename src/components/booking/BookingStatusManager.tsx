@@ -21,7 +21,7 @@ interface Booking {
   booking_date: string;
   start_time: string;
   end_time: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   total_price: number;
   payment_method: string;
   notes?: string;
