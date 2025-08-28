@@ -23,9 +23,19 @@
     <link rel="preconnect" href="https://ukopxkymzywfpobpcana.supabase.co/rest" crossorigin="anonymous" />
     <link rel="preconnect" href="https://ukopxkymzywfpobpcana.supabase.co/storage" crossorigin="anonymous" />
     
-    <!-- Critical resource preloads -->
+    <!-- Critical resource preloads to break dependency chains -->
     <link rel="modulepreload" href="/src/main.tsx" />
     <link rel="modulepreload" href="/src/App.tsx" />
+    <link rel="modulepreload" href="/src/pages/Index.tsx" />
+    
+    <!-- Preload critical dependencies to break the longest chain -->
+    <link rel="preload" href="/assets/useCriticalDataPreloader-ZnYuJbnH.js" as="script" crossorigin />
+    <link rel="preload" href="/assets/index-BKuzMsZ0.js" as="script" crossorigin />
+    
+    <!-- Preload critical chunks for faster loading -->
+    <link rel="modulepreload" href="/src/components/Header.tsx" />
+    <link rel="modulepreload" href="/src/components/HeroSection.tsx" />
+    <link rel="modulepreload" href="/src/components/LazyComponents.tsx" />
     
     <!-- Critical CSS inlined to prevent render-blocking and reduce unused CSS -->
     <style>
