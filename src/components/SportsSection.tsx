@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -192,15 +191,19 @@ const SportsSection = () => {
           {sportsData.map(sport => <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none">
               <CardContent className="p-0">
                 <div className="relative overflow-hidden rounded-t-lg">
-                  <OptimizedImage 
+                  <img 
                     src={sport.image} 
                     alt={sport.name} 
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" 
                     loading="lazy" 
                     width={395} 
                     height={253}
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px" 
-                    quality={70}
+                    onError={(e) => {
+                      console.error(`Failed to load image for ${sport.name}:`, sport.image);
+                      e.currentTarget.style.backgroundColor = '#f3f4f6';
+                      e.currentTarget.style.display = 'block';
+                    }}
+                    onLoad={() => console.log(`Successfully loaded image for ${sport.name}`)}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
