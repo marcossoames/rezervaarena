@@ -139,11 +139,34 @@
       .loading-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
       .loading-spinner { width: 32px; height: 32px; border: 2px solid hsl(210 15% 90%); border-top: 2px solid hsl(210 100% 12%); border-radius: 50%; animation: spin 1s linear infinite; }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      
+      /* Critical below-the-fold styles to reduce unused CSS dependency */
+      .grid { display: grid; }
+      .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+      .gap-8 { gap: 2rem; }
+      .rounded-lg { border-radius: 0.5rem; }
+      .p-6 { padding: 1.5rem; }
+      .space-y-2 > * + * { margin-top: 0.5rem; }
+      .mb-16 { margin-bottom: 4rem; }
+      .py-20 { padding-top: 5rem; padding-bottom: 5rem; }
+      .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+      .text-primary { color: hsl(var(--primary)); }
+      .text-muted-foreground { color: hsl(var(--muted-foreground)); }
+      .bg-secondary\/20 { background-color: hsl(var(--secondary) / 0.2); }
+      .hover\:shadow-elegant:hover { box-shadow: var(--shadow-elegant); }
+      
+      /* Critical responsive grid */
+      @media (min-width: 768px) { 
+        .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (min-width: 1024px) { 
+        .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
     </style>
     
     
-    <!-- Load main CSS asynchronously to prevent render-blocking -->
-    <link rel="preload" href="/src/index.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <!-- Defer main CSS loading until after page is interactive to reduce unused CSS impact -->
+    <link rel="preload" href="/src/index.css" as="style" onload="setTimeout(() => { this.onload=null; this.rel='stylesheet'; }, 100)" />
     <noscript><link rel="stylesheet" href="/src/index.css" /></noscript>
     
     <!-- Preload critical hero image in multiple formats for better performance -->
