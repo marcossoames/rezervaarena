@@ -10,7 +10,7 @@ const HeroSection = () => {
         <OptimizedImage 
           src={heroImage} 
           alt="Facilități sportive moderne" 
-          className="w-full h-full object-cover opacity-20"
+          className="w-full h-full object-cover opacity-15"
           loading="eager"
           fetchPriority="high"
           width={1335}
@@ -18,17 +18,19 @@ const HeroSection = () => {
           sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px"
           quality={70}
         />
-        <div className="absolute inset-0 bg-gradient-hero/60"></div>
+        {/* Strong dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/75 to-primary-light/80"></div>
+        <div className="absolute inset-0 bg-black/20"></div>
       </div>
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-primary-foreground mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
             Rezervă-ți terenul <br />
-            <span className="text-primary-foreground">perfect</span> pentru sport
+            <span className="text-white">perfect</span> pentru sport
           </h1>
           
-          <p className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-white/95 mb-8 max-w-2xl mx-auto drop-shadow-md">
             Găsește și rezervă cele mai bune facilități sportive din orașul tău. 
             Tenis, fotbal, padel, squash, ping pong și multe altele.
           </p>
