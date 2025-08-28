@@ -590,6 +590,12 @@ export type Database = {
           sports_complex_name: string
         }[]
       }
+      get_facility_owner_for_payment: {
+        Args: { facility_id_param: string }
+        Returns: {
+          owner_id: string
+        }[]
+      }
       get_facility_owner_id: {
         Args: { _facility_id: string }
         Returns: string

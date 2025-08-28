@@ -74,23 +74,29 @@ const PaymentPage = () => {
         }
 
         // The function already provides sports complex information
+        // Map from RPC response to Facility interface  
         const facilityWithSportsComplex = {
-          ...data,
-          owner_id: data.id, // We need to get owner_id from a separate query
-          address: data.sports_complex_address?.split(', ')[0] || data.city, // Extract address part
+          id: data.id,
+          name: data.name,
+          description: data.description,
+          facility_type: data.facility_type,
+          city: data.city,
+          address: data.sports_complex_address?.split(', ')[0] || data.city,
+          price_per_hour: data.price_per_hour,
+          capacity: data.capacity,
+          amenities: data.amenities,
+          images: data.images,
+          owner_id: '', // Will be fetched separately
           sports_complex_name: data.sports_complex_name,
           sports_complex_address: data.sports_complex_address,
           phone_number: data.phone_number
         };
 
-        // Get owner_id from facilities table
-        const { data: facilityData, error: facilityError } = await supabase
-          .from('facilities')
-          .select('owner_id')
-          .eq('id', facilityId)
-          .single();
+        // Get owner_id using secure RPC function
+        const { data: ownerData, error: ownerError } = await supabase
+          .rpc('get_facility_owner_for_payment', { facility_id_param: facilityId });
 
-        if (facilityError || !facilityData) {
+        if (ownerError || !ownerData || ownerData.length === 0) {
           toast({
             title: "Eroare",
             description: "Nu s-a putut verifica proprietarul facilității",
@@ -99,7 +105,7 @@ const PaymentPage = () => {
           return;
         }
 
-        facilityWithSportsComplex.owner_id = facilityData.owner_id;
+        facilityWithSportsComplex.owner_id = ownerData[0].owner_id;
         setFacility(facilityWithSportsComplex);
       } catch (error) {
         console.error('Error loading facility:', error);
