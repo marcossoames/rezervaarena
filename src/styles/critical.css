@@ -87,7 +87,7 @@ body {
 .hero-image-optimized { 
   width: 100% !important; 
   max-width: 1335px !important; 
-  height: 751px !important; 
+  height: 600px !important; 
   object-fit: cover; 
   object-position: center; 
 }

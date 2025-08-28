@@ -42,18 +42,18 @@ export const OptimizedImage = ({
   // Calculate precise dimensions based on actual display requirements to prevent waste
   const getTargetDimensions = () => {
     if (fetchPriority === 'high') {
-      // Hero image: exact display dimensions from audit (1335x751)
+      // Hero image: exact display dimensions from audit (1335x600) - force constraint
       return { 
         width: 1335, 
-        height: 751, 
+        height: 600, 
         breakpoints: [640, 768, 1024, 1280, 1335]
       };
     }
     
-    // Card images: exact display dimensions from audit (395x253)
+    // Card images: exact display dimensions from audit (395x192) - force constraint
     return { 
       width: 395, 
-      height: 253, 
+      height: 192, 
       breakpoints: [320, 395]
     };
   };
@@ -65,11 +65,11 @@ export const OptimizedImage = ({
     if (sizes) return sizes;
     
     if (fetchPriority === 'high') {
-      // Hero image: exact sizing for 1335x751 display to prevent waste
+      // Hero image: exact sizing for 1335x600 display to prevent waste
       return '(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px';
     }
     
-    // Card images: exact sizing for 395x253 display to prevent waste
+    // Card images: exact sizing for 395x192 display to prevent waste
     return '(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px';
   };
 
@@ -116,23 +116,11 @@ export const OptimizedImage = ({
   const getImageStyles = () => {
     const baseStyle = {
       ...style,
-      maxWidth: `${targetDimensions.width}px`,
-      maxHeight: `${targetDimensions.height}px`,
-      width: '100%',
-      height: 'auto',
+      width: `${targetDimensions.width}px`,
+      height: `${targetDimensions.height}px`,
       objectFit: 'cover' as const,
       backgroundColor: imageLoaded ? 'transparent' : 'hsl(var(--muted))',
     };
-
-    // Force exact dimensions for card images to prevent 81% waste
-    if (fetchPriority !== 'high') {
-      return {
-        ...baseStyle,
-        width: `${targetDimensions.width}px`,
-        height: `${targetDimensions.height}px`,
-        objectFit: 'cover' as const,
-      };
-    }
 
     return baseStyle;
   };

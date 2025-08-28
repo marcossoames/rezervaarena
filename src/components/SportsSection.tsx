@@ -183,10 +183,10 @@ const SportsSection = () => {
                     <OptimizedImage 
                       src={sport.image} 
                       alt={`Teren de ${sport.name} - facilități sportive moderne`}
-                      className="w-full h-[253px] object-cover group-hover:scale-110 transition-transform duration-300"
+                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                       loading="lazy"
                       width={395}
-                      height={253}
+                      height={192}
                       sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px"
                     />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent"></div>
