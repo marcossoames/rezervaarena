@@ -275,9 +275,9 @@ const FacilityIncomeManagement = () => {
                 <p className="text-sm text-muted-foreground">Perioada: {getPeriodLabel()}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                <SelectTrigger className="w-48 bg-background">
+                <SelectTrigger className="w-full sm:w-48 bg-background">
                   <SelectValue placeholder="Selectează perioada" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg z-50">
@@ -291,7 +291,7 @@ const FacilityIncomeManagement = () => {
                 variant="outline"
                 size="sm"
                 onClick={loadIncomeData}
-                className="hover-scale shadow-sm"
+                className="hover-scale shadow-sm w-full sm:w-auto"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Actualizează
