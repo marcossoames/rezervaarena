@@ -10,7 +10,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import ResponsiveHeader from "@/components/ResponsiveHeader";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
@@ -235,7 +235,7 @@ const PaymentPage = () => {
   if (loading || !facility) {
     return (
       <div className="min-h-screen bg-background">
-        <ResponsiveHeader />
+        <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -249,7 +249,7 @@ const PaymentPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <ResponsiveHeader />
+      <Header />
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">

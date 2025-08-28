@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import ResponsiveHeader from "@/components/ResponsiveHeader";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FacilityIncomeManagement from "@/components/facility/FacilityIncomeManagement";
 
@@ -10,7 +10,7 @@ const FacilityOwnerIncomePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <ResponsiveHeader />
+      <Header />
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">

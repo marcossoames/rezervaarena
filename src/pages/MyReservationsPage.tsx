@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { ro } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import ResponsiveHeader from "@/components/ResponsiveHeader";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
@@ -389,7 +389,7 @@ const MyReservationsPage = () => {
   };
   if (loading) {
     return <div className="min-h-screen bg-background">
-        <ResponsiveHeader />
+        <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -400,7 +400,7 @@ const MyReservationsPage = () => {
       </div>;
   }
   return <div className="min-h-screen bg-background">
-      <ResponsiveHeader />
+      <Header />
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">

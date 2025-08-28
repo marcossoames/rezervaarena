@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, MapPin, Wifi, Users, DollarSign, CalendarDays, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import ResponsiveHeader from "@/components/ResponsiveHeader";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { format, addDays, isBefore, isAfter, startOfDay, isSameDay } from "date-fns";
 import { ro } from "date-fns/locale";
@@ -343,7 +343,7 @@ const BookingPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <ResponsiveHeader />
+        <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -358,7 +358,7 @@ const BookingPage = () => {
   if (!facility) {
     return (
       <div className="min-h-screen bg-background">
-        <ResponsiveHeader />
+        <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">Facilitatea nu a fost găsită</h1>
@@ -374,7 +374,7 @@ const BookingPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <ResponsiveHeader />
+      <Header />
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">

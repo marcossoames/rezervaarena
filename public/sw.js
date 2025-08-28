@@ -12,41 +12,23 @@ const STATIC_ASSETS = [
 
 // Cache strategies - Aggressive caching for static assets
 const CACHE_STRATEGIES = {
-  // Cache images aggressively for 1 year (includes all placeholder images)
+  // Cache images for 1 year (static assets with hashes)
   images: {
     pattern: /\.(png|jpg|jpeg|webp|avif|svg|ico)$/i,
     strategy: 'cache-first',
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
   },
-  // Cache all placeholder images specifically
-  placeholderImages: {
-    pattern: /\/placeholder-.*\.(jpg|png|webp)$/i,
-    strategy: 'cache-first',
-    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-  },
-  // Cache JS/CSS assets for 1 year (they have content hashes in build)
-  staticAssets: {
+  // Cache JS/CSS for 1 year (they have content hashes)
+  assets: {
     pattern: /\/assets\/.*\.(js|css)$/i,
     strategy: 'cache-first', 
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
   },
-  // Cache vendor chunks aggressively (React, Supabase, UI libraries)
-  vendorChunks: {
-    pattern: /\/assets\/.*(vendor|react|supabase|ui|query|icon).*\.(js|css)$/i,
+  // Cache specific hashed assets aggressively
+  hashedAssets: {
+    pattern: /\/assets\/.+\-[a-zA-Z0-9_-]+\.(js|css|jpg|png|webp|avif)$/i,
     strategy: 'cache-first',
-    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year for vendor libraries
-  },
-  // Cache component chunks
-  componentChunks: {
-    pattern: /\/assets\/.*(Section|Header|Footer).*\.(js|tsx)$/i,
-    strategy: 'cache-first',
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days for components
-  },
-  // Cache hero sports images specifically
-  heroImages: {
-    pattern: /\/assets\/.*hero-sports.*\.(jpg|webp|png)$/i,
-    strategy: 'cache-first',
-    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year for hashed assets
   },
   // Never cache authenticated API responses
   api: {
@@ -116,39 +98,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle all static assets with aggressive caching
-  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/placeholder-')) {
+  // Handle static assets with simple caching
+  if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
       caches.open(STATIC_CACHE_NAME).then(cache => {
         return cache.match(request).then(cachedResponse => {
           if (cachedResponse) {
-            // Check cache age for long-term caching (1 year for static assets)
-            const cachedTime = cachedResponse.headers.get('x-cached-time');
-            const maxAge = 365 * 24 * 60 * 60 * 1000; // 1 year
-            
-            if (cachedTime && Date.now() - parseInt(cachedTime) < maxAge) {
-              return cachedResponse;
-            }
+            return cachedResponse;
           }
           
           return fetch(request).then(networkResponse => {
             if (networkResponse.ok) {
-              // Clone response and add cache timestamp
-              const responseToCache = networkResponse.clone();
-              const headers = new Headers(responseToCache.headers);
-              headers.set('x-cached-time', Date.now().toString());
-              headers.set('Cache-Control', 'public, max-age=31536000'); // 1 year
-              
-              const modifiedResponse = new Response(responseToCache.body, {
-                status: responseToCache.status,
-                statusText: responseToCache.statusText,
-                headers: headers
-              });
-              
-              cache.put(request, modifiedResponse);
+              cache.put(request, networkResponse.clone());
             }
             return networkResponse;
-          }).catch(() => cachedResponse || new Response('Offline', { status: 503 }));
+          });
         });
       })
     );

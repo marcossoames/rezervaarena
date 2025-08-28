@@ -40,29 +40,39 @@ const SportsFacilityLogin = () => {
       if (error) throw error;
 
       if (data.user) {
-        // Check if user has facilities using secure RPC
-        const { data: facilities, error } = await supabase.rpc('get_owner_facility_details');
+        // Check if user has facilities (indicating they are a facility owner)
+        const { data: facilities, error: facilityError } = await supabase
+          .from('facilities')
+          .select('id')
+          .eq('owner_id', data.user.id)
+          .limit(1);
 
-        if (error) {
-          console.error('Error checking facilities:', error);
-          toast({
-            title: "Eroare",
-            description: "Eroare la verificarea facilităților.",
-            variant: "destructive"
-          });
-          setIsLoading(false);
-          return;
+        if (facilityError) {
+          console.error('Error checking facilities:', facilityError);
         }
 
         if (facilities && facilities.length > 0) {
+          // User has facilities, redirect to profile page
           navigate('/facility-owner-profile');
         } else {
-          toast({
-            title: "Acces restricționat",
-            description: "Doar proprietarii de facilități pot accesa această secțiune.",
-            variant: "destructive"
-          });
-          await supabase.auth.signOut();
+          // User doesn't have facilities, check their profile comment
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('user_type_comment')
+            .eq('user_id', data.user.id)
+            .single();
+
+          if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+            // They are supposed to be facility owners but have no facilities
+            navigate('/facility-owner-profile');
+          } else {
+            toast({
+              title: "Acces restricționat",
+              description: "Acest cont nu este înregistrat ca proprietar de bază sportivă",
+              variant: "destructive"
+            });
+            await supabase.auth.signOut();
+          }
         }
       }
     } catch (error: any) {

@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
-import ResponsiveHeader from "@/components/ResponsiveHeader";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -109,7 +109,7 @@ const PaymentSuccessPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <ResponsiveHeader />
+      <Header />
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">

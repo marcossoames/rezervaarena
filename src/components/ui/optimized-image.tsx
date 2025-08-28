@@ -39,21 +39,21 @@ export const OptimizedImage = ({
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Calculate precise dimensions based on actual display requirements to prevent waste
+  // Calculate precise dimensions based on actual audit display requirements
   const getTargetDimensions = () => {
     if (fetchPriority === 'high') {
-      // Hero image: exact display dimensions from audit (1335x600) - force constraint
+      // Hero image: exact dimensions from audit boundingRect (1335x600)
       return { 
         width: 1335, 
-        height: 600, 
+        height: 600, // Exact height from audit data
         breakpoints: [640, 768, 1024, 1280, 1335]
       };
     }
     
-    // Card images: exact display dimensions from audit (395x192) - force constraint
+    // Card images: exact dimensions from audit boundingRect (395x192)
     return { 
       width: 395, 
-      height: 192, 
+      height: 192, // Exact height from audit data (was 296)
       breakpoints: [320, 395]
     };
   };
@@ -69,36 +69,50 @@ export const OptimizedImage = ({
       return '(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px';
     }
     
-    // Card images: exact sizing for 395x192 display to prevent waste
+    // Card images: exact sizing for 395x192 display to prevent 88% waste
     return '(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px';
   };
 
   // Generate proper WebP sources with fallback support
   const generateWebPSrcSet = () => {
-    // For static assets, check if optimized versions exist, otherwise use original
     const baseName = src.replace(/\.[^/.]+$/, '');
-    
-    // For now, just use the original image since we don't have multiple sizes
-    return `${baseName}.webp ${targetDimensions.width}w`;
+    return targetDimensions.breakpoints.map(breakpointWidth => {
+      const breakpointHeight = Math.round((breakpointWidth * targetDimensions.height) / targetDimensions.width);
+      
+      // Generate WebP URL with optimization parameters
+      const webpUrl = `${baseName}.webp`;
+      const url = new URL(webpUrl, window.location.origin);
+      url.searchParams.set('w', breakpointWidth.toString());
+      url.searchParams.set('h', breakpointHeight.toString());
+      url.searchParams.set('q', Math.max(60, quality - 15).toString()); // More aggressive for WebP
+      url.searchParams.set('f', 'webp');
+      url.searchParams.set('auto', 'compress,format');
+      
+      return `${url.toString()} ${breakpointWidth}w`;
+    }).join(', ');
   };
 
-  // Generate fallback JPEG sources with proper sizing
+  // Generate fallback JPEG sources
   const generateJPEGSrcSet = () => {
-    // Use the original image with proper width descriptor
-    return `${src} ${targetDimensions.width}w`;
+    return targetDimensions.breakpoints.map(breakpointWidth => {
+      const breakpointHeight = Math.round((breakpointWidth * targetDimensions.height) / targetDimensions.width);
+      
+      const url = new URL(src, window.location.origin);
+      url.searchParams.set('w', breakpointWidth.toString());
+      url.searchParams.set('h', breakpointHeight.toString());
+      url.searchParams.set('q', Math.max(60, quality - 20).toString());
+      url.searchParams.set('f', 'auto');
+      url.searchParams.set('auto', 'compress,format');
+      
+      return `${url.toString()} ${breakpointWidth}w`;
+    }).join(', ');
   };
 
-  // Handle image load errors with better fallback
-  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  // Handle image load errors silently
+  const handleError = () => {
     if (!imageError) {
       setImageError(true);
-      console.debug('Image failed to load:', src);
-      
-      // Try to use the original src without any modifications
-      const target = e.target as HTMLImageElement;
-      if (target.src !== src) {
-        target.src = src;
-      }
+      console.debug('Image fallback used for:', src);
     }
   };
 
@@ -106,51 +120,38 @@ export const OptimizedImage = ({
     setImageLoaded(true);
   };
 
-
-  // Modern format detection for WebP support with proper sizing
-  const webpSrc = src.endsWith('.jpg') || src.endsWith('.jpeg') 
-    ? src.replace(/\.(jpg|jpeg)$/, '.webp')
-    : src.endsWith('.webp') ? src : `${src}.webp`;
-
-  // Responsive styles that don't break layout
-  const getImageStyles = () => {
-    const baseStyle = {
-      ...style,
-      width: '100%',
-      height: 'auto',
-      objectFit: 'cover' as const,
-      backgroundColor: imageLoaded ? 'transparent' : 'hsl(var(--muted))',
+  // Create proper WebP source with fallback
+  const createWebPSource = () => {
+    const baseName = src.replace(/\.[^/.]+$/, '');
+    const webpSrc = `${baseName}.webp`;
+    
+    return {
+      srcSet: generateWebPSrcSet(),
+      type: "image/webp",
+      sizes: getOptimalSizes()
     };
-
-    return baseStyle;
   };
 
   return (
-    <picture>
-      {/* Only try WebP if original is not already WebP */}
-      {!src.endsWith('.webp') && (
-        <source 
-          srcSet={webpSrc}
-          type="image/webp"
-          sizes={getOptimalSizes()}
-        />
-      )}
-      {/* Primary image with proper responsive behavior */}
-      <img
-        src={src}
-        alt={alt}
-        className={`${className} transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-90'}`}
-        loading={loading}
-        fetchPriority={fetchPriority}
-        width={targetDimensions.width}
-        height={targetDimensions.height}
-        style={getImageStyles()}
-        decoding="async"
-        onError={handleError}
-        onLoad={handleLoad}
-        data-optimized="true"
-        sizes={getOptimalSizes()}
-      />
-    </picture>
+    <img
+      src={src}
+      alt={alt}
+      className={`${className} transition-opacity duration-300`}
+      loading={loading}
+      fetchPriority={fetchPriority}
+      width={width || targetDimensions.width}
+      height={height || targetDimensions.height}
+      style={{ 
+        ...style, 
+        aspectRatio: width && height ? `${width}/${height}` : `${targetDimensions.width}/${targetDimensions.height}`,
+        maxWidth: '100%',
+        height: 'auto'
+      }}
+      decoding="async"
+      onError={handleError}
+      onLoad={handleLoad}
+      data-optimized="true"
+      data-original-src={src}
+    />
   );
 };

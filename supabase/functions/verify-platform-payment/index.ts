@@ -3,11 +3,10 @@ import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('APP_BASE_URL') || 'https://sportspot-booker.lovable.app',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Max-Age': '86400',
-  'Access-Control-Allow-Credentials': 'true'
+  'Access-Control-Max-Age': '86400'
 };
 
 const logStep = (step: string, details?: any) => {
@@ -126,36 +125,7 @@ serve(async (req) => {
         status: 200,
       });
     } else {
-      // Payment failed or not completed - MUST authenticate even for failures
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader) {
-        throw new Error('No authorization header provided');
-      }
-
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user }, error: authError } = await supabaseService.auth.getUser(token);
-      
-      if (authError || !user) {
-        throw new Error('Invalid authentication token');
-      }
-
-      // Verify booking ownership before cancellation
-      const { data: booking, error: getBookingError } = await supabaseService
-        .from('bookings')
-        .select('client_id')
-        .eq('stripe_session_id', sessionId)
-        .single();
-
-      if (getBookingError || !booking) {
-        throw new Error('Booking not found for session');
-      }
-
-      if (booking.client_id !== user.id) {
-        throw new Error('Unauthorized: User does not own this booking');
-      }
-
-      logStep("User verified for cancellation");
-
+      // Payment failed or not completed
       const { error: bookingError } = await supabaseService
         .from('bookings')
         .update({ status: 'cancelled' })

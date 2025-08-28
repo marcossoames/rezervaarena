@@ -1,8 +1,8 @@
-import ResponsiveHeader from "@/components/ResponsiveHeader";
-import ResponsiveHeroSection from "@/components/ResponsiveHeroSection";
-import ResponsiveSportsSection from "@/components/ResponsiveSportsSection";
+import Header from "@/components/Header";
+import HeroSection from "@/components/HeroSection";
 import { 
   LazySearchSection, 
+  LazySportsSection, 
   LazyFeaturesSection, 
   LazyFooter 
 } from "@/components/LazyComponents";
@@ -10,16 +10,14 @@ import {
 const Index = () => {
   return (
     <div className="min-h-screen">
-      <ResponsiveHeader />
+      <Header />
       <main>
-        {/* Above-the-fold content optimized for all devices */}
-        <ResponsiveHeroSection />
+        {/* Above-the-fold content loaded immediately */}
+        <HeroSection />
         
-        {/* Critical content loaded immediately for better UX */}
-        <ResponsiveSportsSection />
-        
-        {/* Below-the-fold content loaded lazily */}
+        {/* Below-the-fold content loaded lazily to reduce initial bundle */}
         <LazySearchSection />
+        <LazySportsSection />
         <LazyFeaturesSection />
       </main>
       <LazyFooter />
