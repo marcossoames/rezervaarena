@@ -188,26 +188,32 @@ const SportsSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {sportsData.map(sport => <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none">
-              <CardContent className="p-0">
-                <div className="relative overflow-hidden rounded-t-lg">
-                  <img 
-                    src={sport.image} 
-                    alt={sport.name} 
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" 
-                    loading="lazy" 
-                    width={395} 
-                    height={253}
-                    onError={(e) => {
-                      console.error(`Failed to load image for ${sport.name}:`, sport.image);
-                      e.currentTarget.style.backgroundColor = '#f3f4f6';
-                      e.currentTarget.style.display = 'block';
-                    }}
-                    onLoad={() => console.log(`Successfully loaded image for ${sport.name}`)}
-                  />
+          {sportsData.map(sport => {
+            console.log(`Rendering sport: ${sport.name}, image: ${sport.image}, type: ${sport.type}`);
+            return (
+              <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none">
+                <CardContent className="p-0">
+                  <div className="relative overflow-hidden rounded-t-lg">
+                    <img 
+                      src={sport.image} 
+                      alt={sport.name} 
+                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" 
+                      loading="lazy" 
+                      width={395} 
+                      height={253}
+                      onError={(e) => {
+                        console.error(`❌ Failed to load image for ${sport.name} (${sport.type}):`, sport.image);
+                        const target = e.currentTarget as HTMLImageElement;
+                        target.style.backgroundColor = '#f3f4f6';
+                        target.style.minHeight = '192px';
+                        target.style.display = 'block';
+                      }}
+                      onLoad={() => console.log(`✅ Successfully loaded image for ${sport.name} (${sport.type})`)}
+                    />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
                     <h3 className="text-xl font-bold text-primary-foreground">{sport.name}</h3>
+                    <span className="text-sm text-primary-foreground/80">{sport.type}</span>
                   </div>
                 </div>
                 
@@ -231,7 +237,9 @@ const SportsSection = () => {
                   </Link>
                 </div>
               </CardContent>
-            </Card>)}
+            </Card>
+            );
+          })}
         </div>
       </div>
     </section>;
