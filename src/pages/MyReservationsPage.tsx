@@ -472,7 +472,17 @@ const MyReservationsPage = () => {
           <div className="flex items-center gap-4 mb-4">
             <Button
               variant="ghost"
-              onClick={() => navigate(cameFromManageFacilities ? '/manage-facilities' : '/client-profile')}
+              onClick={() => {
+                if (cameFromManageFacilities) {
+                  navigate('/manage-facilities');
+                } else if (userProfile?.role === 'facility_owner' || userProfile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+                  navigate('/facility-owner-profile');
+                } else if (userProfile?.role === 'admin') {
+                  navigate('/admin-dashboard');
+                } else {
+                  navigate('/client-profile');
+                }
+              }}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
