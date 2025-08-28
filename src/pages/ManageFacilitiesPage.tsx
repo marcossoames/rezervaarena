@@ -235,6 +235,46 @@ const ManageFacilitiesPage = () => {
     }
   };
 
+  const deleteBooking = async (bookingId: string) => {
+    if (!confirm("Ești sigur că vrei să ștergi această rezervare din baza de date? Această acțiune nu poate fi anulată.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succes",
+        description: "Rezervarea a fost ștearsă din baza de date",
+      });
+
+      // Remove from local state
+      setBookings(prev => prev.filter(booking => booking.id !== bookingId));
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut șterge rezervarea",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const canDeleteBooking = (booking: BookingWithDetails) => {
+    const bookingDate = new Date(booking.booking_date);
+    const now = new Date();
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    
+    // For facility owners: can delete bookings older than 1 month and in the past
+    return bookingDate < now && bookingDate < oneMonthAgo;
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Se încarcă...</div>;
   }
@@ -548,20 +588,33 @@ const ManageFacilitiesPage = () => {
                             Actualizează statusul rezervării
                           </span>
                         </div>
-                        <BookingStatusManager 
-                          booking={{
-                            id: booking.id,
-                            booking_date: booking.booking_date,
-                            start_time: booking.start_time,
-                            end_time: booking.end_time,
-                            status: booking.status,
-                            total_price: booking.total_price,
-                            payment_method: booking.payment_method,
-                            notes: '',
-                            client_id: booking.client_id
-                          }}
-                          onStatusUpdate={() => loadBookings(facilities.map(f => f.id))}
-                        />
+                        <div className="flex items-center gap-2">
+                          <BookingStatusManager 
+                            booking={{
+                              id: booking.id,
+                              booking_date: booking.booking_date,
+                              start_time: booking.start_time,
+                              end_time: booking.end_time,
+                              status: booking.status,
+                              total_price: booking.total_price,
+                              payment_method: booking.payment_method,
+                              notes: '',
+                              client_id: booking.client_id
+                            }}
+                            onStatusUpdate={() => loadBookings(facilities.map(f => f.id))}
+                          />
+                          {canDeleteBooking(booking) && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => deleteBooking(booking.id)}
+                              className="text-xs"
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Șterge
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </CardContent>

@@ -14,7 +14,7 @@ import { ro } from "date-fns/locale";
 import { isBlockingTimeAllowed } from "@/utils/dateTimeValidation";
 import { Badge } from "@/components/ui/badge";
 import { DialogTrigger } from "@/components/ui/dialog";
-import { Calendar as CalendarIcon, Clock, MapPin, User, DollarSign, Filter, Ban, X, Building2 } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, User, DollarSign, Filter, Ban, X, Building2, Trash2 } from "lucide-react";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
 import ClientBehaviorStats from "@/components/admin/ClientBehaviorStats";
 import BookingDetailsDialog from "@/components/admin/BookingDetailsDialog";
@@ -305,6 +305,44 @@ const BookingManagement = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const deleteBooking = async (bookingId: string) => {
+    if (!confirm("Ești sigur că vrei să ștergi această rezervare din baza de date? Această acțiune nu poate fi anulată.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succes",
+        description: "Rezervarea a fost ștearsă din baza de date",
+      });
+
+      // Remove from local state
+      setBookings(prev => prev.filter(booking => booking.id !== bookingId));
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut șterge rezervarea",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const canDeleteBooking = (booking: Booking) => {
+    const bookingDate = new Date(booking.booking_date);
+    const now = new Date();
+    
+    // For admin: can delete any past booking
+    return bookingDate < now;
   };
 
   const getStatusBadge = (status: string) => {
@@ -903,6 +941,17 @@ const BookingManagement = () => {
                               onStatusUpdate={() => loadData()}
                               showStatusUpdate={true}
                             />
+                            {canDeleteBooking(booking) && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => deleteBooking(booking.id)}
+                                className="text-xs"
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                Șterge
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CardContent>

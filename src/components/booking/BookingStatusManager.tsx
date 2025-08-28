@@ -44,6 +44,7 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
   const [selectedStatus, setSelectedStatus] = React.useState<string>(booking.status);
   const [notes, setNotes] = React.useState(booking.notes || "");
   const [isUpdating, setIsUpdating] = React.useState(false);
+  const [availableStatuses, setAvailableStatuses] = React.useState<Array<{value: string, label: string, description: string}>>([]);
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -131,7 +132,16 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
     }
   };
 
-  const getAvailableStatuses = () => {
+  const getAvailableStatuses = async () => {
+    // Check if current user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .single();
+    
+    const isAdmin = profile?.role === 'admin';
+    
     // For cash payments that are confirmed/pending, allow completion or no-show
     if (booking.payment_method === 'cash' && ['pending', 'confirmed'].includes(booking.status)) {
       return [
@@ -139,6 +149,16 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
         { value: 'completed', label: 'Finalizată', description: 'Clientul a venit și a plătit' },
         { value: 'no_show', label: 'Lipsă', description: 'Clientul nu s-a prezentat' },
         { value: 'cancelled', label: 'Anulată', description: 'Anulează rezervarea' }
+      ];
+    }
+    
+    // For admin users, exclude pending status
+    if (isAdmin) {
+      return [
+        { value: 'confirmed', label: 'Confirmată', description: 'Rezervarea este confirmată' },
+        { value: 'completed', label: 'Finalizată', description: 'Serviciul a fost prestat' },
+        { value: 'no_show', label: 'Lipsă', description: 'Clientul nu s-a prezentat' },
+        { value: 'cancelled', label: 'Anulată', description: 'Rezervarea a fost anulată' }
       ];
     }
     
@@ -162,7 +182,13 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
       </Badge>
       
       {showStatusUpdate && (
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={async (open) => {
+          if (open) {
+            const statuses = await getAvailableStatuses();
+            setAvailableStatuses(statuses);
+          }
+          setIsDialogOpen(open);
+        }}>
           <DialogTrigger asChild>
             <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
               <Edit className="h-3 w-3" />
@@ -184,7 +210,7 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
                     <SelectValue placeholder="Selectează statusul" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getAvailableStatuses().map(status => (
+                    {availableStatuses.map(status => (
                       <SelectItem key={status.value} value={status.value}>
                         <div className="flex flex-col">
                           <span className="font-medium">{status.label}</span>
