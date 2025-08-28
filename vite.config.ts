@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
-  // Asset handling for modern image formats
+  // Asset handling for modern image formats and responsive images
   assetsInclude: ['**/*.webp', '**/*.avif'],
   resolve: {
     alias: {
@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => ({
           const info = assetInfo.name?.split('.') || [];
           const ext = info[info.length - 1];
           
-          // Different naming strategies for different asset types
+          // Organize images by display size for better caching
           if (/\.(png|jpe?g|webp|avif|svg|ico)$/i.test(assetInfo.name || '')) {
             return `assets/images/[name]-[hash][extname]`;
           }

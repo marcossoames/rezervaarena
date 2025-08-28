@@ -39,21 +39,21 @@ export const OptimizedImage = ({
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Calculate precise dimensions based on actual audit display requirements
+  // Calculate precise dimensions based on actual display requirements to prevent waste
   const getTargetDimensions = () => {
     if (fetchPriority === 'high') {
-      // Hero image: exact dimensions from audit boundingRect (1335x600)
+      // Hero image: exact display dimensions from audit (1335x751)
       return { 
         width: 1335, 
-        height: 600, // Exact height from audit data
+        height: 751, 
         breakpoints: [640, 768, 1024, 1280, 1335]
       };
     }
     
-    // Card images: exact dimensions from audit boundingRect (395x192)
+    // Card images: exact display dimensions from audit (395x253)
     return { 
       width: 395, 
-      height: 192, // Exact height from audit data (was 296)
+      height: 253, 
       breakpoints: [320, 395]
     };
   };
@@ -65,11 +65,11 @@ export const OptimizedImage = ({
     if (sizes) return sizes;
     
     if (fetchPriority === 'high') {
-      // Hero image: exact sizing for 1335x600 display to prevent waste
+      // Hero image: exact sizing for 1335x751 display to prevent waste
       return '(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px';
     }
     
-    // Card images: exact sizing for 395x192 display to prevent 88% waste
+    // Card images: exact sizing for 395x253 display to prevent waste
     return '(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px';
   };
 

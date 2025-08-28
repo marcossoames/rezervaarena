@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { OptimizedImage } from "@/components/ui/optimized-image";
-import heroImage from "@/assets/hero-sports-facility.webp";
+import heroImage from "@/assets/hero-sports-1335x751.webp";
 
 const HeroSection = () => {
   return (
@@ -13,10 +13,10 @@ const HeroSection = () => {
           className="w-full h-full object-cover opacity-60"
           loading="eager"
           fetchPriority="high"
-          width={1920}
-          height={1080}
-          sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1920px"
-          quality={80}
+          width={1335}
+          height={751}
+          sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px"
+          quality={85}
         />
         {/* Gradient overlay mai ușor pentru a păstra vizibilitatea imaginii */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-primary/30 to-primary-light/35"></div>
