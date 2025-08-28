@@ -2,62 +2,50 @@ import { Button } from "@/components/ui/button";
 import { User, Building2, Shield, LogOut, Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
-import { secureSignOut } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useDeferredSupabase } from "@/hooks/useDeferredSupabase";
 
 const Header = () => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { supabase, session } = useDeferredSupabase();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<{
+    role: string;
+    display_name?: string;
+    user_type_comment?: string;
+  } | null>(null);
 
   useEffect(() => {
-    // Get current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchUserProfile(session.user.id);
-      }
-    });
+    if (!session || !supabase) return;
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        if (session) {
-          fetchUserProfile(session.user.id);
-        } else {
-          setUserProfile(null);
+    const fetchUserProfile = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        if (!error) {
+          setUserProfile(data);
         }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
       }
-    );
+    };
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-      
-      if (!error) {
-        setUserProfile(data);
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    }
-  };
+    fetchUserProfile();
+  }, [session, supabase]);
 
   const handleSignOut = async () => {
+    if (!supabase) return;
+    
     try {
+      // Import secureSignOut only when needed to reduce initial bundle
+      const { secureSignOut } = await import('@/utils/authCleanup');
       await secureSignOut(supabase);
     } catch (error) {
       toast({
@@ -117,10 +105,10 @@ const Header = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="px-2"
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
 
@@ -162,34 +150,34 @@ const Header = () => {
         </div>
         
         {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
+        {isMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-card border-b border-border shadow-lg z-50">
             <nav className="px-4 py-3 space-y-2">
               <Link 
                 to="/facilities" 
                 className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => setIsMenuOpen(false)}
               >
                 Terenuri
               </Link>
               <Link 
                 to="/about" 
                 className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => setIsMenuOpen(false)}
               >
                 Despre noi
               </Link>
               <Link 
                 to="/contact" 
                 className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => setIsMenuOpen(false)}
               >
                 Contact
               </Link>
               <Link 
                 to="/articles" 
                 className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => setIsMenuOpen(false)}
               >
                 Articole
               </Link>

@@ -2,8 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { OptimizedImage } from "@/components/ui/optimized-image";
+import { useDeferredSupabaseQuery } from "@/hooks/useDeferredSupabase";
 
 // Debug logging for missing images
 console.log('Checking image imports...');
@@ -123,47 +123,48 @@ const initialSportsData = [{
   minPrice: "0 RON/oră"
 }];
 const SportsSection = () => {
-  const [sportsData, setSportsData] = useState<SportData[]>(initialSportsData);
+  // Use deferred Supabase query to reduce initial bundle size
+  const { data: facilityStats } = useDeferredSupabaseQuery(
+    async (supabase) => {
+      const { data, error } = await supabase.rpc('get_facility_stats_by_type');
+      if (error) {
+        console.debug('Error fetching facility stats:', error);
+        return null;
+      }
+      return data;
+    },
+    null
+  );
+
+  const [sportsData, setSportsData] = useState(initialSportsData);
   
   useEffect(() => {
-    const fetchSportsData = async () => {
-      try {
-        const { data, error } = await supabase.rpc('get_facility_stats_by_type');
-        if (error) {
-          console.debug('Error fetching facility stats:', error);
-          return;
-        }
+    if (!facilityStats) return;
 
-        // Create a map for easy lookup
-        const statsMap: Record<string, { count: number; minPrice: number }> = {};
-        data?.forEach((stat: any) => {
-          statsMap[stat.facility_type] = {
-            count: Number(stat.facility_count),
-            minPrice: Number(stat.min_price)
-          };
-        });
+    // Create a map for easy lookup
+    const statsMap: Record<string, { count: number; minPrice: number }> = {};
+    facilityStats.forEach((stat: any) => {
+      statsMap[stat.facility_type] = {
+        count: Number(stat.facility_count),
+        minPrice: Number(stat.min_price)
+      };
+    });
 
-        // Update sports data with real stats
-        const updatedSportsData = initialSportsData.map(sport => {
-          const sportStats = statsMap[sport.type];
-          if (sportStats) {
-            return {
-              ...sport,
-              facilities: sportStats.count,
-              minPrice: `${sportStats.minPrice} RON/oră`
-            };
-          }
-          return sport;
-        });
-        
-        setSportsData(updatedSportsData);
-      } catch (error) {
-        console.debug('Error fetching sports data:', error);
+    // Update sports data with real stats
+    const updatedSportsData = initialSportsData.map(sport => {
+      const sportStats = statsMap[sport.type];
+      if (sportStats) {
+        return {
+          ...sport,
+          facilities: sportStats.count,
+          minPrice: `${sportStats.minPrice} RON/oră`
+        };
       }
-    };
+      return sport;
+    });
     
-    fetchSportsData();
-  }, []);
+    setSportsData(updatedSportsData);
+  }, [facilityStats]);
   return <section id="terenuri" className="py-20 bg-secondary/20">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
