@@ -10,7 +10,7 @@ const HeroSection = () => {
         <OptimizedImage 
           src={heroImage} 
           alt="Facilități sportive moderne - complex sportiv cu terenuri multiple" 
-          className="w-full h-full object-cover opacity-30"
+          className="w-full h-full object-cover opacity-60"
           loading="eager"
           fetchPriority="high"
           width={1920}
@@ -18,9 +18,9 @@ const HeroSection = () => {
           sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1920px"
           quality={80}
         />
-        {/* Gradient overlay pentru contrast optim al textului */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/70 via-primary/60 to-primary-light/65"></div>
-        <div className="absolute inset-0 bg-black/30"></div>
+        {/* Gradient overlay mai ușor pentru a păstra vizibilitatea imaginii */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-primary/30 to-primary-light/35"></div>
+        <div className="absolute inset-0 bg-black/15"></div>
       </div>
       
       <div className="container mx-auto px-4 relative z-10">
