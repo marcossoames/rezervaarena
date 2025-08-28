@@ -127,29 +127,15 @@ const SportsSection = () => {
   useEffect(() => {
     const fetchSportsData = async () => {
       try {
-        // Try to get cached data first to reduce request chain delays
-        const { getCachedFacilityStats } = await import('@/hooks/useCriticalDataPreloader');
-        const cachedStats = getCachedFacilityStats();
-        
-        let facilityStats;
-        
-        if (cachedStats) {
-          // Use cached data if available
-          facilityStats = cachedStats;
-        } else {
-          // Fallback to direct API call if cache miss
-          const { data, error } = await supabase.rpc('get_facility_stats_by_type');
-          if (error) {
-            // Log error silently without showing toast notifications
-            console.debug('Error fetching facility stats:', error);
-            return;
-          }
-          facilityStats = data;
+        const { data, error } = await supabase.rpc('get_facility_stats_by_type');
+        if (error) {
+          console.debug('Error fetching facility stats:', error);
+          return;
         }
 
         // Create a map for easy lookup
         const statsMap: Record<string, { count: number; minPrice: number }> = {};
-        facilityStats?.forEach((stat: any) => {
+        data?.forEach((stat: any) => {
           statsMap[stat.facility_type] = {
             count: Number(stat.facility_count),
             minPrice: Number(stat.min_price)
@@ -171,7 +157,6 @@ const SportsSection = () => {
         
         setSportsData(updatedSportsData);
       } catch (error) {
-        // Log error silently without showing toast notifications
         console.debug('Error fetching sports data:', error);
       }
     };
