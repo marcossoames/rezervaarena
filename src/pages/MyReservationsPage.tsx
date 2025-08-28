@@ -397,7 +397,7 @@ const MyReservationsPage = () => {
         return (
           <div className="flex items-center gap-1">
             <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">În așteptare</Badge>
-            <div className="text-xs text-muted-foreground" title="Rezervarea așteaptă plata cu cardul sau confirmarea proprietarului pentru plata cash">
+            <div className="text-xs text-muted-foreground" title="Rezervarea așteaptă finalizarea plății cu cardul prin Stripe">
               ℹ️
             </div>
           </div>
