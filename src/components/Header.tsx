@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { User, Building2, Shield, LogOut, Menu, X } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -13,8 +13,36 @@ const Header = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+
+  // Helper function to check if current route is active
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path;
+  };
+
+  // Helper function to get navigation link classes with active state
+  const getNavLinkClasses = (path: string) => {
+    const baseClasses = "text-base font-medium transition-smooth relative after:content-[''] after:absolute after:w-full after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 px-2 py-1";
+    
+    if (isActiveRoute(path)) {
+      return `${baseClasses} text-primary font-bold after:scale-x-100`;
+    } else {
+      return `${baseClasses} text-muted-foreground hover:text-primary after:scale-x-0 hover:after:scale-x-100 hover:after:origin-bottom-left`;
+    }
+  };
+
+  // Helper function for mobile navigation classes
+  const getMobileNavClasses = (path: string) => {
+    const baseClasses = "block text-base font-medium py-2 px-2 rounded-md transition-smooth";
+    
+    if (isActiveRoute(path)) {
+      return `${baseClasses} text-primary font-bold bg-secondary`;
+    } else {
+      return `${baseClasses} text-muted-foreground hover:text-primary hover:bg-secondary`;
+    }
+  };
 
   useEffect(() => {
     // Get current session
@@ -98,16 +126,16 @@ const Header = () => {
           
           {/* Center - Navigation Desktop */}
           <nav className="hidden md:flex items-center justify-center space-x-8 flex-1">
-            <Link to="/facilities" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
+            <Link to="/facilities" className={getNavLinkClasses("/facilities")}>
               Terenuri
             </Link>
-            <Link to="/about" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
+            <Link to="/about" className={getNavLinkClasses("/about")}>
               Despre noi
             </Link>
-            <Link to="/contact" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
+            <Link to="/contact" className={getNavLinkClasses("/contact")}>
               Contact
             </Link>
-            <Link to="/articles" className="text-base font-medium text-muted-foreground hover:text-primary transition-smooth relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left px-2 py-1">
+            <Link to="/articles" className={getNavLinkClasses("/articles")}>
               Articole
             </Link>
           </nav>
@@ -167,28 +195,28 @@ const Header = () => {
             <nav className="px-4 py-3 space-y-2">
               <Link 
                 to="/facilities" 
-                className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
+                className={getMobileNavClasses("/facilities")}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Terenuri
               </Link>
               <Link 
                 to="/about" 
-                className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
+                className={getMobileNavClasses("/about")}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Despre noi
               </Link>
               <Link 
                 to="/contact" 
-                className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
+                className={getMobileNavClasses("/contact")}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Contact
               </Link>
               <Link 
                 to="/articles" 
-                className="block text-base font-medium text-muted-foreground hover:text-primary py-2 px-2 rounded-md hover:bg-secondary transition-smooth"
+                className={getMobileNavClasses("/articles")}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Articole
