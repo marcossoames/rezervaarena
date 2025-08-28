@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { OptimizedImage } from "@/components/ui/optimized-image";
-import heroImage from "@/assets/hero-sports.jpg";
+import heroImage from "@/assets/hero-sports-facility.jpg";
 
 const HeroSection = () => {
   return (
@@ -9,18 +9,18 @@ const HeroSection = () => {
       <div className="absolute inset-0">
         <OptimizedImage 
           src={heroImage} 
-          alt="Facilități sportive moderne" 
-          className="w-full h-full object-cover opacity-15"
+          alt="Facilități sportive moderne - complex sportiv cu terenuri multiple" 
+          className="w-full h-full object-cover opacity-30"
           loading="eager"
           fetchPriority="high"
-          width={1335}
-          height={600}
-          sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1335px"
-          quality={70}
+          width={1920}
+          height={1080}
+          sizes="(max-width: 640px) 640px, (max-width: 768px) 768px, (max-width: 1024px) 1024px, (max-width: 1280px) 1280px, 1920px"
+          quality={80}
         />
-        {/* Strong dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/75 to-primary-light/80"></div>
-        <div className="absolute inset-0 bg-black/20"></div>
+        {/* Gradient overlay pentru contrast optim al textului */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/70 via-primary/60 to-primary-light/65"></div>
+        <div className="absolute inset-0 bg-black/30"></div>
       </div>
       
       <div className="container mx-auto px-4 relative z-10">
