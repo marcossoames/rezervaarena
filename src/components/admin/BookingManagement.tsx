@@ -499,12 +499,13 @@ const BookingManagement = () => {
                 <p className="text-sm text-muted-foreground">({filteredBookings.length} rezervări găsite)</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
               <Dialog open={isBlockModalOpen} onOpenChange={setIsBlockModalOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="hover-scale shadow-sm">
+                  <Button variant="outline" size="sm" className="hover-scale shadow-sm w-full sm:w-auto">
                     <Ban className="h-4 w-4 mr-2" />
-                    Blochează Dată/Oră
+                    <span className="hidden sm:inline">Blochează Dată/Oră</span>
+                    <span className="sm:hidden">Blochează</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="animate-scale-in">
@@ -584,12 +585,12 @@ const BookingManagement = () => {
                 </DialogContent>
               </Dialog>
               
-              <div className="flex gap-1 bg-secondary/50 p-1 rounded-lg shadow-sm">
+              <div className="flex gap-1 bg-secondary/50 p-1 rounded-lg shadow-sm w-full sm:w-auto">
                 <Button
                   variant={viewMode === 'calendar' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('calendar')}
-                  className="transition-all duration-200 hover-scale"
+                  className="transition-all duration-200 hover-scale flex-1 sm:flex-none"
                 >
                   Calendar
                 </Button>
@@ -597,7 +598,7 @@ const BookingManagement = () => {
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className="transition-all duration-200 hover-scale"
+                  className="transition-all duration-200 hover-scale flex-1 sm:flex-none"
                 >
                   Listă
                 </Button>
@@ -607,14 +608,14 @@ const BookingManagement = () => {
         </CardHeader>
         <CardContent className="p-6">
           {/* Filters */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8 p-4 bg-gradient-to-r from-secondary/30 to-secondary/20 rounded-lg border animate-fade-in">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 p-3 sm:p-4 bg-gradient-to-r from-secondary/30 to-secondary/20 rounded-lg border animate-fade-in">
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-primary" />
                 Facilitate
               </label>
               <Select value={selectedFacility} onValueChange={setSelectedFacility}>
-                <SelectTrigger className="bg-background shadow-sm hover:shadow-md transition-shadow">
+                <SelectTrigger className="bg-background shadow-sm hover:shadow-md transition-shadow text-sm">
                   <SelectValue placeholder="Toate facilitățile" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg z-50">
@@ -634,10 +635,11 @@ const BookingManagement = () => {
                 Status
               </label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="bg-background shadow-sm hover:shadow-md transition-shadow">
+                <SelectTrigger className="bg-background shadow-sm hover:shadow-md transition-shadow text-sm">
                   <SelectValue placeholder="Toate statusurile" />
                 </SelectTrigger>
                  <SelectContent className="bg-background border shadow-lg z-50">
+                   <SelectItem value="all" className="hover:bg-accent">Toate statusurile</SelectItem>
                    <SelectItem value="confirmed" className="hover:bg-accent">Confirmată</SelectItem>
                    <SelectItem value="cancelled" className="hover:bg-accent">Anulată</SelectItem>
                    <SelectItem value="completed" className="hover:bg-accent">Finalizată</SelectItem>
@@ -652,7 +654,7 @@ const BookingManagement = () => {
                 Tip sport
               </label>
               <Select value={selectedSportType} onValueChange={setSelectedSportType}>
-                <SelectTrigger className="bg-background shadow-sm hover:shadow-md transition-shadow">
+                <SelectTrigger className="bg-background shadow-sm hover:shadow-md transition-shadow text-sm">
                   <SelectValue placeholder="Toate sporturile" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg z-50">
@@ -670,8 +672,8 @@ const BookingManagement = () => {
           {/* Unified Calendar View */}
           {viewMode === 'calendar' && (
             <div className="mb-8 animate-fade-in">
-              <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-4 rounded-lg border border-primary/20 mb-6">
-                <div className="flex items-center justify-between">
+              <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-3 sm:p-4 rounded-lg border border-primary/20 mb-4 sm:mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
                   <div>
                     <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                       <CalendarIcon className="h-5 w-5" />
@@ -679,23 +681,23 @@ const BookingManagement = () => {
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1">Navigează prin luni și click pe o zi pentru detalii</p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigateMonth('prev')}
-                      className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                      className="hover:bg-primary hover:text-primary-foreground transition-colors flex-shrink-0"
                     >
                       ←
                     </Button>
-                    <span className="text-lg font-semibold min-w-[200px] text-center">
+                    <span className="text-base sm:text-lg font-semibold text-center flex-1 sm:min-w-[180px]">
                       {format(currentMonth, 'MMMM yyyy', { locale: ro })}
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigateMonth('next')}
-                      className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                      className="hover:bg-primary hover:text-primary-foreground transition-colors flex-shrink-0"
                     >
                       →
                     </Button>
@@ -703,21 +705,22 @@ const BookingManagement = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-7 gap-2 mb-4">
+              <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-3 sm:mb-4">
                 {['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'].map(day => (
-                  <div key={day} className="text-center text-sm font-medium p-3 bg-secondary/30 rounded-lg border">
-                    {day}
+                  <div key={day} className="text-center text-xs sm:text-sm font-medium p-2 sm:p-3 bg-secondary/30 rounded-lg border">
+                    <span className="hidden sm:inline">{day}</span>
+                    <span className="sm:hidden">{day.slice(0, 3)}</span>
                   </div>
                 ))}
               </div>
               
-              <div className="grid grid-cols-7 gap-3">
+              <div className="grid grid-cols-7 gap-1 sm:gap-3">
                 {getCalendarDays().map((day, index) => {
                   const isCurrentMonth = day.date.getMonth() === currentMonth.getMonth();
                   return (
                     <div
                       key={index}
-                      className={`min-h-32 border-2 rounded-xl p-3 cursor-pointer transition-all duration-300 hover-scale shadow-sm hover:shadow-lg ${
+                      className={`min-h-24 sm:min-h-32 border-2 rounded-lg sm:rounded-xl p-1 sm:p-3 cursor-pointer transition-all duration-300 hover-scale shadow-sm hover:shadow-lg ${
                         !isCurrentMonth ? 'opacity-50 bg-muted/20' :
                         day.isToday ? 'bg-gradient-to-br from-primary/20 to-primary/10 border-primary shadow-md' : 
                         day.isSelected ? 'bg-gradient-to-br from-secondary/50 to-secondary/30 border-primary shadow-md' : 
@@ -735,18 +738,18 @@ const BookingManagement = () => {
                         }
                       }}
                     >
-                      <div className={`text-sm font-semibold mb-2 ${
+                      <div className={`text-xs sm:text-sm font-semibold mb-1 sm:mb-2 ${
                         !isCurrentMonth ? 'text-muted-foreground' :
                         day.isToday ? 'text-primary' : 'text-foreground'
                       }`}>
                         {format(day.date, 'd')}
-                        {day.isToday && <span className="ml-1 text-xs">(azi)</span>}
+                        {day.isToday && <span className="ml-1 text-[10px] sm:text-xs">(azi)</span>}
                       </div>
                        <div className="space-y-1">
-                         {day.bookings.slice(0, 2).map((booking, idx) => (
+                         {day.bookings.slice(0, 1).map((booking, idx) => (
                            <div
                              key={idx}
-                              className={`text-xs p-2 rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 cursor-pointer ${getFacilityTypeColor(booking.facility_type)} ${
+                              className={`text-[10px] sm:text-xs p-1 sm:p-2 rounded-md sm:rounded-lg text-white shadow-sm font-medium transition-all hover:scale-105 cursor-pointer ${getFacilityTypeColor(booking.facility_type)} ${
                                 booking.status === 'cancelled' ? 'opacity-60 line-through' :
                                 ''
                               }`}
@@ -758,25 +761,25 @@ const BookingManagement = () => {
                              }}
                            >
                              <div className="flex items-center gap-1">
-                               <Clock className="h-3 w-3" />
-                               {booking.start_time}
+                               <Clock className="h-2 w-2 sm:h-3 sm:w-3" />
+                               <span className="truncate">{booking.start_time}</span>
                              </div>
-                             <div className="text-[10px] opacity-90 truncate">
+                             <div className="text-[8px] sm:text-[10px] opacity-90 truncate hidden sm:block">
                                {getFacilityTypeLabel(booking.facility_type)}
                              </div>
                            </div>
                         ))}
                         {day.blockedTimes.length > 0 && (
-                          <div className="text-xs p-2 rounded-lg bg-gradient-to-r from-black to-gray-800 text-white shadow-sm">
+                          <div className="text-[10px] sm:text-xs p-1 sm:p-2 rounded-md sm:rounded-lg bg-gradient-to-r from-black to-gray-800 text-white shadow-sm">
                             <div className="flex items-center gap-1">
-                              <Ban className="h-3 w-3" />
-                              Blocat
+                              <Ban className="h-2 w-2 sm:h-3 sm:w-3" />
+                              <span className="truncate">Blocat</span>
                             </div>
                           </div>
                         )}
-                        {day.bookings.length > 2 && (
-                          <div className="text-xs text-muted-foreground font-medium bg-secondary/50 p-1 rounded">
-                            +{day.bookings.length - 2} mai multe
+                        {day.bookings.length > 1 && (
+                          <div className="text-[8px] sm:text-xs text-muted-foreground font-medium bg-secondary/50 p-1 rounded text-center">
+                            +{day.bookings.length - 1}
                           </div>
                         )}
                       </div>
