@@ -555,6 +555,7 @@ export type Database = {
           amenities: string[]
           area_info: string
           capacity: number
+          capacity_max: number
           city: string
           description: string
           facility_type: Database["public"]["Enums"]["facility_type"]
