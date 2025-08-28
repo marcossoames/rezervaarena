@@ -134,32 +134,8 @@
     </style>
     
     
-    <!-- Optimized CSS loading: Load main CSS asynchronously to prevent blocking -->
-    <script>
-      // Load full CSS asynchronously after critical styles
-      (function() {
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = '/src/index.css';
-        link.media = 'print';
-        link.onload = function() { 
-          this.media = 'all';
-          this.onload = null;
-        };
-        document.head.appendChild(link);
-        
-        // Fallback
-        setTimeout(function() {
-          if (link.media === 'print') link.media = 'all';
-        }, 100);
-      })();
-    </script>
-    
-    <!-- Preload hint -->
-    <link rel="preload" href="/src/index.css" as="style" />
-    
-    <!-- No-JS fallback -->
-    <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
+    <!-- Load main CSS normally to prevent blank page -->
+    <link rel="stylesheet" href="/src/index.css" />
     
     <!-- Preload critical hero image in multiple formats for better performance -->
     <link rel="preload" as="image" href="/src/assets/hero-sports.webp" type="image/webp" fetchpriority="high" />
@@ -203,27 +179,15 @@
       }
     </script>
     
-    <!-- Optimized CSS loading and app initialization -->
+    <!-- Remove loading fallback once app mounts -->
     <script>
-      // Remove loading fallback once app mounts and ensure CSS is loaded
       document.addEventListener('DOMContentLoaded', function() {
-        // Ensure critical styles are applied immediately
-        const loadingEl = document.querySelector('.loading-container');
-        
-        // Wait for fonts and critical resources to load
         setTimeout(function() {
+          const loadingEl = document.querySelector('.loading-container');
           if (loadingEl && document.querySelector('main')) {
             loadingEl.style.display = 'none';
           }
-        }, 50);
-        
-        // Fallback CSS loading for browsers that don't support onload
-        if (!window.CSS || !CSS.supports('display', 'grid')) {
-          var cssLink = document.createElement('link');
-          cssLink.rel = 'stylesheet';
-          cssLink.href = '/src/index.css';
-          document.head.appendChild(cssLink);
-        }
+        }, 100);
       });
     </script>
   </body>
