@@ -133,38 +133,9 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
   };
 
   const getAvailableStatuses = async () => {
-    // Check if current user is admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-      .single();
-    
-    const isAdmin = profile?.role === 'admin';
-    
-    // For cash payments that are confirmed/pending, allow completion or no-show
-    if (booking.payment_method === 'cash' && ['pending', 'confirmed'].includes(booking.status)) {
-      return [
-        { value: 'confirmed', label: 'Confirmată', description: 'Rezervarea este confirmată' },
-        { value: 'completed', label: 'Finalizată', description: 'Clientul a venit și a plătit' },
-        { value: 'no_show', label: 'Lipsă', description: 'Clientul nu s-a prezentat' },
-        { value: 'cancelled', label: 'Anulată', description: 'Anulează rezervarea' }
-      ];
-    }
-    
-    // For admin users, exclude pending status
-    if (isAdmin) {
-      return [
-        { value: 'confirmed', label: 'Confirmată', description: 'Rezervarea este confirmată' },
-        { value: 'completed', label: 'Finalizată', description: 'Serviciul a fost prestat' },
-        { value: 'no_show', label: 'Lipsă', description: 'Clientul nu s-a prezentat' },
-        { value: 'cancelled', label: 'Anulată', description: 'Rezervarea a fost anulată' }
-      ];
-    }
-    
-    // For card payments or other cases
+    // Always exclude pending status since we simplified the booking flow
+    // Cash bookings are immediately confirmed, card payments are handled via Stripe
     return [
-      { value: 'pending', label: 'În așteptare', description: 'Rezervarea așteaptă confirmarea' },
       { value: 'confirmed', label: 'Confirmată', description: 'Rezervarea este confirmată' },
       { value: 'completed', label: 'Finalizată', description: 'Serviciul a fost prestat' },
       { value: 'no_show', label: 'Lipsă', description: 'Clientul nu s-a prezentat' },
