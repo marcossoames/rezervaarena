@@ -130,29 +130,44 @@
     </style>
     
     
-    <!-- Load non-critical CSS asynchronously to reduce unused CSS impact -->
-    <link rel="preload" href="/src/index.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
-    
-    <!-- Enhanced async CSS loading for better render performance -->
+    <!-- Advanced non-blocking CSS loading strategy -->
     <script>
-      // Immediate async CSS loading to prevent render blocking
+      // Critical performance: Load CSS without blocking render
       (function() {
-        var cssLink = document.createElement('link');
-        cssLink.rel = 'stylesheet';
-        cssLink.href = '/src/index.css';
-        cssLink.media = 'print';
-        cssLink.onload = function() { this.media = 'all'; };
-        document.head.appendChild(cssLink);
+        // Method 1: Immediate non-blocking load
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/src/index.css';
+        link.media = 'print'; // Initially load as print to avoid blocking
+        link.onload = function() { 
+          this.media = 'all'; // Switch to all media once loaded
+          this.onload = null; // Cleanup
+        };
+        document.head.appendChild(link);
         
-        // Fallback for browsers without onload support
+        // Method 2: Fallback timer for browsers without onload support
         setTimeout(function() {
-          if (cssLink.media === 'print') {
-            cssLink.media = 'all';
+          if (link.media === 'print') {
+            link.media = 'all';
           }
         }, 100);
+        
+        // Method 3: Request animation frame for optimal timing
+        if (window.requestAnimationFrame) {
+          requestAnimationFrame(function() {
+            if (link.media === 'print') {
+              link.media = 'all';
+            }
+          });
+        }
       })();
     </script>
+    
+    <!-- Preload hint for faster discovery -->
+    <link rel="preload" href="/src/index.css" as="style" />
+    
+    <!-- Critical fallback for no-JS users -->
+    <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
     
     <!-- Preload critical hero image in multiple formats for better performance -->
     <link rel="preload" as="image" href="/src/assets/hero-sports.webp" type="image/webp" fetchpriority="high" />
