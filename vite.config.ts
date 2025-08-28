@@ -44,21 +44,56 @@ export default defineConfig(({ mode }) => ({
           }
           return `assets/[name]-[hash][extname]`;
         },
-        manualChunks: {
-          // Core React dependencies
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          // UI component libraries
-          'ui-vendor': ['@radix-ui/react-accordion', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-slot', '@radix-ui/react-toast'],
-          // Data fetching
-          'query-vendor': ['@tanstack/react-query'],
-          // Backend integration
-          'supabase-vendor': ['@supabase/supabase-js'],
-          // Form handling
-          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          // Charts and visualization
-          'chart-vendor': ['recharts'],
-          // Icons
-          'icon-vendor': ['lucide-react']
+        manualChunks: (id) => {
+          // Core React dependencies - essential for all pages
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+            return 'react-vendor';
+          }
+          
+          // Critical UI components needed immediately
+          if (id.includes('@radix-ui/react-slot') || id.includes('class-variance-authority')) {
+            return 'ui-critical';
+          }
+          
+          // Non-critical UI components (dialogs, dropdowns, etc.)
+          if (id.includes('@radix-ui') && !id.includes('slot')) {
+            return 'ui-vendor';
+          }
+          
+          // Supabase - only loaded when needed for auth/data
+          if (id.includes('@supabase/supabase-js')) {
+            return 'supabase-vendor';
+          }
+          
+          // Query client - only for data fetching
+          if (id.includes('@tanstack/react-query')) {
+            return 'query-vendor';
+          }
+          
+          // Form handling - only loaded with forms
+          if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+            return 'form-vendor';
+          }
+          
+          // Charts - only loaded with dashboards
+          if (id.includes('recharts')) {
+            return 'chart-vendor';
+          }
+          
+          // Icons - frequently used, small chunk
+          if (id.includes('lucide-react')) {
+            return 'icon-vendor';
+          }
+          
+          // Date utilities - loaded with calendars
+          if (id.includes('date-fns') || id.includes('react-day-picker')) {
+            return 'date-vendor';
+          }
+          
+          // Node modules vendor chunk
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
         }
       }
     },

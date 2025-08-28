@@ -1,22 +1,17 @@
 import { lazy, Suspense } from 'react';
 
-// Lazy load below-the-fold components with optimized imports to reduce vendor bundle usage
+// Lazy load below-the-fold components with minimal vendor bundle usage
 const OptimizedSearchSection = lazy(() => import('@/components/OptimizedSearchSection'));
 const OptimizedSportsSection = lazy(() => import('@/components/OptimizedSportsSection'));
 const FeaturesSection = lazy(() => import('@/components/FeaturesSection'));
 const Footer = lazy(() => import('@/components/Footer'));
 
-// Minimal loading fallbacks to prevent layout shift
+// Ultra-minimal loading fallbacks to reduce initial bundle size
 const MinimalLoader = () => (
-  <div className="py-8">
-    <div className="container mx-auto px-4">
-      <div className="h-6 bg-muted rounded w-48 mx-auto mb-4 animate-pulse"></div>
-      <div className="h-4 bg-muted rounded w-64 mx-auto animate-pulse"></div>
-    </div>
-  </div>
+  <div className="h-20 bg-muted/20 animate-pulse" />
 );
 
-// Wrapper components with optimized loading
+// Wrapper components with minimal loading states
 export const LazySearchSection = () => (
   <Suspense fallback={<MinimalLoader />}>
     <OptimizedSearchSection />
@@ -36,7 +31,7 @@ export const LazyFeaturesSection = () => (
 );
 
 export const LazyFooter = () => (
-  <Suspense fallback={<div className="h-20 bg-muted animate-pulse"></div>}>
+  <Suspense fallback={<div className="h-16 bg-muted/20" />}>
     <Footer />
   </Suspense>
 );
