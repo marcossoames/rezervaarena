@@ -34,7 +34,7 @@ interface Booking {
   booking_date: string;
   start_time: string;
   end_time: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   total_price: number;
   payment_method: string;
   notes?: string;
@@ -192,8 +192,6 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />În așteptare</Badge>;
       case 'confirmed':
         return <Badge variant="default" className="bg-blue-100 text-blue-800"><CheckCircle className="w-3 h-3 mr-1" />Confirmată</Badge>;
       case 'completed':
@@ -411,7 +409,6 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">În așteptare</SelectItem>
                       <SelectItem value="confirmed">Confirmată</SelectItem>
                       <SelectItem value="completed">Finalizată</SelectItem>
                       <SelectItem value="cancelled">Anulată</SelectItem>

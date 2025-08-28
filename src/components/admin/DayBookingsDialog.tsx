@@ -10,7 +10,7 @@ interface Booking {
   booking_date: string;
   start_time: string;
   end_time: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   total_price: number;
   notes?: string;
   created_at: string;
@@ -34,14 +34,13 @@ interface DayBookingsDialogProps {
 const DayBookingsDialog = ({ date, bookings, isOpen, onClose, onSelectBooking }: DayBookingsDialogProps) => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { label: "În așteptare", variant: "secondary" as const },
       confirmed: { label: "Confirmată", variant: "default" as const },
       cancelled: { label: "Anulată", variant: "destructive" as const },
       completed: { label: "Finalizată", variant: "outline" as const },
       no_show: { label: "Lipsă", variant: "destructive" as const }
     };
     
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.confirmed;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 

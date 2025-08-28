@@ -41,7 +41,6 @@ const UserBookingsDialog = ({ userId, userName, userEmail, isOpen, onClose }: Us
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
-    pending: 0,
     confirmed: 0,
     completed: 0,
     cancelled: 0,
@@ -82,7 +81,6 @@ const UserBookingsDialog = ({ userId, userName, userEmail, isOpen, onClose }: Us
       const bookingsList = bookingsData || [];
       const stats = {
         total: bookingsList.length,
-        pending: bookingsList.filter(b => b.status === 'pending').length,
         confirmed: bookingsList.filter(b => b.status === 'confirmed').length,
         completed: bookingsList.filter(b => b.status === 'completed').length,
         cancelled: bookingsList.filter(b => b.status === 'cancelled').length,
@@ -105,8 +103,6 @@ const UserBookingsDialog = ({ userId, userName, userEmail, isOpen, onClose }: Us
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />În așteptare</Badge>;
       case 'confirmed':
         return <Badge variant="default" className="bg-blue-100 text-blue-800"><CheckCircle className="w-3 h-3 mr-1" />Confirmată</Badge>;
       case 'completed':
