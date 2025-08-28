@@ -75,45 +75,17 @@ export const OptimizedImage = ({
 
   // Generate proper WebP sources with fallback support
   const generateWebPSrcSet = () => {
-    // For static assets, create optimized versions at different sizes
+    // For static assets, check if optimized versions exist, otherwise use original
     const baseName = src.replace(/\.[^/.]+$/, '');
     
-    if (fetchPriority === 'high') {
-      // Hero image: Generate multiple sizes for the exact 1335x600 display
-      return [
-        `${baseName}-640.webp 640w`,
-        `${baseName}-768.webp 768w`, 
-        `${baseName}-1024.webp 1024w`,
-        `${baseName}-1280.webp 1280w`,
-        `${baseName}.webp 1335w`
-      ].join(', ');
-    }
-    
-    // Card images: Generate optimized sizes for 395x192 display
-    return [
-      `${baseName}-320.webp 320w`,
-      `${baseName}.webp 395w`
-    ].join(', ');
+    // For now, just use the original image since we don't have multiple sizes
+    return `${baseName}.webp ${targetDimensions.width}w`;
   };
 
   // Generate fallback JPEG sources with proper sizing
   const generateJPEGSrcSet = () => {
-    if (fetchPriority === 'high') {
-      // Hero image: Multiple responsive sizes
-      return [
-        `${src.replace('.jpg', '-640.jpg')} 640w`,
-        `${src.replace('.jpg', '-768.jpg')} 768w`,
-        `${src.replace('.jpg', '-1024.jpg')} 1024w`, 
-        `${src.replace('.jpg', '-1280.jpg')} 1280w`,
-        `${src} 1335w`
-      ].join(', ');
-    }
-    
-    // Card images: Optimized for exact display size
-    return [
-      `${src.replace('.jpg', '-320.jpg')} 320w`,
-      `${src} 395w`
-    ].join(', ');
+    // Use the original image with proper width descriptor
+    return `${src} ${targetDimensions.width}w`;
   };
 
   // Handle image load errors silently
@@ -130,36 +102,27 @@ export const OptimizedImage = ({
 
 
   return (
-    <picture>
-      {supportsWebP && (
-        <source
-          srcSet={generateWebPSrcSet()}
-          sizes={getOptimalSizes()}
-          type="image/webp"
-        />
-      )}
-      <img
-        src={src}
-        srcSet={generateJPEGSrcSet()}
-        alt={alt}
-        className={`${className} transition-opacity duration-300`}
-        loading={loading}
-        fetchPriority={fetchPriority}
-        width={width || targetDimensions.width}
-        height={height || targetDimensions.height}
-        sizes={getOptimalSizes()}
-        style={{ 
-          ...style, 
-          aspectRatio: width && height ? `${width}/${height}` : `${targetDimensions.width}/${targetDimensions.height}`,
-          maxWidth: '100%',
-          height: 'auto'
-        }}
-        decoding="async"
-        onError={handleError}
-        onLoad={handleLoad}
-        data-optimized="true"
-        data-original-src={src}
-      />
-    </picture>
+    <img
+      src={src}
+      srcSet={generateJPEGSrcSet()}
+      alt={alt}
+      className={`${className} transition-opacity duration-300`}
+      loading={loading}
+      fetchPriority={fetchPriority}
+      width={width || targetDimensions.width}
+      height={height || targetDimensions.height}
+      sizes={getOptimalSizes()}
+      style={{ 
+        ...style, 
+        aspectRatio: width && height ? `${width}/${height}` : `${targetDimensions.width}/${targetDimensions.height}`,
+        maxWidth: '100%',
+        height: 'auto'
+      }}
+      decoding="async"
+      onError={handleError}
+      onLoad={handleLoad}
+      data-optimized="true"
+      data-original-src={src}
+    />
   );
 };
