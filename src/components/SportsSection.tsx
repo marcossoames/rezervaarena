@@ -17,8 +17,17 @@ const basketballImage = "/placeholder-basketball.jpg";
 const volleyballImage = "/placeholder-volleyball.jpg";
 const pingPongImage = "/placeholder-ping-pong.jpg";
 const footTennisImage = "/placeholder-foot-tennis.jpg";
+const swimmingImage = "/placeholder-swimming.jpg";
 
 console.log('Tennis image path:', tennisImage);
+console.log('Available image files:', {
+  tennis: tennisImage,
+  football: footballImage,
+  padel: padelImage,
+  basketball: basketballImage,
+  volleyball: volleyballImage,
+  swimming: swimmingImage
+});
 interface SportData {
   id: number;
   name: string;
@@ -78,6 +87,14 @@ const initialSportsData = [{
   minPrice: "0 RON/oră"
 }, {
   id: 7,
+  name: "Înot",
+  type: "swimming",
+  image: swimmingImage,
+  description: "Piscine profesionale pentru înot și sporturi acvatice",
+  facilities: 0,
+  minPrice: "0 RON/oră"
+}, {
+  id: 8,
   name: "Tenis de Picior",
   type: "foot_tennis",
   image: footTennisImage,
@@ -85,7 +102,7 @@ const initialSportsData = [{
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
-  id: 8,
+  id: 9,
   name: "Ping Pong",
   type: "ping_pong",
   image: pingPongImage,
