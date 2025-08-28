@@ -60,8 +60,7 @@ const PaymentPage = () => {
 
       try {
         const { data, error } = await supabase
-          .rpc('get_facilities_for_authenticated_users')
-          .eq('id', facilityId)
+          .rpc('get_facility_for_payment_secure', { facility_id_param: facilityId })
           .single();
 
         if (error || !data) {
@@ -73,39 +72,25 @@ const PaymentPage = () => {
           return;
         }
 
-        // The function already provides sports complex information
-        // Map from RPC response to Facility interface  
+        // The function already provides all needed data including owner_id
         const facilityWithSportsComplex = {
           id: data.id,
           name: data.name,
-          description: data.description,
+          description: '', // Not needed for payment page
           facility_type: data.facility_type,
           city: data.city,
-          address: data.sports_complex_address?.split(', ')[0] || data.city,
+          address: data.city, // Use city as fallback for address
           price_per_hour: data.price_per_hour,
           capacity: data.capacity,
           amenities: data.amenities,
           images: data.images,
-          owner_id: '', // Will be fetched separately
+          owner_id: data.owner_id,
           sports_complex_name: data.sports_complex_name,
-          sports_complex_address: data.sports_complex_address,
-          phone_number: data.phone_number
+          sports_complex_address: data.city, // Use city as sports complex address
+          phone_number: '' // Don't expose phone for security
         };
 
-        // Get owner_id using secure RPC function
-        const { data: ownerData, error: ownerError } = await supabase
-          .rpc('get_facility_owner_for_payment', { facility_id_param: facilityId });
-
-        if (ownerError || !ownerData || ownerData.length === 0) {
-          toast({
-            title: "Eroare",
-            description: "Nu s-a putut verifica proprietarul facilității",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        facilityWithSportsComplex.owner_id = ownerData[0].owner_id;
+        // Owner ID is already included in the response
         setFacility(facilityWithSportsComplex);
       } catch (error) {
         console.error('Error loading facility:', error);

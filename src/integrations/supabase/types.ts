@@ -590,6 +590,21 @@ export type Database = {
           sports_complex_name: string
         }[]
       }
+      get_facility_for_payment_secure: {
+        Args: { facility_id_param: string }
+        Returns: {
+          amenities: string[]
+          capacity: number
+          city: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          id: string
+          images: string[]
+          name: string
+          owner_id: string
+          price_per_hour: number
+          sports_complex_name: string
+        }[]
+      }
       get_facility_owner_for_payment: {
         Args: { facility_id_param: string }
         Returns: {
