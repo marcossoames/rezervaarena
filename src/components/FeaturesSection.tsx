@@ -4,18 +4,13 @@ import { Calendar, CreditCard, Clock, Shield } from "lucide-react";
 const features = [
   {
     icon: Calendar,
-    title: "Rezervare Instantanee",
-    description: "Rezervă terenul în doar câteva click-uri pentru următoarele 2 săptămâni"
+    title: "Rezervare Instantanee & Program Flexibil",
+    description: "Rezervă terenul în doar câteva click-uri pentru următoarele 2 săptămâni pe intervale de 30 de minute, adaptate programului tău"
   },
   {
     icon: CreditCard,
     title: "Plată Securizată",
     description: "Sistem de plăți securizat cu confirmarea rezervării în timp real"
-  },
-  {
-    icon: Clock,
-    title: "Program Flexibil",
-    description: "Rezervă pe intervale de 30 de minute, adaptate programului tău"
   },
   {
     icon: Shield,
