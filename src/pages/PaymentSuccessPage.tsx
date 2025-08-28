@@ -15,6 +15,7 @@ const PaymentSuccessPage = () => {
   
   const [paymentStatus, setPaymentStatus] = useState<'loading' | 'success' | 'failed'>('loading');
   const [isLoading, setIsLoading] = useState(true);
+  const [bookingId, setBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -46,10 +47,16 @@ const PaymentSuccessPage = () => {
 
         if (data.status === 'success') {
           setPaymentStatus('success');
+          setBookingId(data.bookingId);
           toast({
             title: "Plată reușită!",
             description: "Plata a fost procesată cu succes! Rezervarea dumneavoastră a fost confirmată.",
           });
+          
+          // Redirect to the specific booking after successful payment
+          setTimeout(() => {
+            window.location.href = `/my-reservations?highlight=${data.bookingId || 'latest'}`;
+          }, 2000);
         } else {
           setPaymentStatus('failed');
           toast({
@@ -135,11 +142,16 @@ const PaymentSuccessPage = () => {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {paymentStatus === 'success' && (
-                  <Link to="/my-reservations">
-                    <Button className="w-full sm:w-auto">
-                      Vezi rezervările mele
-                    </Button>
-                  </Link>
+                  <>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Veți fi redirectionat automat către rezervarea dumneavoastră în 2 secunde...
+                    </p>
+                    <Link to={`/my-reservations?highlight=${bookingId || 'latest'}`}>
+                      <Button className="w-full sm:w-auto">
+                        Vezi rezervarea făcută
+                      </Button>
+                    </Link>
+                  </>
                 )}
                 
                 <Link to="/">

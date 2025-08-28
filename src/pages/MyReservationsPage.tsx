@@ -54,6 +54,7 @@ const MyReservationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,6 +65,37 @@ const MyReservationsPage = () => {
   useEffect(() => {
     loadBookings();
   }, []);
+
+  // Handle highlighting specific booking from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const highlightId = urlParams.get('highlight');
+    if (highlightId && highlightId !== 'latest') {
+      // Scroll to specific booking
+      setTimeout(() => {
+        const element = document.getElementById(`booking-${highlightId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('ring-2', 'ring-primary', 'ring-opacity-50');
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-primary', 'ring-opacity-50');
+          }, 3000);
+        }
+      }, 500);
+    } else if (highlightId === 'latest') {
+      // Scroll to top and highlight the first (latest) booking
+      setTimeout(() => {
+        const firstBooking = document.querySelector('[id^="booking-"]') as HTMLElement;
+        if (firstBooking) {
+          firstBooking.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          firstBooking.classList.add('ring-2', 'ring-primary', 'ring-opacity-50');
+          setTimeout(() => {
+            firstBooking.classList.remove('ring-2', 'ring-primary', 'ring-opacity-50');
+          }, 3000);
+        }
+      }, 500);
+    }
+  }, [location.search, bookings]);
 
   const checkUserRole = async (user: any) => {
     const { data: profile } = await supabase
@@ -362,7 +394,14 @@ const MyReservationsPage = () => {
       case 'confirmed':
         return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Confirmată</Badge>;
       case 'pending':
-        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">În așteptare</Badge>;
+        return (
+          <div className="flex items-center gap-1">
+            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">În așteptare</Badge>
+            <div className="text-xs text-muted-foreground" title="Rezervarea așteaptă plata cu cardul sau confirmarea proprietarului pentru plata cash">
+              ℹ️
+            </div>
+          </div>
+        );
       case 'cancelled':
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Anulată</Badge>;
       case 'completed':
@@ -371,6 +410,30 @@ const MyReservationsPage = () => {
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Nu s-a prezentat</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  // Filter bookings based on status filter
+  const getFilteredBookings = () => {
+    if (statusFilter === 'all') return bookings;
+    
+    const now = new Date();
+    
+    switch (statusFilter) {
+      case 'upcoming':
+        return bookings.filter(booking => {
+          const bookingDate = new Date(booking.booking_date);
+          return (booking.status === 'confirmed' || booking.status === 'pending') && bookingDate >= now;
+        });
+      case 'completed':
+        return bookings.filter(booking => {
+          const bookingDate = new Date(booking.booking_date);
+          return booking.status === 'completed' || booking.status === 'cancelled' || booking.status === 'no_show' || bookingDate < now;
+        });
+      case 'completed_only':
+        return bookings.filter(booking => booking.status === 'completed');
+      default:
+        return bookings.filter(booking => booking.status === statusFilter);
     }
   };
 
@@ -416,21 +479,49 @@ const MyReservationsPage = () => {
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
           <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
+          
+          {/* Add status filter for regular clients */}
+          {userProfile && !userProfile.user_type_comment?.includes('Proprietar bază sportivă') && userProfile.role !== 'admin' && (
+            <div className="mt-4">
+              <label className="text-sm font-medium text-muted-foreground">Filtrează după status:</label>
+              <select 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="ml-2 px-3 py-1 border border-border rounded-md bg-background text-foreground"
+              >
+                <option value="all">Toate rezervările</option>
+                <option value="upcoming">Viitoare (Confirmate + În așteptare)</option>
+                <option value="completed">Terminate (Finalizate + Anulate + Nu s-a prezentat)</option>
+                <option value="confirmed">Doar confirmate</option>
+                <option value="pending">În așteptare</option>
+                <option value="cancelled">Anulate</option>
+                <option value="completed_only">Finalizate</option>
+                <option value="no_show">Nu s-a prezentat</option>
+              </select>
+            </div>
+          )}
         </div>
 
-        {bookings.length === 0 ? <Card className="text-center py-12">
+        {getFilteredBookings().length === 0 ? (
+          <Card className="text-center py-12">
             <CardContent>
               <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Nu ai rezervări</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                {statusFilter === 'all' ? 'Nu ai rezervări' : `Nu ai rezervări ${statusFilter === 'upcoming' ? 'viitoare' : statusFilter === 'completed' ? 'terminate' : 'cu acest status'}`}
+              </h3>
               <p className="text-muted-foreground mb-6">
-                {checkUserRole ? 'Când clienții vor face rezervări pentru facilitățile tale le vei vedea aici.' : 'Când vei avea rezervări le vei vedea aici.'}
+                {userProfile?.user_type_comment?.includes('Proprietar bază sportivă') || userProfile?.role === 'admin' 
+                  ? 'Când clienții vor face rezervări pentru facilitățile tale le vei vedea aici.' 
+                  : 'Când vei avea rezervări le vei vedea aici.'}
               </p>
               <Button asChild>
                 <a href="/facilities">Explorează Terenurile</a>
               </Button>
             </CardContent>
-          </Card> : <div className="grid gap-6">
-            {bookings.map(booking => <Card key={booking.id} className="transition-all duration-200 hover:shadow-lg">
+          </Card>
+        ) : (
+          <div className="grid gap-6">
+            {getFilteredBookings().map(booking => <Card key={booking.id} id={`booking-${booking.id}`} className="transition-all duration-200 hover:shadow-lg">
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -589,7 +680,8 @@ const MyReservationsPage = () => {
                     </div>}
                 </CardContent>
               </Card>)}
-          </div>}
+          </div>
+        )}
       </main>
       
       <Footer />
