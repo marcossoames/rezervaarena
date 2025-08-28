@@ -396,8 +396,8 @@ const MyReservationsPage = () => {
       case 'pending':
         return (
           <div className="flex items-center gap-1">
-            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">În așteptare</Badge>
-            <div className="text-xs text-muted-foreground" title="Rezervarea așteaptă finalizarea plății cu cardul prin Stripe">
+            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">În procesare</Badge>
+            <div className="text-xs text-muted-foreground" title="Plata prin Stripe este în curs de procesare. Verificați din nou în câteva momente.">
               ℹ️
             </div>
           </div>
@@ -407,7 +407,7 @@ const MyReservationsPage = () => {
       case 'completed':
         return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Finalizată</Badge>;
       case 'no_show':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Nu s-a prezentat</Badge>;
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Lipsă</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -490,13 +490,13 @@ const MyReservationsPage = () => {
                 className="ml-2 px-3 py-1 border border-border rounded-md bg-background text-foreground"
               >
                 <option value="all">Toate rezervările</option>
-                <option value="upcoming">Viitoare (Confirmate + În așteptare)</option>
-                <option value="completed">Terminate (Finalizate + Anulate + Nu s-a prezentat)</option>
+                <option value="upcoming">Viitoare (Confirmate + În procesare)</option>
+                <option value="completed">Terminate (Finalizate + Anulate + Lipsă)</option>
                 <option value="confirmed">Doar confirmate</option>
-                <option value="pending">În așteptare</option>
+                <option value="pending">În procesare</option>
                 <option value="cancelled">Anulate</option>
                 <option value="completed_only">Finalizate</option>
-                <option value="no_show">Nu s-a prezentat</option>
+                <option value="no_show">Lipsă</option>
               </select>
             </div>
           )}
