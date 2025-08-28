@@ -107,28 +107,43 @@ export const OptimizedImage = ({
   };
 
 
+  // Modern format detection for WebP support
+  const webpSrc = src.endsWith('.jpg') || src.endsWith('.jpeg') 
+    ? src.replace(/\.(jpg|jpeg)$/, '.webp')
+    : src.endsWith('.webp') ? src : `${src}.webp`;
+
   return (
-    <img
-      src={src}
-      alt={alt}
-      className={`${className} transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-90'}`}
-      loading={loading}
-      fetchPriority={fetchPriority}
-      width={width || targetDimensions.width}
-      height={height || targetDimensions.height}
-      style={{ 
-        ...style, 
-        aspectRatio: width && height ? `${width}/${height}` : `${targetDimensions.width}/${targetDimensions.height}`,
-        maxWidth: '100%',
-        height: 'auto',
-        backgroundColor: imageLoaded ? 'transparent' : 'hsl(var(--muted))'
-      }}
-      decoding="async"
-      onError={handleError}
-      onLoad={handleLoad}
-      data-optimized="true"
-      data-original-src={src}
-      data-error={imageError}
-    />
+    <picture>
+      {/* WebP source for modern browsers */}
+      <source 
+        srcSet={webpSrc}
+        type="image/webp"
+        sizes={getOptimalSizes()}
+      />
+      {/* JPEG/PNG fallback for older browsers */}
+      <img
+        src={src}
+        alt={alt}
+        className={`${className} transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-90'}`}
+        loading={loading}
+        fetchPriority={fetchPriority}
+        width={width || targetDimensions.width}
+        height={height || targetDimensions.height}
+        style={{ 
+          ...style, 
+          aspectRatio: width && height ? `${width}/${height}` : `${targetDimensions.width}/${targetDimensions.height}`,
+          maxWidth: '100%',
+          height: 'auto',
+          backgroundColor: imageLoaded ? 'transparent' : 'hsl(var(--muted))'
+        }}
+        decoding="async"
+        onError={handleError}
+        onLoad={handleLoad}
+        data-optimized="true"
+        data-original-src={src}
+        data-error={imageError}
+        sizes={getOptimalSizes()}
+      />
+    </picture>
   );
 };

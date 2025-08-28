@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { OptimizedImage } from "@/components/ui/optimized-image";
-import heroImage from "@/assets/hero-sports-facility.jpg";
+import heroImage from "@/assets/hero-sports-facility.webp";
 
 const HeroSection = () => {
   return (
