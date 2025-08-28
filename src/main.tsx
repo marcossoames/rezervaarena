@@ -1,9 +1,15 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
-import './index.css'
+// Critical CSS is inlined in index.html
+// Non-critical CSS will be loaded asynchronously
 
 // Defer non-critical resource loading to reduce initial bundle size
 const initializeNonCritical = () => {
+  // Initialize CSS optimization
+  import('./utils/cssOptimization').then(module => 
+    module.initCSSOptimization()
+  );
+
   // Preload components on user interaction
   import('./utils/componentPreloader').then(module => 
     module.setupComponentPreloading()

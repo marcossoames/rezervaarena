@@ -134,43 +134,31 @@
     </style>
     
     
-    <!-- Advanced non-blocking CSS loading strategy -->
+    <!-- Optimized CSS loading: Load main CSS asynchronously to prevent blocking -->
     <script>
-      // Critical performance: Load CSS without blocking render
+      // Load full CSS asynchronously after critical styles
       (function() {
-        // Method 1: Immediate non-blocking load
         var link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = '/src/index.css';
-        link.media = 'print'; // Initially load as print to avoid blocking
+        link.media = 'print';
         link.onload = function() { 
-          this.media = 'all'; // Switch to all media once loaded
-          this.onload = null; // Cleanup
+          this.media = 'all';
+          this.onload = null;
         };
         document.head.appendChild(link);
         
-        // Method 2: Fallback timer for browsers without onload support
+        // Fallback
         setTimeout(function() {
-          if (link.media === 'print') {
-            link.media = 'all';
-          }
+          if (link.media === 'print') link.media = 'all';
         }, 100);
-        
-        // Method 3: Request animation frame for optimal timing
-        if (window.requestAnimationFrame) {
-          requestAnimationFrame(function() {
-            if (link.media === 'print') {
-              link.media = 'all';
-            }
-          });
-        }
       })();
     </script>
     
-    <!-- Preload hint for faster discovery -->
+    <!-- Preload hint -->
     <link rel="preload" href="/src/index.css" as="style" />
     
-    <!-- Critical fallback for no-JS users -->
+    <!-- No-JS fallback -->
     <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
     
     <!-- Preload critical hero image in multiple formats for better performance -->
