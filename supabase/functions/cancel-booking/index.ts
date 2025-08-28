@@ -98,7 +98,7 @@ serve(async (req) => {
       }
     }
 
-    // Update booking status to cancelled
+    // Update booking status to cancelled with defense-in-depth ownership check
     const { error: updateError } = await supabase
       .from('bookings')
       .update({ 
@@ -110,7 +110,8 @@ serve(async (req) => {
             ? 'Anulat de client. Plata cash - fără refund' 
             : 'Anulat de client'
       })
-      .eq('id', bookingId);
+      .eq('id', bookingId)
+      .eq('client_id', user.id); // Defense-in-depth: ensure ownership
 
     if (updateError) {
       throw new Error('Failed to update booking status');

@@ -268,45 +268,28 @@ const BookingPage = () => {
       const endSlots = generateTimeSlots(facility.price_per_hour, facility.operating_hours_start, facility.operating_hours_end, false);
 
       try {
-        // Get existing bookings for the selected date
-        const { data: bookings } = await supabase
-          .from('bookings')
-          .select('start_time, end_time')
-          .eq('facility_id', facilityId)
-          .eq('booking_date', dateString)
-          .neq('status', 'cancelled');
+        // Use secure RPC to get availability data without exposing booking details
+        const { data: unavailableSlots } = await supabase
+          .rpc('get_facility_availability_secure', {
+            facility_id_param: facilityId,
+            booking_date_param: dateString
+          });
 
-        // Get blocked time slots for the selected date
-        const { data: blockedTimes } = await supabase
-          .from('blocked_dates')
-          .select('start_time, end_time')
-          .eq('facility_id', facilityId)
-          .eq('blocked_date', dateString);
-
-        // Function to mark unavailable slots
+        // Function to mark unavailable slots based on secure RPC data
         const markUnavailableSlots = (slots: typeof startSlots) => {
           return slots.map(slot => {
             let available = true;
 
-            // Check against bookings
-            if (bookings) {
-              available = !bookings.some(booking => {
-                const bookingStart = booking.start_time;
-                const bookingEnd = booking.end_time;
-                return slot.time >= bookingStart && slot.time < bookingEnd;
-              });
-            }
-
-            // Check against blocked times
-            if (available && blockedTimes) {
-              available = !blockedTimes.some(blocked => {
-                // If no start_time and end_time, it's a full day block - mark all slots as unavailable
-                if (!blocked.start_time && !blocked.end_time) {
+            // Check against unavailable slots from secure RPC
+            if (unavailableSlots) {
+              available = !unavailableSlots.some((unavailable: any) => {
+                // If no start_time and end_time, it's a full day block
+                if (unavailable.unavailable_type === 'blocked' && !unavailable.start_time && !unavailable.end_time) {
                   return true; // Block all time slots for this date
                 }
-                // If has specific times, check if slot falls within blocked range
-                if (blocked.start_time && blocked.end_time) {
-                  return slot.time >= blocked.start_time && slot.time < blocked.end_time;
+                // Check if slot falls within unavailable range
+                if (unavailable.start_time && unavailable.end_time) {
+                  return slot.time >= unavailable.start_time && slot.time < unavailable.end_time;
                 }
                 return false;
               });
