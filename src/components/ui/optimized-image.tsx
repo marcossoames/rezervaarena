@@ -75,37 +75,45 @@ export const OptimizedImage = ({
 
   // Generate proper WebP sources with fallback support
   const generateWebPSrcSet = () => {
+    // For static assets, create optimized versions at different sizes
     const baseName = src.replace(/\.[^/.]+$/, '');
-    return targetDimensions.breakpoints.map(breakpointWidth => {
-      const breakpointHeight = Math.round((breakpointWidth * targetDimensions.height) / targetDimensions.width);
-      
-      // Generate WebP URL with optimization parameters
-      const webpUrl = `${baseName}.webp`;
-      const url = new URL(webpUrl, window.location.origin);
-      url.searchParams.set('w', breakpointWidth.toString());
-      url.searchParams.set('h', breakpointHeight.toString());
-      url.searchParams.set('q', Math.max(60, quality - 15).toString()); // More aggressive for WebP
-      url.searchParams.set('f', 'webp');
-      url.searchParams.set('auto', 'compress,format');
-      
-      return `${url.toString()} ${breakpointWidth}w`;
-    }).join(', ');
+    
+    if (fetchPriority === 'high') {
+      // Hero image: Generate multiple sizes for the exact 1335x600 display
+      return [
+        `${baseName}-640.webp 640w`,
+        `${baseName}-768.webp 768w`, 
+        `${baseName}-1024.webp 1024w`,
+        `${baseName}-1280.webp 1280w`,
+        `${baseName}.webp 1335w`
+      ].join(', ');
+    }
+    
+    // Card images: Generate optimized sizes for 395x192 display
+    return [
+      `${baseName}-320.webp 320w`,
+      `${baseName}.webp 395w`
+    ].join(', ');
   };
 
-  // Generate fallback JPEG sources
+  // Generate fallback JPEG sources with proper sizing
   const generateJPEGSrcSet = () => {
-    return targetDimensions.breakpoints.map(breakpointWidth => {
-      const breakpointHeight = Math.round((breakpointWidth * targetDimensions.height) / targetDimensions.width);
-      
-      const url = new URL(src, window.location.origin);
-      url.searchParams.set('w', breakpointWidth.toString());
-      url.searchParams.set('h', breakpointHeight.toString());
-      url.searchParams.set('q', Math.max(60, quality - 20).toString());
-      url.searchParams.set('f', 'auto');
-      url.searchParams.set('auto', 'compress,format');
-      
-      return `${url.toString()} ${breakpointWidth}w`;
-    }).join(', ');
+    if (fetchPriority === 'high') {
+      // Hero image: Multiple responsive sizes
+      return [
+        `${src.replace('.jpg', '-640.jpg')} 640w`,
+        `${src.replace('.jpg', '-768.jpg')} 768w`,
+        `${src.replace('.jpg', '-1024.jpg')} 1024w`, 
+        `${src.replace('.jpg', '-1280.jpg')} 1280w`,
+        `${src} 1335w`
+      ].join(', ');
+    }
+    
+    // Card images: Optimized for exact display size
+    return [
+      `${src.replace('.jpg', '-320.jpg')} 320w`,
+      `${src} 395w`
+    ].join(', ');
   };
 
   // Handle image load errors silently
@@ -120,38 +128,38 @@ export const OptimizedImage = ({
     setImageLoaded(true);
   };
 
-  // Create proper WebP source with fallback
-  const createWebPSource = () => {
-    const baseName = src.replace(/\.[^/.]+$/, '');
-    const webpSrc = `${baseName}.webp`;
-    
-    return {
-      srcSet: generateWebPSrcSet(),
-      type: "image/webp",
-      sizes: getOptimalSizes()
-    };
-  };
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      className={`${className} transition-opacity duration-300`}
-      loading={loading}
-      fetchPriority={fetchPriority}
-      width={width || targetDimensions.width}
-      height={height || targetDimensions.height}
-      style={{ 
-        ...style, 
-        aspectRatio: width && height ? `${width}/${height}` : `${targetDimensions.width}/${targetDimensions.height}`,
-        maxWidth: '100%',
-        height: 'auto'
-      }}
-      decoding="async"
-      onError={handleError}
-      onLoad={handleLoad}
-      data-optimized="true"
-      data-original-src={src}
-    />
+    <picture>
+      {supportsWebP && (
+        <source
+          srcSet={generateWebPSrcSet()}
+          sizes={getOptimalSizes()}
+          type="image/webp"
+        />
+      )}
+      <img
+        src={src}
+        srcSet={generateJPEGSrcSet()}
+        alt={alt}
+        className={`${className} transition-opacity duration-300`}
+        loading={loading}
+        fetchPriority={fetchPriority}
+        width={width || targetDimensions.width}
+        height={height || targetDimensions.height}
+        sizes={getOptimalSizes()}
+        style={{ 
+          ...style, 
+          aspectRatio: width && height ? `${width}/${height}` : `${targetDimensions.width}/${targetDimensions.height}`,
+          maxWidth: '100%',
+          height: 'auto'
+        }}
+        decoding="async"
+        onError={handleError}
+        onLoad={handleLoad}
+        data-optimized="true"
+        data-original-src={src}
+      />
+    </picture>
   );
 };
