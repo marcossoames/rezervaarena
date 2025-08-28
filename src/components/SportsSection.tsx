@@ -197,10 +197,10 @@ const SportsSection = () => {
                     <img 
                       src={sport.image} 
                       alt={sport.name} 
-                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" 
+                      className="card-image-optimized group-hover:scale-110 transition-transform duration-300" 
                       loading="lazy" 
                       width={395} 
-                      height={253}
+                      height={192}
                       onError={(e) => {
                         console.error(`❌ Failed to load image for ${sport.name} (${sport.type}):`, sport.image);
                         const target = e.currentTarget as HTMLImageElement;

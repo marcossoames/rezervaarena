@@ -107,41 +107,62 @@ export const OptimizedImage = ({
   };
 
 
-  // Modern format detection for WebP support
+  // Modern format detection for WebP support with proper sizing
   const webpSrc = src.endsWith('.jpg') || src.endsWith('.jpeg') 
     ? src.replace(/\.(jpg|jpeg)$/, '.webp')
     : src.endsWith('.webp') ? src : `${src}.webp`;
 
+  // Calculate scale factor to force exact display dimensions
+  const getImageStyles = () => {
+    const baseStyle = {
+      ...style,
+      maxWidth: `${targetDimensions.width}px`,
+      maxHeight: `${targetDimensions.height}px`,
+      width: '100%',
+      height: 'auto',
+      objectFit: 'cover' as const,
+      backgroundColor: imageLoaded ? 'transparent' : 'hsl(var(--muted))',
+    };
+
+    // Force exact dimensions for card images to prevent 81% waste
+    if (fetchPriority !== 'high') {
+      return {
+        ...baseStyle,
+        width: `${targetDimensions.width}px`,
+        height: `${targetDimensions.height}px`,
+        objectFit: 'cover' as const,
+      };
+    }
+
+    return baseStyle;
+  };
+
   return (
-    <picture>
+    <picture style={{ display: 'block', maxWidth: `${targetDimensions.width}px` }}>
       {/* WebP source for modern browsers */}
       <source 
         srcSet={webpSrc}
         type="image/webp"
         sizes={getOptimalSizes()}
+        media={`(max-width: ${targetDimensions.width}px)`}
       />
-      {/* JPEG/PNG fallback for older browsers */}
+      {/* Fallback with exact sizing constraints */}
       <img
         src={src}
         alt={alt}
         className={`${className} transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-90'}`}
         loading={loading}
         fetchPriority={fetchPriority}
-        width={width || targetDimensions.width}
-        height={height || targetDimensions.height}
-        style={{ 
-          ...style, 
-          aspectRatio: width && height ? `${width}/${height}` : `${targetDimensions.width}/${targetDimensions.height}`,
-          maxWidth: '100%',
-          height: 'auto',
-          backgroundColor: imageLoaded ? 'transparent' : 'hsl(var(--muted))'
-        }}
+        width={targetDimensions.width}
+        height={targetDimensions.height}
+        style={getImageStyles()}
         decoding="async"
         onError={handleError}
         onLoad={handleLoad}
         data-optimized="true"
         data-original-src={src}
         data-error={imageError}
+        data-target-size={`${targetDimensions.width}x${targetDimensions.height}`}
         sizes={getOptimalSizes()}
       />
     </picture>

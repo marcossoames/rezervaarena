@@ -10,7 +10,7 @@ const HeroSection = () => {
         <OptimizedImage 
           src={heroImage} 
           alt="Facilități sportive moderne - complex sportiv cu terenuri multiple" 
-          className="w-full h-full object-cover opacity-60"
+          className="hero-image-optimized opacity-60"
           loading="eager"
           fetchPriority="high"
           width={1335}
