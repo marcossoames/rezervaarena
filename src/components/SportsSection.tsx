@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 
 // Debug logging for missing images
 console.log('Checking image imports...');
@@ -179,21 +180,14 @@ const SportsSection = () => {
               <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none">
                 <CardContent className="p-0">
                   <div className="relative overflow-hidden rounded-t-lg">
-                    <img 
+                    <OptimizedImage 
                       src={sport.image} 
-                      alt={sport.name} 
-                      className="card-image-optimized group-hover:scale-110 transition-transform duration-300" 
-                      loading="lazy" 
-                      width={395} 
-                      height={192}
-                      onError={(e) => {
-                        console.error(`❌ Failed to load image for ${sport.name} (${sport.type}):`, sport.image);
-                        const target = e.currentTarget as HTMLImageElement;
-                        target.style.backgroundColor = '#f3f4f6';
-                        target.style.minHeight = '192px';
-                        target.style.display = 'block';
-                      }}
-                      onLoad={() => console.log(`✅ Successfully loaded image for ${sport.name} (${sport.type})`)}
+                      alt={`Teren de ${sport.name} - facilități sportive moderne`}
+                      className="w-full h-[253px] object-cover group-hover:scale-110 transition-transform duration-300"
+                      loading="lazy"
+                      width={395}
+                      height={253}
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px"
                     />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent"></div>
                   <div className="absolute bottom-4 left-4">

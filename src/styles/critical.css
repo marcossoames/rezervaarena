@@ -87,7 +87,7 @@ body {
 .hero-image-optimized { 
   width: 100% !important; 
   max-width: 1335px !important; 
-  height: 600px !important; 
+  height: 751px !important; 
   object-fit: cover; 
   object-position: center; 
 }
@@ -98,7 +98,7 @@ body {
 }
 
 @media (max-width: 640px) {
-  .hero-image-optimized { height: 300px !important; max-width: 640px !important; }
+  .hero-image-optimized { height: 400px !important; max-width: 640px !important; }
   .flex-col { flex-direction: column; }
   .sm\:flex-row { flex-direction: row; }
 }
