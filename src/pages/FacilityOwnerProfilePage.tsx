@@ -10,7 +10,7 @@ import { ArrowLeft, Calendar, Building2, Settings, User, Trash2, CreditCard, Che
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
-import Header from "@/components/Header";
+import ResponsiveHeader from "@/components/ResponsiveHeader";
 import Footer from "@/components/Footer";
 import { deleteUserAccount } from "@/utils/deleteAccount";
 
@@ -303,7 +303,7 @@ const FacilityOwnerProfilePage = () => {
   if (isLoading || !profile) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <ResponsiveHeader />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -319,7 +319,7 @@ const FacilityOwnerProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <ResponsiveHeader />
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">

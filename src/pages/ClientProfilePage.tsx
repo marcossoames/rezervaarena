@@ -6,7 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { User, Calendar, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/Header";
+import ResponsiveHeader from "@/components/ResponsiveHeader";
 import Footer from "@/components/Footer";
 import { deleteUserAccount } from "@/utils/deleteAccount";
 
@@ -129,7 +129,7 @@ const ClientProfilePage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
-        <Header />
+        <ResponsiveHeader />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-8">Încărcare...</div>
         </div>
@@ -141,7 +141,7 @@ const ClientProfilePage = () => {
   if (!userProfile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
-        <Header />
+        <ResponsiveHeader />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-8">Nu s-a putut încărca profilul</div>
         </div>
@@ -152,7 +152,7 @@ const ClientProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
-      <Header />
+      <ResponsiveHeader />
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">

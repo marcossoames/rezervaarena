@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useCSSOptimization } from "@/hooks/useCSSOptimization";
 import ImageCarousel from "@/components/ImageCarousel";
-import Header from "@/components/Header";
+import ResponsiveHeader from "@/components/ResponsiveHeader";
 import Footer from "@/components/Footer";
 
 interface Article {
@@ -68,7 +68,7 @@ const ArticlesPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-        <Header />
+        <ResponsiveHeader />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center py-16">
             <div className="text-center">
@@ -84,7 +84,7 @@ const ArticlesPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <Header />
+      <ResponsiveHeader />
       
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}

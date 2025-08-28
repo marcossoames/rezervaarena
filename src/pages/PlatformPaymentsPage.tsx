@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle, Clock, XCircle, Banknote, CreditCard } from "lucide-react";
-import Header from "@/components/Header";
+import ResponsiveHeader from "@/components/ResponsiveHeader";
 import Footer from "@/components/Footer";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -232,7 +232,7 @@ const PlatformPaymentsPage = () => {
   if (userRole !== 'admin') {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <ResponsiveHeader />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Acces interzis</h1>
@@ -247,7 +247,7 @@ const PlatformPaymentsPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <ResponsiveHeader />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -263,7 +263,7 @@ const PlatformPaymentsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <ResponsiveHeader />
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">

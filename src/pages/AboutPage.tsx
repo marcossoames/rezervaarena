@@ -1,10 +1,10 @@
-import Header from "@/components/Header";
+import ResponsiveHeader from "@/components/ResponsiveHeader";
 import Footer from "@/components/Footer";
 import { Users, Target, Award, Heart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const AboutPage = () => {
   return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <Header />
+      <ResponsiveHeader />
       
       <main className="w-full px-4 py-16">
         {/* Hero Section */}

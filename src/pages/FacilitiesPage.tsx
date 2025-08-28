@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
-import Header from "@/components/Header";
+import ResponsiveHeader from "@/components/ResponsiveHeader";
 import Footer from "@/components/Footer";
 import ImageCarousel from "@/components/ImageCarousel";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -361,7 +361,7 @@ applyFilters();
   };
   if (loading || !authChecked || session && !userProfile) {
     return <div className="min-h-screen bg-background">
-        <Header />
+        <ResponsiveHeader />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -372,7 +372,7 @@ applyFilters();
       </div>;
   }
   return <div className="min-h-screen bg-background">
-      <Header />
+      <ResponsiveHeader />
       
       <main className="container mx-auto px-4 py-8">
         {/* Highlight banner when coming from homepage */}

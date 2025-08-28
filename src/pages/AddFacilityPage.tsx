@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { X, Plus, ArrowLeft, Upload, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/Header";
+import ResponsiveHeader from "@/components/ResponsiveHeader";
 import { facilityTypeOptions } from "@/utils/facilityTypes";
 
 interface FacilityFormData {

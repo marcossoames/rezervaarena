@@ -7,7 +7,7 @@ export const preloadCriticalComponents = () => {
   preloadComponent(() => import("@/components/OptimizedSearchSection"));
   
   // Preload sports section for quick access
-  preloadComponent(() => import("@/components/OptimizedSportsSection"));
+  preloadComponent(() => import("@/components/ResponsiveSportsSection"));
 };
 
 // Preload on user interaction (hover, scroll, etc.)

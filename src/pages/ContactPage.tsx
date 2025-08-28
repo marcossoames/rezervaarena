@@ -1,4 +1,4 @@
-import Header from "@/components/Header";
+import ResponsiveHeader from "@/components/ResponsiveHeader";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ const ContactPage = () => {
     }, 1000);
   };
   return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <Header />
+      <ResponsiveHeader />
       
       <main className="container mx-auto px-4 py-16">
         {/* Hero Section */}
