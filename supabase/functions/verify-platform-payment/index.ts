@@ -125,6 +125,39 @@ serve(async (req) => {
         status: 200,
       });
     } else {
+      // Payment failed or not completed - need to verify ownership before cancelling
+      
+      // Get booking to verify ownership (same as success path)
+      const { data: booking, error: getBookingError } = await supabaseService
+        .from('bookings')
+        .select('client_id')
+        .eq('stripe_session_id', sessionId)
+        .single();
+
+      if (getBookingError || !booking) {
+        throw new Error('Booking not found for session');
+      }
+
+      // Get user from auth header for security verification
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        throw new Error('No authorization header provided');
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: authError } = await supabaseService.auth.getUser(token);
+      
+      if (authError || !user) {
+        throw new Error('Invalid authentication token');
+      }
+
+      // Verify that the authenticated user is the booking owner
+      if (booking.client_id !== user.id) {
+        throw new Error('Unauthorized: User does not own this booking');
+      }
+
+      logStep("User verified as booking owner for cancellation");
+
       // Payment failed or not completed
       const { error: bookingError } = await supabaseService
         .from('bookings')
