@@ -31,6 +31,7 @@ const FacilityCalendarPage = lazy(() => import("./pages/FacilityCalendarPage"));
 const FacilityOwnerProfilePage = lazy(() => import("./pages/FacilityOwnerProfilePage"));
 const ClientProfilePage = lazy(() => import("./pages/ClientProfilePage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ArticlesPage = lazy(() => import("./pages/ArticlesPage"));
 const PaymentSuccessPage = lazy(() => import("./pages/PaymentSuccessPage"));
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/my-reservations" element={<MyReservationsPage />} />
             <Route path="/booking/:facilityId" element={<BookingPage />} />
             <Route path="/payment/:facilityId" element={<PaymentPage />} />
