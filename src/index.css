@@ -138,4 +138,22 @@ All colors MUST be HSL.
     image-rendering: auto;
     image-rendering: optimizeQuality;
   }
+
+  /* Hide Lovable development tools */
+  [data-lovable-edit], 
+  [data-lovable-dev], 
+  .lovable-dev-tools,
+  #lovable-dev-tools,
+  [id*="lovable"][id*="dev"],
+  [class*="lovable"][class*="dev"],
+  [data-testid*="lovable"],
+  [aria-label*="Edit"],
+  button[style*="position: fixed"][style*="top"],
+  div[style*="position: fixed"][style*="top"][style*="left"],
+  [style*="z-index: 999"],
+  [style*="z-index: 9999"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
 }
