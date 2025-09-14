@@ -2,8 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Suspense, lazy } from "react";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { Suspense, lazy, useEffect } from "react";
 
 // Critical pages loaded immediately
 import Index from "./pages/Index";
@@ -45,7 +45,20 @@ const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
   </div>
-);
+ );
+ 
+ // Redirect recovery tokens in hash to /reset-password route
+ const AuthHashRedirect = () => {
+   const navigate = useNavigate();
+   useEffect(() => {
+     const hash = window.location.hash || "";
+     if (hash.includes("access_token") || hash.includes("type=recovery")) {
+       navigate("/reset-password" + hash, { replace: true });
+     }
+   }, [navigate]);
+   return null;
+ };
+ 
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -54,6 +67,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
++          <AuthHashRedirect />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/client/login" element={<ClientLogin />} />
