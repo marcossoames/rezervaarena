@@ -199,5 +199,36 @@
         }
       });
     </script>
+
+    <!-- Hide stray "+" button injected by external tools (top-left) without affecting app UI -->
+    <script>
+      (function() {
+        function hideStrayPlus() {
+          const candidates = Array.from(document.querySelectorAll('button, a, div[role="button"], div, span'));
+          for (const el of candidates) {
+            const text = (el.textContent || '').trim();
+            if (text !== '+' && text !== '＋') continue;
+            const rect = el.getBoundingClientRect();
+            const nearTopLeft = rect.top >= 0 && rect.top < 64 && rect.left >= 0 && rect.left < 64;
+            const smallSize = rect.width <= 64 && rect.height <= 64;
+            if (nearTopLeft && smallSize) {
+              el.style.display = 'none';
+              el.setAttribute('data-hidden-plus', 'true');
+            }
+          }
+        }
+        const observer = new MutationObserver(() => {
+          hideStrayPlus();
+        });
+        window.addEventListener('DOMContentLoaded', () => {
+          hideStrayPlus();
+          try {
+            observer.observe(document.body, { childList: true, subtree: true });
+          } catch (e) {}
+        });
+        // Also run after window load in case it arrives late
+        window.addEventListener('load', hideStrayPlus);
+      })();
+    </script>
   </body>
 </html>
