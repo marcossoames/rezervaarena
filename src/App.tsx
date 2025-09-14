@@ -71,7 +71,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
-+          <AuthHashRedirect />
+<AuthHashRedirect />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/client/login" element={<ClientLogin />} />
