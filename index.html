@@ -200,51 +200,6 @@
       });
     </script>
 
-    <!-- Remove any stray elements inserted outside our app root (common '+' overlay) -->
-    <script>
-      (function() {
-        const isInline = (el) => ['SCRIPT','STYLE','LINK','NOSCRIPT'].includes(el.tagName);
-        function purgeBodyNoise() {
-          const root = document.getElementById('root');
-          if (!root) return;
-
-          // 1) Remove any direct body children (before or after root) that look like tiny overlays
-          Array.from(document.body.children).forEach((el) => {
-            if (el === root || isInline(el)) return;
-            const rect = el.getBoundingClientRect ? el.getBoundingClientRect() : { width: 0, height: 0, top: 0, left: 0 };
-            const txt = (el.textContent || '').trim();
-            const isTiny = rect.width <= 96 && rect.height <= 96;
-            const nearTopLeft = rect.top >= 0 && rect.top < 120 && rect.left >= 0 && rect.left < 120;
-            if (isTiny && nearTopLeft) {
-              el.remove();
-            } else if ((txt === '+' || txt === '＋') && nearTopLeft) {
-              el.remove();
-            }
-          });
-
-          // 2) Remove any small top-left elements NOT inside our app
-          const outsiders = Array.from(document.querySelectorAll('a,button,div,span'));
-          const rootEl = document.getElementById('root');
-          outsiders.forEach((el) => {
-            if (!el || (rootEl && rootEl.contains(el)) || isInline(el)) return;
-            if (!el.getBoundingClientRect) return;
-            const rect = el.getBoundingClientRect();
-            const txt = (el.textContent || '').trim();
-            const isTiny = rect.width <= 96 && rect.height <= 96;
-            const nearTopLeft = rect.top >= 0 && rect.top < 120 && rect.left >= 0 && rect.left < 120;
-            if ((isTiny || txt === '+' || txt === '＋') && nearTopLeft) {
-              el.remove();
-            }
-          });
-        }
-
-        const observer = new MutationObserver(() => purgeBodyNoise());
-        window.addEventListener('DOMContentLoaded', () => {
-          purgeBodyNoise();
-          try { observer.observe(document.body, { childList: true, subtree: true }); } catch (e) {}
-        });
-        window.addEventListener('load', purgeBodyNoise);
-      })();
     </script>
   </body>
 </html>
