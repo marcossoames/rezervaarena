@@ -21,9 +21,12 @@ const ResetPasswordPage = () => {
   const [isValidToken, setIsValidToken] = useState(false);
 
   useEffect(() => {
-    // Check if we have valid reset tokens in the URL
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    // Accept tokens from both query string and hash fragment
+    const fromQuery = new URLSearchParams(window.location.search);
+    const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+    const accessToken = fromQuery.get("access_token") || fromHash.get("access_token");
+    const refreshToken = fromQuery.get("refresh_token") || fromHash.get("refresh_token");
 
     if (accessToken && refreshToken) {
       setIsValidToken(true);
@@ -32,6 +35,13 @@ const ResetPasswordPage = () => {
         access_token: accessToken,
         refresh_token: refreshToken,
       });
+      // Clean the URL (remove tokens) for safety and UX
+      try {
+        const cleanUrl = window.location.origin + "/reset-password";
+        window.history.replaceState({}, document.title, cleanUrl);
+      } catch {
+        // ignore if history API not available
+      }
     } else {
       toast({
         title: "Link invalid",
@@ -40,7 +50,7 @@ const ResetPasswordPage = () => {
       });
       navigate("/forgot-password");
     }
-  }, [searchParams, navigate, toast]);
+  }, [navigate, toast]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
