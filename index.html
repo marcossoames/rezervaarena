@@ -200,34 +200,65 @@
       });
     </script>
 
-    <!-- Hide stray "+" button injected by external tools (top-left) without affecting app UI -->
+    <!-- Remove any stray elements inserted before our app root and hide small overlays in top-left -->
     <script>
       (function() {
-        function hideStrayPlus() {
-          const candidates = Array.from(document.querySelectorAll('button, a, div[role="button"], div, span'));
+        function removeSiblingsBeforeRoot() {
+          const root = document.getElementById('root');
+          if (!root || !root.parentElement) return;
+          const parent = root.parentElement;
+          let el = parent.firstElementChild as HTMLElement | null;
+          while (el && el !== root) {
+            const tag = el.tagName.toLowerCase();
+            const rect = el.getBoundingClientRect ? el.getBoundingClientRect() : { width: 0, height: 0 } as any;
+            const isInlineScript = tag === 'script' || tag === 'style' || tag === 'link' || tag === 'noscript';
+            // Remove only visible, small UI-like elements (not scripts/styles)
+            if (!isInlineScript && (rect.height > 0 || rect.width > 0)) {
+              el.remove();
+            }
+            el = el.nextElementSibling as HTMLElement | null;
+          }
+        }
+
+        function hideStrayOverlays() {
+          const root = document.getElementById('root');
+          const candidates = Array.from(document.querySelectorAll('body *')) as HTMLElement[];
           for (const el of candidates) {
-            const text = (el.textContent || '').trim();
-            if (text !== '+' && text !== '＋') continue;
+            if (!el || !el.getBoundingClientRect) continue;
+            if (root && root.contains(el)) continue; // ignore our app content
+
             const rect = el.getBoundingClientRect();
-            const nearTopLeft = rect.top >= 0 && rect.top < 64 && rect.left >= 0 && rect.left < 64;
-            const smallSize = rect.width <= 64 && rect.height <= 64;
-            if (nearTopLeft && smallSize) {
+            if (!(rect.width && rect.height)) continue;
+
+            const cs = window.getComputedStyle(el);
+            const isOverlay = cs.position === 'fixed' || cs.position === 'absolute';
+            const nearTopLeft = rect.top >= 0 && rect.top < 72 && rect.left >= 0 && rect.left < 72;
+            const smallSize = rect.width <= 72 && rect.height <= 72;
+            const highZ = parseInt(cs.zIndex || '0', 10) >= 10;
+
+            if (isOverlay && nearTopLeft && smallSize && highZ) {
               el.style.display = 'none';
-              el.setAttribute('data-hidden-plus', 'true');
+              el.style.visibility = 'hidden';
+              el.style.opacity = '0';
+              el.setAttribute('data-hidden-overlay', 'true');
             }
           }
         }
+
         const observer = new MutationObserver(() => {
-          hideStrayPlus();
+          removeSiblingsBeforeRoot();
+          hideStrayOverlays();
         });
+
         window.addEventListener('DOMContentLoaded', () => {
-          hideStrayPlus();
-          try {
-            observer.observe(document.body, { childList: true, subtree: true });
-          } catch (e) {}
+          removeSiblingsBeforeRoot();
+          hideStrayOverlays();
+          try { observer.observe(document.body, { childList: true, subtree: true }); } catch (e) {}
         });
-        // Also run after window load in case it arrives late
-        window.addEventListener('load', hideStrayPlus);
+        window.addEventListener('load', () => {
+          removeSiblingsBeforeRoot();
+          hideStrayOverlays();
+        });
       })();
     </script>
   </body>
