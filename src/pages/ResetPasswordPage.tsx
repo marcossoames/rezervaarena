@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { Loader2, Eye, EyeOff, CheckCircle } from "lucide-react";
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
+  
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,35 +21,49 @@ const ResetPasswordPage = () => {
   const [isValidToken, setIsValidToken] = useState(false);
 
   useEffect(() => {
-    // Accept tokens from both query string and hash fragment
-    const fromQuery = new URLSearchParams(window.location.search);
-    const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-
-    const accessToken = fromQuery.get("access_token") || fromHash.get("access_token");
-    const refreshToken = fromQuery.get("refresh_token") || fromHash.get("refresh_token");
-
-    if (accessToken && refreshToken) {
-      setIsValidToken(true);
-      // Set the session with the tokens from the URL
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-      // Clean the URL (remove tokens) for safety and UX
+    const init = async () => {
       try {
-        const cleanUrl = window.location.origin + "/reset-password";
-        window.history.replaceState({}, document.title, cleanUrl);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setIsValidToken(true);
+          try {
+            const cleanUrl = window.location.origin + "/reset-password";
+            window.history.replaceState({}, document.title, cleanUrl);
+          } catch {}
+          return;
+        }
+
+        const fromQuery = new URLSearchParams(window.location.search);
+        const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        const accessToken = fromQuery.get("access_token") || fromHash.get("access_token");
+        const refreshToken = fromQuery.get("refresh_token") || fromHash.get("refresh_token");
+
+        if (accessToken && refreshToken) {
+          await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+          setIsValidToken(true);
+          try {
+            const cleanUrl = window.location.origin + "/reset-password";
+            window.history.replaceState({}, document.title, cleanUrl);
+          } catch {}
+          return;
+        }
+
+        toast({
+          title: "Link invalid",
+          description: "Link-ul de resetare a parolei este invalid sau a expirat.",
+          variant: "destructive",
+        });
+        navigate("/forgot-password");
       } catch {
-        // ignore if history API not available
+        toast({
+          title: "Eroare",
+          description: "Nu am putut valida link-ul. Încercați din nou.",
+          variant: "destructive",
+        });
+        navigate("/forgot-password");
       }
-    } else {
-      toast({
-        title: "Link invalid",
-        description: "Link-ul de resetare a parolei este invalid sau a expirat.",
-        variant: "destructive",
-      });
-      navigate("/forgot-password");
-    }
+    };
+    void init();
   }, [navigate, toast]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
