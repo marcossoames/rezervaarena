@@ -47,13 +47,17 @@ const PageLoader = () => (
   </div>
  );
  
- // Redirect recovery tokens in hash to /reset-password route
+ // Redirect auth tokens in hash or query to /reset-password route
  const AuthHashRedirect = () => {
    const navigate = useNavigate();
    useEffect(() => {
-     const hash = window.location.hash || "";
-     if (hash.includes("access_token") || hash.includes("type=recovery")) {
-       navigate("/reset-password" + hash, { replace: true });
+     const { hash, search, pathname } = window.location;
+     const hasAuthParams =
+       /access_token=|type=recovery|token=|code=|token_hash=/.test(hash) ||
+       /access_token=|type=recovery|token=|code=|token_hash=/.test(search);
+ 
+     if (hasAuthParams && pathname !== '/reset-password') {
+       navigate('/reset-password' + (search || '') + (hash || ''), { replace: true });
      }
    }, [navigate]);
    return null;

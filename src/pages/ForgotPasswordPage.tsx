@@ -30,9 +30,7 @@ const ForgotPasswordPage = () => {
     setIsLoading(true);
 
     try {
-      const baseUrl = window.location.hostname.includes('localhost')
-        ? window.location.origin
-        : 'https://sportspot-booker.lovable.app';
+      const baseUrl = window.location.origin;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${baseUrl}/reset-password`,
       });

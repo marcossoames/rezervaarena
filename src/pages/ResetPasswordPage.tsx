@@ -48,6 +48,27 @@ const ResetPasswordPage = () => {
           return;
         }
 
+        // Fallback: support links that provide a one-time 'code' or 'token_hash'
+        const code =
+          fromQuery.get("code") ||
+          fromHash.get("code") ||
+          fromQuery.get("token") ||
+          fromHash.get("token") ||
+          fromQuery.get("token_hash") ||
+          fromHash.get("token_hash");
+
+        if (code) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!error && data?.session) {
+            setIsValidToken(true);
+            try {
+              const cleanUrl = window.location.origin + "/reset-password";
+              window.history.replaceState({}, document.title, cleanUrl);
+            } catch {}
+            return;
+          }
+        }
+
         toast({
           title: "Link invalid",
           description: "Link-ul de resetare a parolei este invalid sau a expirat.",
