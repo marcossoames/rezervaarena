@@ -150,6 +150,8 @@ const PaymentPage = () => {
             body: { bookingId: bookingId }
           });
           
+          console.log('Email response:', emailResponse);
+          
           if (emailResponse.error) {
             console.error('Error sending confirmation emails:', emailResponse.error);
           } else {
