@@ -10,7 +10,8 @@ const Footer = () => {
               <div className="w-8 h-8 bg-gradient-hero rounded-md flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-lg">S</span>
               </div>
-              <h3 className="text-xl font-bold text-foreground">SportBook</h3>
+              <img src="/logo-rezervaarena.jpg" alt="RezervaArena" className="h-8 w-auto mb-2" />
+              <h3 className="text-xl font-bold text-foreground">RezervaArena</h3>
             </div>
             <p className="text-muted-foreground mb-2">Platforma numărul 1 din România pentru rezervarea terenurilor sportive.</p>
             <p className="text-muted-foreground">
@@ -45,7 +46,7 @@ const Footer = () => {
 
         <div className="border-t border-border mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-muted-foreground text-sm">© 2025 SportBook. Toate drepturile rezervate.</p>
+            <p className="text-muted-foreground text-sm">© 2025 RezervaArena. Toate drepturile rezervate.</p>
             
           </div>
         </div>

@@ -82,7 +82,7 @@ const AdminLogin = () => {
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth">
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Înapoi la SportBook
+            Înapoi la RezervaArena
           </Link>
         </div>
 
@@ -112,7 +112,7 @@ const AdminLogin = () => {
                   <Input 
                     id="admin-email" 
                     type="email" 
-                    placeholder="admin@sportbook.ro"
+                    placeholder="admin@rezervaarena.ro"
                     className="pl-10"
                     {...register("email", { 
                       required: "Emailul este obligatoriu",

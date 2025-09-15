@@ -140,7 +140,7 @@ const AdminDashboard = () => {
                 <Shield className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">SportBook Admin</h1>
+                <h1 className="text-xl font-bold text-foreground">RezervaArena Admin</h1>
                 <p className="text-sm text-muted-foreground">Panou de administrare</p>
               </div>
             </div>
@@ -156,7 +156,7 @@ const AdminDashboard = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-foreground mb-2">Bun venit în panoul de administrare</h2>
-          <p className="text-muted-foreground">Gestionați platforma SportBook din acest panou central</p>
+          <p className="text-muted-foreground">Gestionați platforma RezervaArena din acest panou central</p>
         </div>
 
         {/* Dashboard Cards */}
@@ -340,7 +340,7 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Vizualizați statisticile de mai sus pentru o privire de ansamblu asupra platformei SportBook.
+                Vizualizați statisticile de mai sus pentru o privire de ansamblu asupra platformei RezervaArena.
                 Selectați una din secțiunile de administrare pentru a gestiona aspectele specifice ale platformei.
               </p>
             </CardContent>
@@ -374,7 +374,7 @@ const AdminDashboard = () => {
                   <h3 className="text-lg font-semibold">Configurare Generală</h3>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Nume Platformă</label>
-                    <p className="text-sm text-muted-foreground">SportBook</p>
+                    <p className="text-sm text-muted-foreground">RezervaArena</p>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Versiune</label>

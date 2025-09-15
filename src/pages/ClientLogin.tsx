@@ -131,7 +131,7 @@ const ClientLogin = () => {
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth">
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Înapoi la SportBook
+            Înapoi la RezervaArena
           </Link>
         </div>
 

@@ -25,7 +25,7 @@ const FeaturesSection = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-foreground mb-4">
-            De ce să alegi <span className="text-primary">SportBook</span>?
+            De ce să alegi <span className="text-primary">RezervaArena</span>?
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Simplificăm procesul de rezervare a terenurilor sportive pentru o experiență perfectă

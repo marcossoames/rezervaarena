@@ -90,10 +90,10 @@ const ArticlesPage = () => {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-foreground mb-4">
-            Articole SportBook
+            Articole RezervaArena
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Descoperiți cele mai noi articole despre sport, terenuri și evenimente din comunitatea SportBook
+            Descoperiți cele mai noi articole despre sport, terenuri și evenimente din comunitatea RezervaArena
           </p>
         </div>
 

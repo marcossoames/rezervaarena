@@ -121,7 +121,7 @@ const Header = () => {
             <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-hero rounded-md flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm sm:text-lg">S</span>
             </div>
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">SportBook</h1>
+            <img src="/logo-rezervaarena.jpg" alt="RezervaArena" className="h-8 w-auto" />
           </Link>
           
           {/* Center - Navigation Desktop */}
