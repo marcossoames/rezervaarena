@@ -3,6 +3,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "onboarding@resend.dev";
+
+console.log("Email configuration:", {
+  hasResendKey: !!Deno.env.get("RESEND_API_KEY"),
+  fromEmail: fromEmail
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -96,7 +102,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Email to client
     const clientEmailResponse = await resend.emails.send({
-      from: "RezervArena <onboarding@resend.dev>",
+      from: `RezervArena <${fromEmail}>`,
       to: [clientProfile.email],
       subject: "✅ Confirmare Rezervare - RezervArena",
       html: `
@@ -147,7 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Email to facility owner
     const ownerEmailResponse = await resend.emails.send({
-      from: "RezervArena <onboarding@resend.dev>",
+      from: `RezervArena <${fromEmail}>`,
       to: [ownerProfile.email],
       subject: "🔔 Rezervare Nouă Confirmată - RezervArena",
       html: `
