@@ -2,38 +2,40 @@
  * Security headers and CSP configuration for enhanced application security
  */
 
-// Content Security Policy configuration
+// Enhanced Content Security Policy configuration
 export const getCSPHeader = () => {
-  const nonce = crypto.randomUUID();
-  
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: blob: https: http:",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https://ukopxkymzywfpobpcana.supabase.co https://www.google-analytics.com",
     "media-src 'self' blob:",
-    "connect-src 'self' https://ukopxkymzywfpobpcana.supabase.co wss://ukopxkymzywfpobpcana.supabase.co https://api.stripe.com https://checkout.stripe.com",
+    "connect-src 'self' https://ukopxkymzywfpobpcana.supabase.co wss://ukopxkymzywfpobpcana.supabase.co https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com",
     "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    "form-action 'self' https://checkout.stripe.com",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests"
+    "upgrade-insecure-requests",
+    "block-all-mixed-content"
   ];
   
   return cspDirectives.join('; ');
 };
 
-// Security headers configuration
+// Enhanced security headers configuration
 export const getSecurityHeaders = () => ({
   'Content-Security-Policy': getCSPHeader(),
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(self)',
-  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-  'X-XSS-Protection': '1; mode=block'
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(self "https://checkout.stripe.com"), interest-cohort=()',
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+  'X-XSS-Protection': '1; mode=block',
+  'Cross-Origin-Embedder-Policy': 'require-corp',
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Resource-Policy': 'same-origin'
 });
 
 // Apply security headers to HTML meta tags

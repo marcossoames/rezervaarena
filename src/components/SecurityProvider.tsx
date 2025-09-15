@@ -30,19 +30,47 @@ export const SecurityProvider = ({ children }: SecurityProviderProps) => {
     // Validate secure session
     if (!isSecure) {
       toast({
-        title: "Security Warning",
-        description: "Please ensure you're using a secure connection",
+        title: "Avertisment de Securitate",
+        description: "Vă rugăm să utilizați o conexiune securizată (HTTPS)",
         variant: "destructive"
       });
     }
     
-    // Disable right-click context menu in production
+    // Enhanced security measures in production
     if (process.env.NODE_ENV === 'production') {
+      // Disable right-click context menu
       const handleContextMenu = (e: MouseEvent) => e.preventDefault();
       document.addEventListener('contextmenu', handleContextMenu);
       
+      // Disable text selection for sensitive elements
+      const disableSelection = () => {
+        document.body.style.userSelect = 'none';
+        document.body.style.webkitUserSelect = 'none';
+      };
+      
+      // Disable drag and drop
+      const handleDragStart = (e: DragEvent) => e.preventDefault();
+      document.addEventListener('dragstart', handleDragStart);
+      
+      // Disable developer tools shortcuts
+      const handleKeyDown = (e: KeyboardEvent) => {
+        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+        if (e.key === 'F12' || 
+            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+            (e.ctrlKey && e.key === 'U')) {
+          e.preventDefault();
+          return false;
+        }
+      };
+      document.addEventListener('keydown', handleKeyDown);
+      
+      // Apply selection restrictions
+      disableSelection();
+      
       return () => {
         document.removeEventListener('contextmenu', handleContextMenu);
+        document.removeEventListener('dragstart', handleDragStart);
+        document.removeEventListener('keydown', handleKeyDown);
       };
     }
   }, [isSecure, toast]);

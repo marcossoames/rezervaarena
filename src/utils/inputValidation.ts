@@ -48,14 +48,15 @@ export const validatePhone = (phone: string): { isValid: boolean; error?: string
   return { isValid: true };
 };
 
-// Password strength validation
+// Enhanced password strength validation with security best practices
 export const validatePassword = (password: string): { isValid: boolean; error?: string; strength: number } => {
   if (!password || password.length === 0) {
     return { isValid: false, error: "Parola este obligatorie", strength: 0 };
   }
   
-  if (password.length < 8) {
-    return { isValid: false, error: "Parola trebuie să aibă cel puțin 8 caractere", strength: 1 };
+  // Increased minimum length for better security
+  if (password.length < 12) {
+    return { isValid: false, error: "Parola trebuie să aibă cel puțin 12 caractere", strength: 0 };
   }
   
   if (password.length > 128) {
@@ -64,32 +65,46 @@ export const validatePassword = (password: string): { isValid: boolean; error?: 
   
   let strength = 0;
   
-  // Check for various character types
+  // Check for various character types (all required)
   if (/[a-z]/.test(password)) strength++;
   if (/[A-Z]/.test(password)) strength++;
   if (/[0-9]/.test(password)) strength++;
   if (/[^a-zA-Z0-9]/.test(password)) strength++;
   
-  // Check for common weak patterns
+  // Additional strength bonuses
+  if (password.length >= 16) strength++;
+  if (password.length >= 20) strength++;
+  
+  // Check character diversity
+  const uniqueChars = new Set(password).size;
+  if (uniqueChars >= password.length * 0.6) strength++;
+  
+  // Enhanced weak pattern detection
   const weakPatterns = [
-    /123456/,
-    /password/i,
-    /qwerty/i,
-    /(.)\1{2,}/, // repeated characters
+    /123456/, /password/i, /qwerty/i, /abc/i, /111111/, /letmein/i,
+    /welcome/i, /dragon/i, /football/i, /master/i, /login/i, /access/i, /secret/i,
+    /(.)\1{3,}/, // 4 or more repeated characters
+    /012345/, /987654/, /abcdef/i, /fedcba/i,
+    // Sequential patterns
+    /(abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i,
+    /(012|123|234|345|456|567|678|789)/
   ];
   
   const hasWeakPattern = weakPatterns.some(pattern => pattern.test(password));
   if (hasWeakPattern) {
-    strength = Math.max(0, strength - 1);
+    return { isValid: false, error: "Parola conține un pattern comun sau caractere repetate. Alegeți o parolă mai complexă.", strength: 0 };
   }
   
-  const isValid = strength >= 3;
+  // Require all 4 basic character types for security
+  if (strength < 4) {
+    return { 
+      isValid: false, 
+      error: "Parola trebuie să conțină toate tipurile: litere mici, litere mari, cifre și caractere speciale", 
+      strength 
+    };
+  }
   
-  return {
-    isValid,
-    error: isValid ? undefined : "Parola trebuie să conțină cel puțin 3 din: litere mici, litere mari, cifre, caractere speciale",
-    strength
-  };
+  return { isValid: true, strength };
 };
 
 // Name validation (for full names, facility names, etc.)
