@@ -184,15 +184,15 @@ const handler = async (req: Request): Promise<Response> => {
               <h4 style="color: #92400e; margin-top: 0;">💰 Detalii Financiare</h4>
               <p style="color: #92400e; margin: 0;">
                 <strong>Suma Totală:</strong> ${booking.total_price} RON<br>
-                <strong>Comision Platformă:</strong> ${booking.platform_fee_amount} RON<br>
-                <strong>Suma Dumneavoastră:</strong> ${booking.facility_owner_amount} RON
+                <strong>Comision Platformă (10%):</strong> ${booking.platform_fee_amount} RON<br>
+                <strong>Suma Dumneavoastră (90%):</strong> ${(booking.total_price - booking.platform_fee_amount).toFixed(2)} RON
               </p>
             </div>
 
             <div style="text-align: center; margin-top: 30px;">
               <p style="color: #666; font-size: 14px;">
                 Această rezervare a fost procesată prin RezervArena<br>
-                Pentru întrebări despre platformă, contactați suportul la: support@rezervaarena.ro
+                Pentru întrebări despre platformă, contactați suportul la: <strong>soamespaul@gmail.com</strong>
               </p>
             </div>
           </div>
