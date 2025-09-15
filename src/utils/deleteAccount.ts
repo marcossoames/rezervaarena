@@ -29,7 +29,55 @@ export const checkActiveBookings = async () => {
     return { activeBookings: 0, error: error.message };
   }
 };
+ 
+export const checkOwnerActiveFacilityBookings = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { activeBookings: 0, error: "Nu există utilizator autentificat" };
+    }
 
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data: facilities, error: facilitiesError } = await supabase
+      .from('facilities')
+      .select('id,name')
+      .eq('owner_id', user.id);
+
+    if (facilitiesError) {
+      console.error('Error loading facilities:', facilitiesError);
+      return { activeBookings: 0, error: facilitiesError.message };
+    }
+
+    const facilityIds = facilities?.map((f: any) => f.id) || [];
+    if (facilityIds.length === 0) {
+      return { activeBookings: 0, bookings: [], error: null };
+    }
+
+    const { data: bookings, error } = await supabase
+      .from('bookings')
+      .select('id, booking_date, start_time, end_time, facility_id, status')
+      .in('facility_id', facilityIds)
+      .gte('booking_date', today)
+      .in('status', ['confirmed', 'pending']);
+
+    if (error) {
+      console.error('Error checking owner active facility bookings:', error);
+      return { activeBookings: 0, error: error.message };
+    }
+
+    return {
+      activeBookings: bookings?.length || 0,
+      bookings: bookings || [],
+      facilities: facilities || [],
+      error: null
+    };
+  } catch (error: any) {
+    console.error('Error checking owner active facility bookings:', error);
+    return { activeBookings: 0, error: error.message };
+  }
+};
+ 
 export const deleteUserAccount = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser();

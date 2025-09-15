@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { deleteUserAccount, checkActiveBookings } from "@/utils/deleteAccount";
+import { deleteUserAccount, checkOwnerActiveFacilityBookings } from "@/utils/deleteAccount";
 import { validateIbanFormat, sanitizeInput, validateAccountHolderName, validateBankName } from "@/utils/bankSecurity";
 import { checkClientRateLimit } from "@/utils/securityHeaders";
 
@@ -357,7 +357,7 @@ const FacilityOwnerProfilePage = () => {
   };
 
   const handleDeleteClick = async () => {
-    const activeBookingsData = await checkActiveBookings();
+    const activeBookingsData = await checkOwnerActiveFacilityBookings();
     setActiveBookingsInfo(activeBookingsData);
     setShowDeleteDialog(true);
   };
@@ -687,23 +687,23 @@ const FacilityOwnerProfilePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="w-full sm:w-auto">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Șterge Contul
-                  </Button>
-                </AlertDialogTrigger>
+              <Button variant="destructive" className="w-full sm:w-auto" onClick={handleDeleteClick}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Șterge Contul
+              </Button>
+
+              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Ești absolut sigur?</AlertDialogTitle>
+                    <AlertDialogTitle>Confirmă ștergerea contului</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Această acțiune nu poate fi anulată. Aceasta va șterge definitiv contul tău 
-                      și va elimina datele tale de pe serverele noastre.
+                      {activeBookingsInfo?.activeBookings > 0
+                        ? `Atenție: aveți ${activeBookingsInfo.activeBookings} rezervări viitoare pe facilitățile dvs. Confirmând, toate aceste rezervări vor fi anulate automat înainte de ștergerea contului.`
+                        : `Confirmând, contul va fi șters definitiv. Dacă există rezervări viitoare, acestea vor fi anulate automat înainte de ștergere.`}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Anulează</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Renunță</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                       Da, șterge contul
                     </AlertDialogAction>
