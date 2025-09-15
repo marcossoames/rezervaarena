@@ -15,13 +15,19 @@ serve(async (req) => {
   }
 
   try {
-    const { bookingId } = await req.json();
+    console.log('Starting booking cancellation process...');
+    
+    const requestBody = await req.json();
+    const { bookingId } = requestBody;
     
     console.log('Cancellation request received for booking:', bookingId);
 
     // Get user from authorization header
     const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
+    
     if (!authHeader) {
+      console.error('No authorization header provided');
       throw new Error('No authorization header');
     }
 
@@ -31,11 +37,18 @@ serve(async (req) => {
     );
 
     const token = authHeader.replace('Bearer ', '');
+    console.log('Attempting to authenticate user...');
+    
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
+    console.log('User authentication result:', { user: !!user, error: !!userError });
+    
     if (userError || !user) {
+      console.error('User authentication failed:', userError);
       throw new Error('User not authenticated');
     }
+
+    console.log('Fetching booking details for user:', user.id);
 
     // Get booking details
     const { data: booking, error: bookingError } = await supabase
@@ -45,7 +58,15 @@ serve(async (req) => {
       .eq('client_id', user.id)
       .single();
 
-    if (bookingError || !booking) {
+    console.log('Booking query result:', { booking: !!booking, error: !!bookingError });
+
+    if (bookingError) {
+      console.error('Booking query error:', bookingError);
+      throw new Error('Booking not found or access denied: ' + bookingError.message);
+    }
+    
+    if (!booking) {
+      console.error('No booking found with ID:', bookingId);
       throw new Error('Booking not found or access denied');
     }
 
