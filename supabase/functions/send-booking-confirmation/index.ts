@@ -130,9 +130,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Email to client
     const clientEmailResponse = await resend.emails.send({
-      from: `RezervArena <${fromEmail}>`,
+      from: `RezervaArena <${fromEmail}>`,
       to: [clientProfile.email],
-      subject: "✅ Confirmare Rezervare - RezervArena",
+      subject: "✅ Confirmare Rezervare - RezervaArena",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
           <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -158,7 +158,7 @@ const handler = async (req: Request): Promise<Response> => {
 
             <div style="text-align: center; margin-top: 30px;">
               <p style="color: #666; font-size: 14px;">
-                Mulțumim că ați ales RezervArena!<br>
+                Mulțumim că ați ales RezervaArena!<br>
                 Pentru întrebări, contactați suportul la: <strong>soamespaul@gmail.com</strong>
               </p>
             </div>
@@ -169,9 +169,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Email către proprietarul terenului
     const ownerEmailResponse = await resend.emails.send({
-      from: `RezervArena <${fromEmail}>`,
+      from: `RezervaArena <${fromEmail}>`,
       to: [ownerProfile.email],
-      subject: "🔔 Rezervare Nouă Confirmată - RezervArena",
+      subject: "🔔 Rezervare Nouă Confirmată - RezervaArena",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
           <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -205,7 +205,7 @@ const handler = async (req: Request): Promise<Response> => {
 
             <div style="text-align: center; margin-top: 30px;">
               <p style="color: #666; font-size: 14px;">
-                Această rezervare a fost procesată prin RezervArena<br>
+                Această rezervare a fost procesată prin RezervaArena<br>
                 Pentru întrebări despre platformă, contactați suportul la: <strong>soamespaul@gmail.com</strong>
               </p>
             </div>
