@@ -33,6 +33,12 @@ const Footer = () => {
                   +40720059535
                 </a>
               </div>
+              <div className="flex items-center space-x-3">
+                <Instagram className="h-5 w-5 text-primary" />
+                <a href="https://www.instagram.com/rezervaarena/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-smooth">
+                  @rezervaarena
+                </a>
+              </div>
             </div>
           </div>
         </div>
