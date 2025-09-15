@@ -50,34 +50,51 @@ serve(async (req) => {
 
     console.log('Fetching booking details for user:', user.id);
 
-    // Get booking details
+    // Get booking details (do not constrain by client here)
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
-      .select('*')
+      .select('id, client_id, facility_id, booking_date, start_time, status, payment_method, stripe_session_id')
       .eq('id', bookingId)
-      .eq('client_id', user.id)
-      .single();
+      .maybeSingle();
 
     console.log('Booking query result:', { booking: !!booking, error: !!bookingError });
 
     if (bookingError) {
       console.error('Booking query error:', bookingError);
-      throw new Error('Booking not found or access denied: ' + bookingError.message);
+      throw new Error('Booking not found or access denied');
     }
-    
     if (!booking) {
       console.error('No booking found with ID:', bookingId);
       throw new Error('Booking not found or access denied');
     }
 
-    // Check if booking can be cancelled (must be at least 1 day before)
-    const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
-    const now = new Date();
-    const oneDayInMs = 24 * 60 * 60 * 1000;
-    const timeDifference = bookingDateTime.getTime() - now.getTime();
+    // Determine permissions: client or facility owner can cancel
+    const isClient = booking.client_id === user.id;
 
-    if (timeDifference < oneDayInMs) {
-      throw new Error('Rezervarea poate fi anulată doar cu cel puțin 24 de ore înainte');
+    const { data: ownerFacility, error: ownerCheckError } = await supabase
+      .from('facilities')
+      .select('id')
+      .eq('id', booking.facility_id)
+      .eq('owner_id', user.id)
+      .maybeSingle();
+
+    const isOwner = !!ownerFacility && !ownerCheckError;
+    console.log('Permission check:', { isClient, isOwner });
+
+    if (!isClient && !isOwner) {
+      throw new Error('Access denied');
+    }
+
+    // Enforce 24h rule only for client-initiated cancellations
+    if (!isOwner) {
+      const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
+      const now = new Date();
+      const oneDayInMs = 24 * 60 * 60 * 1000;
+      const timeDifference = bookingDateTime.getTime() - now.getTime();
+
+      if (timeDifference < oneDayInMs) {
+        throw new Error('Rezervarea poate fi anulată doar cu cel puțin 24 de ore înainte');
+      }
     }
 
     // Check if booking is already cancelled
@@ -119,20 +136,21 @@ serve(async (req) => {
       }
     }
 
-    // Update booking status to cancelled with defense-in-depth ownership check
+    // Update booking status to cancelled
     const { error: updateError } = await supabase
       .from('bookings')
       .update({ 
         status: 'cancelled',
         updated_at: new Date().toISOString(),
-        notes: refundProcessed 
-          ? `Anulat de client. Refund processat: ${refundId}` 
-          : booking.payment_method === 'cash' 
-            ? 'Anulat de client. Plata cash - fără refund' 
-            : 'Anulat de client'
+        notes: isOwner
+          ? 'Anulat de proprietar'
+          : refundProcessed 
+            ? `Anulat de client. Refund processat: ${refundId}` 
+            : booking.payment_method === 'cash' 
+              ? 'Anulat de client. Plata cash - fără refund' 
+              : 'Anulat de client'
       })
-      .eq('id', bookingId)
-      .eq('client_id', user.id); // Defense-in-depth: ensure ownership
+      .eq('id', bookingId);
 
     if (updateError) {
       throw new Error('Failed to update booking status');
