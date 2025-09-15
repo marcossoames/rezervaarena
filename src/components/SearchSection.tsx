@@ -198,22 +198,22 @@ const SearchSection = () => {
                               <SelectValue placeholder="Selectează ora" />
                             </SelectTrigger>
                             <SelectContent className="z-[1000]">
-                              {getTimeOptions().map(time => {
-                                // Check if this start time + duration would exceed operating hours
-                                const [hour, minute] = time.value.split(':').map(Number);
-                                const startMinutes = hour * 60 + minute;
-                                const endMinutes = startMinutes + parseInt(duration);
-                                const endHour = Math.floor(endMinutes / 60);
-                                
-                                // Don't show times that would exceed 22:00 (operating hours end)
-                                if (endHour > 22) return null;
-                                
-                                return (
-                                  <SelectItem key={time.value} value={time.value}>
-                                    {time.label} - {Math.floor(endMinutes / 60).toString().padStart(2, '0')}:{(endMinutes % 60).toString().padStart(2, '0')}
-                                  </SelectItem>
-                                );
-                              }).filter(Boolean)}
+                                {getTimeOptions().map(time => {
+                                  // Check if this start time + duration would exceed operating hours
+                                  const [hour, minute] = time.value.split(':').map(Number);
+                                  const startMinutes = hour * 60 + minute;
+                                  const endMinutes = startMinutes + parseInt(duration);
+                                  const endHour = Math.floor(endMinutes / 60);
+                                  
+                                  // Don't show times that would exceed 22:00 (operating hours end)
+                                  if (endHour > 22) return null;
+                                  
+                                  return (
+                                    <SelectItem key={time.value} value={time.value}>
+                                      {time.label}
+                                    </SelectItem>
+                                  );
+                                }).filter(Boolean)}
                             </SelectContent>
                           </Select>
                         </div>

@@ -541,7 +541,6 @@ const BookingPage = () => {
                         <div className="text-lg font-bold text-primary mt-2">
                           {facility ? Math.round(facility.price_per_hour * 1.5) : 0} RON
                         </div>
-                        <div className="text-xs text-orange-600 mt-1">Preț 1.5x</div>
                       </div>
                     </div>
                   </div>

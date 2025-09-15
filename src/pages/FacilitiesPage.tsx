@@ -607,7 +607,7 @@ applyFilters();
                               
                               return (
                                 <SelectItem key={time.value} value={time.value}>
-                                  {time.label} - {Math.floor(endMinutes / 60).toString().padStart(2, '0')}:{(endMinutes % 60).toString().padStart(2, '0')}
+                                  {time.label}
                                 </SelectItem>
                               );
                             }).filter(Boolean)}
