@@ -31,11 +31,12 @@ const ForgotPasswordPage = () => {
 
     try {
       const baseUrl = window.location.origin;
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${baseUrl}/reset-password`,
+      const { data, error } = await supabase.functions.invoke("auth-recovery-email", {
+        body: { email, redirectUrl: baseUrl },
       });
 
-      if (error) {
+      if (error || (data && data.success === false)) {
+        console.error("auth-recovery-email error", error || data?.error);
         toast({
           title: "Eroare",
           description: "Nu am putut trimite email-ul de resetare. Verificați adresa de email.",
