@@ -156,20 +156,10 @@ const handler = async (req: Request): Promise<Response> => {
               <p><strong>Telefon Contact:</strong> ${ownerProfile.phone}</p>
             </div>
 
-            <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin-bottom: 25px;">
-              <h4 style="color: #92400e; margin-top: 0;">📋 Instrucțiuni Importante</h4>
-              <ul style="color: #92400e; margin: 0; padding-left: 20px;">
-                <li>Vă rugăm să ajungeți cu 10 minute înainte de ora rezervării</li>
-                <li>Aveți asupra dumneavoastră echipamentul sportiv necesar</li>
-                <li>Pentru modificări, contactați direct complexul sportiv</li>
-                ${booking.payment_method === 'cash' ? '<li><strong>Plata se face cash la fața locului</strong></li>' : ''}
-              </ul>
-            </div>
-
             <div style="text-align: center; margin-top: 30px;">
               <p style="color: #666; font-size: 14px;">
                 Mulțumim că ați ales RezervArena!<br>
-                Pentru întrebări, contactați complexul sportiv la: <strong>${ownerProfile.phone}</strong>
+                Pentru întrebări, contactați suportul la: <strong>soamespaul@gmail.com</strong>
               </p>
             </div>
           </div>
