@@ -1,6 +1,8 @@
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import { SecurityProvider } from './components/SecurityProvider'
 
 // Defer non-critical data prefetching to reduce initial bundle size
 const initializePrefetch = () => 
@@ -11,4 +13,10 @@ const initializePrefetch = () =>
 // Initialize prefetching after critical render
 setTimeout(initializePrefetch, 100);
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <SecurityProvider>
+      <App />
+    </SecurityProvider>
+  </StrictMode>
+);

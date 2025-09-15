@@ -14,6 +14,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { deleteUserAccount } from "@/utils/deleteAccount";
 import { validateIbanFormat, sanitizeInput, validateAccountHolderName, validateBankName } from "@/utils/bankSecurity";
+import { checkClientRateLimit } from "@/utils/securityHeaders";
 
 interface BankDetails {
   id: string;
@@ -203,6 +204,16 @@ const FacilityOwnerProfilePage = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Rate limiting check
+      if (!checkClientRateLimit('bank_details_update', 5, 300000)) { // 5 attempts per 5 minutes
+        toast({
+          title: "Prea multe încercări",
+          description: "Vă rugăm să așteptați înainte de a încerca din nou",
+          variant: "destructive"
+        });
+        return;
+      }
 
       // Client-side validation and sanitization
       const accountHolderValidation = validateAccountHolderName(data.account_holder_name);
