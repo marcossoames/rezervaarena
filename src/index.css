@@ -139,16 +139,20 @@ All colors MUST be HSL.
     image-rendering: optimizeQuality;
   }
 
-  /* Hide Lovable development tools - narrowed to avoid affecting app UI */
-  [data-lovable-edit], 
-  [data-lovable-dev], 
+  /* Make Lovable/preview overlays non-interactive so app UI remains clickable */
+  [data-lovable-edit],
+  [data-lovable-dev],
   .lovable-dev-tools,
   #lovable-dev-tools,
   [id*="lovable"][id*="dev"],
   [class*="lovable"][class*="dev"],
-  [data-testid*="lovable"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
+  [data-testid*="lovable"],
+  [id*="lovable"],
+  [class*="lovable"],
+  div[style*="position: fixed"][style*="top"][style*="left"],
+  [style*="z-index: 999"],
+  [style*="z-index: 9999"] {
+    pointer-events: none !important;
   }
+
 }

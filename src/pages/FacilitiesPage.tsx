@@ -675,7 +675,7 @@ applyFilters();
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Selectează sortarea" />
                   </SelectTrigger>
-                  <SelectContent className="z-[100]">
+                   <SelectContent className="z-[1000]">
                     <SelectItem value="newest">Cele mai noi adăugate</SelectItem>
                     <SelectItem value="oldest">Cele mai vechi adăugate</SelectItem>
                     <SelectItem value="price-low">Preț: Crescător</SelectItem>
