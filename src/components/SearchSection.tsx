@@ -17,7 +17,7 @@ const SearchSection = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [facilityType, setFacilityType] = useState("");
   const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [duration, setDuration] = useState<"60" | "90" | "">("");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
@@ -62,9 +62,9 @@ const SearchSection = () => {
     if (searchQuery.trim()) {
       params.set('search', searchQuery.trim());
     }
-    if (startTime && endTime) {
+    if (startTime && duration) {
       params.set('startTime', startTime);
-      params.set('endTime', endTime);
+      params.set('duration', duration);
     }
 
     // Navigate to facilities page with search parameters
@@ -147,10 +147,10 @@ const SearchSection = () => {
                         selected={selectedDate} 
                         onSelect={(date) => {
                           setSelectedDate(date);
-                          // Clear time selections when date changes to avoid invalid times
+                          // Clear time and duration selections when date changes
                           if (date) {
                             setStartTime("");
-                            setEndTime("");
+                            setDuration("");
                           }
                         }} 
                         disabled={date => isBefore(date, today) || isBefore(maxSearchDate, date)} 
@@ -167,44 +167,58 @@ const SearchSection = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Intervalul orar</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                       <Select value={startTime} onValueChange={(value) => {
-                         setStartTime(value);
-                         // Clear end time if it's now invalid
-                         if (endTime && value >= endTime) {
-                           setEndTime("");
-                         }
-                       }}>
-                        <SelectTrigger className="h-12 pl-10 bg-background border-border focus:border-primary">
-                          <SelectValue placeholder="De la" />
+                  <label className="text-sm font-medium text-foreground">Interval rezervare</label>
+                  <div className="grid grid-cols-1 gap-3">
+                    {/* Duration Selection */}
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground">Durata</label>
+                      <Select value={duration} onValueChange={(value: "60" | "90" | "") => {
+                        setDuration(value);
+                        // Reset start time when duration changes
+                        setStartTime("");
+                      }}>
+                        <SelectTrigger className="h-12 bg-background border-border focus:border-primary">
+                          <SelectValue placeholder="Selectează durata" />
                         </SelectTrigger>
-                         <SelectContent className="z-[1000]">
-                          {getTimeOptions().filter(time => !endTime || time.value < endTime).map(time => 
-                            <SelectItem key={time.value} value={time.value}>
-                              {time.label}
-                            </SelectItem>
-                          )}
+                        <SelectContent className="z-[1000]">
+                          <SelectItem value="60">60 minute (1 oră)</SelectItem>
+                          <SelectItem value="90">90 minute (1.5 ore)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                      <Select value={endTime} onValueChange={setEndTime} disabled={!startTime}>
-                        <SelectTrigger className="h-12 pl-10 bg-background border-border focus:border-primary">
-                          <SelectValue placeholder="Până la" />
-                        </SelectTrigger>
-                         <SelectContent className="z-[1000]">
-                          {getTimeOptions().filter(time => startTime && time.value > startTime).map(time => 
-                            <SelectItem key={time.value} value={time.value}>
-                              {time.label}
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
+
+                    {/* Start Time Selection - only show when duration is selected */}
+                    {duration && (
+                      <div className="space-y-2">
+                        <label className="text-xs text-muted-foreground">Ora de început</label>
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                          <Select value={startTime} onValueChange={setStartTime}>
+                            <SelectTrigger className="h-12 pl-10 bg-background border-border focus:border-primary">
+                              <SelectValue placeholder="Selectează ora" />
+                            </SelectTrigger>
+                            <SelectContent className="z-[1000]">
+                              {getTimeOptions().map(time => {
+                                // Check if this start time + duration would exceed operating hours
+                                const [hour, minute] = time.value.split(':').map(Number);
+                                const startMinutes = hour * 60 + minute;
+                                const endMinutes = startMinutes + parseInt(duration);
+                                const endHour = Math.floor(endMinutes / 60);
+                                
+                                // Don't show times that would exceed 22:00 (operating hours end)
+                                if (endHour > 22) return null;
+                                
+                                return (
+                                  <SelectItem key={time.value} value={time.value}>
+                                    {time.label} - {Math.floor(endMinutes / 60).toString().padStart(2, '0')}:{(endMinutes % 60).toString().padStart(2, '0')}
+                                  </SelectItem>
+                                );
+                              }).filter(Boolean)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -248,7 +262,7 @@ const SearchSection = () => {
                   setSelectedDate(undefined);
                   setFacilityType("");
                   setStartTime("");
-                  setEndTime("");
+                  setDuration("");
                   setSearchQuery("");
                 }}
                 className="w-full sm:w-auto px-6 py-3 text-base border-2 border-border bg-background text-foreground hover:bg-secondary hover:text-secondary-foreground"
