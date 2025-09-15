@@ -21,7 +21,7 @@ interface Booking {
   booking_date: string;
   start_time: string;
   end_time: string;
-  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   total_price: number;
   payment_method: string;
   notes?: string;
@@ -41,7 +41,7 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
 }) => {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [selectedStatus, setSelectedStatus] = React.useState<string>(booking.status);
+  const [selectedStatus, setSelectedStatus] = React.useState<'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show'>(booking.status);
   const [notes, setNotes] = React.useState(booking.notes || "");
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [availableStatuses, setAvailableStatuses] = React.useState<Array<{value: string, label: string, description: string}>>([]);
@@ -102,16 +102,21 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
     setIsUpdating(true);
     
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({
-          status: selectedStatus as any,
-          notes: notes.trim() || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', booking.id);
+      // Use secure RPC function for facility owners
+      const { data, error } = await supabase.rpc('update_booking_status_owner', {
+        p_booking_id: booking.id,
+        p_new_status: selectedStatus,
+        p_notes: notes.trim() || null
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('RPC error:', error);
+        throw new Error(error.message || 'Nu s-a putut actualiza statusul rezervării');
+      }
+
+      if (!data) {
+        throw new Error('Nu s-a putut actualiza statusul rezervării');
+      }
 
       toast({
         title: "Status actualizat",
@@ -120,11 +125,11 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
 
       setIsDialogOpen(false);
       onStatusUpdate();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating booking status:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-a putut actualiza statusul rezervării",
+        description: error.message || "Nu s-a putut actualiza statusul rezervării",
         variant: "destructive"
       });
     } finally {
@@ -176,7 +181,10 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="status">Status nou</Label>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <Select 
+                  value={selectedStatus} 
+                  onValueChange={(value: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show') => setSelectedStatus(value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selectează statusul" />
                   </SelectTrigger>

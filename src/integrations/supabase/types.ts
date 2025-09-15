@@ -860,6 +860,14 @@ export type Database = {
             }
         Returns: string
       }
+      update_booking_status_owner: {
+        Args: {
+          p_booking_id: string
+          p_new_status: Database["public"]["Enums"]["booking_status"]
+          p_notes?: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       booking_status:

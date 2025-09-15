@@ -93,11 +93,12 @@ const FacilityOwnerProfilePage = () => {
 
   const loadStats = async (userId: string) => {
     try {
-      // Get user's facilities
+      // Get user's ACTIVE facilities
       const { data: facilities, error: facilitiesError } = await supabase
         .from('facilities')
         .select('id')
-        .eq('owner_id', userId);
+        .eq('owner_id', userId)
+        .eq('is_active', true); // Only count active facilities
 
       if (facilitiesError) {
         throw facilitiesError;
@@ -114,33 +115,43 @@ const FacilityOwnerProfilePage = () => {
         return;
       }
 
-      // Get today's date
-      const today = new Date().toISOString().split('T')[0];
+      // Get today's date in local timezone
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
       
-      // Get this month's start date
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth() + 1;
-      const monthStart = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-01`;
+      // Get this month's start and end dates correctly
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth(); // 0-based month
+      const monthStart = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
+      const monthEnd = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0]; // Last day of current month
 
-      // Get today's bookings
+      console.log('Date range for stats:', { todayStr, monthStart, monthEnd, facilityIds });
+
+      // Get today's bookings (confirmed and pending only)
       const { data: todayBookings, error: todayError } = await supabase
         .from('bookings')
         .select('*')
         .in('facility_id', facilityIds)
-        .eq('booking_date', today)
+        .eq('booking_date', todayStr)
         .in('status', ['confirmed', 'pending']);
 
-      // Get monthly bookings
+      // Get monthly bookings (confirmed and pending only)
       const { data: monthlyBookings, error: monthlyError } = await supabase
         .from('bookings')
         .select('*')
         .in('facility_id', facilityIds)
         .gte('booking_date', monthStart)
-        .lte('booking_date', `${currentYear}-${(currentMonth).toString().padStart(2, '0')}-31`)
+        .lte('booking_date', monthEnd)
         .in('status', ['confirmed', 'pending']);
 
       if (todayError) throw todayError;
       if (monthlyError) throw monthlyError;
+
+      console.log('Booking stats loaded:', { 
+        todayCount: todayBookings?.length || 0, 
+        monthlyCount: monthlyBookings?.length || 0,
+        activeFacilitiesCount: facilities.length 
+      });
 
       setStats({
         todayBookings: todayBookings?.length || 0,
