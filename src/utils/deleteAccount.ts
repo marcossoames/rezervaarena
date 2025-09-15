@@ -1,5 +1,34 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export const checkActiveBookings = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error("Nu există utilizator autentificat");
+    }
+
+    const { data: activeBookings, error } = await supabase
+      .from('bookings')
+      .select('id, booking_date, start_time, facilities(name)')
+      .eq('client_id', user.id)
+      .gte('booking_date', new Date().toISOString().split('T')[0])
+      .in('status', ['confirmed', 'pending'])
+      .order('booking_date', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return { activeBookings: activeBookings || [] };
+  } catch (error: any) {
+    console.error('Check active bookings error:', error);
+    return { 
+      activeBookings: [],
+      error: error.message || "A apărut o eroare la verificarea rezervărilor" 
+    };
+  }
+};
+
 export const deleteUserAccount = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser();

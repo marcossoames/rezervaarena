@@ -8,12 +8,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { deleteUserAccount } from "@/utils/deleteAccount";
+import { deleteUserAccount, checkActiveBookings } from "@/utils/deleteAccount";
 
 const ClientProfilePage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [bookingStats, setBookingStats] = useState({ active: 0, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [activeBookings, setActiveBookings] = useState<any[]>([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showActiveBookingsWarning, setShowActiveBookingsWarning] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -125,6 +128,28 @@ const ClientProfilePage = () => {
     }
   };
 
+  const handleDeleteAccountClick = async () => {
+    // First check for active bookings
+    const result = await checkActiveBookings();
+    
+    if (result.error) {
+      toast({
+        title: "Eroare",
+        description: result.error,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setActiveBookings(result.activeBookings);
+    
+    if (result.activeBookings.length > 0) {
+      setShowActiveBookingsWarning(true);
+    } else {
+      setShowDeleteDialog(true);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
@@ -145,6 +170,7 @@ const ClientProfilePage = () => {
         });
       }
     } catch (error) {
+      console.error('Delete account error:', error);
       toast({
         title: "Eroare",
         description: "A apărut o eroare la ștergerea contului",
@@ -152,6 +178,8 @@ const ClientProfilePage = () => {
       });
     } finally {
       setIsDeleting(false);
+      setShowDeleteDialog(false);
+      setShowActiveBookingsWarning(false);
     }
   };
 
@@ -236,17 +264,21 @@ const ClientProfilePage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
-                <AlertDialog>
+                <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="w-full">
+                    <Button 
+                      variant="destructive" 
+                      className="w-full"
+                      onClick={handleDeleteAccountClick}
+                    >
                       Șterge Contul
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Ești sigur că vrei să îți ștergi contul?</AlertDialogTitle>
+                      <AlertDialogTitle>Confirmi ștergerea contului?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Această acțiune nu poate fi anulată. Toate datele tale, inclusiv rezervările și informațiile personale, vor fi șterse definitiv.
+                        Această acțiune nu poate fi anulată. Toate datele tale vor fi șterse permanent.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -257,6 +289,43 @@ const ClientProfilePage = () => {
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
                         {isDeleting ? "Se șterge..." : "Șterge Contul"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                {/* Active Bookings Warning Dialog */}
+                <AlertDialog open={showActiveBookingsWarning} onOpenChange={setShowActiveBookingsWarning}>
+                  <AlertDialogContent className="max-w-md">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-yellow-600">⚠️ Rezervări Active</AlertDialogTitle>
+                      <AlertDialogDescription className="space-y-3">
+                        <p>Ai {activeBookings.length} rezervări active care vor fi anulate automat:</p>
+                        <div className="max-h-32 overflow-y-auto space-y-2">
+                          {activeBookings.map((booking: any) => (
+                            <div key={booking.id} className="text-sm bg-yellow-50 p-2 rounded border">
+                              <div className="font-medium">{booking.facilities?.name}</div>
+                              <div className="text-gray-600">
+                                {new Date(booking.booking_date).toLocaleDateString('ro-RO')} la {booking.start_time.slice(0,5)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="font-medium text-red-600">
+                          Confirmând, toate rezervările vor fi anulate și contul șters permanent!
+                        </p>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Anulează</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => {
+                          setShowActiveBookingsWarning(false);
+                          setShowDeleteDialog(true);
+                        }}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Înțeleg, șterge contul
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
