@@ -174,40 +174,47 @@ console.log('Fetching booking details for user:', user.id);
 
     // Send notification email
     try {
-      const resend = new Resend(Deno.env.get('RESEND_API_KEY') || '');
-      let toEmail: string | null = null;
-      let subject = '';
-      let html = '';
-
-      if (isClient && ownerId) {
-        const { data: ownerProfile } = await supabase
-          .from('profiles')
-          .select('email, full_name')
-          .eq('user_id', ownerId)
-          .maybeSingle();
-        toEmail = ownerProfile?.email ?? null;
-        subject = 'Rezervare anulată de client';
-        html = `<p>Bună,</p><p>Clientul a anulat o rezervare pentru data ${booking.booking_date} la ${booking.start_time}.</p>`;
+      const resendApiKey = Deno.env.get('RESEND_API_KEY') || '';
+      if (!resendApiKey) {
+        console.warn('RESEND_API_KEY not set. Skipping email notification.');
       } else {
-        const { data: clientProfile } = await supabase
-          .from('profiles')
-          .select('email, full_name')
-          .eq('user_id', booking.client_id)
-          .maybeSingle();
-        toEmail = clientProfile?.email ?? null;
-        subject = 'Rezervarea ta a fost anulată';
-        html = `<p>Bună,</p><p>Rezervarea ta din ${booking.booking_date} la ${booking.start_time} a fost anulată de ${isOwner ? 'proprietar' : 'administrator'}.</p>`;
-      }
+        const resend = new Resend(resendApiKey);
+        const fromEmail = Deno.env.get('RESEND_FROM') || 'RezervaArena <onboarding@resend.dev>';
+        let toEmail: string | null = null;
+        let subject = '';
+        let html = '';
 
-      if (toEmail) {
-        await resend.emails.send({
-          from: 'RezervaArena <no-reply@rezervaarena.ro>',
-          to: [toEmail],
-          subject,
-          html,
-        });
-      } else {
-        console.log('Email target not found, skip send.');
+        if (isClient && ownerId) {
+          const { data: ownerProfile } = await supabase
+            .from('profiles')
+            .select('email, full_name')
+            .eq('user_id', ownerId)
+            .maybeSingle();
+          toEmail = ownerProfile?.email ?? null;
+          subject = 'Rezervare anulată de client';
+          html = `<p>Bună,</p><p>Clientul a anulat o rezervare pentru data ${booking.booking_date} la ${booking.start_time}.</p>`;
+        } else {
+          const { data: clientProfile } = await supabase
+            .from('profiles')
+            .select('email, full_name')
+            .eq('user_id', booking.client_id)
+            .maybeSingle();
+          toEmail = clientProfile?.email ?? null;
+          subject = 'Rezervarea ta a fost anulată';
+          html = `<p>Bună,</p><p>Rezervarea ta din ${booking.booking_date} la ${booking.start_time} a fost anulată de ${isOwner ? 'proprietar' : (isAdmin ? 'administrator' : 'sistem')}.</p>`;
+        }
+
+        if (toEmail) {
+          const result = await resend.emails.send({
+            from: fromEmail,
+            to: [toEmail],
+            subject,
+            html,
+          });
+          console.log('Email sent:', { toEmail, id: (result as any)?.data?.id || null });
+        } else {
+          console.log('Email target not found, skip send.');
+        }
       }
     } catch (emailError) {
       console.error('Email notification failed:', emailError);
