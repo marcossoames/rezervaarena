@@ -8,7 +8,7 @@ const Footer = () => {
           <div className="lg:max-w-md">
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 rounded-md flex items-center justify-center overflow-hidden mb-2">
-                <img src="/logo-rezervaarena.jpg" alt="RezervaArena" className="w-full h-full object-cover" />
+                <img src="/logo-rezervaarena.png" alt="RezervaArena" className="w-full h-full object-cover" />
               </div>
               <h3 className="text-xl font-bold text-foreground">RezervaArena</h3>
             </div>
