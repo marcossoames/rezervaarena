@@ -160,14 +160,16 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error cancelling booking:', error);
     
+    // Return 200 with structured error for better UX in clients
     return new Response(JSON.stringify({ 
-      error: error.message
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     }), {
       headers: { 
         ...corsHeaders, 
         "Content-Type": "application/json"
       },
-      status: 500,
+      status: 200,
     });
   }
 });

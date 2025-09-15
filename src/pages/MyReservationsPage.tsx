@@ -370,12 +370,22 @@ const MyReservationsPage = () => {
           Authorization: `Bearer ${session.access_token}`
         }
       });
-      if (error) {
+      if (error && (!data || (data as any).success !== false)) {
         throw error;
       }
+
+      if (data && (data as any).success === false) {
+        toast({
+          title: "Nu s-a putut anula rezervarea",
+          description: (data as any).error || 'A apărut o eroare. Încercați din nou.',
+          variant: "destructive"
+        });
+        return;
+      }
+
       toast({
         title: "Rezervare anulată",
-        description: data.message
+        description: (data as any).message || 'Rezervarea a fost anulată cu succes.'
       });
 
       // Reload bookings to show updated status
