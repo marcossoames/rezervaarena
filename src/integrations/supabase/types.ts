@@ -79,29 +79,35 @@ export type Database = {
       }
       bank_details: {
         Row: {
+          access_count: number | null
           account_holder_name: string | null
           bank_name: string | null
           created_at: string
           iban: string | null
           id: string
+          last_accessed_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          access_count?: number | null
           account_holder_name?: string | null
           bank_name?: string | null
           created_at?: string
           iban?: string | null
           id?: string
+          last_accessed_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          access_count?: number | null
           account_holder_name?: string | null
           bank_name?: string | null
           created_at?: string
           iban?: string | null
           id?: string
+          last_accessed_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -143,6 +149,39 @@ export type Database = {
           old_data?: Json | null
           target_user_id?: string
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      banking_activity_log: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          ip_address: unknown | null
+          operation: string
+          status: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          operation: string
+          status: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          operation?: string
+          status?: string
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -773,6 +812,10 @@ export type Database = {
       has_role: {
         Args: { _role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
+      }
+      log_banking_data_access: {
+        Args: { operation_type: string }
+        Returns: undefined
       }
       mask_iban: {
         Args: { iban_value: string }

@@ -13,11 +13,12 @@ import IncomeManagement from "@/components/admin/IncomeManagement";
 import ArticleManagement from "@/components/admin/ArticleManagement";
 import BankDetailsManagement from "@/components/admin/BankDetailsManagement";
 import BankAuditLogs from "@/components/admin/BankAuditLogs";
+import BankingActivityLogs from "@/components/admin/BankingActivityLogs";
 
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings' | 'income' | 'articles' | 'bank' | 'audit' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings' | 'income' | 'articles' | 'bank' | 'audit' | 'security' | 'settings'>('dashboard');
   const [stats, setStats] = useState({
     totalUsers: 0,
     clients: 0,
@@ -308,6 +309,14 @@ const AdminDashboard = () => {
                 <Shield className="h-5 w-5" />
                 Audit Logs
               </Button>
+              <Button 
+                variant={activeTab === 'security' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('security')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <Shield className="h-5 w-5" />
+                Securitate Bancară
+              </Button>
             </div>
             
             {/* Third row */}
@@ -351,6 +360,8 @@ const AdminDashboard = () => {
         {activeTab === 'bank' && <BankDetailsManagement />}
 
         {activeTab === 'audit' && <BankAuditLogs />}
+
+        {activeTab === 'security' && <BankingActivityLogs />}
 
         {activeTab === 'settings' && (
           <Card>
