@@ -48,9 +48,29 @@ const PaymentSuccessPage = () => {
         if (data.status === 'success') {
           setPaymentStatus('success');
           setBookingId(data.bookingId);
+          
+          // Send booking confirmation emails
+          if (data.bookingId) {
+            try {
+              console.log('Sending booking confirmation emails for:', data.bookingId);
+              const emailResponse = await supabase.functions.invoke('send-booking-confirmation', {
+                body: { bookingId: data.bookingId }
+              });
+              
+              if (emailResponse.error) {
+                console.error('Error sending confirmation emails:', emailResponse.error);
+              } else {
+                console.log('Confirmation emails sent successfully');
+              }
+            } catch (emailError) {
+              console.error('Failed to send confirmation emails:', emailError);
+              // Don't show error to user as payment was successful
+            }
+          }
+          
           toast({
             title: "Plată reușită!",
-            description: "Plata a fost procesată cu succes! Rezervarea dumneavoastră a fost confirmată.",
+            description: "Plata a fost procesată cu succes! Rezervarea dumneavoastră a fost confirmată. Veți primi un email de confirmare în scurt timp.",
           });
           
           // Redirect to the specific booking after successful payment

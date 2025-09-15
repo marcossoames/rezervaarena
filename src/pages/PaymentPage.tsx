@@ -142,9 +142,28 @@ const PaymentPage = () => {
         return;
       }
 
+      // Send booking confirmation emails for cash bookings
+      if (bookingId) {
+        try {
+          console.log('Sending booking confirmation emails for cash booking:', bookingId);
+          const emailResponse = await supabase.functions.invoke('send-booking-confirmation', {
+            body: { bookingId: bookingId }
+          });
+          
+          if (emailResponse.error) {
+            console.error('Error sending confirmation emails:', emailResponse.error);
+          } else {
+            console.log('Confirmation emails sent successfully for cash booking');
+          }
+        } catch (emailError) {
+          console.error('Failed to send confirmation emails:', emailError);
+          // Don't show error to user as booking was successful
+        }
+      }
+
       toast({
         title: "Rezervare confirmată!",
-        description: "Rezervarea a fost creată cu succes. Veți plăti cu numerar la fața locului.",
+        description: "Rezervarea a fost creată cu succes. Veți plăti cu numerar la fața locului. Veți primi un email de confirmare în scurt timp.",
       });
 
       // Redirect to bookings page or success page
