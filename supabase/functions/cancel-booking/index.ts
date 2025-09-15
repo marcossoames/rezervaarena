@@ -209,7 +209,8 @@ console.log('Fetching booking details for user:', user.id);
         const bookingDate = new Date(booking.booking_date).toLocaleDateString('ro-RO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
         const startTime = (booking.start_time as string).slice(0,5);
         const endTime = (booking as any).end_time ? (booking as any).end_time.slice(0,5) : undefined;
-        const who = isClient ? 'client' : (isOwner ? 'proprietar' : 'administrator');
+        const whoForClient = isClient ? 'tine' : (isOwner ? 'proprietar' : 'administrator');
+        const whoForOwner = isClient ? 'client' : (isOwner ? 'proprietar' : 'administrator');
         const interval = endTime ? `${startTime} - ${endTime}` : `${startTime}`;
 
         // Compose emails
@@ -217,7 +218,7 @@ console.log('Fetching booking details for user:', user.id);
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9f9f9">
             <div style="background:#fff;padding:24px;border-radius:10px">
               <h2 style="margin:0 0 16px;color:#b91c1c">❗ Rezervare anulată</h2>
-              <p>Rezervarea ta a fost anulată de ${who}.</p>
+              <p>Rezervarea ta a fost anulată de ${whoForClient}.</p>
               <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:12px 16px;border-radius:8px">
                 <p style="margin:4px 0"><strong>Data:</strong> ${bookingDate}</p>
                 <p style="margin:4px 0"><strong>Interval:</strong> ${interval}</p>
@@ -225,7 +226,7 @@ console.log('Fetching booking details for user:', user.id);
                 <p style="margin:4px 0"><strong>Locație:</strong> ${facilityData?.address ? `${facilityData.address}, ${facilityData.city}` : (facilityData?.city ?? '')}</p>
               </div>
               ${refundProcessed ? `<p style="margin-top:12px">Refund Stripe inițiat (ID: ${refundId}).</p>` : ''}
-              <p style="color:#6b7280;font-size:12px;margin-top:16px">Pentru întrebări, răspunde la acest email.</p>
+              <p style="color:#6b7280;font-size:12px;margin-top:16px">Pentru întrebări, contactează: <strong>soamespaul@gmail.com</strong></p>
             </div>
           </div>
         `;
@@ -234,7 +235,7 @@ console.log('Fetching booking details for user:', user.id);
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9f9f9">
             <div style="background:#fff;padding:24px;border-radius:10px">
               <h2 style="margin:0 0 16px;color:#1f2937">ℹ️ Rezervare anulată</h2>
-              <p>O rezervare a fost anulată de ${who}.</p>
+              <p>O rezervare a fost anulată de ${whoForOwner}.</p>
               <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:12px 16px;border-radius:8px">
                 <p style="margin:4px 0"><strong>Data:</strong> ${bookingDate}</p>
                 <p style="margin:4px 0"><strong>Interval:</strong> ${interval}</p>
