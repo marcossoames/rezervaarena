@@ -37,35 +37,6 @@ interface Facility {
   phone_number?: string;
 }
 
-const generateTimeSlots = (facilityPrice: number, operatingStart = "08:00", operatingEnd = "22:00", isForStartTime = false) => {
-  const slots = [];
-  const [startHour, startMinute] = operatingStart.split(':').map(Number);
-  const [endHour, endMinute] = operatingEnd.split(':').map(Number);
-  
-  const startTime = startHour * 60 + startMinute;
-  const endTime = endHour * 60 + endMinute;
-  
-  // For start time: exclude closing time (22:00), for end time: include closing time
-  const maxTime = isForStartTime ? endTime - 30 : endTime;
-  
-  for (let time = startTime; time <= maxTime; time += 30) {
-    const hours = Math.floor(time / 60);
-    const minutes = time % 60;
-    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-    
-    // Peak hours pricing (12:00-15:00)
-    const isPeakHour = hours >= 12 && hours < 15;
-    const price = isPeakHour ? facilityPrice * 1.2 : facilityPrice;
-    
-    slots.push({
-      time: timeString,
-      available: true, // Will be updated based on actual bookings and blocked dates
-      price: price
-    });
-  }
-  
-  return slots;
-};
 
 const BookingPage = () => {
   const { facilityId } = useParams();
@@ -258,8 +229,26 @@ const BookingPage = () => {
 
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       
-      // Generate slots for start times only (no end time selection needed)
-      const startSlots = generateTimeSlots(facility.price_per_hour, facility.operating_hours_start, facility.operating_hours_end, true);
+      // Generate simple time slots without complex pricing logic
+      const startSlots = [];
+      const [startHour, startMinute] = facility.operating_hours_start?.split(':').map(Number) || [8, 0];
+      const [endHour, endMinute] = facility.operating_hours_end?.split(':').map(Number) || [22, 0];
+      
+      const startTime = startHour * 60 + startMinute;
+      const endTime = endHour * 60 + endMinute;
+      
+      // Generate 30-minute slots, excluding the closing time for start times
+      for (let time = startTime; time < endTime; time += 30) {
+        const hours = Math.floor(time / 60);
+        const minutes = time % 60;
+        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        
+        startSlots.push({
+          time: timeString,
+          available: true,
+          price: facility.price_per_hour
+        });
+      }
 
       try {
         // Use secure RPC to get availability data without exposing booking details
@@ -321,16 +310,29 @@ const BookingPage = () => {
           label: slot.time
         })), selectedDate);
         
-        // Convert back to original format
+        // Convert to the format expected by setStartTimeSlots
         setStartTimeSlots(filteredStartSlots.map(slot => ({
           time: slot.time,
           available: slot.available,
-          price: startSlots.find(s => s.time === slot.time)?.price || facility.price_per_hour
+          price: facility.price_per_hour
         })));
         
       } catch (error) {
         console.error('Error loading time slots:', error);
-        setStartTimeSlots(startSlots);
+        // Fallback to simple slots if RPC fails
+        const fallbackSlots = [];
+        for (let time = startTime; time < endTime; time += 30) {
+          const hours = Math.floor(time / 60);
+          const minutes = time % 60;
+          const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+          
+          fallbackSlots.push({
+            time: timeString,
+            available: true,
+            price: facility.price_per_hour
+          });
+        }
+        setStartTimeSlots(fallbackSlots);
       }
     };
 
