@@ -77,67 +77,81 @@ const SearchSection = () => {
     }
   };
   return (
-    <section className="py-16 bg-gradient-to-br from-primary/5 via-background to-secondary/10">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">
-            Găsește <span className="text-primary">Terenul Perfect</span>
+    <section className="py-20 bg-gradient-to-br from-primary/8 via-background to-secondary/5 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      <div className="absolute top-10 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center mb-16">
+          <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
+            Găsește <span className="text-primary bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Terenul Perfect</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Caută și rezervă cele mai bune terenuri sportive din România în câțiva pași simpli
           </p>
         </div>
 
-        <Card className="max-w-6xl mx-auto shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
-          <CardContent className="p-6 md:p-8">
-            {/* Primary Search Fields */}
-            <div className="space-y-6">
+        <Card className="max-w-5xl mx-auto shadow-elegant border border-border/50 bg-card/80 backdrop-blur-md relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg"></div>
+          <CardContent className="p-8 md:p-10 relative z-10">
+            <div className="space-y-8">
               
               {/* First Row: Search and Location */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Caută terenuri</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Search className="h-4 w-4 text-primary" />
+                    Caută terenuri
+                  </label>
+                  <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input 
                       placeholder="Nume teren sau bază sportivă..." 
                       value={searchQuery} 
                       onChange={(e) => setSearchQuery(e.target.value)} 
                       onKeyPress={handleKeyPress} 
-                      className="h-12 pl-10 bg-background border-border focus:border-primary text-base"
+                      className="h-14 pl-12 bg-background/80 border-border/50 focus:border-primary text-base rounded-xl transition-all duration-300 hover:bg-background focus:bg-background"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Locația</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    Locația
+                  </label>
+                  <div className="relative group">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input 
                       placeholder="Oraș, zonă..." 
                       value={location} 
                       onChange={(e) => setLocation(e.target.value)} 
                       onKeyPress={handleKeyPress} 
-                      className="h-12 pl-10 bg-background border-border focus:border-primary text-base"
+                      className="h-14 pl-12 bg-background/80 border-border/50 focus:border-primary text-base rounded-xl transition-all duration-300 hover:bg-background focus:bg-background"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Second Row: Date and Time */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Data rezervării</label>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 text-primary" />
+                    Data rezervării
+                  </label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button 
                         variant="outline" 
                         className={cn(
-                          "w-full h-12 justify-start text-left font-normal bg-background border-border hover:border-primary",
+                          "w-full h-14 justify-start text-left font-normal bg-background/80 border-border/50 hover:border-primary rounded-xl transition-all duration-300 hover:bg-background",
                           !selectedDate && "text-muted-foreground"
                         )}
                       >
-                        <CalendarIcon className="mr-3 h-4 w-4" />
+                        <CalendarIcon className="mr-3 h-5 w-5" />
                         {selectedDate ? format(selectedDate, "dd MMM yyyy", { locale: ro }) : "Selectează data"}
                       </Button>
                     </PopoverTrigger>
@@ -157,7 +171,7 @@ const SearchSection = () => {
                         initialFocus 
                         className="p-3 pointer-events-auto"
                       />
-                      <div className="p-3 border-t bg-muted/50">
+                      <div className="p-4 border-t bg-muted/30">
                         <p className="text-xs text-muted-foreground text-center">
                           📅 Poți căuta pentru următoarele 14 zile
                         </p>
@@ -166,23 +180,25 @@ const SearchSection = () => {
                   </Popover>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Interval rezervare</label>
-                  <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    Interval rezervare
+                  </label>
+                  <div className="space-y-4">
                     {/* Duration Selection */}
                     <div className="space-y-2">
-                      <label className="text-xs text-muted-foreground">Durata</label>
                       <Select value={duration} onValueChange={(value: "60" | "90" | "") => {
                         setDuration(value);
                         // Reset start time when duration changes
                         setStartTime("");
                       }}>
-                        <SelectTrigger className="h-12 bg-background border-border focus:border-primary">
+                        <SelectTrigger className="h-14 bg-background/80 border-border/50 focus:border-primary rounded-xl transition-all duration-300 hover:bg-background">
                           <SelectValue placeholder="Selectează durata" />
                         </SelectTrigger>
                         <SelectContent className="z-[1000]">
-                          <SelectItem value="60">60 minute (1 oră)</SelectItem>
-                          <SelectItem value="90">90 minute (1.5 ore)</SelectItem>
+                          <SelectItem value="60">⏱️ 60 minute (1 oră)</SelectItem>
+                          <SelectItem value="90">⏰ 90 minute (1.5 ore)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -190,30 +206,29 @@ const SearchSection = () => {
                     {/* Start Time Selection - only show when duration is selected */}
                     {duration && (
                       <div className="space-y-2">
-                        <label className="text-xs text-muted-foreground">Ora de început</label>
-                        <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                        <div className="relative group">
+                          <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
                           <Select value={startTime} onValueChange={setStartTime}>
-                            <SelectTrigger className="h-12 pl-10 bg-background border-border focus:border-primary">
-                              <SelectValue placeholder="Selectează ora" />
+                            <SelectTrigger className="h-14 pl-12 bg-background/80 border-border/50 focus:border-primary rounded-xl transition-all duration-300 hover:bg-background">
+                              <SelectValue placeholder="Selectează ora de început" />
                             </SelectTrigger>
                             <SelectContent className="z-[1000]">
-                                {getTimeOptions().map(time => {
-                                  // Check if this start time + duration would exceed operating hours
-                                  const [hour, minute] = time.value.split(':').map(Number);
-                                  const startMinutes = hour * 60 + minute;
-                                  const endMinutes = startMinutes + parseInt(duration);
-                                  const endHour = Math.floor(endMinutes / 60);
-                                  
-                                  // Don't show times that would exceed 22:00 (operating hours end)
-                                  if (endHour > 22) return null;
-                                  
-                                  return (
-                                    <SelectItem key={time.value} value={time.value}>
-                                      {time.label}
-                                    </SelectItem>
-                                  );
-                                }).filter(Boolean)}
+                              {getTimeOptions().map(time => {
+                                // Check if this start time + duration would exceed operating hours
+                                const [hour, minute] = time.value.split(':').map(Number);
+                                const startMinutes = hour * 60 + minute;
+                                const endMinutes = startMinutes + parseInt(duration);
+                                const endHour = Math.floor(endMinutes / 60);
+                                
+                                // Don't show times that would exceed 22:00 (operating hours end)
+                                if (endHour > 22) return null;
+                                
+                                return (
+                                  <SelectItem key={time.value} value={time.value}>
+                                    {time.label}
+                                  </SelectItem>
+                                );
+                              }).filter(Boolean)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -224,11 +239,14 @@ const SearchSection = () => {
               </div>
 
               {/* Third Row: Sport Type */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Tipul terenului</label>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-primary" />
+                    Tipul terenului
+                  </label>
                   <Select value={facilityType} onValueChange={setFacilityType}>
-                    <SelectTrigger className="h-12 bg-background border-border focus:border-primary">
+                    <SelectTrigger className="h-14 bg-background/80 border-border/50 focus:border-primary rounded-xl transition-all duration-300 hover:bg-background">
                       <SelectValue placeholder="Toate tipurile" />
                     </SelectTrigger>
                     <SelectContent className="z-[100]">
@@ -244,30 +262,30 @@ const SearchSection = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
                 <Button 
                   onClick={handleSearch} 
                   size="lg" 
-                  className="w-full sm:w-auto px-8 py-3 text-base font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="w-full sm:w-auto px-10 py-4 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-elegant hover:shadow-glow transition-all duration-300 rounded-xl"
                 >
-                  <Search className="mr-2 h-5 w-5" />
+                  <Search className="mr-3 h-5 w-5" />
                   Caută Terenuri
                 </Button>
                 
-              <Button 
-                variant="secondary" 
-                size="lg"
-                onClick={() => {
-                  setLocation("");
-                  setSelectedDate(undefined);
-                  setFacilityType("");
-                  setStartTime("");
-                  setDuration("");
-                  setSearchQuery("");
-                }}
-                className="w-full sm:w-auto px-6 py-3 text-base border-2 border-border bg-background text-foreground hover:bg-secondary hover:text-secondary-foreground"
-              >
-                  <Filter className="mr-2 h-4 w-4" />
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  onClick={() => {
+                    setLocation("");
+                    setSelectedDate(undefined);
+                    setFacilityType("");
+                    setStartTime("");
+                    setDuration("");
+                    setSearchQuery("");
+                  }}
+                  className="w-full sm:w-auto px-8 py-4 text-lg border-2 border-border/50 bg-background/80 text-foreground hover:bg-secondary/50 hover:text-secondary-foreground rounded-xl transition-all duration-300"
+                >
+                  <Filter className="mr-3 h-4 w-4" />
                   Resetează
                 </Button>
               </div>
