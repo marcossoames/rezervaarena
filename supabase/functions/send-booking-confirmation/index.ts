@@ -83,10 +83,34 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Booking data retrieved successfully");
 
-    const clientProfile = booking.profiles;
-    const facilityData = booking.facilities;
-    const ownerProfile = facilityData.profiles;
+    // Extract related entities with robust fallbacks (FKs may be missing)
+    let clientProfile: any = (booking as any).profiles;
+    const facilityData: any = (booking as any).facilities;
+    let ownerProfile: any = facilityData?.profiles;
 
+    if (!clientProfile) {
+      const { data: cp, error: cpErr } = await supabase
+        .from("profiles")
+        .select("full_name,email,phone")
+        .eq("user_id", booking.client_id)
+        .single();
+      if (cpErr) console.warn("Fallback fetch client profile error:", cpErr);
+      clientProfile = cp || clientProfile;
+    }
+
+    if (!ownerProfile && facilityData?.owner_id) {
+      const { data: op, error: opErr } = await supabase
+        .from("profiles")
+        .select("full_name,email,phone,user_type_comment")
+        .eq("user_id", facilityData.owner_id)
+        .single();
+      if (opErr) console.warn("Fallback fetch owner profile error:", opErr);
+      ownerProfile = op || ownerProfile;
+    }
+
+    if (!clientProfile?.email || !ownerProfile?.email) {
+      throw new Error("Missing recipient email addresses (client or owner)");
+    }
     // Format date and time for display
     const bookingDate = new Date(booking.booking_date).toLocaleDateString("ro-RO", {
       weekday: "long",
@@ -161,7 +185,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
           <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <h1 style="color: #3b82f6; text-align: center; margin-bottom: 30px;">📅 Rezervare Nouă Confirmată</h1>
+            <h1 style="color: #3b82f6; text-align: center; margin-bottom: 30px;">Rezervare Nouă Confirmată</h1>
             
             <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; border-left: 4px solid #3b82f6; margin-bottom: 25px;">
               <h2 style="color: #1e40af; margin-top: 0;">Detalii Rezervare</h2>
