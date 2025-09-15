@@ -35,19 +35,19 @@ port = 54322
 verify_jwt = false
 
 [functions.send-booking-confirmation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.cancel-booking]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-platform-payment]
-verify_jwt = false
+verify_jwt = true
 
 [functions.verify-platform-payment]
-verify_jwt = false
+verify_jwt = true
 
 [functions.secure-banking-operations]
-verify_jwt = false
+verify_jwt = true
 
 [functions.auth-recovery-email]
 verify_jwt = false

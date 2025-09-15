@@ -6,7 +6,7 @@
 export const getCSPHeader = () => {
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com",
+    "script-src 'self' 'unsafe-inline' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob: https://ukopxkymzywfpobpcana.supabase.co https://www.google-analytics.com",
@@ -17,6 +17,8 @@ export const getCSPHeader = () => {
     "base-uri 'self'",
     "form-action 'self' https://checkout.stripe.com",
     "frame-ancestors 'none'",
+    "worker-src 'self'",
+    "manifest-src 'self'",
     "upgrade-insecure-requests",
     "block-all-mixed-content"
   ];

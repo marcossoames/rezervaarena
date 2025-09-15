@@ -38,38 +38,25 @@ export const SecurityProvider = ({ children }: SecurityProviderProps) => {
     
     // Enhanced security measures in production
     if (process.env.NODE_ENV === 'production') {
-      // Disable right-click context menu
-      const handleContextMenu = (e: MouseEvent) => e.preventDefault();
-      document.addEventListener('contextmenu', handleContextMenu);
-      
-      // Disable text selection for sensitive elements
-      const disableSelection = () => {
-        document.body.style.userSelect = 'none';
-        document.body.style.webkitUserSelect = 'none';
-      };
-      
-      // Disable drag and drop
-      const handleDragStart = (e: DragEvent) => e.preventDefault();
-      document.addEventListener('dragstart', handleDragStart);
-      
-      // Disable developer tools shortcuts
+      // Disable developer tools shortcuts (less intrusive approach)
       const handleKeyDown = (e: KeyboardEvent) => {
-        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-        if (e.key === 'F12' || 
-            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
-            (e.ctrlKey && e.key === 'U')) {
+        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U for financial pages only
+        const isFinancialPage = window.location.pathname.includes('payment') || 
+                               window.location.pathname.includes('bank') ||
+                               window.location.pathname.includes('admin');
+        
+        if (isFinancialPage && (
+          e.key === 'F12' || 
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+          (e.ctrlKey && e.key === 'U')
+        )) {
           e.preventDefault();
           return false;
         }
       };
       document.addEventListener('keydown', handleKeyDown);
       
-      // Apply selection restrictions
-      disableSelection();
-      
       return () => {
-        document.removeEventListener('contextmenu', handleContextMenu);
-        document.removeEventListener('dragstart', handleDragStart);
         document.removeEventListener('keydown', handleKeyDown);
       };
     }
