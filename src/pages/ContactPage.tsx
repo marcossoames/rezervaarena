@@ -71,19 +71,6 @@ const ContactPage = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
-                      <MapPin className="w-6 h-6 text-accent" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-lg">Adresă</h3>
-                      <a href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara,+Timis" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                        Str. Magnoliei nr. 21<br />
-                        Timișoara, Timiș<br />
-                        România
-                      </a>
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -33,12 +33,6 @@ const Footer = () => {
                   +40720059535
                 </a>
               </div>
-              <div className="flex items-center space-x-3">
-                <MapPin className="h-5 w-5 text-primary" />
-                <a href="https://maps.google.com/?q=Str.+Magnoliei+nr.+21+Timisoara,+Timis" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-smooth">
-                  Str. Magnoliei nr. 21, Timișoara
-                </a>
-              </div>
             </div>
           </div>
         </div>
