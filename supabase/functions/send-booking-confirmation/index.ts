@@ -9,7 +9,7 @@ const testEmail = "soamespaul@gmail.com"; // For testing without verified domain
 console.log("Email configuration:", {
   hasResendKey: !!Deno.env.get("RESEND_API_KEY"),
   fromEmail: fromEmail,
-  testMode: true
+  testMode: false
 });
 
 const corsHeaders = {
@@ -102,20 +102,15 @@ const handler = async (req: Request): Promise<Response> => {
       ? ownerProfile.user_type_comment.replace(" - Proprietar bază sportivă", "")
       : `Baza Sportivă ${ownerProfile.full_name} - ${facilityData.city}`;
 
-    // Email to client - using test email for now
+    // Email to client
     const clientEmailResponse = await resend.emails.send({
       from: `RezervArena <${fromEmail}>`,
-      to: [testEmail], // Changed to test email
-      subject: `✅ [TEST] Confirmare Rezervare pentru ${clientProfile.full_name} - RezervArena`,
+      to: [clientProfile.email],
+      subject: "✅ Confirmare Rezervare - RezervArena",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
           <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-               <p style="background-color: #fee2e2; color: #dc2626; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
-                 <strong>⚠️ TEST MODE:</strong> Acesta este un email de test. În realitate ar fi trimis către: ${clientProfile.email}
-               </p>
-               <h1 style="color: #22c55e; text-align: center; margin-bottom: 30px;">
-              🎉 Rezervarea ta a fost confirmată!
-            </h1>
+            <h1 style="color: #22c55e; text-align: center; margin-bottom: 30px;">🎉 Rezervarea ta a fost confirmată!</h1>
             
             <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid #22c55e; margin-bottom: 25px;">
               <h2 style="color: #15803d; margin-top: 0;">Detalii Rezervare</h2>
@@ -156,20 +151,15 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    // Email to facility owner - using test email for now
+    // Email către proprietarul terenului
     const ownerEmailResponse = await resend.emails.send({
       from: `RezervArena <${fromEmail}>`,
-      to: [testEmail], // Changed to test email
-      subject: `🔔 [TEST] Rezervare Nouă pentru ${ownerProfile.full_name} - RezervArena`,
+      to: [ownerProfile.email],
+      subject: "🔔 Rezervare Nouă Confirmată - RezervArena",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
           <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-               <p style="background-color: #fee2e2; color: #dc2626; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
-                 <strong>⚠️ TEST MODE:</strong> Acesta este un email de test. În realitate ar fi trimis către: ${ownerProfile.email}
-               </p>
-               <h1 style="color: #3b82f6; text-align: center; margin-bottom: 30px;">
-              📅 Rezervare Nouă Confirmată
-            </h1>
+            <h1 style="color: #3b82f6; text-align: center; margin-bottom: 30px;">📅 Rezervare Nouă Confirmată</h1>
             
             <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; border-left: 4px solid #3b82f6; margin-bottom: 25px;">
               <h2 style="color: #1e40af; margin-top: 0;">Detalii Rezervare</h2>
