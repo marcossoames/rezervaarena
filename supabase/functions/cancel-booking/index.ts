@@ -66,7 +66,7 @@ console.log('Fetching booking details for user:', user.id);
     // Get booking details (do not constrain by client here)
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
-      .select('id, client_id, facility_id, booking_date, start_time, status, payment_method, stripe_session_id')
+      .select('id, client_id, facility_id, booking_date, start_time, end_time, status, payment_method, stripe_session_id')
       .eq('id', bookingId)
       .maybeSingle();
 
@@ -172,49 +172,100 @@ console.log('Fetching booking details for user:', user.id);
 
     console.log('Booking cancelled successfully');
 
-    // Send notification email
+    // Send notification emails (both client and owner)
     try {
       const resendApiKey = Deno.env.get('RESEND_API_KEY') || '';
+      const rawFrom = Deno.env.get('RESEND_FROM_EMAIL') || 'noreply@rezervaarena.com';
+      const fromDomain = rawFrom.split('@').pop()?.toLowerCase() || '';
+      const disallowedDomains = ['gmail.com','yahoo.com','outlook.com','hotmail.com','live.com','aol.com'];
+      const fromEmail = disallowedDomains.includes(fromDomain) ? 'noreply@rezervaarena.com' : rawFrom;
+
+      console.log('Email configuration (cancel):', { hasResendKey: !!resendApiKey, fromEmail });
+
       if (!resendApiKey) {
-        console.warn('RESEND_API_KEY not set. Skipping email notification.');
+        console.warn('RESEND_API_KEY not set. Skipping email notifications.');
       } else {
         const resend = new Resend(resendApiKey);
-        const fromEmail = Deno.env.get('RESEND_FROM') || 'RezervaArena <onboarding@resend.dev>';
-        let toEmail: string | null = null;
-        let subject = '';
-        let html = '';
 
-        if (isClient && ownerId) {
-          const { data: ownerProfile } = await supabase
-            .from('profiles')
-            .select('email, full_name')
-            .eq('user_id', ownerId)
-            .maybeSingle();
-          toEmail = ownerProfile?.email ?? null;
-          subject = 'Rezervare anulată de client';
-          html = `<p>Bună,</p><p>Clientul a anulat o rezervare pentru data ${booking.booking_date} la ${booking.start_time}.</p>`;
-        } else {
-          const { data: clientProfile } = await supabase
-            .from('profiles')
-            .select('email, full_name')
-            .eq('user_id', booking.client_id)
-            .maybeSingle();
-          toEmail = clientProfile?.email ?? null;
-          subject = 'Rezervarea ta a fost anulată';
-          html = `<p>Bună,</p><p>Rezervarea ta din ${booking.booking_date} la ${booking.start_time} a fost anulată de ${isOwner ? 'proprietar' : (isAdmin ? 'administrator' : 'sistem')}.</p>`;
+        // Fetch additional info
+        const { data: clientProfile } = await supabase
+          .from('profiles')
+          .select('email, full_name, phone')
+          .eq('user_id', booking.client_id)
+          .maybeSingle();
+
+        const { data: ownerProfile } = ownerId ? await supabase
+          .from('profiles')
+          .select('email, full_name, phone, user_type_comment')
+          .eq('user_id', ownerId)
+          .maybeSingle() : { data: null as any };
+
+        const { data: facilityData } = await supabase
+          .from('facilities')
+          .select('name, city, address')
+          .eq('id', booking.facility_id)
+          .maybeSingle();
+
+        const bookingDate = new Date(booking.booking_date).toLocaleDateString('ro-RO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+        const startTime = (booking.start_time as string).slice(0,5);
+        const endTime = (booking as any).end_time ? (booking as any).end_time.slice(0,5) : undefined;
+        const who = isClient ? 'client' : (isOwner ? 'proprietar' : 'administrator');
+        const interval = endTime ? `${startTime} - ${endTime}` : `${startTime}`;
+
+        // Compose emails
+        const clientHtml = `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9f9f9">
+            <div style="background:#fff;padding:24px;border-radius:10px">
+              <h2 style="margin:0 0 16px;color:#b91c1c">❗ Rezervare anulată</h2>
+              <p>Rezervarea ta a fost anulată de ${who}.</p>
+              <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:12px 16px;border-radius:8px">
+                <p style="margin:4px 0"><strong>Data:</strong> ${bookingDate}</p>
+                <p style="margin:4px 0"><strong>Interval:</strong> ${interval}</p>
+                <p style="margin:4px 0"><strong>Teren:</strong> ${facilityData?.name ?? 'Teren'}</p>
+                <p style="margin:4px 0"><strong>Locație:</strong> ${facilityData?.address ? `${facilityData.address}, ${facilityData.city}` : (facilityData?.city ?? '')}</p>
+              </div>
+              ${refundProcessed ? `<p style="margin-top:12px">Refund Stripe inițiat (ID: ${refundId}).</p>` : ''}
+              <p style="color:#6b7280;font-size:12px;margin-top:16px">Pentru întrebări, răspunde la acest email.</p>
+            </div>
+          </div>
+        `;
+
+        const ownerHtml = `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9f9f9">
+            <div style="background:#fff;padding:24px;border-radius:10px">
+              <h2 style="margin:0 0 16px;color:#1f2937">ℹ️ Rezervare anulată</h2>
+              <p>O rezervare a fost anulată de ${who}.</p>
+              <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:12px 16px;border-radius:8px">
+                <p style="margin:4px 0"><strong>Data:</strong> ${bookingDate}</p>
+                <p style="margin:4px 0"><strong>Interval:</strong> ${interval}</p>
+                <p style="margin:4px 0"><strong>Teren:</strong> ${facilityData?.name ?? 'Teren'}</p>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const sends: Promise<any>[] = [];
+
+        if (clientProfile?.email) {
+          sends.push(resend.emails.send({
+            from: `RezervaArena <${fromEmail}>`,
+            to: [clientProfile.email],
+            subject: '❗ Anulare Rezervare - RezervaArena',
+            html: clientHtml
+          }));
         }
 
-        if (toEmail) {
-          const result = await resend.emails.send({
-            from: fromEmail,
-            to: [toEmail],
-            subject,
-            html,
-          });
-          console.log('Email sent:', { toEmail, id: (result as any)?.data?.id || null });
-        } else {
-          console.log('Email target not found, skip send.');
+        if (ownerProfile?.email) {
+          sends.push(resend.emails.send({
+            from: `RezervaArena <${fromEmail}>`,
+            to: [ownerProfile.email],
+            subject: 'ℹ️ Rezervare Anulată - RezervaArena',
+            html: ownerHtml
+          }));
         }
+
+        const results = await Promise.allSettled(sends);
+        console.log('Cancellation email results:', results);
       }
     } catch (emailError) {
       console.error('Email notification failed:', emailError);
