@@ -136,7 +136,7 @@ const ClientProfilePage = () => {
           description: "Contul tău a fost șters cu succes",
         });
         // Redirect will happen automatically due to auth state change
-        navigate("/");
+        navigate("/", { replace: true });
       } else {
         toast({
           title: "Eroare",

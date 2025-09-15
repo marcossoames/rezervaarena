@@ -18,8 +18,12 @@ export const deleteUserAccount = async () => {
     const { error: signOutError } = await supabase.auth.signOut();
     if (signOutError) {
       console.error('Sign out error after deletion:', signOutError);
-      // Don't throw here since account was already deleted
+      // Don't throw here since account was already deleted successfully
+      // User will still be redirected but might need manual refresh
     }
+
+    // Force clear local session data
+    await supabase.auth.signOut({ scope: 'local' });
     
     return { success: true };
   } catch (error: any) {

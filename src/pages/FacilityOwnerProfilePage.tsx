@@ -355,12 +355,22 @@ const FacilityOwnerProfilePage = () => {
 
   const handleDeleteAccount = async () => {
     try {
-      await deleteUserAccount();
-      toast({
-        title: "Cont șters",
-        description: "Contul a fost șters cu succes.",
-      });
-      navigate('/');
+      const result = await deleteUserAccount();
+      
+      if (result.success) {
+        toast({
+          title: "Cont șters",
+          description: "Contul a fost șters cu succes.",
+        });
+        // Redirect to home page as visitor
+        navigate('/', { replace: true });
+      } else {
+        toast({
+          title: "Eroare",
+          description: result.error,
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error deleting account:', error);
       toast({
