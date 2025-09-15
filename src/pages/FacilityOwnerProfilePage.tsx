@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { deleteUserAccount } from "@/utils/deleteAccount";
+import { deleteUserAccount, checkActiveBookings } from "@/utils/deleteAccount";
 import { validateIbanFormat, sanitizeInput, validateAccountHolderName, validateBankName } from "@/utils/bankSecurity";
 import { checkClientRateLimit } from "@/utils/securityHeaders";
 
@@ -32,8 +32,8 @@ interface BankFormData {
 }
 
 const FacilityOwnerProfilePage = () => {
+  const [submittingBankDetails, setSubmittingBankDetails] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -351,6 +351,10 @@ const FacilityOwnerProfilePage = () => {
     }
     
     return userTypeComment;
+  const handleDeleteClick = async () => {
+    const activeBookingsData = await checkActiveBookings();
+    setActiveBookingsInfo(activeBookingsData);
+    setShowDeleteDialog(true);
   };
 
   const handleDeleteAccount = async () => {

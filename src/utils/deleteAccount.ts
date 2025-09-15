@@ -4,28 +4,29 @@ export const checkActiveBookings = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      throw new Error("Nu există utilizator autentificat");
+      return { activeBookings: 0, error: "Nu există utilizator autentificat" };
     }
 
-    const { data: activeBookings, error } = await supabase
+    const { data: bookings, error } = await supabase
       .from('bookings')
       .select('id, booking_date, start_time, facilities(name)')
       .eq('client_id', user.id)
       .gte('booking_date', new Date().toISOString().split('T')[0])
-      .in('status', ['confirmed', 'pending'])
-      .order('booking_date', { ascending: true });
+      .in('status', ['confirmed', 'pending']);
 
     if (error) {
-      throw error;
+      console.error('Error checking active bookings:', error);
+      return { activeBookings: 0, error: error.message };
     }
 
-    return { activeBookings: activeBookings || [] };
-  } catch (error: any) {
-    console.error('Check active bookings error:', error);
     return { 
-      activeBookings: [],
-      error: error.message || "A apărut o eroare la verificarea rezervărilor" 
+      activeBookings: bookings?.length || 0, 
+      bookings: bookings || [],
+      error: null 
     };
+  } catch (error: any) {
+    console.error('Error checking active bookings:', error);
+    return { activeBookings: 0, error: error.message };
   }
 };
 

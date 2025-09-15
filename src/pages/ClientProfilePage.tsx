@@ -15,11 +15,11 @@ const ClientProfilePage = () => {
   const [bookingStats, setBookingStats] = useState({ active: 0, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [activeBookings, setActiveBookings] = useState<any[]>([]);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showActiveBookingsWarning, setShowActiveBookingsWarning] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const { toast } = useToast();
+  const [activeBookingsInfo, setActiveBookingsInfo] = useState<any>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -37,117 +37,99 @@ const ClientProfilePage = () => {
           .eq('user_id', user.id)
           .single();
 
-        if (!profile) {
-          toast({
-            title: "Eroare",
-            description: "Nu s-a putut încărca profilul",
-            variant: "destructive"
-          });
-          navigate("/");
-          return;
+        if (profile) {
+          setUserProfile(profile);
         }
 
-        setUserProfile(profile);
-
-        // Load booking statistics
+        // Get booking statistics
         await loadBookingStats(user.id);
+        await loadActiveBookings(user.id);
       } catch (error) {
         console.error('Error loading profile:', error);
-        toast({
-          title: "Eroare",
-          description: "A apărut o eroare la încărcarea profilului",
-          variant: "destructive"
-        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadUserProfile();
-  }, []);
+  }, [navigate]);
 
   const loadBookingStats = async (userId: string) => {
     try {
-      console.log('Loading booking stats for user:', userId);
-      
-      // Get all bookings for the user
-      const { data: bookings, error } = await supabase
+      // Get all bookings for stats
+      const { data: allBookings, error: allError } = await supabase
         .from('bookings')
-        .select('status, booking_date')
+        .select('id, status')
         .eq('client_id', userId);
 
-      console.log('Bookings query result:', { bookings, error });
-
-      if (error) {
-        console.error('Error fetching bookings:', error);
+      if (allError) {
+        console.error('Error loading all bookings:', allError);
         return;
       }
 
-      if (bookings) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        console.log('Today date for comparison:', today);
-        console.log('All bookings:', bookings);
-        
-        // Calculate active bookings (confirmed or pending, future dates)
-        const activeBookings = bookings.filter(booking => {
-          const bookingDate = new Date(booking.booking_date);
-          const isActiveStatus = booking.status === 'confirmed' || booking.status === 'pending';
-          const isFutureDate = bookingDate >= today;
-          
-          console.log('Booking check:', {
-            booking,
-            bookingDate,
-            isActiveStatus,
-            isFutureDate,
-            willInclude: isActiveStatus && isFutureDate
-          });
-          
-          return isActiveStatus && isFutureDate;
-        }).length;
+      // Get active bookings (today and future)
+      const { data: activeBookingsData, error: activeError } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('client_id', userId)
+        .gte('booking_date', new Date().toISOString().split('T')[0])
+        .in('status', ['confirmed', 'pending']);
 
-        // Total bookings count
-        const totalBookings = bookings.length;
-
-        console.log('Final booking stats:', {
-          active: activeBookings,
-          total: totalBookings
-        });
-
-        setBookingStats({
-          active: activeBookings,
-          total: totalBookings
-        });
-      } else {
-        console.log('No bookings data returned');
+      if (activeError) {
+        console.error('Error loading active bookings:', activeError);
+        return;
       }
+
+      setBookingStats({
+        active: activeBookingsData?.length || 0,
+        total: allBookings?.length || 0
+      });
     } catch (error) {
-      console.error('Error loading booking stats:', error);
+      console.error('Error in loadBookingStats:', error);
       // Don't show error to user, just keep stats at 0
     }
   };
 
-  const handleDeleteAccountClick = async () => {
-    // First check for active bookings
-    const result = await checkActiveBookings();
-    
-    if (result.error) {
-      toast({
-        title: "Eroare",
-        description: result.error,
-        variant: "destructive"
-      });
-      return;
-    }
+  const loadActiveBookings = async (userId: string) => {
+    try {
+      const { data: bookings, error } = await supabase
+        .from('bookings')
+        .select(`
+          id,
+          booking_date,
+          start_time,
+          end_time,
+          status,
+          total_price,
+          payment_method,
+          facilities!bookings_facility_id_fkey (
+            name,
+            city,
+            address
+          )
+        `)
+        .eq('client_id', userId)
+        .gte('booking_date', new Date().toISOString().split('T')[0])
+        .in('status', ['confirmed', 'pending'])
+        .order('booking_date', { ascending: true })
+        .order('start_time', { ascending: true });
 
-    setActiveBookings(result.activeBookings);
-    
-    if (result.activeBookings.length > 0) {
-      setShowActiveBookingsWarning(true);
-    } else {
-      setShowDeleteDialog(true);
+      if (error) {
+        console.error('Error loading active bookings:', error);
+        return;
+      }
+
+      setActiveBookings(bookings || []);
+    } catch (error) {
+      console.error('Error in loadActiveBookings:', error);
+      // Don't show error to user, just keep bookings empty
     }
+  };
+
+  const handleDeleteClick = async () => {
+    const activeBookingsData = await checkActiveBookings();
+    setActiveBookingsInfo(activeBookingsData);
+    setShowDeleteDialog(true);
   };
 
   const handleDeleteAccount = async () => {
@@ -170,7 +152,7 @@ const ClientProfilePage = () => {
         });
       }
     } catch (error) {
-      console.error('Delete account error:', error);
+      console.error('Error deleting account:', error);
       toast({
         title: "Eroare",
         description: "A apărut o eroare la ștergerea contului",
@@ -178,18 +160,32 @@ const ClientProfilePage = () => {
       });
     } finally {
       setIsDeleting(false);
-      setShowDeleteDialog(false);
-      setShowActiveBookingsWarning(false);
     }
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('ro-RO', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (time: string) => {
+    return time.slice(0, 5); // HH:MM
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
+      <div className="min-h-screen flex flex-col">
         <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-8">Încărcare...</div>
-        </div>
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Se încarcă profilul...</p>
+          </div>
+        </main>
         <Footer />
       </div>
     );
@@ -197,163 +193,210 @@ const ClientProfilePage = () => {
 
   if (!userProfile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
+      <div className="min-h-screen flex flex-col">
         <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-8">Nu s-a putut încărca profilul</div>
-        </div>
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Profil nedisponibil</h2>
+            <p className="text-muted-foreground mb-4">
+              Nu s-a putut încărca profilul. Te rugăm să te autentifici din nou.
+            </p>
+            <Button onClick={() => navigate("/client/login")}>
+              Autentificare
+            </Button>
+          </div>
+        </main>
         <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
+    <div className="min-h-screen bg-background">
       <Header />
       
-      <div className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Profile Header */}
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="h-10 w-10 text-primary" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {userProfile.full_name}
-            </h1>
-            <p className="text-sm text-gray-500">
-              {userProfile.email}
-            </p>
-            {userProfile.phone && (
-              <p className="text-sm text-gray-500">
-                {userProfile.phone}
-              </p>
-            )}
-          </div>
-
-          {/* Action Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Rezervări */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer group" 
-                  onClick={() => navigate("/my-reservations")}>
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
-                  <Calendar className="h-8 w-8 text-blue-600" />
-                </div>
-                <CardTitle className="text-xl">Rezervările Mele</CardTitle>
-                <CardDescription>
-                  Vezi toate rezervările tale
-                </CardDescription>
+          <h1 className="text-3xl font-bold mb-8">Profilul meu</h1>
+          
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* User Info Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Informații Personale
+                </CardTitle>
               </CardHeader>
-              <CardContent className="text-center">
-                <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  Vezi Rezervările
-                </Button>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Nume Complet</label>
+                  <p className="text-lg">{userProfile.full_name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Email</label>
+                  <p className="text-lg">{userProfile.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Telefon</label>
+                  <p className="text-lg">{userProfile.phone}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Tip Utilizator</label>
+                  <p className="text-lg">{userProfile.role === 'client' ? 'Client' : userProfile.role}</p>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Ștergere Cont */}
-            <Card className="border-destructive/20 hover:border-destructive/40 transition-colors">
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Trash2 className="h-8 w-8 text-destructive" />
+            {/* Booking Stats Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Statistici Rezervări
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Rezervări Active</span>
+                    <span className="text-2xl font-bold text-primary">{bookingStats.active}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Total Rezervări</span>
+                    <span className="text-2xl font-bold">{bookingStats.total}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Rezervări Complete</span>
+                    <span className="text-2xl font-bold text-green-600">{userProfile.completed_bookings || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Rezervări Anulate</span>
+                    <span className="text-2xl font-bold text-red-600">{userProfile.cancelled_bookings || 0}</span>
+                  </div>
                 </div>
-                <CardTitle className="text-xl text-destructive">Ștergere Cont</CardTitle>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Active Bookings */}
+          {activeBookings.length > 0 && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Rezervările Tale Active</CardTitle>
                 <CardDescription>
-                  Șterge definitiv contul și toate datele asociate
+                  Rezervările tale viitoare și în desfășurare
                 </CardDescription>
               </CardHeader>
-              <CardContent className="text-center">
-                <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="destructive" 
-                      className="w-full"
-                      onClick={handleDeleteAccountClick}
-                    >
-                      Șterge Contul
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmi ștergerea contului?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Această acțiune nu poate fi anulată. Toate datele tale vor fi șterse permanent.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Anulează</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleDeleteAccount}
-                        disabled={isDeleting}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        {isDeleting ? "Se șterge..." : "Șterge Contul"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-
-                {/* Active Bookings Warning Dialog */}
-                <AlertDialog open={showActiveBookingsWarning} onOpenChange={setShowActiveBookingsWarning}>
-                  <AlertDialogContent className="max-w-md">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="text-yellow-600">⚠️ Rezervări Active</AlertDialogTitle>
-                      <AlertDialogDescription className="space-y-3">
-                        <p>Ai {activeBookings.length} rezervări active care vor fi anulate automat:</p>
-                        <div className="max-h-32 overflow-y-auto space-y-2">
-                          {activeBookings.map((booking: any) => (
-                            <div key={booking.id} className="text-sm bg-yellow-50 p-2 rounded border">
-                              <div className="font-medium">{booking.facilities?.name}</div>
-                              <div className="text-gray-600">
-                                {new Date(booking.booking_date).toLocaleDateString('ro-RO')} la {booking.start_time.slice(0,5)}
-                              </div>
-                            </div>
-                          ))}
+              <CardContent>
+                <div className="space-y-4">
+                  {activeBookings.map((booking) => (
+                    <div key={booking.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold">{(booking as any).facilities?.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {(booking as any).facilities?.address}, {(booking as any).facilities?.city}
+                          </p>
+                          <p className="text-sm">
+                            📅 {formatDate(booking.booking_date)} • 
+                            🕐 {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
+                          </p>
                         </div>
-                        <p className="font-medium text-red-600">
-                          Confirmând, toate rezervările vor fi anulate și contul șters permanent!
-                        </p>
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Anulează</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={() => {
-                          setShowActiveBookingsWarning(false);
-                          setShowDeleteDialog(true);
-                        }}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Înțeleg, șterge contul
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                        <div className="text-right">
+                          <p className="font-semibold">{booking.total_price} RON</p>
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {booking.payment_method === 'cash' ? 'Cash' : 'Card'}
+                          </p>
+                          <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                            booking.status === 'confirmed' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {booking.status === 'confirmed' ? 'Confirmată' : 'În așteptare'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
-          </div>
+          )}
 
-          {/* Quick Stats */}
-          <Card>
+          {/* Danger Zone */}
+          <Card className="mt-6 border-destructive">
             <CardHeader>
-              <CardTitle>Informații Rapide</CardTitle>
+              <CardTitle className="text-destructive">Zona Periculoasă</CardTitle>
+              <CardDescription>
+                Acțiuni ireversibile pentru contul tău
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-primary">{bookingStats.active}</div>
-                  <div className="text-sm text-gray-600">Rezervări Active</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-green-600">{bookingStats.total}</div>
-                  <div className="text-sm text-gray-600">Rezervări Totale</div>
-                </div>
-              </div>
+              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={handleDeleteClick}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Șterge Contul
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirmare Ștergere Cont</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {activeBookingsInfo?.activeBookings > 0 ? (
+                        <div className="space-y-3">
+                          <p className="font-medium text-destructive">
+                            ⚠️ Ai {activeBookingsInfo.activeBookings} rezervări active care vor fi anulate automat!
+                          </p>
+                          <div className="bg-destructive/10 p-3 rounded-lg">
+                            <p className="text-sm mb-2">Rezervările care vor fi anulate:</p>
+                            <ul className="text-sm space-y-1">
+                              {activeBookingsInfo.bookings?.slice(0, 3).map((booking: any) => (
+                                <li key={booking.id} className="flex items-center gap-2">
+                                  <span>📅 {new Date(booking.booking_date).toLocaleDateString('ro-RO')}</span>
+                                  <span>🕐 {booking.start_time}</span>
+                                  <span>🏟️ {booking.facilities?.name}</span>
+                                </li>
+                              ))}
+                              {activeBookingsInfo.bookings?.length > 3 && (
+                                <li className="text-muted-foreground">
+                                  ... și încă {activeBookingsInfo.bookings.length - 3} rezervări
+                                </li>
+                              )}
+                            </ul>
+                          </div>
+                          <p className="text-sm">
+                            Această acțiune este <strong>ireversibilă</strong>. Contul tău și toate datele asociate vor fi șterse permanent.
+                          </p>
+                        </div>
+                      ) : (
+                        <p>
+                          Această acțiune este ireversibilă. Contul tău și toate datele asociate vor fi șterse permanent.
+                        </p>
+                      )}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Anulează</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteAccount}
+                      disabled={isDeleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {isDeleting ? "Se șterge..." : "Da, șterge contul definitiv"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>
