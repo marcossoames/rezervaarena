@@ -10,35 +10,43 @@ max_rows = 1000
 [auth]
 enabled = true
 port = 54324
-site_url = "https://sportspot-booker.lovable.app"
-additional_redirect_urls = ["https://localhost:3000", "http://localhost:5173", "https://sportspot-booker.lovable.app"]
+site_url = "https://947ae49f-e8d5-4283-95f7-ef683f84f2b9.lovableproject.com"
+additional_redirect_urls = ["https://947ae49f-e8d5-4283-95f7-ef683f84f2b9.lovableproject.com"]
 jwt_expiry = 3600
 refresh_token_rotation_enabled = true
 refresh_token_reuse_interval = 10
 enable_signup = true
+enable_confirmations = true
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = true
 
+[auth.hooks.send_email]
+enabled = true
+uri = "https://ukopxkymzywfpobpcana.supabase.co/functions/v1/auth-send-email"
+
 [db]
 enabled = true
 port = 54322
 
-[functions.create-platform-payment]
-verify_jwt = true
-
-[functions.verify-platform-payment]
-verify_jwt = true
-
-[functions.cancel-booking]
-verify_jwt = true
-
-[functions.secure-banking-operations]
-verify_jwt = true
+[functions.auth-send-email]
+verify_jwt = false
 
 [functions.send-booking-confirmation]
+verify_jwt = false
+
+[functions.cancel-booking]
+verify_jwt = false
+
+[functions.create-platform-payment]
+verify_jwt = false
+
+[functions.verify-platform-payment]
+verify_jwt = false
+
+[functions.secure-banking-operations]
 verify_jwt = false
 
 [realtime]
