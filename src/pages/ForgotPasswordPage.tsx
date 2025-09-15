@@ -31,17 +31,55 @@ const ForgotPasswordPage = () => {
 
     try {
       const baseUrl = window.location.origin;
+      // Primary: call our Edge Function via Supabase client
       const { data, error } = await supabase.functions.invoke("auth-recovery-email", {
         body: { email, redirectUrl: baseUrl },
       });
 
       if (error || (data && data.success === false)) {
-        console.error("auth-recovery-email error", error || data?.error);
-        toast({
-          title: "Eroare",
-          description: "Nu am putut trimite email-ul de resetare. Verificați adresa de email.",
-          variant: "destructive",
-        });
+        console.error("auth-recovery-email error (invoke)", error || data?.error);
+        // Fallback: direct fetch to Edge Function URL (in case invoke has issues)
+        try {
+          const response = await fetch(
+            "https://ukopxkymzywfpobpcana.supabase.co/functions/v1/auth-recovery-email",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                // Include apikey for Supabase Edge Functions; verify_jwt is disabled for this function
+                "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrb3B4a3ltenl3ZnBvYnBjYW5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MTI4MzAsImV4cCI6MjA3MTM4ODgzMH0.GL1gd0IkKn-_r9wVG4omebQb8Pivq0_FjNDlR6LcLIc",
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrb3B4a3ltenl3ZnBvYnBjYW5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MTI4MzAsImV4cCI6MjA3MTM4ODgzMH0.GL1gd0IkKn-_r9wVG4omebQb8Pivq0_FjNDlR6LcLIc",
+              },
+              body: JSON.stringify({ email, redirectUrl: baseUrl }),
+            }
+          );
+
+          const json = await response.json().catch(() => ({}));
+
+          if (!response.ok || json?.success === false) {
+            console.error("auth-recovery-email error (fetch)", json);
+            toast({
+              title: "Eroare",
+              description:
+                json?.error ||
+                "Nu am putut trimite email-ul de resetare. Verificați adresa de email.",
+              variant: "destructive",
+            });
+          } else {
+            setEmailSent(true);
+            toast({
+              title: "Email trimis!",
+              description: "Verificați-vă inbox-ul pentru link-ul de resetare a parolei.",
+            });
+          }
+        } catch (fallbackErr) {
+          console.error("auth-recovery-email fatal", fallbackErr);
+          toast({
+            title: "Eroare",
+            description: "Nu am putut trimite email-ul de resetare. Încercați din nou.",
+            variant: "destructive",
+          });
+        }
       } else {
         setEmailSent(true);
         toast({
@@ -50,6 +88,7 @@ const ForgotPasswordPage = () => {
         });
       }
     } catch (error) {
+      console.error("auth-recovery-email unexpected", error);
       toast({
         title: "Eroare",
         description: "A apărut o eroare neașteptată. Încercați din nou.",
