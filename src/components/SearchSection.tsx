@@ -183,55 +183,51 @@ const SearchSection = () => {
                 <div className="space-y-3">
                   <label className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Clock className="h-4 w-4 text-primary" />
-                    Interval rezervare
+                    Durata și ora rezervării
                   </label>
                   <div className="space-y-4">
                     {/* Duration Selection */}
-                    <div className="space-y-2">
-                      <Select value={duration} onValueChange={(value: "60" | "90" | "") => {
-                        setDuration(value);
-                        // Reset start time when duration changes
-                        setStartTime("");
-                      }}>
-                        <SelectTrigger className="h-14 bg-background/80 border-border/50 focus:border-primary rounded-xl transition-all duration-300 hover:bg-background">
-                          <SelectValue placeholder="Selectează durata" />
-                        </SelectTrigger>
-                        <SelectContent className="z-[1000]">
-                          <SelectItem value="60">⏱️ 60 minute (1 oră)</SelectItem>
-                          <SelectItem value="90">⏰ 90 minute (1.5 ore)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <Select value={duration} onValueChange={(value: "60" | "90" | "") => {
+                      setDuration(value);
+                      // Reset start time when duration changes
+                      setStartTime("");
+                    }}>
+                      <SelectTrigger className="h-14 bg-background/80 border-border/50 focus:border-primary rounded-xl transition-all duration-300 hover:bg-background">
+                        <SelectValue placeholder="Selectează durata" />
+                      </SelectTrigger>
+                      <SelectContent className="z-[1000]">
+                        <SelectItem value="60">⏱️ 60 minute (1 oră)</SelectItem>
+                        <SelectItem value="90">⏰ 90 minute (1.5 ore)</SelectItem>
+                      </SelectContent>
+                    </Select>
 
                     {/* Start Time Selection - only show when duration is selected */}
                     {duration && (
-                      <div className="space-y-2">
-                        <div className="relative group">
-                          <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
-                          <Select value={startTime} onValueChange={setStartTime}>
-                            <SelectTrigger className="h-14 pl-12 bg-background/80 border-border/50 focus:border-primary rounded-xl transition-all duration-300 hover:bg-background">
-                              <SelectValue placeholder="Selectează ora de început" />
-                            </SelectTrigger>
-                            <SelectContent className="z-[1000]">
-                              {getTimeOptions().map(time => {
-                                // Check if this start time + duration would exceed operating hours
-                                const [hour, minute] = time.value.split(':').map(Number);
-                                const startMinutes = hour * 60 + minute;
-                                const endMinutes = startMinutes + parseInt(duration);
-                                const endHour = Math.floor(endMinutes / 60);
-                                
-                                // Don't show times that would exceed 22:00 (operating hours end)
-                                if (endHour > 22) return null;
-                                
-                                return (
-                                  <SelectItem key={time.value} value={time.value}>
-                                    {time.label}
-                                  </SelectItem>
-                                );
-                              }).filter(Boolean)}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      <div className="relative group">
+                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
+                        <Select value={startTime} onValueChange={setStartTime}>
+                          <SelectTrigger className="h-14 pl-12 bg-background/80 border-border/50 focus:border-primary rounded-xl transition-all duration-300 hover:bg-background">
+                            <SelectValue placeholder="Selectează ora de început" />
+                          </SelectTrigger>
+                          <SelectContent className="z-[1000]">
+                            {getTimeOptions().map(time => {
+                              // Check if this start time + duration would exceed operating hours
+                              const [hour, minute] = time.value.split(':').map(Number);
+                              const startMinutes = hour * 60 + minute;
+                              const endMinutes = startMinutes + parseInt(duration);
+                              const endHour = Math.floor(endMinutes / 60);
+                              
+                              // Don't show times that would exceed 22:00 (operating hours end)
+                              if (endHour > 22) return null;
+                              
+                              return (
+                                <SelectItem key={time.value} value={time.value}>
+                                  {time.label}
+                                </SelectItem>
+                              );
+                            }).filter(Boolean)}
+                          </SelectContent>
+                        </Select>
                       </div>
                     )}
                   </div>
