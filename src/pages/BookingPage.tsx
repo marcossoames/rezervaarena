@@ -75,11 +75,10 @@ const BookingPage = () => {
   const [facility, setFacility] = useState<Facility | null>(null);
   const [loading, setLoading] = useState(true);
   const [startTimeSlots, setStartTimeSlots] = useState<Array<{time: string, available: boolean, price: number}>>([]);
-  const [endTimeSlots, setEndTimeSlots] = useState<Array<{time: string, available: boolean, price: number}>>([]);
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
   const [partiallyBlockedDates, setPartiallyBlockedDates] = useState<Set<string>>(new Set());
   const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
-  const [selectedEndTime, setSelectedEndTime] = useState<string | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState<60 | 90 | null>(null);
   
   // Restricții temporale pentru clienți: doar următoarele 2 săptămâni
   const today = startOfDay(new Date()); // Normalize to start of day
@@ -87,50 +86,45 @@ const BookingPage = () => {
 
   // Calculate total booking price and duration
   const calculateBookingDetails = () => {
-    if (!selectedStartTime || !selectedEndTime || !facility) {
-      return { duration: 0, totalPrice: 0, formattedDuration: "Nu este selectată" };
+    if (!selectedStartTime || !selectedDuration || !facility) {
+      return { duration: 0, totalPrice: 0, formattedDuration: "Nu este selectată", endTime: "" };
     }
 
     const [startHour, startMinute] = selectedStartTime.split(':').map(Number);
-    const [endHour, endMinute] = selectedEndTime.split(':').map(Number);
-    
     const startMinutes = startHour * 60 + startMinute;
-    const endMinutes = endHour * 60 + endMinute;
+    const endMinutes = startMinutes + selectedDuration;
     
-    if (endMinutes <= startMinutes) {
-      return { duration: 0, totalPrice: 0, formattedDuration: "Interval invalid" };
-    }
-
-    const durationMinutes = endMinutes - startMinutes;
-    const durationHours = durationMinutes / 60;
+    const endHour = Math.floor(endMinutes / 60);
+    const endMinute = endMinutes % 60;
+    const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
     
-    // Simple calculation: base price * duration hours
+    const durationHours = selectedDuration / 60;
+    
+    // Calculate price: 60 min = base price, 90 min = 1.5x base price
     const totalPrice = facility.price_per_hour * durationHours;
 
     // Format duration
-    const hours = Math.floor(durationHours);
-    const minutes = durationMinutes % 60;
-    let formattedDuration = "";
-    if (hours > 0) formattedDuration += `${hours}h`;
-    if (minutes > 0) formattedDuration += `${minutes}min`;
-    if (formattedDuration === "") formattedDuration = "0min";
+    const formattedDuration = selectedDuration === 60 ? "1h" : "1h 30min";
 
     return { 
       duration: durationHours, 
       totalPrice: Math.round(totalPrice), 
-      formattedDuration 
+      formattedDuration,
+      endTime
     };
   };
 
   const bookingDetails = calculateBookingDetails();
 
   const handleContinueToPayment = () => {
-    if (!selectedStartTime || !selectedEndTime || !facility) return;
+    if (!selectedStartTime || !selectedDuration || !facility) return;
+    
+    const bookingDetails = calculateBookingDetails();
     
     const params = new URLSearchParams({
       date: format(selectedDate, 'yyyy-MM-dd'),
       startTime: selectedStartTime,
-      endTime: selectedEndTime,
+      endTime: bookingDetails.endTime,
       totalPrice: bookingDetails.totalPrice.toString(),
       duration: bookingDetails.formattedDuration
     });
@@ -264,9 +258,8 @@ const BookingPage = () => {
 
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       
-      // Generate separate slots for start and end times
+      // Generate slots for start times only (no end time selection needed)
       const startSlots = generateTimeSlots(facility.price_per_hour, facility.operating_hours_start, facility.operating_hours_end, true);
-      const endSlots = generateTimeSlots(facility.price_per_hour, facility.operating_hours_start, facility.operating_hours_end, false);
 
       try {
         // Use secure RPC to get availability data without exposing booking details
@@ -281,19 +274,40 @@ const BookingPage = () => {
           return slots.map(slot => {
             let available = true;
 
-            // Check against unavailable slots from secure RPC
-            if (unavailableSlots) {
+            // Check if this time slot would conflict with any bookings for both 60 and 90 minute durations
+            if (unavailableSlots && selectedDuration) {
+              const [slotHour, slotMinute] = slot.time.split(':').map(Number);
+              const slotMinutes = slotHour * 60 + slotMinute;
+              const endMinutes = slotMinutes + selectedDuration;
+              const endHour = Math.floor(endMinutes / 60);
+              const endMinute = endMinutes % 60;
+              const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+
+              // Check against all unavailable slots
               available = !unavailableSlots.some((unavailable: any) => {
                 // If no start_time and end_time, it's a full day block
                 if (unavailable.unavailable_type === 'blocked' && !unavailable.start_time && !unavailable.end_time) {
                   return true; // Block all time slots for this date
                 }
-                // Check if slot falls within unavailable range
+                
+                // Check if our proposed booking would overlap with any unavailable period
                 if (unavailable.start_time && unavailable.end_time) {
-                  return slot.time >= unavailable.start_time && slot.time < unavailable.end_time;
+                  // Our booking: slot.time to endTime
+                  // Unavailable: unavailable.start_time to unavailable.end_time
+                  // Overlap if: (start1 < end2) && (start2 < end1)
+                  return (slot.time < unavailable.end_time) && (unavailable.start_time < endTime);
                 }
                 return false;
               });
+
+              // Also check if end time exceeds facility operating hours
+              if (facility.operating_hours_end) {
+                const [opEndHour, opEndMinute] = facility.operating_hours_end.split(':').map(Number);
+                const opEndMinutes = opEndHour * 60 + opEndMinute;
+                if (endMinutes > opEndMinutes) {
+                  available = false;
+                }
+              }
             }
 
             return { ...slot, available };
@@ -307,12 +321,6 @@ const BookingPage = () => {
           label: slot.time
         })), selectedDate);
         
-        const filteredEndSlots = filterAllowedTimeSlots(markUnavailableSlots(endSlots).map(slot => ({
-          time: slot.time,
-          available: slot.available,
-          label: slot.time
-        })), selectedDate);
-        
         // Convert back to original format
         setStartTimeSlots(filteredStartSlots.map(slot => ({
           time: slot.time,
@@ -320,20 +328,14 @@ const BookingPage = () => {
           price: startSlots.find(s => s.time === slot.time)?.price || facility.price_per_hour
         })));
         
-        setEndTimeSlots(filteredEndSlots.map(slot => ({
-          time: slot.time,
-          available: slot.available,
-          price: endSlots.find(s => s.time === slot.time)?.price || facility.price_per_hour
-        })));
       } catch (error) {
         console.error('Error loading time slots:', error);
         setStartTimeSlots(startSlots);
-        setEndTimeSlots(endSlots);
       }
     };
 
     loadTimeSlots();
-  }, [facility, selectedDate, facilityId]);
+  }, [facility, selectedDate, facilityId, selectedDuration]);
 
   if (loading) {
     return (
@@ -446,9 +448,9 @@ const BookingPage = () => {
                       
                       if (!isBefore(normalizedDate, normalizedToday) && !isAfter(normalizedDate, normalizedMaxDate)) {
                         setSelectedDate(normalizedDate);
-                        // Reset time selection when date changes
+                        // Reset time and duration selection when date changes
                         setSelectedStartTime(null);
-                        setSelectedEndTime(null);
+                        setSelectedDuration(null);
                       }
                     }
                   }}
@@ -473,7 +475,7 @@ const BookingPage = () => {
                       const today = startOfDay(new Date());
                       setSelectedDate(today);
                       setSelectedStartTime(null);
-                      setSelectedEndTime(null);
+                      setSelectedDuration(null);
                     }}
                     disabled={selectedDate && isSameDay(selectedDate, startOfDay(new Date()))}
                   >
@@ -489,75 +491,101 @@ const BookingPage = () => {
               </CardContent>
             </Card>
 
-            {/* Time Slots */}
+            {/* Duration and Time Selection */}
             <Card className="animate-fade-in" style={{animationDelay: '0.2s'}}>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Clock className="h-5 w-5 mr-2" />
-                  Ore Disponibile
+                  Selectează Durata și Ora
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium mb-2">Selectează ora de început:</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {startTimeSlots.map((slot) => (
-                      <Button
-                        key={`start-${slot.time}`}
-                        variant={selectedStartTime === slot.time ? "default" : "outline"}
-                        disabled={!slot.available}
-                        size="sm"
-                        onClick={() => {
-                          setSelectedStartTime(slot.time);
-                          setSelectedEndTime(null); // Reset end time when start time changes
-                        }}
-                      >
-                        {slot.time}
-                      </Button>
-                    ))}
+                {/* Duration Selection */}
+                <div className="mb-6">
+                  <h4 className="text-sm font-medium mb-3">Selectează durata rezervării:</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div 
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                        selectedDuration === 60 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => {
+                        setSelectedDuration(60);
+                        setSelectedStartTime(null); // Reset start time when duration changes
+                      }}
+                    >
+                      <div className="text-center">
+                        <div className="text-lg font-bold">60 minute</div>
+                        <div className="text-sm text-muted-foreground">1 oră standard</div>
+                        <div className="text-lg font-bold text-primary mt-2">
+                          {facility?.price_per_hour} RON
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                        selectedDuration === 90 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => {
+                        setSelectedDuration(90);
+                        setSelectedStartTime(null); // Reset start time when duration changes
+                      }}
+                    >
+                      <div className="text-center">
+                        <div className="text-lg font-bold">90 minute</div>
+                        <div className="text-sm text-muted-foreground">1 oră și 30 minute</div>
+                        <div className="text-lg font-bold text-primary mt-2">
+                          {facility ? Math.round(facility.price_per_hour * 1.5) : 0} RON
+                        </div>
+                        <div className="text-xs text-orange-600 mt-1">Preț 1.5x</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {selectedStartTime && (
+                {/* Time Selection - only show when duration is selected */}
+                {selectedDuration && (
                   <div className="mb-4">
-                    <h4 className="text-sm font-medium mb-2">Selectează ora de sfârșit:</h4>
+                    <h4 className="text-sm font-medium mb-2">Selectează ora de început:</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {endTimeSlots
-                        .filter(slot => {
-                          const [startHour, startMinute] = selectedStartTime.split(':').map(Number);
-                          const [slotHour, slotMinute] = slot.time.split(':').map(Number);
-                          const startMinutes = startHour * 60 + startMinute;
-                          const slotMinutes = slotHour * 60 + slotMinute;
-                          return slotMinutes > startMinutes && slot.available;
-                        })
-                        .map((slot) => (
-                          <Button
-                            key={`end-${slot.time}`}
-                            variant={selectedEndTime === slot.time ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setSelectedEndTime(slot.time)}
-                          >
-                            {slot.time}
-                          </Button>
-                        ))}
+                      {startTimeSlots.map((slot) => (
+                        <Button
+                          key={`start-${slot.time}`}
+                          variant={selectedStartTime === slot.time ? "default" : "outline"}
+                          disabled={!slot.available}
+                          size="sm"
+                          onClick={() => setSelectedStartTime(slot.time)}
+                        >
+                          {slot.time}
+                        </Button>
+                      ))}
                     </div>
+                    {startTimeSlots.filter(slot => slot.available).length === 0 && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Nu există ore disponibile pentru această durată în data selectată.
+                      </p>
+                    )}
                   </div>
                 )}
 
-                {selectedStartTime && selectedEndTime && (
+                {selectedStartTime && selectedDuration && (
                   <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                     <div className="text-sm space-y-1">
                       <div className="flex justify-between">
                         <span>Interval:</span>
-                        <span className="font-medium">{selectedStartTime} - {selectedEndTime}</span>
+                        <span className="font-medium">{selectedStartTime} - {calculateBookingDetails().endTime}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Durată:</span>
-                        <span className="font-medium">{bookingDetails.formattedDuration}</span>
+                        <span className="font-medium">{calculateBookingDetails().formattedDuration}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Preț total:</span>
-                        <span className="font-medium text-primary">{bookingDetails.totalPrice} RON</span>
+                        <span className="font-medium text-primary">{calculateBookingDetails().totalPrice} RON</span>
                       </div>
                     </div>
                   </div>
@@ -616,14 +644,14 @@ const BookingPage = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Ora:</span>
                       <span className="font-medium">
-                        {selectedStartTime && selectedEndTime 
-                          ? `${selectedStartTime} - ${selectedEndTime}` 
+                        {selectedStartTime && selectedDuration 
+                          ? `${selectedStartTime} - ${calculateBookingDetails().endTime}` 
                           : "Nu este selectată"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Durată:</span>
-                      <span className="font-medium">{bookingDetails.formattedDuration}</span>
+                      <span className="font-medium">{calculateBookingDetails().formattedDuration}</span>
                     </div>
                   </div>
                 </div>
@@ -631,7 +659,7 @@ const BookingPage = () => {
                   <div className="border-t border-border pt-4">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total:</span>
-                      <span className="text-primary">{bookingDetails.totalPrice} RON</span>
+                      <span className="text-primary">{calculateBookingDetails().totalPrice} RON</span>
                     </div>
                   </div>
                 
@@ -639,10 +667,10 @@ const BookingPage = () => {
                   className="w-full" 
                   size="lg" 
                   variant="sport" 
-                  disabled={!selectedStartTime || !selectedEndTime}
+                  disabled={!selectedStartTime || !selectedDuration}
                   onClick={handleContinueToPayment}
                 >
-                  {selectedStartTime && selectedEndTime ? "Continuă cu plata" : "Selectează intervalul pentru a continua"}
+                  {selectedStartTime && selectedDuration ? "Continuă cu plata" : "Selectează durata și ora pentru a continua"}
                 </Button>
                 
                 <p className="text-xs text-muted-foreground text-center">
