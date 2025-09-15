@@ -44,7 +44,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from("bookings")
       .select(`
         *,
-        facilities!inner (
+        facilities!bookings_facility_id_fkey (
           name,
           facility_type,
           address,
@@ -96,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Email to client
     const clientEmailResponse = await resend.emails.send({
-      from: "RezervArena <rezervari@resend.dev>",
+      from: "RezervArena <onboarding@resend.dev>",
       to: [clientProfile.email],
       subject: "✅ Confirmare Rezervare - RezervArena",
       html: `
@@ -147,7 +147,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Email to facility owner
     const ownerEmailResponse = await resend.emails.send({
-      from: "RezervArena <notificari@resend.dev>",
+      from: "RezervArena <onboarding@resend.dev>",
       to: [ownerProfile.email],
       subject: "🔔 Rezervare Nouă Confirmată - RezervArena",
       html: `
