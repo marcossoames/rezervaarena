@@ -35,6 +35,9 @@ verify_jwt = true
 [functions.cancel-booking]
 verify_jwt = true
 
+[functions.secure-banking-operations]
+verify_jwt = true
+
 [realtime]
 enabled = true
 port = 54323
