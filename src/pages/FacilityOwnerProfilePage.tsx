@@ -32,8 +32,11 @@ interface BankFormData {
 }
 
 const FacilityOwnerProfilePage = () => {
+  const [activeBookingsInfo, setActiveBookingsInfo] = useState<any>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [submittingBankDetails, setSubmittingBankDetails] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -351,6 +354,8 @@ const FacilityOwnerProfilePage = () => {
     }
     
     return userTypeComment;
+  };
+
   const handleDeleteClick = async () => {
     const activeBookingsData = await checkActiveBookings();
     setActiveBookingsInfo(activeBookingsData);
