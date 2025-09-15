@@ -138,7 +138,7 @@ export const OptimizedImage = ({
       alt={alt}
       className={`${className} transition-opacity duration-300`}
       loading={loading}
-      fetchPriority={fetchPriority}
+      {...(fetchPriority !== 'auto' && { fetchpriority: fetchPriority })}
       width={width || targetDimensions.width}
       height={height || targetDimensions.height}
       style={{ 

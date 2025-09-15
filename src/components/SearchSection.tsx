@@ -141,7 +141,7 @@ const SearchSection = () => {
                         {selectedDate ? format(selectedDate, "dd MMM yyyy", { locale: ro }) : "Selectează data"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-50" align="start">
+                    <PopoverContent className="w-auto p-0 z-[100]" align="start">
                        <Calendar 
                         mode="single" 
                         selected={selectedDate} 
@@ -181,7 +181,7 @@ const SearchSection = () => {
                         <SelectTrigger className="h-12 pl-10 bg-background border-border focus:border-primary">
                           <SelectValue placeholder="De la" />
                         </SelectTrigger>
-                        <SelectContent className="z-50">
+                         <SelectContent className="z-[100]">
                           {getTimeOptions().filter(time => !endTime || time.value < endTime).map(time => 
                             <SelectItem key={time.value} value={time.value}>
                               {time.label}
@@ -196,7 +196,7 @@ const SearchSection = () => {
                         <SelectTrigger className="h-12 pl-10 bg-background border-border focus:border-primary">
                           <SelectValue placeholder="Până la" />
                         </SelectTrigger>
-                        <SelectContent className="z-50">
+                         <SelectContent className="z-[100]">
                           {getTimeOptions().filter(time => startTime && time.value > startTime).map(time => 
                             <SelectItem key={time.value} value={time.value}>
                               {time.label}
@@ -217,7 +217,7 @@ const SearchSection = () => {
                     <SelectTrigger className="h-12 bg-background border-border focus:border-primary">
                       <SelectValue placeholder="Toate tipurile" />
                     </SelectTrigger>
-                    <SelectContent className="z-50">
+                    <SelectContent className="z-[100]">
                       {facilityTypes.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}

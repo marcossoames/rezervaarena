@@ -502,7 +502,7 @@ applyFilters();
                         {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "Selectează data"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-50" align="start">
+                    <PopoverContent className="w-auto p-0 z-[100]" align="start">
                       <EnhancedCalendar 
                         mode="single" 
                         selected={selectedDate} 
@@ -576,7 +576,7 @@ applyFilters();
                         <SelectTrigger className="h-11 pl-10 bg-background border-border focus:border-primary">
                           <SelectValue placeholder="De la" />
                         </SelectTrigger>
-                        <SelectContent className="z-50">
+                         <SelectContent className="z-[100]">
                           {getTimeOptions().map(time => (
                             <SelectItem key={time.value} value={time.value}>
                               {time.label}
@@ -591,7 +591,7 @@ applyFilters();
                         <SelectTrigger className="h-11 pl-10 bg-background border-border focus:border-primary">
                           <SelectValue placeholder="Până la" />
                         </SelectTrigger>
-                        <SelectContent className="z-50">
+                        <SelectContent className="z-[100]">
                           {getTimeOptions()
                             .filter(time => !startTime || time.value > startTime)
                             .map(time => (
@@ -675,7 +675,7 @@ applyFilters();
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Selectează sortarea" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[100]">
                     <SelectItem value="newest">Cele mai noi adăugate</SelectItem>
                     <SelectItem value="oldest">Cele mai vechi adăugate</SelectItem>
                     <SelectItem value="price-low">Preț: Crescător</SelectItem>
