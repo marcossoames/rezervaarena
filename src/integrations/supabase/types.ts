@@ -107,6 +107,45 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_details_audit_logs: {
+        Row: {
+          action: string
+          admin_user_id: string | null
+          bank_details_id: string | null
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_data: Json | null
+          old_data: Json | null
+          target_user_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id?: string | null
+          bank_details_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          target_user_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string | null
+          bank_details_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          target_user_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       blocked_dates: {
         Row: {
           blocked_date: string
@@ -650,6 +689,17 @@ export type Database = {
           min_price: number
         }[]
       }
+      get_masked_bank_details_for_user: {
+        Args: { user_id_param: string }
+        Returns: {
+          account_holder_name: string
+          bank_name: string
+          created_at: string
+          iban_masked: string
+          id: string
+          updated_at: string
+        }[]
+      }
       get_owner_facility_details: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -691,6 +741,10 @@ export type Database = {
       has_role: {
         Args: { _role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
+      }
+      mask_iban: {
+        Args: { iban_value: string }
+        Returns: string
       }
       promote_user_to_admin_secure: {
         Args: { _user_id: string }

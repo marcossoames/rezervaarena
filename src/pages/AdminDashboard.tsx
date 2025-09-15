@@ -12,11 +12,12 @@ import BookingManagement from "@/components/admin/BookingManagement";
 import IncomeManagement from "@/components/admin/IncomeManagement";
 import ArticleManagement from "@/components/admin/ArticleManagement";
 import BankDetailsManagement from "@/components/admin/BankDetailsManagement";
+import BankAuditLogs from "@/components/admin/BankAuditLogs";
 
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings' | 'income' | 'articles' | 'bank' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'facilities' | 'bookings' | 'income' | 'articles' | 'bank' | 'audit' | 'settings'>('dashboard');
   const [stats, setStats] = useState({
     totalUsers: 0,
     clients: 0,
@@ -300,6 +301,18 @@ const AdminDashboard = () => {
                 Conturi Bancare
               </Button>
               <Button 
+                variant={activeTab === 'audit' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab('audit')}
+                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+              >
+                <Shield className="h-5 w-5" />
+                Audit Logs
+              </Button>
+            </div>
+            
+            {/* Third row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button 
                 variant={activeTab === 'settings' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('settings')}
                 className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
@@ -336,6 +349,8 @@ const AdminDashboard = () => {
         {activeTab === 'articles' && <ArticleManagement />}
 
         {activeTab === 'bank' && <BankDetailsManagement />}
+
+        {activeTab === 'audit' && <BankAuditLogs />}
 
         {activeTab === 'settings' && (
           <Card>

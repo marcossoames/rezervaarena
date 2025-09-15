@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { deleteUserAccount } from "@/utils/deleteAccount";
+import { validateIbanFormat, sanitizeInput, validateAccountHolderName, validateBankName } from "@/utils/bankSecurity";
 
 interface BankDetails {
   id: string;
@@ -158,18 +159,29 @@ const FacilityOwnerProfilePage = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Use secure function to get masked bank details
       const { data: bankData, error } = await supabase
-        .from('bank_details')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .rpc('get_masked_bank_details_for_user', { user_id_param: user.id });
 
       if (error) {
         console.error('Error loading bank details:', error);
         return;
       }
 
-      setBankDetails(bankData);
+      // Transform the data to match our interface
+      if (bankData && bankData.length > 0) {
+        const maskedBankDetails = {
+          id: bankData[0].id,
+          account_holder_name: bankData[0].account_holder_name,
+          bank_name: bankData[0].bank_name,
+          iban: bankData[0].iban_masked, // This is already masked
+          created_at: bankData[0].created_at,
+          updated_at: bankData[0].updated_at
+        };
+        setBankDetails(maskedBankDetails);
+      } else {
+        setBankDetails(null);
+      }
     } catch (error) {
       console.error('Error loading bank details:', error);
     }
@@ -192,11 +204,48 @@ const FacilityOwnerProfilePage = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Client-side validation and sanitization
+      const accountHolderValidation = validateAccountHolderName(data.account_holder_name);
+      if (!accountHolderValidation.isValid) {
+        toast({
+          title: "Eroare de validare",
+          description: accountHolderValidation.error,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const bankNameValidation = validateBankName(data.bank_name);
+      if (!bankNameValidation.isValid) {
+        toast({
+          title: "Eroare de validare",
+          description: bankNameValidation.error,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!validateIbanFormat(data.iban)) {
+        toast({
+          title: "Eroare de validare",
+          description: "Formatul IBAN este invalid. Utilizați formatul RO12ABCD1234567890123456",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Sanitize inputs
+      const sanitizedData = {
+        account_holder_name: sanitizeInput(data.account_holder_name),
+        bank_name: sanitizeInput(data.bank_name),
+        iban: data.iban.replace(/\s/g, '').toUpperCase()
+      };
+
       if (isEditingBank && bankDetails) {
         // Update existing bank details
         const { error } = await supabase
           .from('bank_details')
-          .update(data)
+          .update(sanitizedData)
           .eq('id', bankDetails.id);
 
         if (error) throw error;
@@ -212,7 +261,7 @@ const FacilityOwnerProfilePage = () => {
           .insert([
             {
               user_id: user.id,
-              ...data
+              ...sanitizedData
             }
           ]);
 
@@ -231,7 +280,7 @@ const FacilityOwnerProfilePage = () => {
       console.error('Error saving bank details:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-au putut salva detaliile bancare",
+        description: "Nu s-au putut salva detaliile bancare. Verificați formatul datelor.",
         variant: "destructive"
       });
     }

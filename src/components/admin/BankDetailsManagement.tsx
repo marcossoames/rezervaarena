@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Plus, Edit, Trash2, CreditCard, Landmark } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { validateIbanFormat, sanitizeInput, validateAccountHolderName, validateBankName, maskIban } from "@/utils/bankSecurity";
 
 interface BankDetails {
   id: string;
@@ -142,11 +143,48 @@ const BankDetailsManagement = () => {
         return;
       }
 
+      // Client-side validation and sanitization
+      const accountHolderValidation = validateAccountHolderName(data.account_holder_name);
+      if (!accountHolderValidation.isValid) {
+        toast({
+          title: "Eroare de validare",
+          description: accountHolderValidation.error,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const bankNameValidation = validateBankName(data.bank_name);
+      if (!bankNameValidation.isValid) {
+        toast({
+          title: "Eroare de validare",
+          description: bankNameValidation.error,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!validateIbanFormat(data.iban)) {
+        toast({
+          title: "Eroare de validare",
+          description: "Formatul IBAN este invalid. Utilizați formatul RO12ABCD1234567890123456",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Sanitize inputs
+      const sanitizedData = {
+        account_holder_name: sanitizeInput(data.account_holder_name),
+        bank_name: sanitizeInput(data.bank_name),
+        iban: data.iban.replace(/\s/g, '').toUpperCase()
+      };
+
       if (editingBank) {
         // Update existing bank details
         const { error } = await supabase
           .from('bank_details')
-          .update(data)
+          .update(sanitizedData)
           .eq('id', editingBank.id);
 
         if (error) throw error;
@@ -162,7 +200,7 @@ const BankDetailsManagement = () => {
           .insert([
             {
               user_id: selectedOwnerId,
-              ...data
+              ...sanitizedData
             }
           ]);
 
@@ -181,7 +219,7 @@ const BankDetailsManagement = () => {
       console.error('Error saving bank details:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-au putut salva detaliile bancare",
+        description: "Nu s-au putut salva detaliile bancare. Verificați formatul datelor.",
         variant: "destructive"
       });
     }
@@ -359,10 +397,10 @@ const BankDetailsManagement = () => {
                             <p className="font-medium">{bank.bank_name}</p>
                           </div>
                           
-                          <div>
-                            <p className="text-muted-foreground">IBAN:</p>
-                            <p className="font-mono text-xs">{bank.iban}</p>
-                          </div>
+                           <div>
+                             <p className="text-muted-foreground">IBAN:</p>
+                             <p className="font-mono text-xs">{maskIban(bank.iban)}</p>
+                           </div>
                         </div>
                       </div>
 
