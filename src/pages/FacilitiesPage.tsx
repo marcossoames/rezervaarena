@@ -502,7 +502,7 @@ applyFilters();
                         {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "Selectează data"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                    <PopoverContent className="w-auto p-0 z-[1000]" align="start">
                       <EnhancedCalendar 
                         mode="single" 
                         selected={selectedDate} 
