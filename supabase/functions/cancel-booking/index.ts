@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-
+import { Resend } from "npm:resend@4.0.0";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -48,7 +48,20 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    console.log('Fetching booking details for user:', user.id);
+const supabaseUser = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+  { global: { headers: { Authorization: authHeader } } }
+);
+
+const { data: selfProfile } = await supabaseUser
+  .from('profiles')
+  .select('role')
+  .eq('user_id', user.id)
+  .maybeSingle();
+
+const isAdmin = selfProfile?.role === 'admin';
+console.log('Fetching booking details for user:', user.id);
 
     // Get booking details (do not constrain by client here)
     const { data: booking, error: bookingError } = await supabase
@@ -71,22 +84,22 @@ serve(async (req) => {
     // Determine permissions: client or facility owner can cancel
     const isClient = booking.client_id === user.id;
 
-    const { data: ownerFacility, error: ownerCheckError } = await supabase
+    const { data: facilityOwner } = await supabase
       .from('facilities')
-      .select('id')
+      .select('owner_id')
       .eq('id', booking.facility_id)
-      .eq('owner_id', user.id)
       .maybeSingle();
 
-    const isOwner = !!ownerFacility && !ownerCheckError;
-    console.log('Permission check:', { isClient, isOwner });
+    const ownerId = facilityOwner?.owner_id as string | undefined;
+    const isOwner = ownerId === user.id;
+    console.log('Permission check:', { isClient, isOwner, isAdmin });
 
-    if (!isClient && !isOwner) {
+    if (!isClient && !isOwner && !isAdmin) {
       throw new Error('Access denied');
     }
 
     // Enforce 24h rule only for client-initiated cancellations
-    if (!isOwner) {
+    if (!isOwner && !isAdmin) {
       const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
       const now = new Date();
       const oneDayInMs = 24 * 60 * 60 * 1000;
@@ -137,13 +150,13 @@ serve(async (req) => {
     }
 
     // Update booking status to cancelled
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseUser
       .from('bookings')
       .update({ 
         status: 'cancelled',
         updated_at: new Date().toISOString(),
-        notes: isOwner
-          ? 'Anulat de proprietar'
+        notes: isOwner || isAdmin
+          ? 'Anulat de ' + (isOwner ? 'proprietar' : 'administrator')
           : refundProcessed 
             ? `Anulat de client. Refund processat: ${refundId}` 
             : booking.payment_method === 'cash' 
@@ -153,10 +166,52 @@ serve(async (req) => {
       .eq('id', bookingId);
 
     if (updateError) {
+      console.error('Update error:', updateError);
       throw new Error('Failed to update booking status');
     }
 
     console.log('Booking cancelled successfully');
+
+    // Send notification email
+    try {
+      const resend = new Resend(Deno.env.get('RESEND_API_KEY') || '');
+      let toEmail: string | null = null;
+      let subject = '';
+      let html = '';
+
+      if (isClient && ownerId) {
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('user_id', ownerId)
+          .maybeSingle();
+        toEmail = ownerProfile?.email ?? null;
+        subject = 'Rezervare anulată de client';
+        html = `<p>Bună,</p><p>Clientul a anulat o rezervare pentru data ${booking.booking_date} la ${booking.start_time}.</p>`;
+      } else {
+        const { data: clientProfile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('user_id', booking.client_id)
+          .maybeSingle();
+        toEmail = clientProfile?.email ?? null;
+        subject = 'Rezervarea ta a fost anulată';
+        html = `<p>Bună,</p><p>Rezervarea ta din ${booking.booking_date} la ${booking.start_time} a fost anulată de ${isOwner ? 'proprietar' : 'administrator'}.</p>`;
+      }
+
+      if (toEmail) {
+        await resend.emails.send({
+          from: 'RezervaArena <no-reply@rezervaarena.ro>',
+          to: [toEmail],
+          subject,
+          html,
+        });
+      } else {
+        console.log('Email target not found, skip send.');
+      }
+    } catch (emailError) {
+      console.error('Email notification failed:', emailError);
+    }
 
     return new Response(JSON.stringify({ 
       success: true,
