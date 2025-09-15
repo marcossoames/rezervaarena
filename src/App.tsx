@@ -47,21 +47,24 @@ const PageLoader = () => (
   </div>
  );
  
- // Redirect auth tokens in hash or query to /reset-password route
- const AuthHashRedirect = () => {
-   const navigate = useNavigate();
-   useEffect(() => {
-     const { hash, search, pathname } = window.location;
-     const hasAuthParams =
-       /access_token=|type=recovery|token=|code=|token_hash=/.test(hash) ||
-       /access_token=|type=recovery|token=|code=|token_hash=/.test(search);
- 
-     if (hasAuthParams && pathname !== '/reset-password') {
-       navigate('/reset-password' + (search || '') + (hash || ''), { replace: true });
-     }
-   }, [navigate]);
-   return null;
- };
+// Redirect auth tokens in hash or query to /reset-password route (only when necessary)
+const AuthHashRedirect = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const { hash, search, pathname } = window.location;
+    
+    // Only check for actual recovery/reset tokens, not general auth tokens
+    const hasRecoveryParams =
+      /type=recovery|token_hash=/.test(hash) ||
+      /type=recovery|token_hash=/.test(search);
+
+    // Only redirect if we have recovery params and we're not already on reset-password
+    if (hasRecoveryParams && pathname !== '/reset-password') {
+      navigate('/reset-password' + (search || '') + (hash || ''), { replace: true });
+    }
+  }, [navigate]);
+  return null;
+};
  
 
 const App = () => (
