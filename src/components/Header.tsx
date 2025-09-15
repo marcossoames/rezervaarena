@@ -118,10 +118,10 @@ const Header = () => {
         <div className="flex items-center justify-between">
           {/* Left side - Logo */}
           <Link to="/" className="flex items-center space-x-1 sm:space-x-2 shrink-0">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-hero rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm sm:text-lg">S</span>
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md flex items-center justify-center overflow-hidden">
+              <img src="/logo-rezervaarena.jpg" alt="RezervaArena" className="w-full h-full object-cover" />
             </div>
-            <img src="/logo-rezervaarena.jpg" alt="RezervaArena" className="h-8 w-auto" />
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">RezervaArena</h1>
           </Link>
           
           {/* Center - Navigation Desktop */}

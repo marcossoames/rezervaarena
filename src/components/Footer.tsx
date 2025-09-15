@@ -7,10 +7,9 @@ const Footer = () => {
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-8">
           <div className="lg:max-w-md">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-hero rounded-md flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">S</span>
+              <div className="w-8 h-8 rounded-md flex items-center justify-center overflow-hidden mb-2">
+                <img src="/logo-rezervaarena.jpg" alt="RezervaArena" className="w-full h-full object-cover" />
               </div>
-              <img src="/logo-rezervaarena.jpg" alt="RezervaArena" className="h-8 w-auto mb-2" />
               <h3 className="text-xl font-bold text-foreground">RezervaArena</h3>
             </div>
             <p className="text-muted-foreground mb-2">Platforma numărul 1 din România pentru rezervarea terenurilor sportive.</p>
