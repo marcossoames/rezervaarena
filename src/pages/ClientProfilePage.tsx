@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { User, Calendar, Trash2 } from "lucide-react";
+import { User, Calendar, Trash2, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
@@ -12,12 +12,14 @@ import { deleteUserAccount, checkActiveBookings } from "@/utils/deleteAccount";
 
 const ClientProfilePage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [bookingStats, setBookingStats] = useState({ active: 0, total: 0 });
+  const [bookingStats, setBookingStats] = useState({ active: 0, total: 0, cancelled: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [activeBookings, setActiveBookings] = useState<any[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeBookingsInfo, setActiveBookingsInfo] = useState<any>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedProfile, setEditedProfile] = useState<any>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -67,6 +69,9 @@ const ClientProfilePage = () => {
         return;
       }
 
+      // Count cancelled bookings specifically
+      const cancelledCount = allBookings?.filter(booking => booking.status === 'cancelled').length || 0;
+
       // Get active bookings (today and future)
       const { data: activeBookingsData, error: activeError } = await supabase
         .from('bookings')
@@ -82,7 +87,8 @@ const ClientProfilePage = () => {
 
       setBookingStats({
         active: activeBookingsData?.length || 0,
-        total: allBookings?.length || 0
+        total: allBookings?.length || 0,
+        cancelled: cancelledCount
       });
     } catch (error) {
       console.error('Error in loadBookingStats:', error);
@@ -124,6 +130,64 @@ const ClientProfilePage = () => {
       console.error('Error in loadActiveBookings:', error);
       // Don't show error to user, just keep bookings empty
     }
+  };
+
+  const handleEditToggle = () => {
+    if (isEditMode) {
+      // Save changes
+      handleSaveProfile();
+    } else {
+      // Enter edit mode
+      setEditedProfile({
+        full_name: userProfile.full_name,
+        phone: userProfile.phone
+      });
+      setIsEditMode(true);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: editedProfile.full_name,
+          phone: editedProfile.phone,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setUserProfile({
+        ...userProfile,
+        full_name: editedProfile.full_name,
+        phone: editedProfile.phone
+      });
+
+      setIsEditMode(false);
+      toast({
+        title: "Profil actualizat",
+        description: "Informațiile tale au fost salvate cu succes."
+      });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut actualiza profilul.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditedProfile({});
   };
 
   const handleDeleteClick = async () => {
@@ -223,28 +287,63 @@ const ClientProfilePage = () => {
             {/* User Info Card */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Informații Personale
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Informații Personale
+                  </CardTitle>
+                  <Button
+                    variant={isEditMode ? "default" : "outline"}
+                    size="sm"
+                    onClick={handleEditToggle}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    {isEditMode ? "Salvează" : "Editează"}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Nume Complet</label>
-                  <p className="text-lg">{userProfile.full_name}</p>
+                  {isEditMode ? (
+                    <input
+                      type="text"
+                      value={editedProfile.full_name || ''}
+                      onChange={(e) => setEditedProfile({...editedProfile, full_name: e.target.value})}
+                      className="w-full mt-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  ) : (
+                    <p className="text-lg">{userProfile.full_name}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Email</label>
-                  <p className="text-lg">{userProfile.email}</p>
+                  <p className="text-lg text-muted-foreground">{userProfile.email} (nu poate fi modificat)</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Telefon</label>
-                  <p className="text-lg">{userProfile.phone}</p>
+                  {isEditMode ? (
+                    <input
+                      type="tel"
+                      value={editedProfile.phone || ''}
+                      onChange={(e) => setEditedProfile({...editedProfile, phone: e.target.value})}
+                      className="w-full mt-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  ) : (
+                    <p className="text-lg">{userProfile.phone}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Tip Utilizator</label>
                   <p className="text-lg">{userProfile.role === 'client' ? 'Client' : userProfile.role}</p>
                 </div>
+                {isEditMode && (
+                  <div className="flex gap-2 pt-4">
+                    <Button onClick={handleCancelEdit} variant="outline" size="sm">
+                      Anulează
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -272,7 +371,7 @@ const ClientProfilePage = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Rezervări Anulate</span>
-                    <span className="text-2xl font-bold text-red-600">{userProfile.cancelled_bookings || 0}</span>
+                    <span className="text-2xl font-bold text-red-600">{bookingStats.cancelled}</span>
                   </div>
                 </div>
               </CardContent>
