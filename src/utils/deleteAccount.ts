@@ -85,11 +85,41 @@ export const deleteUserAccount = async () => {
       throw new Error("Nu există utilizator autentificat");
     }
 
+    // Get user profile before deletion
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, email, role')
+      .eq('user_id', user.id)
+      .single();
+
+    // Check active bookings and facilities before deletion
+    const activeBookingsData = await checkActiveBookings();
+    const ownerFacilitiesData = await checkOwnerActiveFacilityBookings();
+
     // Use the secure deletion function
     const { data, error } = await supabase.rpc('delete_current_user_account');
 
     if (error) {
       throw error;
+    }
+
+    // Send deletion confirmation email
+    if (profile?.email && profile?.full_name) {
+      try {
+        await supabase.functions.invoke('send-account-deletion-email', {
+          body: {
+            userId: user.id,
+            userEmail: profile.email,
+            userName: profile.full_name,
+            userType: profile.role === 'client' ? 'client' : 'facility_owner',
+            cancelledBookings: activeBookingsData.activeBookings + (ownerFacilitiesData.activeBookings || 0),
+            deactivatedFacilities: ownerFacilitiesData.facilities?.length || 0
+          }
+        });
+      } catch (emailError) {
+        console.error('Error sending deletion email:', emailError);
+        // Don't fail the deletion if email fails
+      }
     }
 
     // Sign out the user after successful deletion

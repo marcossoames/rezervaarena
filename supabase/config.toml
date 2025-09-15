@@ -52,6 +52,12 @@ verify_jwt = true
 [functions.auth-recovery-email]
 verify_jwt = false
 
+[functions.send-account-deletion-email]
+verify_jwt = false
+
+[functions.send-facility-notification]
+verify_jwt = false
+
 [realtime]
 enabled = true
 port = 54323

@@ -315,6 +315,23 @@ const FacilityRegister = () => {
             throw new Error(`Eroare la crearea facilității ${i + 1}: ${facilityError.message}`);
           }
 
+          // Send facility creation notification email
+          if (facilityId && accountData.email && accountData.fullName) {
+            try {
+              await supabase.functions.invoke('send-facility-notification', {
+                body: {
+                  facilityId: facilityId,
+                  action: "created",
+                  ownerEmail: accountData.email,
+                  ownerName: accountData.fullName
+                }
+              });
+            } catch (emailError) {
+              console.error('Error sending facility creation email:', emailError);
+              // Don't fail the registration if email fails
+            }
+          }
+
           console.log(`Facility ${i + 1} created successfully:`, facilityId);
 
           // Upload images for this facility

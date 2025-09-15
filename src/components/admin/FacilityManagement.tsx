@@ -192,12 +192,51 @@ const FacilityManagement = () => {
     }
 
     try {
+      // Get facility owner details before deletion - find in sportsComplexes
+      let facilityToDelete = null;
+      let ownerProfile = null;
+      
+      // Search through all complexes to find the facility
+      for (const complex of sportsComplexes) {
+        const found = complex.facilities.find(f => f.id === facilityId);
+        if (found) {
+          facilityToDelete = found;
+          break;
+        }
+      }
+      
+      if (facilityToDelete?.owner_id) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('user_id', facilityToDelete.owner_id)
+          .single();
+        ownerProfile = data;
+      }
+
       const { error } = await supabase
         .from('facilities')
         .delete()
         .eq('id', facilityId);
 
       if (error) throw error;
+
+      // Send facility deletion notification email to owner
+      if (ownerProfile?.email && ownerProfile?.full_name) {
+        try {
+          await supabase.functions.invoke('send-facility-notification', {
+            body: {
+              facilityId: facilityId,
+              action: "deleted", 
+              ownerEmail: ownerProfile.email,
+              ownerName: ownerProfile.full_name
+            }
+          });
+        } catch (emailError) {
+          console.error('Error sending facility deletion email:', emailError);
+          // Don't fail the deletion if email fails
+        }
+      }
 
       // Remove the facility from the sports complexes state
       setSportsComplexes(prev => prev.map(complex => ({

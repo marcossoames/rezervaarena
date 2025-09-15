@@ -217,6 +217,15 @@ const ManageFacilitiesPage = () => {
       return;
     }
 
+    // Get facility and user details before deletion
+    const facilityToDelete = facilities.find(f => f.id === facilityId);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, email')
+      .eq('user_id', user?.id)
+      .single();
+
     const { error } = await supabase
       .from('facilities')
       .delete()
@@ -229,6 +238,23 @@ const ManageFacilitiesPage = () => {
         variant: "destructive"
       });
     } else {
+      // Send facility deletion notification email
+      if (profile?.email && profile?.full_name) {
+        try {
+          await supabase.functions.invoke('send-facility-notification', {
+            body: {
+              facilityId: facilityId,
+              action: "deleted",
+              ownerEmail: profile.email,
+              ownerName: profile.full_name
+            }
+          });
+        } catch (emailError) {
+          console.error('Error sending facility deletion email:', emailError);
+          // Don't fail the deletion if email fails
+        }
+      }
+
       setFacilities(prev => prev.filter(f => f.id !== facilityId));
       toast({
         title: "Facilitate ștearsă",
