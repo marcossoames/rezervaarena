@@ -120,7 +120,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="text-align: center; margin-top: 30px;">
               <p style="color: #666; font-size: 14px;">
                 Mulțumim că faceți parte din RezervaArena!<br>
-                Pentru întrebări, contactați suportul la: <strong>soamespaul@gmail.com</strong>
+                Pentru întrebări, contactați suportul la: <strong>rezervaarena@gmail.com</strong>
               </p>
             </div>
           </div>
@@ -164,7 +164,7 @@ const handler = async (req: Request): Promise<Response> => {
 
             <div style="text-align: center; margin-top: 30px;">
               <p style="color: #666; font-size: 14px;">
-                Pentru întrebări sau suport, contactați-ne la: <strong>soamespaul@gmail.com</strong>
+                Pentru întrebări sau suport, contactați-ne la: <strong>rezervaarena@gmail.com</strong>
               </p>
             </div>
           </div>

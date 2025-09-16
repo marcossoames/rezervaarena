@@ -226,7 +226,7 @@ console.log('Fetching booking details for user:', user.id);
                 <p style="margin:4px 0"><strong>Locație:</strong> ${facilityData?.address ? `${facilityData.address}, ${facilityData.city}` : (facilityData?.city ?? '')}</p>
               </div>
               ${refundProcessed ? `<p style="margin-top:12px">Refund Stripe inițiat (ID: ${refundId}).</p>` : ''}
-              <p style="color:#6b7280;font-size:12px;margin-top:16px">Pentru întrebări, contactează: <strong>soamespaul@gmail.com</strong></p>
+              <p style="color:#6b7280;font-size:12px;margin-top:16px">Pentru întrebări, contactează: <strong>rezervaarena@gmail.com</strong></p>
             </div>
           </div>
         `;
