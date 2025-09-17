@@ -296,9 +296,9 @@ const FacilityRegister = () => {
             data: {
               full_name: accountData.fullName,
               phone: accountData.phone,
-              role: 'client',
-              user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`,
-              business_name: accountData.businessName
+              business_name: accountData.businessName,
+              role: 'facility_owner', // Setez explicit rolul pentru proprietarii de bazei sportive
+              user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`
             }
           }
         });

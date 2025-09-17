@@ -55,14 +55,14 @@ const SportsFacilityLogin = () => {
           // User has facilities, redirect to manage facilities page
           navigate('/manage-facilities');
         } else {
-          // User doesn't have facilities, check their profile comment
+          // User doesn't have facilities, check their profile for facility owner status
           const { data: profile } = await supabase
             .from('profiles')
-            .select('user_type_comment')
+            .select('user_type_comment, role')
             .eq('user_id', data.user.id)
             .single();
 
-          if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+          if (profile?.user_type_comment?.includes('Proprietar bază sportivă') || profile?.role === 'facility_owner') {
             // They are supposed to be facility owners but have no facilities
             // Redirect them to complete registration
             toast({
