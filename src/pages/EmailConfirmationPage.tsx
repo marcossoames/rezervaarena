@@ -101,6 +101,60 @@ const EmailConfirmationPage = () => {
           }
         }
 
+        // If coming from signup but no tokens present, try password sign-in using data saved pre-confirmation
+        if (type === 'signup' && !accessToken && !refreshToken && !errorCode) {
+          const savedDataStr = localStorage.getItem('facilityRegistrationData');
+          if (savedDataStr) {
+            try {
+              const saved = JSON.parse(savedDataStr);
+              // Attempt sign-in to establish a session
+              const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                email: saved.accountData?.email,
+                password: saved.accountData?.password,
+              });
+
+              if (!signInError && signInData.user) {
+                setStatus('success');
+
+                // Check profile to confirm facility owner
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('user_type_comment')
+                  .eq('user_id', signInData.user.id)
+                  .maybeSingle();
+
+                // If owner and has no facilities, save them now
+                if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+                  const { data: facilities } = await supabase
+                    .from('facilities')
+                    .select('id')
+                    .eq('owner_id', signInData.user.id)
+                    .limit(1);
+
+                  if (!facilities || facilities.length === 0) {
+                    const result = await saveFacilitiesForUser(saved.accountData, saved.facilities);
+                    if (result.success) {
+                      localStorage.removeItem('facilityRegistrationData');
+                      toast({ title: 'Email confirmat!', description: 'Facilitățile au fost salvate. Bun venit!' });
+                      navigate('/manage-facilities');
+                      return;
+                    }
+                  }
+
+                  toast({ title: 'Email confirmat!', description: 'Bun venit în Dashboard.' });
+                  navigate('/manage-facilities');
+                  return;
+                } else {
+                  // Client flow
+                  toast({ title: 'Email confirmat!', description: 'Contul a fost activat. Te poți conecta.' });
+                  return;
+                }
+              }
+            } catch (e) {
+              console.error('Password sign-in after confirm failed:', e);
+            }
+          }
+        }
         if (errorCode) {
           setStatus('error');
           return;
