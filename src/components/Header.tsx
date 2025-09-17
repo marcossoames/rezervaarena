@@ -117,15 +117,17 @@ const Header = () => {
       <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
         <div className="flex items-center justify-between">
           {/* Left side - Logo */}
-          <Link to="/" className="flex items-center space-x-1 sm:space-x-2 shrink-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center overflow-hidden">
-              <img src="/logo-rezervaarena.png" alt="RezervaArena" className="w-full h-full object-cover" />
-            </div>
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">RezervaArena</h1>
-          </Link>
+          <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
+            <Link to="/" className="flex items-center space-x-1 sm:space-x-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center overflow-hidden">
+                <img src="/logo-rezervaarena.png" alt="RezervaArena" className="w-full h-full object-cover" />
+              </div>
+              <h1 className="text-lg sm:text-xl font-bold text-foreground">RezervaArena</h1>
+            </Link>
+          </div>
           
           {/* Center - Navigation Desktop */}
-          <nav className="hidden md:flex items-center justify-center space-x-8 flex-1">
+          <nav className="hidden md:flex items-center justify-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
             <Link to="/facilities" className={getNavLinkClasses("/facilities")}>
               Terenuri
             </Link>
@@ -141,7 +143,7 @@ const Header = () => {
           </nav>
 
           {/* Center - Mobile Menu Button */}
-          <div className="flex-1 flex justify-center md:hidden">
+          <div className="flex justify-center md:hidden absolute left-1/2 transform -translate-x-1/2">
             <Button
               variant="ghost"
               size="sm"
