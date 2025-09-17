@@ -29,7 +29,7 @@ enable_confirmations = true
 
 [auth.hooks.send_email]
 enabled = true
-uri = "https://ukopxkymzywfpobpcana.supabase.co/functions/v1/auth-confirmation-email"
+uri = "https://ukopxkymzywfpobpcana.supabase.co/functions/v1/auth-send-email"
 
 [db]
 enabled = true

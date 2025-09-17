@@ -2,10 +2,11 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const rawFrom = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@rezervaarena.com";
+// Prefer a verified sender; fall back to Resend's sandbox sender for reliability
+const rawFrom = Deno.env.get("RESEND_FROM_EMAIL") || "onboarding@resend.dev";
 const fromDomain = rawFrom.split("@").pop()?.toLowerCase() || "";
 const disallowedDomains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "live.com", "aol.com"];
-const fromEmail = disallowedDomains.includes(fromDomain) ? "noreply@rezervaarena.com" : rawFrom;
+const fromEmail = disallowedDomains.includes(fromDomain) ? "onboarding@resend.dev" : rawFrom;
 
 console.log("Auth Email Hook configuration:", {
   hasResendKey: !!Deno.env.get("RESEND_API_KEY"),
