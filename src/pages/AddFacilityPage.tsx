@@ -23,6 +23,8 @@ interface FacilityFormData {
   pricePerHour: number;
   capacity: number;
   capacityMax?: number; // For capacity ranges
+  operatingHoursStart: string;
+  operatingHoursEnd: string;
   ownerId?: string; // For admin users to select owner
 }
 
@@ -266,6 +268,8 @@ const AddFacilityPage = () => {
           price_per_hour: data.pricePerHour,
           capacity: data.capacity,
           capacity_max: isCapacityRange ? data.capacityMax : null,
+          operating_hours_start: data.operatingHoursStart,
+          operating_hours_end: data.operatingHoursEnd,
           amenities: amenities
         })
         .select()
@@ -553,6 +557,45 @@ const AddFacilityPage = () => {
                   {errors.address && (
                     <p className="text-sm text-destructive">{errors.address.message}</p>
                   )}
+                </div>
+
+                {/* Operating Hours */}
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">Ore de Funcționare *</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="operatingHoursStart">Ora de deschidere</Label>
+                      <Input
+                        id="operatingHoursStart"
+                        type="time"
+                        defaultValue="08:00"
+                        {...register("operatingHoursStart", { required: "Ora de deschidere este obligatorie" })}
+                        className="bg-background/50"
+                      />
+                      {errors.operatingHoursStart && (
+                        <p className="text-sm text-destructive">{errors.operatingHoursStart.message}</p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="operatingHoursEnd">Ora de închidere</Label>
+                      <Input
+                        id="operatingHoursEnd"
+                        type="time"
+                        defaultValue="22:00"
+                        {...register("operatingHoursEnd", { required: "Ora de închidere este obligatorie" })}
+                        className="bg-background/50"
+                      />
+                      {errors.operatingHoursEnd && (
+                        <p className="text-sm text-destructive">{errors.operatingHoursEnd.message}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted/30 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      Orele de funcționare determină intervalul în care clienții pot face rezervări și tu poți bloca ore în calendar.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Images */}

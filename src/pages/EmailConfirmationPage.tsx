@@ -39,14 +39,8 @@ const EmailConfirmationPage = () => {
               .select('user_type_comment, full_name')
               .eq('user_id', data.user.id)
               .single();
-            if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
-              toast({ title: 'Email confirmat cu succes!', description: 'Contul tău a fost activat. Facilitățile sunt în curs de procesare...' });
-              setTimeout(() => navigate('/facility-owner-profile'), 1000);
-              return;
-            } else {
-              toast({ title: 'Email confirmat cu succes!', description: 'Contul tău a fost activat. Acum te poți conecta.' });
-              return;
-            }
+            toast({ title: 'Email confirmat cu succes!', description: 'Contul tău a fost activat cu succes. Te poți conecta pe site pentru a avea acces la cont.' });
+            return;
           }
         } else if (type === 'signup' && accessToken && refreshToken && !errorCode) {
           // Set the session using the tokens
@@ -67,21 +61,11 @@ const EmailConfirmationPage = () => {
               .eq('user_id', data.user.id)
               .single();
 
-            if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
-              toast({
-                title: "Email confirmat cu succes!",
-                description: "Contul tău a fost activat. Facilitățile sunt în curs de procesare...",
-              });
-              setTimeout(() => navigate('/facility-owner-profile'), 1000);
-              return;
-            } else {
-              // Regular client
-              toast({
-                title: "Email confirmat cu succes!",
-                description: "Contul tău a fost activat. Acum te poți conecta.",
-              });
-              return;
-            }
+            toast({
+              title: "Email confirmat cu succes!",
+              description: "Contul tău a fost activat cu succes. Te poți conecta pe site pentru a avea acces la cont.",
+            });
+            return;
           }
         }
 
@@ -103,18 +87,9 @@ const EmailConfirmationPage = () => {
             .eq('user_id', user.id)
             .single();
 
-          if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
-            toast({
-              title: "Email confirmat cu succes!",
-              description: "Contul a fost activat. Facilitățile au fost create automat.",
-            });
-            setTimeout(() => navigate('/facility-owner-profile'), 1000);
-            return;
-          }
-          
           toast({
             title: "Email confirmat cu succes!",
-            description: "Contul tău a fost activat. Acum te poți conecta.",
+            description: "Contul tău a fost activat cu succes. Te poți conecta pe site pentru a avea acces la cont.",
           });
           return;
         }
@@ -126,7 +101,7 @@ const EmailConfirmationPage = () => {
             setStatus('success');
             toast({
               title: "Email confirmat cu succes!",
-              description: "Contul tău a fost activat. Acum te poți conecta.",
+              description: "Contul tău a fost activat cu succes. Te poți conecta pe site pentru a avea acces la cont.",
             });
           } else {
             setStatus('error');

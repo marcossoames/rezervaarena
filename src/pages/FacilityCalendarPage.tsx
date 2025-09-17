@@ -441,6 +441,27 @@ const FacilityCalendarPage = () => {
       return;
     }
 
+    // Check for existing bookings in the selected time range
+    if (blockStartTime && blockEndTime) {
+      const existingBookings = getBookingsForDate(selectedDate);
+      const hasConflict = existingBookings.some(booking => {
+        const bookingStart = booking.start_time;
+        const bookingEnd = booking.end_time;
+        
+        // Check if blocking time overlaps with existing booking
+        return (blockStartTime < bookingEnd && blockEndTime > bookingStart);
+      });
+      
+      if (hasConflict) {
+        toast({
+          title: "Eroare",
+          description: "Nu poți bloca ore care au rezervări existente. Verifică rezervările pentru această dată.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     let startTime = null;
     let endTime = null;
     
@@ -1050,36 +1071,67 @@ const FacilityCalendarPage = () => {
                      </div>
                    ) : null}
 
-                  {/* Bookings for selected date */}
-                  {selectedDateBookings.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">Rezervări</h4>
-                      {selectedDateBookings.map((booking) => (
-                        <div key={booking.id} className="p-3 border rounded-lg space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-sm">
-                              {booking.start_time} - {booking.end_time}
-                            </span>
-                            <Badge variant={getStatusBadgeVariant(booking.status)}>
-                              {getStatusLabel(booking.status)}
-                            </Badge>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {booking.total_price} RON
-                          </div>
-                          {booking.notes && (
-                            <div className="text-xs text-muted-foreground">
-                              {booking.notes}
-                            </div>
-                          )}
-                          <BookingStatusManager 
-                            booking={booking}
-                            onStatusUpdate={refreshBookings}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                   {/* Blocked hours for selected date */}
+                   {selectedDate && (() => {
+                     const dateStr = format(selectedDate, 'yyyy-MM-dd');
+                     const dayBlockedHours = blockedDates.filter(blocked => 
+                       blocked.blocked_date === dateStr && blocked.start_time && blocked.end_time
+                     );
+                     
+                     return dayBlockedHours.length > 0 && (
+                       <div className="space-y-3">
+                         <h4 className="font-medium text-sm">Ore Blocate</h4>
+                         {dayBlockedHours.map((blocked) => (
+                           <div key={blocked.id} className="p-3 border border-orange-200 bg-orange-50 rounded-lg space-y-2">
+                             <div className="flex items-center justify-between">
+                               <span className="font-medium text-sm text-orange-800">
+                                 {blocked.start_time} - {blocked.end_time}
+                               </span>
+                               <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                                 Blocat
+                               </Badge>
+                             </div>
+                             {blocked.reason && (
+                               <div className="text-sm text-orange-700">
+                                 {blocked.reason}
+                               </div>
+                             )}
+                           </div>
+                         ))}
+                       </div>
+                     );
+                   })()}
+
+                   {/* Bookings for selected date */}
+                   {selectedDateBookings.length > 0 && (
+                     <div className="space-y-3">
+                       <h4 className="font-medium text-sm">Rezervări</h4>
+                       {selectedDateBookings.map((booking) => (
+                         <div key={booking.id} className="p-3 border rounded-lg space-y-2">
+                           <div className="flex items-center justify-between">
+                             <span className="font-medium text-sm">
+                               {booking.start_time} - {booking.end_time}
+                             </span>
+                             <Badge variant={getStatusBadgeVariant(booking.status)}>
+                               {getStatusLabel(booking.status)}
+                             </Badge>
+                           </div>
+                           <div className="text-sm text-muted-foreground">
+                             {booking.total_price} RON
+                           </div>
+                           {booking.notes && (
+                             <div className="text-xs text-muted-foreground">
+                               {booking.notes}
+                             </div>
+                           )}
+                           <BookingStatusManager 
+                             booking={booking}
+                             onStatusUpdate={refreshBookings}
+                           />
+                         </div>
+                       ))}
+                     </div>
+                   )}
                 </>
               )}
             </CardContent>
