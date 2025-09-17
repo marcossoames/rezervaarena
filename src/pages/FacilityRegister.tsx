@@ -32,6 +32,8 @@ interface FacilityInfo {
   facilityType: string;
   pricePerHour: number;
   capacity: number;
+  capacityMax?: number;
+  useCapacityRange: boolean;
   amenities: string[];
   images: File[];
   mainImageIndex: number;
@@ -128,6 +130,8 @@ const FacilityRegister = () => {
             facilityType: '',
             pricePerHour: 0,
             capacity: 1,
+            capacityMax: undefined,
+            useCapacityRange: false,
             amenities: [],
             images: [],
             mainImageIndex: 0
@@ -297,7 +301,8 @@ const FacilityRegister = () => {
               p_city: accountData.city,
               p_price_per_hour: facility.pricePerHour,
               p_capacity: facility.capacity,
-              p_amenities: facility.amenities
+              p_amenities: facility.amenities,
+              p_capacity_max: facility.useCapacityRange ? facility.capacityMax : null
             });
 
           // After the first facility is created, update the user_type_comment with business name
@@ -746,26 +751,76 @@ const FacilityRegister = () => {
 
               <div className="space-y-2">
                 <Label>Capacitate *</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={facility.capacity}
-                  onChange={(e) => {
-                    const numValue = Math.floor(Number(e.target.value));
-                    if (Number.isNaN(numValue) || numValue < 1) {
-                      updateFacilityField(index, 'capacity', 1);
-                    } else {
-                      updateFacilityField(index, 'capacity', numValue);
-                    }
-                  }}
-                  onBlur={(e) => {
-                    if (!e.currentTarget.value) {
-                      updateFacilityField(index, 'capacity', 1);
-                    }
-                  }}
-                  onFocus={(e) => e.target.select()}
-                  className="bg-background/50"
-                />
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`useRange-${index}`}
+                      checked={facility.useCapacityRange}
+                      onChange={(e) => updateFacilityField(index, 'useCapacityRange', e.target.checked)}
+                      className="rounded"
+                    />
+                    <Label htmlFor={`useRange-${index}`} className="text-sm">
+                      Interval de capacitate (min-max)
+                    </Label>
+                  </div>
+                  
+                  {facility.useCapacityRange ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="Min"
+                        value={facility.capacity}
+                        onChange={(e) => {
+                          const numValue = Math.floor(Number(e.target.value));
+                          if (Number.isNaN(numValue) || numValue < 1) {
+                            updateFacilityField(index, 'capacity', 1);
+                          } else {
+                            updateFacilityField(index, 'capacity', numValue);
+                          }
+                        }}
+                        className="bg-background/50"
+                      />
+                      <Input
+                        type="number"
+                        min={facility.capacity || 1}
+                        placeholder="Max"
+                        value={facility.capacityMax || ''}
+                        onChange={(e) => {
+                          const numValue = Math.floor(Number(e.target.value));
+                          if (Number.isNaN(numValue) || numValue < (facility.capacity || 1)) {
+                            updateFacilityField(index, 'capacityMax', facility.capacity || 1);
+                          } else {
+                            updateFacilityField(index, 'capacityMax', numValue);
+                          }
+                        }}
+                        className="bg-background/50"
+                      />
+                    </div>
+                  ) : (
+                    <Input
+                      type="number"
+                      min="1"
+                      value={facility.capacity}
+                      onChange={(e) => {
+                        const numValue = Math.floor(Number(e.target.value));
+                        if (Number.isNaN(numValue) || numValue < 1) {
+                          updateFacilityField(index, 'capacity', 1);
+                        } else {
+                          updateFacilityField(index, 'capacity', numValue);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (!e.currentTarget.value) {
+                          updateFacilityField(index, 'capacity', 1);
+                        }
+                      }}
+                      onFocus={(e) => e.target.select()}
+                      className="bg-background/50"
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
