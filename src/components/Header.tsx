@@ -129,6 +129,18 @@ const Header = () => {
 
           {/* Right side - User actions */}
           <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-3'}`}>
+            {/* Mobile menu toggle button */}
+            {isMobile && (
+              <Button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+                variant="ghost" 
+                size="sm" 
+                className="px-2"
+              >
+                {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              </Button>
+            )}
+            
             {session ? (
               <>
                 <Button onClick={handleClientClick} variant="ghost" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
@@ -158,8 +170,8 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Absolutely centered navigation */}
-        <nav className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-4 sm:gap-8">
+        {/* Absolutely centered navigation - hidden on mobile */}
+        <nav className="hidden md:flex absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 items-center gap-4 lg:gap-8">
           <Link to="/facilities" className={getNavLinkClasses("/facilities")}>
             Terenuri
           </Link>
@@ -176,8 +188,8 @@ const Header = () => {
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-card border-b border-border shadow-lg z-50">
-            <nav className="px-4 py-3 space-y-2">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-card/95 backdrop-blur-sm border-b border-border shadow-lg z-50">
+            <nav className="px-4 py-3 space-y-2 text-center">
               <Link 
                 to="/facilities" 
                 className={getMobileNavClasses("/facilities")}
