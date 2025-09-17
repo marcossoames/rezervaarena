@@ -75,7 +75,7 @@ const SearchSection = () => {
       handleSearch();
     }
   };
-  return <section className="py-20 bg-gradient-to-br from-primary/8 via-background to-secondary/5 relative overflow-hidden">
+  return <section className="py-16 pb-8 bg-gradient-to-br from-primary/8 via-background to-secondary/5 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       <div className="absolute top-10 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
