@@ -255,7 +255,9 @@ const FacilityRegister = () => {
             data: {
               full_name: accountData.fullName,
               phone: accountData.phone,
-              role: 'client'
+              role: 'client',
+              user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`,
+              business_name: accountData.businessName
             }
           }
         });
