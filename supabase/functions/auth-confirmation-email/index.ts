@@ -60,7 +60,7 @@ serve(async (req) => {
     console.log("Confirmation URL:", confirmationUrl);
 
     const { error: resendError } = await resend.emails.send({
-      from: "RezervArena <onboarding@resend.dev>", // Use Resend sandbox domain unless a custom domain is verified
+      from: "RezervArena <noreply@rezervaarena.lovableproject.com>",
       to: [user.email],
       subject: "Confirmă-ți contul RezervArena",
       html: `
