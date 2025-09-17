@@ -718,8 +718,8 @@ const FacilityRegister = () => {
                         const numValue = value ? parseInt(value, 10) : '';
                         updateFacilityField(index, 'capacity', numValue);
                         
-                        // Adjust max if it's less than min
-                        if (facility.capacityMax && numValue && numValue > facility.capacityMax) {
+                        // Set a default max if not set when min is entered
+                        if (!facility.capacityMax && numValue) {
                           updateFacilityField(index, 'capacityMax', numValue);
                         }
                       }}
