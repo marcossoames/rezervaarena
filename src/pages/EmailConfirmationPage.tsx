@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { saveFacilitiesForUser } from "@/utils/facilityRegistration";
 
 const EmailConfirmationPage = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -43,21 +44,49 @@ const EmailConfirmationPage = () => {
               .single();
 
             if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
-              // Check if they already have facilities
+              // Check existing facilities
               const { data: facilities } = await supabase
                 .from('facilities')
                 .select('id')
                 .eq('owner_id', data.user.id)
                 .limit(1);
 
-              // Facility owner - redirect to dashboard
+              // If no facilities yet, try to finalize saved registration
+              if (!facilities || facilities.length === 0) {
+                const savedDataStr = sessionStorage.getItem('facilityRegistrationData');
+                if (savedDataStr) {
+                  try {
+                    const saved = JSON.parse(savedDataStr);
+                    const result = await saveFacilitiesForUser(saved.accountData, saved.facilities);
+                    if (result.success) {
+                      sessionStorage.removeItem('facilityRegistrationData');
+                      toast({
+                        title: "Email confirmat!",
+                        description: "Facilitățile au fost salvate. Bun venit!",
+                      });
+                      navigate('/manage-facilities');
+                      return;
+                    }
+                  } catch (e) {
+                    console.error('Failed to auto-save facilities after confirmation:', e);
+                  }
+                }
+
+                // If nothing to auto-save, send to step 2 to complete
+                toast({
+                  title: "Email confirmat!",
+                  description: "Completează informațiile despre facilitățile tale",
+                });
+                setTimeout(() => navigate('/facility/register?step=2'), 1200);
+                return;
+              }
+
+              // Has facilities already -> go to dashboard
               toast({
                 title: "Email confirmat cu succes!",
                 description: "Contul tău a fost activat. Bun venit!",
               });
-              setTimeout(() => {
-                navigate('/manage-facilities');
-              }, 2000);
+              setTimeout(() => navigate('/manage-facilities'), 1200);
               return;
             } else {
               // Regular client
@@ -95,13 +124,29 @@ const EmailConfirmationPage = () => {
               .limit(1);
 
             if (!facilities || facilities.length === 0) {
+              const savedDataStr = sessionStorage.getItem('facilityRegistrationData');
+              if (savedDataStr) {
+                try {
+                  const saved = JSON.parse(savedDataStr);
+                  const result = await saveFacilitiesForUser(saved.accountData, saved.facilities);
+                  if (result.success) {
+                    sessionStorage.removeItem('facilityRegistrationData');
+                    toast({
+                      title: "Email confirmat!",
+                      description: "Facilitățile au fost salvate. Bun venit!",
+                    });
+                    navigate('/manage-facilities');
+                    return;
+                  }
+                } catch (e) {
+                  console.error('Failed to auto-save facilities (fallback):', e);
+                }
+              }
               toast({
                 title: "Email confirmat cu succes!",
                 description: "Acum completează informațiile despre facilitățile tale",
               });
-              setTimeout(() => {
-                navigate('/facility/register?step=2');
-              }, 2000);
+              setTimeout(() => navigate('/facility/register?step=2'), 1200);
               return;
             }
           }

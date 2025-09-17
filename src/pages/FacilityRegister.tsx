@@ -339,6 +339,19 @@ const FacilityRegister = () => {
     try {
       console.log('Starting facility owner signup...');
       
+      // Persist the full registration payload locally until email is confirmed
+      try {
+        const registrationData = {
+          accountData,
+          facilities,
+          generalServices,
+          timestamp: Date.now()
+        };
+        sessionStorage.setItem('facilityRegistrationData', JSON.stringify(registrationData));
+      } catch (e) {
+        console.warn('Could not persist registration data:', e);
+      }
+      
       // Sign up the user as facility owner
       sessionStorage.setItem('registrationFlow', 'facility');
       const { data: authData, error: authError } = await supabase.auth.signUp({
