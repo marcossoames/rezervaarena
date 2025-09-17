@@ -24,7 +24,12 @@ interface FacilityNotificationRequest {
   action: "created" | "deleted";
   ownerEmail: string;
   ownerName: string;
+  // Optional details to avoid DB lookup
+  facilityName?: string;
+  facilityType?: string;
+  city?: string;
 }
+
 
 const handler = async (req: Request): Promise<Response> => {
   console.log("Starting facility notification email process");
@@ -35,36 +40,40 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { facilityId, action, ownerEmail, ownerName }: FacilityNotificationRequest = await req.json();
+    const { facilityId, action, ownerEmail, ownerName, facilityName, facilityType, city }: FacilityNotificationRequest = await req.json();
     console.log("Processing facility notification:", { facilityId, action, ownerEmail });
 
     if (!facilityId || !action || !ownerEmail || !ownerName) {
       throw new Error("All fields are required");
     }
 
-    // Initialize Supabase client
+    // Try to fetch facility details if service key is present; otherwise use provided details
     const supabaseUrl = "https://ukopxkymzywfpobpcana.supabase.co";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    
-    if (!supabaseServiceKey) {
-      throw new Error("Supabase service key not configured");
+
+    let facility: any = null;
+    if (supabaseServiceKey) {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: fetched, error: facilityError } = await supabase
+        .from("facilities")
+        .select("*")
+        .eq("id", facilityId)
+        .single();
+
+      if (!facilityError) {
+        facility = fetched;
+      }
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Get facility details
-    const { data: facility, error: facilityError } = await supabase
-      .from("facilities")
-      .select("*")
-      .eq("id", facilityId)
-      .single();
-
-    if (facilityError && action === "created") {
-      console.error("Error fetching facility:", facilityError);
-      throw new Error("Facility not found");
+    // Fallback to request fields if DB not accessible
+    if (!facility && (facilityName || facilityType || city)) {
+      facility = {
+        name: facilityName,
+        facility_type: facilityType,
+        city,
+      };
     }
 
-    // Format current date
     const actionDate = new Date().toLocaleDateString("ro-RO", {
       weekday: "long",
       year: "numeric",
@@ -89,12 +98,12 @@ const handler = async (req: Request): Promise<Response> => {
             
             <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid #22c55e; margin-bottom: 25px;">
               <h2 style="color: #15803d; margin-top: 0;">Detalii Facilitate</h2>
-              <p><strong>Nume Facilitate:</strong> ${facility.name}</p>
-              <p><strong>Tip:</strong> ${facility.facility_type}</p>
-              <p><strong>Oraș:</strong> ${facility.city}</p>
-              <p><strong>Adresa:</strong> ${facility.address}</p>
-              <p><strong>Preț/Oră:</strong> ${facility.price_per_hour} RON</p>
-              <p><strong>Capacitate:</strong> ${facility.capacity} persoane</p>
+              <p><strong>Nume Facilitate:</strong> ${facility?.name ?? facilityName ?? 'Facilitate'}</p>
+              <p><strong>Tip:</strong> ${facility?.facility_type ?? facilityType ?? 'necunoscut'}</p>
+              <p><strong>Oraș:</strong> ${facility?.city ?? city ?? 'necunoscut'}</p>
+              ${facility?.address ? `<p><strong>Adresa:</strong> ${facility.address}</p>` : ''}
+              ${facility?.price_per_hour ? `<p><strong>Preț/Oră:</strong> ${facility.price_per_hour} RON</p>` : ''}
+              ${facility?.capacity ? `<p><strong>Capacitate:</strong> ${facility.capacity} persoane</p>` : ''}
               <p><strong>Data Adăugării:</strong> ${actionDate} la ${actionTime}</p>
             </div>
 

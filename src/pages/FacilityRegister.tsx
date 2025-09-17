@@ -88,64 +88,8 @@ const FacilityRegister = () => {
             return;
           }
 
-          // Check for saved registration data
-          const savedData = sessionStorage.getItem('facilityRegistrationData');
-          if (savedData) {
-            try {
-              const parsedData = JSON.parse(savedData);
-              // Check if data is not too old (24 hours)
-              if (Date.now() - parsedData.timestamp < 24 * 60 * 60 * 1000) {
-                // Restore all data and proceed to save facilities
-                setAccountData(parsedData.accountData);
-                setFacilities(parsedData.facilities);
-                setGeneralServices(parsedData.generalServices);
-                
-                // Auto-save the facilities now that user is authenticated
-                const result = await saveFacilitiesForUser(parsedData.accountData, parsedData.facilities);
-                
-                if (result.success) {
-                  // Clear the temporary data
-                  sessionStorage.removeItem('facilityRegistrationData');
-                  
-                  toast({
-                    title: "Înregistrare completată!",
-                    description: "Facilitățile tale au fost salvate cu succes. Bine ai venit!",
-                  });
-                  
-                  navigate('/manage-facilities');
-                  return;
-                } else {
-                  console.error('Error saving facilities:', result.error);
-                }
-              } else {
-                // Data is too old, remove it
-                sessionStorage.removeItem('facilityRegistrationData');
-              }
-            } catch (error) {
-              console.error('Error parsing saved registration data:', error);
-              sessionStorage.removeItem('facilityRegistrationData');
-            }
-          }
-          
-          // Extract business name from user_type_comment
-          const businessName = profile.user_type_comment.replace(' - Proprietar bază sportivă', '');
-          
-          // Set account data and go to step 2 for facility details
-          setAccountData({
-            email: user.email || '',
-            password: '',
-            confirmPassword: '',
-            fullName: profile.full_name,
-            phone: profile.phone,
-            businessName: businessName,
-            businessDescription: '',
-            address: '',
-            city: '',
-            numberOfFacilities: 1,
-            generalServices: []
-          });
-          setCurrentStep(2);
-          initializeFacilities(1);
+          // Nu mai restaurăm sau salvăm temporar facilitățile; flux simplificat ca la clienți
+          // După confirmarea emailului, utilizatorul va fi direcționat spre Dashboard unde poate adăuga facilități.
         }
       }
     };
@@ -339,18 +283,8 @@ const FacilityRegister = () => {
     try {
       console.log('Starting facility owner signup...');
       
-      // Persist the full registration payload locally until email is confirmed
-      try {
-        const registrationData = {
-          accountData,
-          facilities,
-          generalServices,
-          timestamp: Date.now()
-        };
-        sessionStorage.setItem('facilityRegistrationData', JSON.stringify(registrationData));
-      } catch (e) {
-        console.warn('Could not persist registration data:', e);
-      }
+      // Simplified flow: nu mai stocăm local facilitățile înainte de confirmarea emailului
+
       
       // Sign up the user as facility owner
       sessionStorage.setItem('registrationFlow', 'facility');
