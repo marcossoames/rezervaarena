@@ -17,21 +17,73 @@ const EmailConfirmationPage = () => {
   useEffect(() => {
     const handleEmailConfirmation = async () => {
       try {
-        // Preferă parametrii din URL pentru statusul confirmării
-        const { hash, search } = window.location;
-        const combined = new URLSearchParams(
-          (search?.startsWith('?') ? search : `?${search || ''}`) +
-          (hash ? `&${hash.replace(/^#/, '')}` : '')
-        );
-        const type = combined.get('type');
-        const errorCode = combined.get('error_code') || combined.get('error');
-
-        if (type === 'signup' && !errorCode) {
-          setStatus('success');
-          toast({
-            title: "Email confirmat cu succes!",
-            description: "Contul tău a fost activat. Acum te poți conecta.",
+        // Check URL parameters for confirmation
+        const accessToken = searchParams.get('access_token');
+        const refreshToken = searchParams.get('refresh_token');
+        const type = searchParams.get('type');
+        const errorCode = searchParams.get('error_code') || searchParams.get('error');
+        
+        if (type === 'signup' && accessToken && refreshToken && !errorCode) {
+          // Set the session using the tokens
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
           });
+
+          if (error) throw error;
+
+          if (data.user) {
+            setStatus('success');
+            
+            // Check if this is a facility owner
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('user_type_comment, full_name')
+              .eq('user_id', data.user.id)
+              .single();
+
+            if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+              // Check if they already have facilities
+              const { data: facilities } = await supabase
+                .from('facilities')
+                .select('id')
+                .eq('owner_id', data.user.id)
+                .limit(1);
+
+              if (!facilities || facilities.length === 0) {
+                // Facility owner without facilities - auto-redirect after showing success
+                toast({
+                  title: "Email confirmat cu succes!",
+                  description: "Acum completează informațiile despre facilitățile tale",
+                });
+                setTimeout(() => {
+                  navigate('/facility/register?step=2');
+                }, 2000);
+                return;
+              } else {
+                // Facility owner with facilities - redirect to dashboard
+                toast({
+                  title: "Email confirmat cu succes!",
+                  description: "Contul tău a fost activat.",
+                });
+                setTimeout(() => {
+                  navigate('/manage-facilities');
+                }, 2000);
+                return;
+              }
+            } else {
+              // Regular client
+              toast({
+                title: "Email confirmat cu succes!",
+                description: "Contul tău a fost activat. Acum te poți conecta.",
+              });
+              return;
+            }
+          }
+        }
+
+        if (errorCode) {
+          setStatus('error');
           return;
         }
 
@@ -39,15 +91,37 @@ const EmailConfirmationPage = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (user?.email_confirmed_at) {
           setStatus('success');
+          
+          // Check if this is a facility owner who needs to complete registration
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('user_type_comment')
+            .eq('user_id', user.id)
+            .single();
+
+          if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+            const { data: facilities } = await supabase
+              .from('facilities')
+              .select('id')
+              .eq('owner_id', user.id)
+              .limit(1);
+
+            if (!facilities || facilities.length === 0) {
+              toast({
+                title: "Email confirmat cu succes!",
+                description: "Acum completează informațiile despre facilitățile tale",
+              });
+              setTimeout(() => {
+                navigate('/facility/register?step=2');
+              }, 2000);
+              return;
+            }
+          }
+          
           toast({
             title: "Email confirmat cu succes!",
             description: "Contul tău a fost activat. Acum te poți conecta.",
           });
-          return;
-        }
-
-        if (errorCode) {
-          setStatus('error');
           return;
         }
 
@@ -76,7 +150,7 @@ const EmailConfirmationPage = () => {
     };
 
     handleEmailConfirmation();
-  }, [toast]);
+  }, [searchParams, navigate, toast]);
 
   const handleGoToLogin = () => {
     navigate(loginRoute);

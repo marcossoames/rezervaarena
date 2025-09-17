@@ -9,7 +9,7 @@ export const checkActiveBookings = async () => {
 
     const { data: bookings, error } = await supabase
       .from('bookings')
-      .select('id, booking_date, start_time, facilities(name)')
+      .select('id, booking_date, start_time, facilities!bookings_facility_id_fkey(name)')
       .eq('client_id', user.id)
       .gte('booking_date', new Date().toISOString().split('T')[0])
       .in('status', ['confirmed', 'pending']);
