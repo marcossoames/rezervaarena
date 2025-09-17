@@ -55,7 +55,7 @@ const AuthHashRedirect = () => {
     const { hash, search, pathname } = window.location;
 
     const hasRecoveryParams = /type=recovery|token_hash=/.test(hash) || /type=recovery|token_hash=/.test(search);
-    const hasSignupParams = /type=signup|access_token=/.test(hash) || /type=signup/.test(search);
+    const hasSignupParams = /(type=signup|access_token=|code=|token_hash=)/.test(hash) || /(type=signup|code=|token_hash=)/.test(search);
 
     // Password recovery -> Reset Password page
     if (hasRecoveryParams && pathname !== '/reset-password') {

@@ -25,7 +25,30 @@ const EmailConfirmationPage = () => {
         const type = searchParams.get('type') || hashParams.get('type');
         const errorCode = searchParams.get('error_code') || searchParams.get('error') || hashParams.get('error_code') || hashParams.get('error');
         
-        if (type === 'signup' && accessToken && refreshToken && !errorCode) {
+        // Support both 'code' (PKCE) and access/refresh tokens in URL
+        const code = searchParams.get('code') || hashParams.get('code') || searchParams.get('token_hash') || hashParams.get('token_hash');
+
+        if (!errorCode && code) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+          if (data?.user) {
+            setStatus('success');
+            try { window.history.replaceState({}, document.title, window.location.origin + '/email-confirmation'); } catch {}
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('user_type_comment, full_name')
+              .eq('user_id', data.user.id)
+              .single();
+            if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+              toast({ title: 'Email confirmat cu succes!', description: 'Contul tău a fost activat. Facilitățile sunt în curs de procesare...' });
+              setTimeout(() => navigate('/facility-owner-profile'), 1000);
+              return;
+            } else {
+              toast({ title: 'Email confirmat cu succes!', description: 'Contul tău a fost activat. Acum te poți conecta.' });
+              return;
+            }
+          }
+        } else if (type === 'signup' && accessToken && refreshToken && !errorCode) {
           // Set the session using the tokens
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -36,7 +59,7 @@ const EmailConfirmationPage = () => {
 
           if (data.user) {
             setStatus('success');
-            
+            try { window.history.replaceState({}, document.title, window.location.origin + '/email-confirmation'); } catch {}
             // Check if this is a facility owner
             const { data: profile } = await supabase
               .from('profiles')
