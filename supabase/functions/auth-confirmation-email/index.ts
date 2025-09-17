@@ -60,7 +60,7 @@ serve(async (req) => {
     console.log("Confirmation URL:", confirmationUrl);
 
     const { error: resendError } = await resend.emails.send({
-      from: "RezervArena <noreply@rezervaarena.lovableproject.com>",
+      from: "RezervArena <onboarding@resend.dev>",
       to: [user.email],
       subject: "Confirmă-ți contul RezervArena",
       html: `
