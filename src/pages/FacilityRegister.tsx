@@ -754,7 +754,7 @@ const FacilityRegister = () => {
 
               <div className="space-y-3">
                 <Label>Capacitate *</Label>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 mb-3">
                   <input
                     type="checkbox"
                     id={`useRange-${index}`}
@@ -768,57 +768,47 @@ const FacilityRegister = () => {
                 </div>
                   
                 {facility.useCapacityRange ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="Min"
-                      value={facility.capacity}
-                      onChange={(e) => {
-                        const numValue = Math.floor(Number(e.target.value));
-                        if (Number.isNaN(numValue) || numValue < 1) {
-                          updateFacilityField(index, 'capacity', 1);
-                        } else {
+                  <div className="flex gap-3 items-center">
+                    <div className="flex-1">
+                      <Label className="text-sm text-muted-foreground mb-1 block">Capacitate minimă</Label>
+                      <Input
+                        type="text"
+                        placeholder="ex: 2"
+                        value={facility.capacity || ''}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^\d]/g, '');
+                          const numValue = value ? parseInt(value, 10) : '';
                           updateFacilityField(index, 'capacity', numValue);
-                        }
-                      }}
-                      className="bg-background/50"
-                    />
-                    <Input
-                      type="number"
-                      min={facility.capacity || 1}
-                      placeholder="Max"
-                      value={facility.capacityMax || ''}
-                      onChange={(e) => {
-                        const numValue = Math.floor(Number(e.target.value));
-                        if (Number.isNaN(numValue) || numValue < (facility.capacity || 1)) {
-                          updateFacilityField(index, 'capacityMax', facility.capacity || 1);
-                        } else {
+                        }}
+                        className="bg-background/50"
+                      />
+                    </div>
+                    <span className="text-muted-foreground mt-6">-</span>
+                    <div className="flex-1">
+                      <Label className="text-sm text-muted-foreground mb-1 block">Capacitate maximă</Label>
+                      <Input
+                        type="text"
+                        placeholder="ex: 20"
+                        value={facility.capacityMax || ''}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^\d]/g, '');
+                          const numValue = value ? parseInt(value, 10) : '';
                           updateFacilityField(index, 'capacityMax', numValue);
-                        }
-                      }}
-                      className="bg-background/50"
-                    />
+                        }}
+                        className="bg-background/50"
+                      />
+                    </div>
                   </div>
                 ) : (
                   <Input
-                    type="number"
-                    min="1"
-                    value={facility.capacity}
+                    type="text"
+                    placeholder="ex: 20"
+                    value={facility.capacity || ''}
                     onChange={(e) => {
-                      const numValue = Math.floor(Number(e.target.value));
-                      if (Number.isNaN(numValue) || numValue < 1) {
-                        updateFacilityField(index, 'capacity', 1);
-                      } else {
-                        updateFacilityField(index, 'capacity', numValue);
-                      }
+                      const value = e.target.value.replace(/[^\d]/g, '');
+                      const numValue = value ? parseInt(value, 10) : '';
+                      updateFacilityField(index, 'capacity', numValue);
                     }}
-                    onBlur={(e) => {
-                      if (!e.currentTarget.value) {
-                        updateFacilityField(index, 'capacity', 1);
-                      }
-                    }}
-                    onFocus={(e) => e.target.select()}
                     className="bg-background/50"
                   />
                 )}
