@@ -114,10 +114,11 @@ const Header = () => {
 
   return (
     <header className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
-      <div className="relative w-full px-0 py-2 sm:py-3">
-        <div className="grid grid-cols-3 items-center w-full">
+      <div className="relative w-full py-2 sm:py-3">
+        {/* Full width flex container */}
+        <div className="flex items-center justify-between w-full px-2 sm:px-4">
           {/* Left side - Logo */}
-          <div className="flex items-center space-x-1 sm:space-x-2 justify-start">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <Link to="/" className="flex items-center space-x-1 sm:space-x-2">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center overflow-hidden">
                 <img src="/logo-rezervaarena.png" alt="RezervaArena" className="w-full h-full object-cover" />
@@ -125,26 +126,9 @@ const Header = () => {
               <h1 className="text-lg sm:text-xl font-bold text-foreground">RezervaArena</h1>
             </Link>
           </div>
-          
-          {/* Center - Navigation Desktop */}
-          <nav className="flex items-center justify-center gap-4 sm:gap-8">
-            <Link to="/facilities" className={getNavLinkClasses("/facilities")}>
-              Terenuri
-            </Link>
-            <Link to="/about" className={getNavLinkClasses("/about")}>
-              Despre noi
-            </Link>
-            <Link to="/contact" className={getNavLinkClasses("/contact")}>
-              Contact
-            </Link>
-            <Link to="/articles" className={getNavLinkClasses("/articles")}>
-              Articole
-            </Link>
-          </nav>
-
 
           {/* Right side - User actions */}
-          <div className={`ml-auto flex items-center ${isMobile ? 'gap-1' : 'gap-3'} justify-end pr-2 sm:pr-4`}>
+          <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-3'}`}>
             {session ? (
               <>
                 <Button onClick={handleClientClick} variant="ghost" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
@@ -173,7 +157,23 @@ const Header = () => {
             )}
           </div>
         </div>
-        
+
+        {/* Absolutely centered navigation */}
+        <nav className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-4 sm:gap-8">
+          <Link to="/facilities" className={getNavLinkClasses("/facilities")}>
+            Terenuri
+          </Link>
+          <Link to="/about" className={getNavLinkClasses("/about")}>
+            Despre noi
+          </Link>
+          <Link to="/contact" className={getNavLinkClasses("/contact")}>
+            Contact
+          </Link>
+          <Link to="/articles" className={getNavLinkClasses("/articles")}>
+            Articole
+          </Link>
+        </nav>
+
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-card border-b border-border shadow-lg z-50">
