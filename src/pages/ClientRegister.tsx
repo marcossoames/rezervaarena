@@ -41,6 +41,7 @@ const ClientRegister = () => {
       return;
     }
 
+    sessionStorage.setItem('registrationFlow', 'client');
     setIsLoading(true);
 
     try {

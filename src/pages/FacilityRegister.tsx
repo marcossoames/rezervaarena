@@ -245,7 +245,8 @@ const FacilityRegister = () => {
     try {
       console.log('Starting registration process...');
       
-        // Sign up the user as client with facility owner type comment
+        // Sign up the user as client cu marcaj de flux facility
+        sessionStorage.setItem('registrationFlow', 'facility');
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: accountData.email,
           password: accountData.password,

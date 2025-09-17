@@ -11,34 +11,59 @@ const EmailConfirmationPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const registrationFlow = sessionStorage.getItem('registrationFlow');
+  const loginRoute = registrationFlow === 'facility' ? '/facility/login' : '/client/login';
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
       try {
-        // Check if user is already logged in after confirmation
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user && user.email_confirmed_at) {
+        // Preferă parametrii din URL pentru statusul confirmării
+        const { hash, search } = window.location;
+        const combined = new URLSearchParams(
+          (search?.startsWith('?') ? search : `?${search || ''}`) +
+          (hash ? `&${hash.replace(/^#/, '')}` : '')
+        );
+        const type = combined.get('type');
+        const errorCode = combined.get('error_code') || combined.get('error');
+
+        if (type === 'signup' && !errorCode) {
           setStatus('success');
           toast({
             title: "Email confirmat cu succes!",
             description: "Contul tău a fost activat. Acum te poți conecta.",
           });
-        } else {
-          // If not confirmed yet, wait a moment and check again
-          setTimeout(async () => {
-            const { data: { user: updatedUser } } = await supabase.auth.getUser();
-            if (updatedUser && updatedUser.email_confirmed_at) {
-              setStatus('success');
-              toast({
-                title: "Email confirmat cu succes!",
-                description: "Contul tău a fost activat. Acum te poți conecta.",
-              });
-            } else {
-              setStatus('error');
-            }
-          }, 2000);
+          return;
         }
+
+        // Fallback: verificăm user-ul curent
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email_confirmed_at) {
+          setStatus('success');
+          toast({
+            title: "Email confirmat cu succes!",
+            description: "Contul tău a fost activat. Acum te poți conecta.",
+          });
+          return;
+        }
+
+        if (errorCode) {
+          setStatus('error');
+          return;
+        }
+
+        // Mai așteptăm puțin și re-verificăm
+        setTimeout(async () => {
+          const { data: { user: updatedUser } } = await supabase.auth.getUser();
+          if (updatedUser?.email_confirmed_at) {
+            setStatus('success');
+            toast({
+              title: "Email confirmat cu succes!",
+              description: "Contul tău a fost activat. Acum te poți conecta.",
+            });
+          } else {
+            setStatus('error');
+          }
+        }, 1500);
       } catch (error) {
         console.error('Email confirmation error:', error);
         setStatus('error');
@@ -54,7 +79,7 @@ const EmailConfirmationPage = () => {
   }, [toast]);
 
   const handleGoToLogin = () => {
-    navigate('/facility/login');
+    navigate(loginRoute);
   };
 
   const handleGoHome = () => {
