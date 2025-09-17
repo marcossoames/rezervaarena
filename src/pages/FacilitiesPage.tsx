@@ -460,7 +460,7 @@ applyFilters();
 
         {/* Search and Filters - Only for clients and admins */}
         {userProfile?.role !== 'facility_owner' && (
-          <Card className="mb-8 animate-fade-in shadow-lg">
+          <Card className="mb-8 animate-fade-in shadow-lg border-2 border-primary/20 bg-white">
             <CardContent className="p-6">
               {/* First Row: Search and Location */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -470,7 +470,7 @@ applyFilters();
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
                       placeholder="Caută nume bază sportivă" 
-                      className="h-11 pl-10 bg-background border-border focus:border-primary" 
+                      className="h-11 pl-10 bg-white border-2 border-primary/20 focus:border-primary shadow-sm"
                       value={searchTerm} 
                       onChange={(e) => setSearchTerm(e.target.value)} 
                     />
@@ -483,7 +483,7 @@ applyFilters();
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
                       placeholder="Locație..." 
-                      className="h-11 pl-10 bg-background border-border focus:border-primary" 
+                      className="h-11 pl-10 bg-white border-2 border-primary/20 focus:border-primary shadow-sm"
                       value={locationFilter} 
                       onChange={(e) => setLocationFilter(e.target.value)} 
                     />
@@ -500,7 +500,7 @@ applyFilters();
                       <Button 
                         variant="outline" 
                         className={cn(
-                          "w-full h-11 justify-start text-left font-normal bg-background border-border hover:border-primary", 
+                          "w-full h-11 justify-start text-left font-normal bg-white border-2 border-primary/20 hover:border-primary shadow-sm", 
                           !selectedDate && "text-muted-foreground"
                         )}
                       >

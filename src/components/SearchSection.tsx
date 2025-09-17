@@ -93,8 +93,8 @@ const SearchSection = () => {
           </p>
         </div>
 
-        <Card className="max-w-5xl mx-auto shadow-elegant border border-border/50 bg-card/80 backdrop-blur-md relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg"></div>
+        <Card className="max-w-5xl mx-auto shadow-elegant border-2 border-primary/30 bg-card backdrop-blur-md relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg"></div>
           <CardContent className="p-8 md:p-10 relative z-10">
             <div className="space-y-8">
               
@@ -112,7 +112,7 @@ const SearchSection = () => {
                       value={searchQuery} 
                       onChange={(e) => setSearchQuery(e.target.value)} 
                       onKeyPress={handleKeyPress} 
-                      className="h-14 pl-12 bg-background/80 border-border/50 focus:border-primary text-base rounded-xl transition-all duration-300 hover:bg-background focus:bg-background"
+                     className="h-14 pl-12 bg-white border-2 border-primary/20 focus:border-primary text-base rounded-xl transition-all duration-300 hover:bg-white focus:bg-white shadow-sm"
                     />
                   </div>
                 </div>
@@ -129,7 +129,7 @@ const SearchSection = () => {
                       value={location} 
                       onChange={(e) => setLocation(e.target.value)} 
                       onKeyPress={handleKeyPress} 
-                      className="h-14 pl-12 bg-background/80 border-border/50 focus:border-primary text-base rounded-xl transition-all duration-300 hover:bg-background focus:bg-background"
+                      className="h-14 pl-12 bg-white border-2 border-primary/20 focus:border-primary text-base rounded-xl transition-all duration-300 hover:bg-white focus:bg-white shadow-sm"
                     />
                   </div>
                 </div>
@@ -147,7 +147,7 @@ const SearchSection = () => {
                       <Button 
                         variant="outline" 
                         className={cn(
-                          "w-full h-14 justify-start text-left font-normal bg-background/80 border-border/50 hover:border-primary rounded-xl transition-all duration-300 hover:bg-background",
+                          "w-full h-14 justify-start text-left font-normal bg-white border-2 border-primary/20 hover:border-primary rounded-xl transition-all duration-300 hover:bg-white shadow-sm",
                           !selectedDate && "text-muted-foreground"
                         )}
                       >
@@ -192,7 +192,7 @@ const SearchSection = () => {
                       // Reset start time when duration changes
                       setStartTime("");
                     }}>
-                      <SelectTrigger className="h-14 bg-background/80 border-border/50 focus:border-primary rounded-xl transition-all duration-300 hover:bg-background">
+                       <SelectTrigger className="h-14 bg-white border-2 border-primary/20 focus:border-primary rounded-xl transition-all duration-300 hover:bg-white shadow-sm">
                         <SelectValue placeholder="Selectează durata" />
                       </SelectTrigger>
                       <SelectContent className="z-[1000]">
@@ -206,7 +206,7 @@ const SearchSection = () => {
                       <div className="relative group">
                         <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
                         <Select value={startTime} onValueChange={setStartTime}>
-                          <SelectTrigger className="h-14 pl-12 bg-background/80 border-border/50 focus:border-primary rounded-xl transition-all duration-300 hover:bg-background">
+                          <SelectTrigger className="h-14 pl-12 bg-white border-2 border-primary/20 focus:border-primary rounded-xl transition-all duration-300 hover:bg-white shadow-sm">
                             <SelectValue placeholder="Selectează ora de început" />
                           </SelectTrigger>
                           <SelectContent className="z-[1000]">
@@ -242,7 +242,7 @@ const SearchSection = () => {
                     Tipul terenului
                   </label>
                   <Select value={facilityType} onValueChange={setFacilityType}>
-                    <SelectTrigger className="h-14 bg-background/80 border-border/50 focus:border-primary rounded-xl transition-all duration-300 hover:bg-background">
+                    <SelectTrigger className="h-14 bg-white border-2 border-primary/20 focus:border-primary rounded-xl transition-all duration-300 hover:bg-white shadow-sm">
                       <SelectValue placeholder="Toate tipurile" />
                     </SelectTrigger>
                     <SelectContent className="z-[100]">
@@ -279,7 +279,7 @@ const SearchSection = () => {
                     setDuration("");
                     setSearchQuery("");
                   }}
-                  className="w-full sm:w-auto px-8 py-4 text-lg border-2 border-border/50 bg-background/80 text-foreground hover:bg-secondary/50 hover:text-secondary-foreground rounded-xl transition-all duration-300"
+                  className="w-full sm:w-auto px-8 py-4 text-lg border-2 border-primary/30 bg-white text-foreground hover:bg-secondary/50 hover:text-secondary-foreground rounded-xl transition-all duration-300 shadow-sm"
                 >
                   <Filter className="mr-3 h-4 w-4" />
                   Resetează
