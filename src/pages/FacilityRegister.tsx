@@ -250,7 +250,7 @@ const FacilityRegister = () => {
           email: accountData.email,
           password: accountData.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}/email-confirmation`,
             data: {
               full_name: accountData.fullName,
               phone: accountData.phone,
@@ -276,7 +276,7 @@ const FacilityRegister = () => {
           await supabase.auth.resend({
             type: 'signup',
             email: accountData.email,
-            options: { emailRedirectTo: `${window.location.origin}/` }
+            options: { emailRedirectTo: `${window.location.origin}/email-confirmation` }
           });
         } catch (resendErr) {
           console.warn('Resend after signup failed:', resendErr);

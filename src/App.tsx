@@ -48,20 +48,24 @@ const PageLoader = () => (
   </div>
  );
  
-// Redirect auth tokens in hash or query to /reset-password route (only when necessary)
+// Redirect auth tokens in hash or query to proper routes
 const AuthHashRedirect = () => {
   const navigate = useNavigate();
   useEffect(() => {
     const { hash, search, pathname } = window.location;
-    
-    // Only check for actual recovery/reset tokens, not general auth tokens
-    const hasRecoveryParams =
-      /type=recovery|token_hash=/.test(hash) ||
-      /type=recovery|token_hash=/.test(search);
 
-    // Only redirect if we have recovery params and we're not already on reset-password
+    const hasRecoveryParams = /type=recovery|token_hash=/.test(hash) || /type=recovery|token_hash=/.test(search);
+    const hasSignupParams = /type=signup|access_token=/.test(hash) || /type=signup/.test(search);
+
+    // Password recovery -> Reset Password page
     if (hasRecoveryParams && pathname !== '/reset-password') {
       navigate('/reset-password' + (search || '') + (hash || ''), { replace: true });
+      return;
+    }
+
+    // Email confirmation -> Email Confirmation page
+    if (hasSignupParams && pathname !== '/email-confirmation') {
+      navigate('/email-confirmation' + (search || '') + (hash || ''), { replace: true });
     }
   }, [navigate]);
   return null;

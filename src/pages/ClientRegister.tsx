@@ -49,7 +49,7 @@ const ClientRegister = () => {
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/email-confirmation`,
           data: {
             full_name: data.fullName,
             phone: data.phone
