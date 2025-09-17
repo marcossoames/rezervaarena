@@ -749,16 +749,18 @@ const FacilityRegister = () => {
                 <Input
                   type="number"
                   min="1"
-                  value={facility.capacity === 0 ? '' : facility.capacity}
+                  value={facility.capacity}
                   onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === '') {
-                      updateFacilityField(index, 'capacity', 0);
+                    const numValue = Math.floor(Number(e.target.value));
+                    if (Number.isNaN(numValue) || numValue < 1) {
+                      updateFacilityField(index, 'capacity', 1);
                     } else {
-                      const numValue = parseInt(value);
-                      if (!isNaN(numValue) && numValue >= 1) {
-                        updateFacilityField(index, 'capacity', numValue);
-                      }
+                      updateFacilityField(index, 'capacity', numValue);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    if (!e.currentTarget.value) {
+                      updateFacilityField(index, 'capacity', 1);
                     }
                   }}
                   onFocus={(e) => e.target.select()}
