@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { X, Plus, ArrowLeft, ArrowRight, Upload, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 
 interface AccountFormData {
   email: string;
@@ -49,6 +50,8 @@ const FacilityRegister = () => {
   const [generalServiceInput, setGeneralServiceInput] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
 
   const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<AccountFormData>({
     defaultValues: accountData || {}
@@ -264,18 +267,14 @@ const FacilityRegister = () => {
       console.log('User signed up successfully:', authData.user?.id);
 
       if (authData.user && !authData.session) {
-        // User was created but needs email confirmation
-        // Send custom confirmation email
-        // Supabase trimite automat emailul standard de confirmare (nu mai trimitem email custom aici).
-
+        // Afișează dialogul de verificare email pentru o experiență similară cu cea a clienților
+        setUserEmail(accountData.email);
+        setShowEmailVerification(true);
         toast({
           title: "Cont creat cu succes!",
-          description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul. Apoi te poți conecta pentru a gestiona facilitățile.",
+          description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul.",
           duration: 10000
         });
-        
-        // Redirect to login page
-        navigate("/facility/login");
       } else if (authData.user && authData.session) {
         // User was created and automatically logged in - proceed with facility creation
         // Wait for user to be properly authenticated
@@ -969,6 +968,14 @@ const FacilityRegister = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <EmailVerificationDialog
+        isOpen={showEmailVerification}
+        onClose={() => {
+          setShowEmailVerification(false);
+          navigate("/facility/login");
+        }}
+        email={userEmail}
+      />
       {/* Back Button */}
       <div className="container mx-auto max-w-2xl mb-4">
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
