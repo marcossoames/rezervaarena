@@ -265,10 +265,25 @@ const FacilityRegister = () => {
 
       if (authData.user && !authData.session) {
         // User was created but needs email confirmation
+        // Send custom confirmation email
+        try {
+          const confirmationUrl = `${window.location.origin}/auth/confirm?token_hash=${authData.user.email_confirmed_at ? '' : 'pending'}&type=signup&redirect_to=${encodeURIComponent(window.location.origin + '/facility/login')}`;
+          
+          await supabase.functions.invoke('auth-confirmation-email', {
+            body: {
+              email: accountData.email,
+              confirmationUrl,
+              fullName: accountData.fullName
+            }
+          });
+        } catch (emailError) {
+          console.error('Failed to send confirmation email:', emailError);
+        }
+
         toast({
           title: "Cont creat cu succes!",
           description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul. Apoi te poți conecta pentru a gestiona facilitățile.",
-          duration: 8000
+          duration: 10000
         });
         
         // Redirect to login page
@@ -320,7 +335,7 @@ const FacilityRegister = () => {
             throw new Error(`Eroare la crearea facilității ${i + 1}: ${facilityError.message}`);
           }
 
-          // Send facility creation notification email (optional)
+          // Send facility creation notification email
           if (facilityId && accountData.email && accountData.fullName) {
             try {
               await supabase.functions.invoke('send-facility-notification', {
@@ -332,8 +347,8 @@ const FacilityRegister = () => {
                 }
               });
             } catch (emailError) {
-              console.error('Email notification failed (optional):', emailError);
-              // Email is optional - continue with registration
+              console.error('Error sending facility creation email:', emailError);
+              // Don't fail the registration if email fails
             }
           }
 

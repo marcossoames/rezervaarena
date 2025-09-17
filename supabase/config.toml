@@ -1,5 +1,9 @@
 project_id = "ukopxkymzywfpobpcana"
 
+[auth]
+enable_signup = true
+enable_confirmations = true
+
 [api]
 enabled = true
 port = 54321
@@ -25,11 +29,14 @@ enable_confirmations = true
 
 [auth.hooks.send_email]
 enabled = true
-uri = "https://ukopxkymzywfpobpcana.supabase.co/functions/v1/auth-send-email"
+uri = "https://ukopxkymzywfpobpcana.supabase.co/functions/v1/auth-confirmation-email"
 
 [db]
 enabled = true
 port = 54322
+
+[functions.auth-confirmation-email]
+verify_jwt = false
 
 [functions.auth-send-email]
 verify_jwt = false
