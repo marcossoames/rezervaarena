@@ -10,7 +10,7 @@ console.log('Checking image imports...');
 
 // Temporary placeholder until we add real images
 const tennisImage = "/placeholder-tennis-clay.jpg";
-const footballImage = "/placeholder-football-synthetic.jpg";
+const footballImage = "/placeholder-football-realistic.jpg";
 const padelImage = "/placeholder-padel.jpg";
 const squashImage = "/placeholder-squash.jpg";
 const basketballImage = "/placeholder-basketball.jpg";
