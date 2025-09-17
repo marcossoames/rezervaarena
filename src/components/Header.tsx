@@ -114,7 +114,7 @@ const Header = () => {
 
   return (
     <header className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
-      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
+      <div className="relative w-full px-0 py-2 sm:py-3">
         <div className="grid grid-cols-3 items-center w-full">
           {/* Left side - Logo */}
           <div className="flex items-center space-x-1 sm:space-x-2 justify-start">
@@ -127,7 +127,7 @@ const Header = () => {
           </div>
           
           {/* Center - Navigation Desktop */}
-          <nav className="hidden md:flex items-center justify-center space-x-8">
+          <nav className="flex items-center justify-center gap-4 sm:gap-8">
             <Link to="/facilities" className={getNavLinkClasses("/facilities")}>
               Terenuri
             </Link>
@@ -142,20 +142,9 @@ const Header = () => {
             </Link>
           </nav>
 
-          {/* Center - Mobile Menu Button */}
-          <div className="flex justify-center md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="px-2"
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-          </div>
 
           {/* Right side - User actions */}
-          <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-3'} justify-end`}>
+          <div className={`ml-auto flex items-center ${isMobile ? 'gap-1' : 'gap-3'} justify-end pr-2 sm:pr-4`}>
             {session ? (
               <>
                 <Button onClick={handleClientClick} variant="ghost" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
