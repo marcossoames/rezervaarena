@@ -103,10 +103,10 @@ export const deleteUserAccount = async () => {
       throw error;
     }
 
-    // Send deletion confirmation email
+    // Send deletion confirmation email BEFORE signing out
     if (profile?.email && profile?.full_name) {
       try {
-        await supabase.functions.invoke('send-account-deletion-email', {
+        const emailResult = await supabase.functions.invoke('send-account-deletion-email', {
           body: {
             userId: user.id,
             userEmail: profile.email,
@@ -116,6 +116,12 @@ export const deleteUserAccount = async () => {
             deactivatedFacilities: ownerFacilitiesData.facilities?.length || 0
           }
         });
+        
+        if (emailResult.error) {
+          console.error('Email function error:', emailResult.error);
+        } else {
+          console.log('Deletion confirmation email sent successfully');
+        }
       } catch (emailError) {
         console.error('Error sending deletion email:', emailError);
         // Don't fail the deletion if email fails

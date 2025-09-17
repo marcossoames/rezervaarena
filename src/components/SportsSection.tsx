@@ -9,8 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 console.log('Checking image imports...');
 
 // Temporary placeholder until we add real images
-const tennisImage = "/placeholder-tennis-clay.jpg";
-const footballImage = "/placeholder-football-realistic.jpg";
+const footballImage = "/placeholder-football-synthetic-interior.jpg";
+const tennisImage = "/placeholder-tennis-modern.jpg";
 const padelImage = "/placeholder-padel.jpg";
 const squashImage = "/placeholder-squash.jpg";
 const basketballImage = "/placeholder-basketball.jpg";
