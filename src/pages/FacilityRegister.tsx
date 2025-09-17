@@ -59,7 +59,48 @@ const FacilityRegister = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const password = watch("password");
+  
+
+  // Check if user is already logged in and should skip step 1
+  useEffect(() => {
+    const checkExistingUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Check if they have a business profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, phone, user_type_comment')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+          // Extract business name from user_type_comment
+          const businessName = profile.user_type_comment.replace(' - Proprietar bază sportivă', '');
+          
+          // Set account data and skip to step 2
+          setAccountData({
+            email: user.email || '',
+            password: '', // Won't be used since user is already authenticated
+            confirmPassword: '',
+            fullName: profile.full_name,
+            phone: profile.phone,
+            businessName: businessName,
+            businessDescription: '',
+            address: '',
+            city: '',
+            numberOfFacilities: 1,
+            generalServices: []
+          });
+          setCurrentStep(2);
+          initializeFacilities(1);
+        }
+      }
+    };
+
+    checkExistingUser();
+  }, []);
+
+  const watchedPassword = watch("password");
 
   // Update form values when accountData changes (when going back)
   useEffect(() => {
@@ -509,7 +550,7 @@ const FacilityRegister = () => {
                 type={showConfirmPassword ? "text" : "password"}
                 {...register("confirmPassword", { 
                   required: "Confirmarea parolei este obligatorie",
-                  validate: value => value === password || "Parolele nu se potrivesc"
+                  validate: value => value === watchedPassword || "Parolele nu se potrivesc"
                 })}
                 className="bg-background/50 pr-10"
               />

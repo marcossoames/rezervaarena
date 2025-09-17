@@ -52,8 +52,8 @@ const SportsFacilityLogin = () => {
         }
 
         if (facilities && facilities.length > 0) {
-          // User has facilities, redirect to profile page
-          navigate('/facility-owner-profile');
+          // User has facilities, redirect to manage facilities page
+          navigate('/manage-facilities');
         } else {
           // User doesn't have facilities, check their profile comment
           const { data: profile } = await supabase
@@ -64,10 +64,16 @@ const SportsFacilityLogin = () => {
 
           if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
             // They are supposed to be facility owners but have no facilities
-            navigate('/facility-owner-profile');
+            // Redirect them to complete registration
+            toast({
+              title: "Înregistrare incompletă",
+              description: "Trebuie să îți completezi facilitățile pentru a accesa dashboard-ul",
+              variant: "destructive"
+            });
+            navigate('/facility/register?step=2');
           } else {
             toast({
-              title: "Acces restricționat",
+              title: "Acces restricționat", 
               description: "Acest cont nu este înregistrat ca proprietar de bază sportivă",
               variant: "destructive"
             });
