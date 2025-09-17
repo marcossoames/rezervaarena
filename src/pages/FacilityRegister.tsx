@@ -266,19 +266,7 @@ const FacilityRegister = () => {
       if (authData.user && !authData.session) {
         // User was created but needs email confirmation
         // Send custom confirmation email
-        try {
-          const confirmationUrl = `${window.location.origin}/auth/confirm?token_hash=${authData.user.email_confirmed_at ? '' : 'pending'}&type=signup&redirect_to=${encodeURIComponent(window.location.origin + '/facility/login')}`;
-          
-          await supabase.functions.invoke('auth-confirmation-email', {
-            body: {
-              email: accountData.email,
-              confirmationUrl,
-              fullName: accountData.fullName
-            }
-          });
-        } catch (emailError) {
-          console.error('Failed to send confirmation email:', emailError);
-        }
+        // Supabase trimite automat emailul standard de confirmare (nu mai trimitem email custom aici).
 
         toast({
           title: "Cont creat cu succes!",
