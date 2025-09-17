@@ -753,18 +753,20 @@ const FacilityRegister = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Capacitate *</Label>
-                <div className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="checkbox"
-                    id={`useRange-${index}`}
-                    checked={facility.useCapacityRange}
-                    onChange={(e) => updateFacilityField(index, 'useCapacityRange', e.target.checked)}
-                    className="h-4 w-4 rounded border-input"
-                  />
-                  <Label htmlFor={`useRange-${index}`} className="text-sm font-normal">
-                    Interval (min-max)
-                  </Label>
+                <div className="flex items-center justify-between">
+                  <Label>Capacitate *</Label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`useRange-${index}`}
+                      checked={facility.useCapacityRange}
+                      onChange={(e) => updateFacilityField(index, 'useCapacityRange', e.target.checked)}
+                      className="h-4 w-4 rounded border-input"
+                    />
+                    <Label htmlFor={`useRange-${index}`} className="text-sm font-normal">
+                      Interval (min-max)
+                    </Label>
+                  </div>
                 </div>
                   
                 {facility.useCapacityRange ? (
