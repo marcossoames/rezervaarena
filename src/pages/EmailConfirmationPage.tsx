@@ -55,13 +55,13 @@ const EmailConfirmationPage = () => {
 
               // If no facilities yet, try to finalize saved registration
               if (!facilities || facilities.length === 0) {
-                const savedDataStr = sessionStorage.getItem('facilityRegistrationData');
+                const savedDataStr = localStorage.getItem('facilityRegistrationData');
                 if (savedDataStr) {
                   try {
                     const saved = JSON.parse(savedDataStr);
                     const result = await saveFacilitiesForUser(saved.accountData, saved.facilities);
                     if (result.success) {
-                      sessionStorage.removeItem('facilityRegistrationData');
+                       localStorage.removeItem('facilityRegistrationData');
                       toast({
                         title: "Email confirmat!",
                         description: "Facilitățile au fost salvate. Bun venit!",
@@ -126,13 +126,13 @@ const EmailConfirmationPage = () => {
               .limit(1);
 
             if (!facilities || facilities.length === 0) {
-              const savedDataStr = sessionStorage.getItem('facilityRegistrationData');
+              const savedDataStr = localStorage.getItem('facilityRegistrationData');
               if (savedDataStr) {
                 try {
                   const saved = JSON.parse(savedDataStr);
                   const result = await saveFacilitiesForUser(saved.accountData, saved.facilities);
                   if (result.success) {
-                    sessionStorage.removeItem('facilityRegistrationData');
+                     localStorage.removeItem('facilityRegistrationData');
                     toast({
                       title: "Email confirmat!",
                       description: "Facilitățile au fost salvate. Bun venit!",

@@ -88,8 +88,7 @@ const FacilityRegister = () => {
             return;
           }
 
-          // Nu mai restaurăm sau salvăm temporar facilitățile; flux simplificat ca la clienți
-          // După confirmarea emailului, utilizatorul va fi direcționat spre Dashboard unde poate adăuga facilități.
+          // Dacă nu au facilități, merg înainte; salvarea se face după confirmarea emailului.
         }
       }
     };
@@ -282,9 +281,18 @@ const FacilityRegister = () => {
 
     try {
       console.log('Starting facility owner signup...');
-      
-      // Simplified flow: nu mai stocăm local facilitățile înainte de confirmarea emailului
-
+      // Persistăm temporar detaliile până la confirmarea emailului (localStorage, pentru a fi disponibile în noul tab)
+      try {
+        const registrationData = {
+          accountData,
+          facilities,
+          generalServices,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('facilityRegistrationData', JSON.stringify(registrationData));
+      } catch (e) {
+        console.warn('Could not persist registration data:', e);
+      }
       
       // Sign up the user as facility owner
       sessionStorage.setItem('registrationFlow', 'facility');
