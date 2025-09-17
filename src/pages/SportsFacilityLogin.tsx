@@ -63,14 +63,12 @@ const SportsFacilityLogin = () => {
             .single();
 
           if (profile?.user_type_comment?.includes('Proprietar bază sportivă') || profile?.role === 'facility_owner') {
-            // They are supposed to be facility owners but have no facilities
-            // Redirect them to complete registration
+            // Allow access to dashboard; they can add facilities after login
             toast({
-              title: "Înregistrare incompletă",
-              description: "Trebuie să îți completezi facilitățile pentru a accesa dashboard-ul",
-              variant: "destructive"
+              title: "Autentificat cu succes",
+              description: "Poți adăuga facilitățile din Dashboard.",
             });
-            navigate('/facility/register?step=2');
+            navigate('/manage-facilities');
           } else {
             toast({
               title: "Acces restricționat", 

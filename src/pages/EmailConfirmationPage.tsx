@@ -19,10 +19,12 @@ const EmailConfirmationPage = () => {
     const handleEmailConfirmation = async () => {
       try {
         // Check URL parameters for confirmation
-        const accessToken = searchParams.get('access_token');
-        const refreshToken = searchParams.get('refresh_token');
-        const type = searchParams.get('type');
-        const errorCode = searchParams.get('error_code') || searchParams.get('error');
+        // Check URL parameters for confirmation (support both query and hash)
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const accessToken = searchParams.get('access_token') || hashParams.get('access_token');
+        const refreshToken = searchParams.get('refresh_token') || hashParams.get('refresh_token');
+        const type = searchParams.get('type') || hashParams.get('type');
+        const errorCode = searchParams.get('error_code') || searchParams.get('error') || hashParams.get('error_code') || hashParams.get('error');
         
         if (type === 'signup' && accessToken && refreshToken && !errorCode) {
           // Set the session using the tokens
@@ -72,12 +74,12 @@ const EmailConfirmationPage = () => {
                   }
                 }
 
-                // If nothing to auto-save, send to step 2 to complete
+                // If nothing to auto-save, continue to dashboard and let them add later
                 toast({
-                  title: "Email confirmat!",
-                  description: "Completează informațiile despre facilitățile tale",
+                  title: "Email confirmat cu succes!",
+                  description: "Poți adăuga facilitățile din Dashboard.",
                 });
-                setTimeout(() => navigate('/facility/register?step=2'), 1200);
+                setTimeout(() => navigate('/manage-facilities'), 1000);
                 return;
               }
 
@@ -144,9 +146,9 @@ const EmailConfirmationPage = () => {
               }
               toast({
                 title: "Email confirmat cu succes!",
-                description: "Acum completează informațiile despre facilitățile tale",
+                description: "Poți adăuga facilitățile din Dashboard.",
               });
-              setTimeout(() => navigate('/facility/register?step=2'), 1200);
+              setTimeout(() => navigate('/manage-facilities'), 1000);
               return;
             }
           }
