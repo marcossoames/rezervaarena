@@ -115,9 +115,9 @@ const Header = () => {
   return (
     <header className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
       <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
-        <div className="flex items-center justify-between">
+        <div className="grid grid-cols-3 items-center w-full">
           {/* Left side - Logo */}
-          <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
+          <div className="flex items-center space-x-1 sm:space-x-2 justify-start">
             <Link to="/" className="flex items-center space-x-1 sm:space-x-2">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center overflow-hidden">
                 <img src="/logo-rezervaarena.png" alt="RezervaArena" className="w-full h-full object-cover" />
@@ -127,7 +127,7 @@ const Header = () => {
           </div>
           
           {/* Center - Navigation Desktop */}
-          <nav className="hidden md:flex items-center justify-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
+          <nav className="hidden md:flex items-center justify-center space-x-8">
             <Link to="/facilities" className={getNavLinkClasses("/facilities")}>
               Terenuri
             </Link>
@@ -143,7 +143,7 @@ const Header = () => {
           </nav>
 
           {/* Center - Mobile Menu Button */}
-          <div className="flex justify-center md:hidden absolute left-1/2 transform -translate-x-1/2">
+          <div className="flex justify-center md:hidden">
             <Button
               variant="ghost"
               size="sm"
@@ -155,7 +155,7 @@ const Header = () => {
           </div>
 
           {/* Right side - User actions */}
-          <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-3'} shrink-0`}>
+          <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-3'} justify-end`}>
             {session ? (
               <>
                 <Button onClick={handleClientClick} variant="ghost" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
