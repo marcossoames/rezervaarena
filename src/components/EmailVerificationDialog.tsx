@@ -107,9 +107,10 @@ export const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = (
           </DialogTitle>
           <DialogDescription className="text-base text-muted-foreground">
             Am trimis un email de confirmare la adresa:
-            <div className="font-semibold text-foreground mt-2 p-2 bg-muted rounded-md">
+            <br />
+            <span className="font-semibold text-foreground mt-2 inline-block p-2 bg-muted rounded-md">
               {email}
-            </div>
+            </span>
           </DialogDescription>
         </DialogHeader>
 
