@@ -270,6 +270,18 @@ const FacilityRegister = () => {
         // Afișează dialogul de verificare email pentru o experiență similară cu cea a clienților
         setUserEmail(accountData.email);
         setShowEmailVerification(true);
+
+        // Forțează retrimiterea emailului de confirmare imediat (în special pentru cazurile de user_repeated_signup)
+        try {
+          await supabase.auth.resend({
+            type: 'signup',
+            email: accountData.email,
+            options: { emailRedirectTo: `${window.location.origin}/` }
+          });
+        } catch (resendErr) {
+          console.warn('Resend after signup failed:', resendErr);
+        }
+
         toast({
           title: "Cont creat cu succes!",
           description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul.",
