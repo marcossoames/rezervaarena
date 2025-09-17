@@ -250,7 +250,7 @@ const FacilityRegister = () => {
           email: accountData.email,
           password: accountData.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/email-confirmation`,
+            emailRedirectTo: `${window.location.origin}/`,
             data: {
               full_name: accountData.fullName,
               phone: accountData.phone,
