@@ -49,7 +49,7 @@ const EmailConfirmationPage = () => {
                 title: "Email confirmat cu succes!",
                 description: "Contul tău a fost activat. Facilitățile sunt în curs de procesare...",
               });
-              setTimeout(() => navigate('/manage-facilities'), 1000);
+              setTimeout(() => navigate('/facility-owner-profile'), 1000);
               return;
             } else {
               // Regular client
@@ -85,7 +85,7 @@ const EmailConfirmationPage = () => {
               title: "Email confirmat cu succes!",
               description: "Contul a fost activat. Facilitățile au fost create automat.",
             });
-            setTimeout(() => navigate('/manage-facilities'), 1000);
+            setTimeout(() => navigate('/facility-owner-profile'), 1000);
             return;
           }
           

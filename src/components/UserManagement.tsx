@@ -125,14 +125,21 @@ const UserManagement = () => {
 
   const deleteUser = async (userId: string, userEmail: string) => {
     try {
-      // First, send confirmation email
+      // Get user profile before deletion for email
+      const { data: targetProfile } = await supabase
+        .from('profiles')
+        .select('full_name, email, role')
+        .eq('user_id', userId)
+        .single();
+
+      // First, send confirmation email with proper data
       try {
         await supabase.functions.invoke('send-account-deletion-email', {
           body: {
             userId: userId,
             userEmail: userEmail,
-            userName: userEmail, // Fallback when name not available
-            userType: 'facility_owner' // Default for admin deletions
+            userName: targetProfile?.full_name || userEmail.split('@')[0],
+            userType: targetProfile?.role === 'client' ? 'client' : 'facility_owner'
           }
         });
         console.log('Deletion confirmation email sent successfully');

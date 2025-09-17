@@ -52,8 +52,8 @@ const SportsFacilityLogin = () => {
         }
 
         if (facilities && facilities.length > 0) {
-          // User has facilities, redirect to manage facilities page
-          navigate('/manage-facilities');
+          // User has facilities, redirect to facility owner profile page
+          navigate('/facility-owner-profile');
         } else {
           // User doesn't have facilities, check their profile for facility owner status
           const { data: profile } = await supabase
@@ -66,9 +66,9 @@ const SportsFacilityLogin = () => {
             // Allow access to dashboard; they can add facilities after login
             toast({
               title: "Autentificat cu succes",
-              description: "Poți adăuga facilitățile din Dashboard.",
+              description: "Bun venit în profilul tău!",
             });
-            navigate('/manage-facilities');
+            navigate('/facility-owner-profile');
           } else {
             toast({
               title: "Acces restricționat", 
