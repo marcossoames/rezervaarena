@@ -337,16 +337,7 @@ const FacilityRegister = () => {
     setIsLoading(true);
 
     try {
-      console.log('Starting registration process...');
-      
-      // Save all registration data to sessionStorage before signup
-      const registrationData = {
-        accountData,
-        facilities,
-        generalServices,
-        timestamp: Date.now()
-      };
-      sessionStorage.setItem('facilityRegistrationData', JSON.stringify(registrationData));
+      console.log('Starting facility owner signup...');
       
       // Sign up the user as facility owner
       sessionStorage.setItem('registrationFlow', 'facility');
@@ -372,144 +363,15 @@ const FacilityRegister = () => {
 
       console.log('User signed up successfully:', authData.user?.id);
 
-      if (authData.user && !authData.session) {
-        // Afișează dialogul de verificare email pentru o experiență similară cu cea a clienților
-        setUserEmail(accountData.email);
-        setShowEmailVerification(true);
+      // Show email verification dialog for all facility owners
+      setUserEmail(accountData.email);
+      setShowEmailVerification(true);
 
-        // Forțează retrimiterea emailului de confirmare imediat (în special pentru cazurile de user_repeated_signup)
-        try {
-          await supabase.auth.resend({
-            type: 'signup',
-            email: accountData.email,
-            options: { emailRedirectTo: `${window.location.origin}/email-confirmation` }
-          });
-        } catch (resendErr) {
-          console.warn('Resend after signup failed:', resendErr);
-        }
-
-        toast({
-          title: "Cont creat cu succes!",
-          description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul.",
-          duration: 10000
-        });
-      } else if (authData.user && authData.session) {
-        // User was created and automatically logged in - proceed with facility creation
-        // Wait for user to be properly authenticated
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        console.log('User authenticated, proceeding with facility creation...');
-
-        // Create all facilities using the secure function
-        console.log(`Creating ${facilities.length} facilities...`);
-        
-        for (let i = 0; i < facilities.length; i++) {
-          const facility = facilities[i];
-          
-          console.log(`Creating facility ${i + 1}: ${facility.name}`);
-          
-          // Use the secure function to create facility and update profile
-          const { data: facilityId, error: facilityError } = await supabase
-            .rpc('register_facility_with_profile_secure', {
-              p_email: accountData.email,
-              p_full_name: accountData.fullName,
-              p_phone: accountData.phone || '',
-              p_facility_name: facility.name,
-              p_description: facility.description || '',
-              p_facility_type: facility.facilityType as "tennis" | "football" | "padel" | "squash" | "basketball" | "volleyball" | "ping_pong" | "foot_tennis",
-              p_address: accountData.address,
-              p_city: accountData.city,
-              p_price_per_hour: facility.pricePerHour,
-              p_capacity: facility.capacity,
-              p_amenities: facility.amenities,
-              p_capacity_max: facility.useCapacityRange ? facility.capacityMax : null
-            });
-
-          // After the first facility is created, update the user_type_comment with business name
-          if (i === 0 && facilityId) {
-            await supabase
-              .from('profiles')
-              .update({ 
-                user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`
-              })
-              .eq('user_id', authData.user.id);
-          }
-
-          if (facilityError) {
-            console.error('Facility creation error:', facilityError);
-            throw new Error(`Eroare la crearea facilității ${i + 1}: ${facilityError.message}`);
-          }
-
-          // Send facility creation notification email
-          if (facilityId && accountData.email && accountData.fullName) {
-            try {
-              await supabase.functions.invoke('send-facility-notification', {
-                body: {
-                  facilityId: facilityId,
-                  action: "created",
-                  ownerEmail: accountData.email,
-                  ownerName: accountData.fullName
-                }
-              });
-            } catch (emailError) {
-              console.error('Error sending facility creation email:', emailError);
-              // Don't fail the registration if email fails
-            }
-          }
-
-          console.log(`Facility ${i + 1} created successfully:`, facilityId);
-
-          // Upload images for this facility
-          if (facility.images.length > 0 && facilityId) {
-            for (let j = 0; j < facility.images.length; j++) {
-              try {
-                const imageUrl = await uploadImage(facility.images[j], facilityId, j === facility.mainImageIndex);
-                
-                // Save image record in facility_images table
-                const { error: imageError } = await supabase
-                  .from('facility_images')
-                  .insert({
-                    facility_id: facilityId,
-                    image_url: imageUrl,
-                    is_main: j === facility.mainImageIndex,
-                    display_order: j
-                  });
-
-                if (imageError) {
-                  console.error('Image record creation error:', imageError);
-                }
-              } catch (uploadError) {
-                console.error('Image upload error:', uploadError);
-              }
-            }
-          }
-
-          // Add general services as facility services
-          if (accountData.generalServices.length > 0 && facilityId) {
-            for (const service of accountData.generalServices) {
-              const { error: serviceError } = await supabase
-                .from('facility_services')
-                .insert({
-                  facility_id: facilityId,
-                  service_name: service,
-                  is_included: true
-                });
-
-              if (serviceError) {
-                console.error('Service creation error:', serviceError);
-              }
-            }
-          }
-        }
-
-        toast({
-          title: "Cont creat cu succes!",
-          description: `Ai adăugat ${facilities.length} facilități cu imagini și servicii.`
-        });
-
-        // Redirect to manage facilities page
-        navigate("/manage-facilities");
-      }
+      toast({
+        title: "Cont creat cu succes!",
+        description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul.",
+        duration: 10000
+      });
     } catch (error: any) {
       console.error('Registration error:', error);
       toast({
