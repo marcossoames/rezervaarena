@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { saveFacilitiesForUser } from "@/utils/facilityRegistration";
 
 const EmailConfirmationPage = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -46,49 +45,11 @@ const EmailConfirmationPage = () => {
               .single();
 
             if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
-              // Check existing facilities
-              const { data: facilities } = await supabase
-                .from('facilities')
-                .select('id')
-                .eq('owner_id', data.user.id)
-                .limit(1);
-
-              // If no facilities yet, try to finalize saved registration
-              if (!facilities || facilities.length === 0) {
-                const savedDataStr = localStorage.getItem('facilityRegistrationData');
-                if (savedDataStr) {
-                  try {
-                    const saved = JSON.parse(savedDataStr);
-                    const result = await saveFacilitiesForUser(saved.accountData, saved.facilities);
-                    if (result.success) {
-                       localStorage.removeItem('facilityRegistrationData');
-                      toast({
-                        title: "Email confirmat!",
-                        description: "Facilitățile au fost salvate. Bun venit!",
-                      });
-                      navigate('/manage-facilities');
-                      return;
-                    }
-                  } catch (e) {
-                    console.error('Failed to auto-save facilities after confirmation:', e);
-                  }
-                }
-
-                // If nothing to auto-save, continue to dashboard and let them add later
-                toast({
-                  title: "Email confirmat cu succes!",
-                  description: "Poți adăuga facilitățile din Dashboard.",
-                });
-                setTimeout(() => navigate('/manage-facilities'), 1000);
-                return;
-              }
-
-              // Has facilities already -> go to dashboard
               toast({
                 title: "Email confirmat cu succes!",
-                description: "Contul tău a fost activat. Bun venit!",
+                description: "Contul tău a fost activat. Facilitățile sunt în curs de procesare...",
               });
-              setTimeout(() => navigate('/manage-facilities'), 1200);
+              setTimeout(() => navigate('/manage-facilities'), 1000);
               return;
             } else {
               // Regular client
@@ -101,60 +62,7 @@ const EmailConfirmationPage = () => {
           }
         }
 
-        // If coming from signup but no tokens present, try password sign-in using data saved pre-confirmation
-        if (type === 'signup' && !accessToken && !refreshToken && !errorCode) {
-          const savedDataStr = localStorage.getItem('facilityRegistrationData');
-          if (savedDataStr) {
-            try {
-              const saved = JSON.parse(savedDataStr);
-              // Attempt sign-in to establish a session
-              const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-                email: saved.accountData?.email,
-                password: saved.accountData?.password,
-              });
-
-              if (!signInError && signInData.user) {
-                setStatus('success');
-
-                // Check profile to confirm facility owner
-                const { data: profile } = await supabase
-                  .from('profiles')
-                  .select('user_type_comment')
-                  .eq('user_id', signInData.user.id)
-                  .maybeSingle();
-
-                // If owner and has no facilities, save them now
-                if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
-                  const { data: facilities } = await supabase
-                    .from('facilities')
-                    .select('id')
-                    .eq('owner_id', signInData.user.id)
-                    .limit(1);
-
-                  if (!facilities || facilities.length === 0) {
-                    const result = await saveFacilitiesForUser(saved.accountData, saved.facilities);
-                    if (result.success) {
-                      localStorage.removeItem('facilityRegistrationData');
-                      toast({ title: 'Email confirmat!', description: 'Facilitățile au fost salvate. Bun venit!' });
-                      navigate('/manage-facilities');
-                      return;
-                    }
-                  }
-
-                  toast({ title: 'Email confirmat!', description: 'Bun venit în Dashboard.' });
-                  navigate('/manage-facilities');
-                  return;
-                } else {
-                  // Client flow
-                  toast({ title: 'Email confirmat!', description: 'Contul a fost activat. Te poți conecta.' });
-                  return;
-                }
-              }
-            } catch (e) {
-              console.error('Password sign-in after confirm failed:', e);
-            }
-          }
-        }
+        // Removed localStorage/sign-in approach
         if (errorCode) {
           setStatus('error');
           return;
@@ -165,7 +73,7 @@ const EmailConfirmationPage = () => {
         if (user?.email_confirmed_at) {
           setStatus('success');
           
-          // Check if this is a facility owner who needs to complete registration
+          // Check if this is a facility owner
           const { data: profile } = await supabase
             .from('profiles')
             .select('user_type_comment')
@@ -173,38 +81,12 @@ const EmailConfirmationPage = () => {
             .single();
 
           if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
-            const { data: facilities } = await supabase
-              .from('facilities')
-              .select('id')
-              .eq('owner_id', user.id)
-              .limit(1);
-
-            if (!facilities || facilities.length === 0) {
-              const savedDataStr = localStorage.getItem('facilityRegistrationData');
-              if (savedDataStr) {
-                try {
-                  const saved = JSON.parse(savedDataStr);
-                  const result = await saveFacilitiesForUser(saved.accountData, saved.facilities);
-                  if (result.success) {
-                     localStorage.removeItem('facilityRegistrationData');
-                    toast({
-                      title: "Email confirmat!",
-                      description: "Facilitățile au fost salvate. Bun venit!",
-                    });
-                    navigate('/manage-facilities');
-                    return;
-                  }
-                } catch (e) {
-                  console.error('Failed to auto-save facilities (fallback):', e);
-                }
-              }
-              toast({
-                title: "Email confirmat cu succes!",
-                description: "Poți adăuga facilitățile din Dashboard.",
-              });
-              setTimeout(() => navigate('/manage-facilities'), 1000);
-              return;
-            }
+            toast({
+              title: "Email confirmat cu succes!",
+              description: "Contul a fost activat. Facilitățile au fost create automat.",
+            });
+            setTimeout(() => navigate('/manage-facilities'), 1000);
+            return;
           }
           
           toast({

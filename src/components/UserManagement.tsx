@@ -125,6 +125,22 @@ const UserManagement = () => {
 
   const deleteUser = async (userId: string, userEmail: string) => {
     try {
+      // First, send confirmation email
+      try {
+        await supabase.functions.invoke('send-account-deletion-email', {
+          body: {
+            userId: userId,
+            userEmail: userEmail,
+            userName: userEmail, // Fallback when name not available
+            userType: 'facility_owner' // Default for admin deletions
+          }
+        });
+        console.log('Deletion confirmation email sent successfully');
+      } catch (emailError) {
+        console.error('Error sending deletion email:', emailError);
+        // Continue with deletion even if email fails
+      }
+
       const { data, error } = await supabase.rpc('delete_user_account_secure', {
         _user_id: userId
       });
@@ -136,7 +152,7 @@ const UserManagement = () => {
       if (data) {
         toast({
           title: "Succes",
-          description: `Contul utilizatorului ${userEmail} a fost șters.`,
+          description: `Contul utilizatorului ${userEmail} a fost șters și a primit email de confirmare.`,
         });
         fetchUsers(); // Refresh the list
       } else {

@@ -281,20 +281,21 @@ const FacilityRegister = () => {
 
     try {
       console.log('Starting facility owner signup...');
-      // Persistăm temporar detaliile până la confirmarea emailului (localStorage, pentru a fi disponibile în noul tab)
-      try {
-        const registrationData = {
-          accountData,
-          facilities,
-          generalServices,
-          timestamp: Date.now()
-        };
-        localStorage.setItem('facilityRegistrationData', JSON.stringify(registrationData));
-      } catch (e) {
-        console.warn('Could not persist registration data:', e);
-      }
       
-      // Sign up the user as facility owner
+      // Transform facilities for metadata
+      const facilitiesMetadata = facilities.map(facility => ({
+        name: facility.name,
+        description: facility.description,
+        facilityType: facility.facilityType,
+        pricePerHour: facility.pricePerHour,
+        capacity: facility.capacity,
+        capacityMax: facility.capacityMax,
+        amenities: facility.amenities,
+        city: accountData.city,
+        address: accountData.address
+      }));
+
+      // Sign up the user as facility owner with facilities metadata
       sessionStorage.setItem('registrationFlow', 'facility');
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: accountData.email,
@@ -306,7 +307,10 @@ const FacilityRegister = () => {
             phone: accountData.phone,
             business_name: accountData.businessName,
             role: 'facility_owner',
-            user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`
+            user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`,
+            city: accountData.city,
+            address: accountData.address,
+            facilities: facilitiesMetadata
           }
         }
       });
