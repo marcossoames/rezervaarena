@@ -51,15 +51,29 @@ const EmailConfirmationPage = () => {
                 .limit(1);
 
               if (!facilities || facilities.length === 0) {
-                // Facility owner without facilities - auto-redirect after showing success
-                toast({
-                  title: "Email confirmat cu succes!",
-                  description: "Acum completează informațiile despre facilitățile tale",
-                });
-                setTimeout(() => {
-                  navigate('/facility/register?step=2');
-                }, 2000);
-                return;
+                // Check for saved registration data
+                const savedData = sessionStorage.getItem('facilityRegistrationData');
+                if (savedData) {
+                  toast({
+                    title: "Email confirmat cu succes!",
+                    description: "Completând înregistrarea cu facilitățile salvate...",
+                  });
+                  // Redirect will be handled by FacilityRegister page
+                  setTimeout(() => {
+                    navigate('/facility/register?step=2');
+                  }, 1500);
+                  return;
+                } else {
+                  // No saved data - redirect to complete registration
+                  toast({
+                    title: "Email confirmat cu succes!",
+                    description: "Acum completează informațiile despre facilitățile tale",
+                  });
+                  setTimeout(() => {
+                    navigate('/facility/register?step=2');
+                  }, 2000);
+                  return;
+                }
               } else {
                 // Facility owner with facilities - redirect to dashboard
                 toast({

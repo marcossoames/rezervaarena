@@ -12,6 +12,7 @@ import { X, Plus, ArrowLeft, ArrowRight, Upload, Image as ImageIcon, Eye, EyeOff
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
+import { saveFacilitiesForUser } from "@/utils/facilityRegistration";
 
 interface AccountFormData {
   email: string;
@@ -61,7 +62,7 @@ const FacilityRegister = () => {
 
   
 
-  // Check if user is already logged in and should skip step 1
+  // Check if user is already logged in and should skip step 1 or restore data
   useEffect(() => {
     const checkExistingUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -69,18 +70,70 @@ const FacilityRegister = () => {
         // Check if they have a business profile
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, phone, user_type_comment')
+          .select('full_name, phone, user_type_comment, role')
           .eq('user_id', user.id)
           .single();
 
         if (profile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+          // Check if they already have facilities
+          const { data: existingFacilities } = await supabase
+            .from('facilities')
+            .select('id')
+            .eq('owner_id', user.id)
+            .limit(1);
+
+          if (existingFacilities && existingFacilities.length > 0) {
+            // User already has facilities - redirect to dashboard
+            navigate('/manage-facilities');
+            return;
+          }
+
+          // Check for saved registration data
+          const savedData = sessionStorage.getItem('facilityRegistrationData');
+          if (savedData) {
+            try {
+              const parsedData = JSON.parse(savedData);
+              // Check if data is not too old (24 hours)
+              if (Date.now() - parsedData.timestamp < 24 * 60 * 60 * 1000) {
+                // Restore all data and proceed to save facilities
+                setAccountData(parsedData.accountData);
+                setFacilities(parsedData.facilities);
+                setGeneralServices(parsedData.generalServices);
+                
+                // Auto-save the facilities now that user is authenticated
+                const result = await saveFacilitiesForUser(parsedData.accountData, parsedData.facilities);
+                
+                if (result.success) {
+                  // Clear the temporary data
+                  sessionStorage.removeItem('facilityRegistrationData');
+                  
+                  toast({
+                    title: "Înregistrare completată!",
+                    description: "Facilitățile tale au fost salvate cu succes. Bine ai venit!",
+                  });
+                  
+                  navigate('/manage-facilities');
+                  return;
+                } else {
+                  console.error('Error saving facilities:', result.error);
+                }
+              } else {
+                // Data is too old, remove it
+                sessionStorage.removeItem('facilityRegistrationData');
+              }
+            } catch (error) {
+              console.error('Error parsing saved registration data:', error);
+              sessionStorage.removeItem('facilityRegistrationData');
+            }
+          }
+          
           // Extract business name from user_type_comment
           const businessName = profile.user_type_comment.replace(' - Proprietar bază sportivă', '');
           
-          // Set account data and skip to step 2
+          // Set account data and go to step 2 for facility details
           setAccountData({
             email: user.email || '',
-            password: '', // Won't be used since user is already authenticated
+            password: '',
             confirmPassword: '',
             fullName: profile.full_name,
             phone: profile.phone,
@@ -286,22 +339,31 @@ const FacilityRegister = () => {
     try {
       console.log('Starting registration process...');
       
-        // Sign up the user as client cu marcaj de flux facility
-        sessionStorage.setItem('registrationFlow', 'facility');
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: accountData.email,
-          password: accountData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/email-confirmation`,
-            data: {
-              full_name: accountData.fullName,
-              phone: accountData.phone,
-              business_name: accountData.businessName,
-              role: 'facility_owner', // Setez explicit rolul pentru proprietarii de bazei sportive
-              user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`
-            }
+      // Save all registration data to sessionStorage before signup
+      const registrationData = {
+        accountData,
+        facilities,
+        generalServices,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem('facilityRegistrationData', JSON.stringify(registrationData));
+      
+      // Sign up the user as facility owner
+      sessionStorage.setItem('registrationFlow', 'facility');
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: accountData.email,
+        password: accountData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/email-confirmation`,
+          data: {
+            full_name: accountData.fullName,
+            phone: accountData.phone,
+            business_name: accountData.businessName,
+            role: 'facility_owner',
+            user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`
           }
-        });
+        }
+      });
 
       if (authError) {
         console.error('Auth signup error:', authError);
