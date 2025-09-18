@@ -70,7 +70,7 @@ const FacilityCalendarPage = () => {
   
   // Stati pentru blocarea recurentă
   const [isRecurring, setIsRecurring] = useState(false);
-  const [recurringType, setRecurringType] = useState<'weekly' | 'monthly'>('weekly');
+  const [recurringType, setRecurringType] = useState<'weekly'>('weekly');
   const [recurringEndDate, setRecurringEndDate] = useState<Date>();
   const [weeklyDays, setWeeklyDays] = useState<number[]>([]);
   
@@ -222,7 +222,7 @@ const FacilityCalendarPage = () => {
   ];
 
   // Generare date recurente
-  const generateRecurringDates = (startDate: Date, endDate: Date, type: 'weekly' | 'monthly', selectedDays?: number[]) => {
+  const generateRecurringDates = (startDate: Date, endDate: Date, type: 'weekly', selectedDays?: number[]) => {
     const dates = [];
     let currentDate = new Date(startDate);
     
@@ -230,14 +230,6 @@ const FacilityCalendarPage = () => {
       while (currentDate <= endDate) {
         const dayOfWeek = getDay(currentDate);
         if (selectedDays.includes(dayOfWeek)) {
-          dates.push(new Date(currentDate));
-        }
-        currentDate = addDays(currentDate, 1);
-      }
-    } else if (type === 'monthly') {
-      const startDay = startDate.getDate();
-      while (currentDate <= endDate) {
-        if (currentDate.getDate() === startDay) {
           dates.push(new Date(currentDate));
         }
         currentDate = addDays(currentDate, 1);
@@ -336,13 +328,9 @@ const FacilityCalendarPage = () => {
       let datesToBlock = [selectedDate];
       
       if (isRecurring && recurringEndDate) {
-        if (recurringType === 'weekly') {
-          // Dacă sunt selectate zile specifice, folosește-le, altfel folosește ziua selectată inițial
-          const daysToUse = weeklyDays.length > 0 ? weeklyDays : [getDay(selectedDate)];
-          datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'weekly', daysToUse);
-        } else {
-          datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'monthly');
-        }
+        // Dacă sunt selectate zile specifice, folosește-le, altfel folosește ziua selectată inițial
+        const daysToUse = weeklyDays.length > 0 ? weeklyDays : [getDay(selectedDate)];
+        datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'weekly', daysToUse);
       }
 
       const blocksToInsert = datesToBlock.map(date => ({
@@ -478,13 +466,9 @@ const FacilityCalendarPage = () => {
       
       // Generare date recurente dacă este cazul
       if (isRecurring && recurringEndDate) {
-        if (recurringType === 'weekly') {
-          // Dacă sunt selectate zile specifice, folosește-le, altfel folosește ziua selectată inițial
-          const daysToUse = weeklyDays.length > 0 ? weeklyDays : [getDay(selectedDate)];
-          datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'weekly', daysToUse);
-        } else {
-          datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'monthly');
-        }
+        // Dacă sunt selectate zile specifice, folosește-le, altfel folosește ziua selectată inițial
+        const daysToUse = weeklyDays.length > 0 ? weeklyDays : [getDay(selectedDate)];
+        datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'weekly', daysToUse);
       }
 
       // Inserare pentru toate datele
@@ -788,15 +772,14 @@ const FacilityCalendarPage = () => {
                                    <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
                                      <div className="space-y-2">
                                        <Label>Tip recurență</Label>
-                                       <Select value={recurringType} onValueChange={(value: 'weekly' | 'monthly') => setRecurringType(value)}>
-                                         <SelectTrigger>
-                                           <SelectValue />
-                                         </SelectTrigger>
-                                         <SelectContent>
-                                           <SelectItem value="weekly">Săptămânal</SelectItem>
-                                           <SelectItem value="monthly">Lunar</SelectItem>
-                                         </SelectContent>
-                                       </Select>
+                                        <Select value={recurringType} onValueChange={(value: 'weekly') => setRecurringType(value)}>
+                                          <SelectTrigger>
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="weekly">Săptămânal</SelectItem>
+                                          </SelectContent>
+                                        </Select>
                                      </div>
                                      
                                      {recurringType === 'weekly' && (
@@ -950,15 +933,14 @@ const FacilityCalendarPage = () => {
                                     <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
                                       <div className="space-y-2">
                                         <Label>Tip recurență</Label>
-                                        <Select value={recurringType} onValueChange={(value: 'weekly' | 'monthly') => setRecurringType(value)}>
-                                          <SelectTrigger>
-                                            <SelectValue />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="weekly">Săptămânal</SelectItem>
-                                            <SelectItem value="monthly">Lunar</SelectItem>
-                                          </SelectContent>
-                                        </Select>
+                                         <Select value={recurringType} onValueChange={(value: 'weekly') => setRecurringType(value)}>
+                                           <SelectTrigger>
+                                             <SelectValue />
+                                           </SelectTrigger>
+                                           <SelectContent>
+                                             <SelectItem value="weekly">Săptămânal</SelectItem>
+                                           </SelectContent>
+                                         </Select>
                                       </div>
                                       
                                       {recurringType === 'weekly' && (

@@ -39,6 +39,8 @@ interface FacilityInfo {
   amenities: string[];
   images: File[];
   mainImageIndex: number;
+  operatingHoursStart: string;
+  operatingHoursEnd: string;
 }
 
 const FacilityRegister = () => {
@@ -174,7 +176,9 @@ const FacilityRegister = () => {
             useCapacityRange: false,
             amenities: [],
             images: [],
-            mainImageIndex: 0
+            mainImageIndex: 0,
+            operatingHoursStart: '08:00',
+            operatingHoursEnd: '22:00'
           });
           newInputs.push('');
         }
@@ -247,10 +251,20 @@ const FacilityRegister = () => {
   const validateFacilities = () => {
     for (let i = 0; i < facilities.length; i++) {
       const facility = facilities[i];
-      if (!facility.name || !facility.facilityType || !facility.pricePerHour || !facility.capacity) {
+      if (!facility.name || !facility.facilityType || !facility.pricePerHour || !facility.capacity || !facility.operatingHoursStart || !facility.operatingHoursEnd) {
         toast({
           title: "Facilitate incompletă",
-          description: `Completează toate câmpurile pentru facilitatea ${i + 1}`,
+          description: `Completează toate câmpurile pentru facilitatea ${i + 1}, inclusiv orele de funcționare`,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      // Validate operating hours
+      if (facility.operatingHoursStart >= facility.operatingHoursEnd) {
+        toast({
+          title: "Ore de funcționare invalide",
+          description: `Pentru facilitatea ${i + 1}, ora de început trebuie să fie înainte de ora de sfârșit`,
           variant: "destructive"
         });
         return false;
@@ -292,7 +306,9 @@ const FacilityRegister = () => {
         capacityMax: facility.capacityMax,
         amenities: facility.amenities,
         city: accountData.city,
-        address: accountData.address
+        address: accountData.address,
+        operatingHoursStart: facility.operatingHoursStart,
+        operatingHoursEnd: facility.operatingHoursEnd
       }));
 
       // Sign up the user as facility owner with facilities metadata
@@ -758,6 +774,31 @@ const FacilityRegister = () => {
                     className="bg-background/50"
                   />
                 )}
+              </div>
+            </div>
+
+            {/* Operating Hours */}
+            <div className="space-y-2">
+              <Label>Ore de Funcționare *</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground">De la</Label>
+                  <Input
+                    type="time"
+                    value={facility.operatingHoursStart}
+                    onChange={(e) => updateFacilityField(index, 'operatingHoursStart', e.target.value)}
+                    className="bg-background/50"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground">Până la</Label>
+                  <Input
+                    type="time"
+                    value={facility.operatingHoursEnd}
+                    onChange={(e) => updateFacilityField(index, 'operatingHoursEnd', e.target.value)}
+                    className="bg-background/50"
+                  />
+                </div>
               </div>
             </div>
 

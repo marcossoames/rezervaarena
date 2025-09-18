@@ -160,8 +160,8 @@ const SportsSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {sportsData.map(sport => <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none">
-              <CardContent className="p-0">
+          {sportsData.map(sport => <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none flex flex-col h-full">
+              <CardContent className="p-0 flex flex-col h-full">
                 <div className="relative overflow-hidden rounded-t-lg">
                   <OptimizedImage 
                     src={sport.image} 
@@ -179,7 +179,8 @@ const SportsSection = () => {
                   </div>
                 </div>
                 
-                <div className="p-6">
+                <div className="p-6 flex flex-col h-full">
+                  <p className="text-sm text-muted-foreground mb-4 flex-grow">{sport.description}</p>
                   
                   <div className="space-y-2 mb-6">
                     <div className="flex justify-between items-center">
@@ -192,9 +193,9 @@ const SportsSection = () => {
                     </div>
                   </div>
                   
-                  <Link to={`/facilities?type=${sport.type}`}>
+                  <Link to={`/facilities?type=${sport.type}`} className="mt-auto">
                     <Button className="w-full" variant="default">
-                      Vezi Terenurile
+                      Rezervă Acum
                     </Button>
                   </Link>
                 </div>
