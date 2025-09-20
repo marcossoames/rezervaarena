@@ -85,6 +85,18 @@ const ContactPage = () => {
 
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <Phone className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-lg">Telefon</h3>
+                      <a href="tel:+40733535450" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                        +40733535450
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                       <Instagram className="w-6 h-6 text-primary" />
                     </div>
                     <div>

@@ -40,6 +40,12 @@ const Footer = () => {
                 </a>
               </div>
               <div className="flex items-center space-x-3">
+                <Phone className="h-5 w-5 text-primary" />
+                <a href="tel:+40733535450" className="text-muted-foreground hover:text-primary transition-smooth">
+                  +40733535450
+                </a>
+              </div>
+              <div className="flex items-center space-x-3">
                 <Instagram className="h-5 w-5 text-primary" />
                 <a href="https://www.instagram.com/rezervaarena/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-smooth">
                   @rezervaarena

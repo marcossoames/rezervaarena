@@ -726,7 +726,7 @@ applyFilters();
                       </Badge>
                     </div>
                     
-                    <div className="md:w-2/3 p-6">
+                    <div className="md:w-2/3 p-6 flex flex-col">
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="text-xl font-bold text-foreground mb-1">{facility.name}</h3>
@@ -742,16 +742,19 @@ applyFilters();
                         </div>
                       </div>
                       
-                       {(facility.description || facility.basic_description) && <p className="text-sm text-muted-foreground mb-4">
-                           {facility.description || facility.basic_description}
-                         </p>}
-                      
-                       {(facility.amenities || facility.available_amenities) && (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && <div className="flex flex-wrap gap-1 mb-4">
-                           {(facility.amenities || facility.available_amenities)?.map(amenity => <Badge key={amenity} variant="secondary" className="text-xs">
-                               {amenity}
-                             </Badge>)}
-                         </div>}
+                      <div className="flex-1">
+                        {(facility.description || facility.basic_description) && <p className="text-sm text-muted-foreground mb-4">
+                            {facility.description || facility.basic_description}
+                          </p>}
+                        
+                        {(facility.amenities || facility.available_amenities) && (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && <div className="flex flex-wrap gap-1 mb-4">
+                            {(facility.amenities || facility.available_amenities)?.map(amenity => <Badge key={amenity} variant="secondary" className="text-xs">
+                                {amenity}
+                              </Badge>)}
+                          </div>}
+                      </div>
                        
+                      <div className="mt-auto">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center text-sm text-muted-foreground">
                             <Users className="h-4 w-4 mr-1" />
@@ -792,6 +795,7 @@ applyFilters();
                             </div>
                           )}
                         </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
