@@ -718,7 +718,7 @@ applyFilters();
           animationDelay: `${index * 0.1}s`
         }}>
                 <CardContent className="p-0">
-                  <div className="flex flex-col md:flex-row">
+                  <div className="flex flex-col md:flex-row h-full">
                     <div className="md:w-1/3 relative overflow-hidden rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg">
                       <ImageCarousel images={facility.images || []} facilityName={facility.name} className="w-full h-48 md:h-full rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg" />
                       <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground z-10">
@@ -742,16 +742,18 @@ applyFilters();
                         </div>
                       </div>
                       
-                      <div className="flex-1">
-                        {(facility.description || facility.basic_description) && <p className="text-sm text-muted-foreground mb-4">
+                      <div className="flex-1 space-y-4">
+                        {(facility.description || facility.basic_description) && <p className="text-sm text-muted-foreground">
                             {facility.description || facility.basic_description}
                           </p>}
                         
-                        {(facility.amenities || facility.available_amenities) && (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && <div className="flex flex-wrap gap-1 mb-4">
-                            {(facility.amenities || facility.available_amenities)?.map(amenity => <Badge key={amenity} variant="secondary" className="text-xs">
-                                {amenity}
-                              </Badge>)}
-                          </div>}
+                        <div className="min-h-[2rem]">
+                          {(facility.amenities || facility.available_amenities) && (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && <div className="flex flex-wrap gap-1">
+                              {(facility.amenities || facility.available_amenities)?.map(amenity => <Badge key={amenity} variant="secondary" className="text-xs">
+                                  {amenity}
+                                </Badge>)}
+                            </div>}
+                        </div>
                       </div>
                        
                       <div className="mt-auto">
