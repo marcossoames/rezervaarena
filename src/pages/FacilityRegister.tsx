@@ -778,7 +778,7 @@ const FacilityRegister = () => {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Capacitate *</Label>
+                  <Label>Capacitate (jucători)*</Label>
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
