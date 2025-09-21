@@ -27,12 +27,7 @@ const Footer = () => {
                   rezervaarena@gmail.com
                 </a>
               </div>
-              <div className="flex items-center space-x-3">
-                <Mail className="h-5 w-5 text-primary" />
-                <a href="mailto:soamespaul@gmail.com" className="text-muted-foreground hover:text-primary transition-smooth">
-                  soamespaul@gmail.com
-                </a>
-              </div>
+              
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-primary" />
                 <a href="tel:+40720059535" className="text-muted-foreground hover:text-primary transition-smooth">
