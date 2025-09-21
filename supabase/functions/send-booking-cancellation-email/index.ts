@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.56.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -9,11 +10,17 @@ const corsHeaders = {
 };
 
 interface BookingCancellationRequest {
-  bookingIds: string[];
-  clientEmails: string[];
-  facilityName: string;
+  bookingIds?: string[];
+  clientEmails?: string[];
+  facilityName?: string;
   reason: string;
 }
+
+const supabaseUrl = Deno.env.get("SUPABASE_URL");
+const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const supabase = supabaseUrl && serviceKey
+  ? createClient(supabaseUrl, serviceKey)
+  : null;
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -23,32 +30,73 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     console.log("Starting booking cancellation email process");
-    
-    const { bookingIds, clientEmails, facilityName, reason }: BookingCancellationRequest = await req.json();
-    
-    console.log("Booking cancellation request:", { 
-      bookingCount: bookingIds?.length, 
+
+    const { bookingIds = [], clientEmails = [], facilityName, reason }: BookingCancellationRequest = await req.json();
+
+    console.log("Booking cancellation request:", {
+      bookingCount: bookingIds?.length,
       clientCount: clientEmails?.length,
       facilityName,
-      reason 
+      reason,
     });
 
-    if (!bookingIds || !clientEmails || bookingIds.length === 0 || clientEmails.length === 0) {
-      throw new Error("Missing required booking or client data");
+    let resolvedClientEmails = [...new Set((clientEmails || []).filter(Boolean))];
+    let resolvedFacilityName = facilityName;
+
+    // If no emails provided but we have bookingIds, try to resolve via DB using service role
+    if (resolvedClientEmails.length === 0 && bookingIds && bookingIds.length > 0) {
+      if (!supabase) {
+        console.warn("Supabase service client not configured. Skipping email resolution from DB.");
+      } else {
+        console.log("Resolving client emails from DB using bookingIds...");
+        const { data, error } = await supabase
+          .from('bookings')
+          .select(`
+            id,
+            profiles:profiles!bookings_client_id_fkey(email),
+            facilities:facilities!bookings_facility_id_fkey(name)
+          `)
+          .in('id', bookingIds);
+
+        if (error) {
+          console.error('Error fetching emails from DB:', error);
+        } else if (data && data.length > 0) {
+          const emails = data.map((b: any) => b.profiles?.email).filter(Boolean);
+          resolvedClientEmails = [...new Set(emails)];
+
+          if (!resolvedFacilityName) {
+            const names = [...new Set(data.map((b: any) => b.facilities?.name).filter(Boolean))];
+            resolvedFacilityName = names.length > 0 ? names.join(', ') : undefined;
+          }
+        }
+      }
     }
 
-    const results = [];
+    if (!resolvedFacilityName) {
+      resolvedFacilityName = 'Baza sportivă';
+    }
+
+    if (!resolvedClientEmails || resolvedClientEmails.length === 0) {
+      const msg = "No client emails available to send cancellations.";
+      console.warn(msg, { bookingIdsCount: bookingIds?.length });
+      return new Response(JSON.stringify({ success: false, message: msg }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const results: Array<{ email: string; success: boolean; id?: string; error?: string }> = [];
     const currentDate = new Date().toLocaleDateString("ro-RO", {
       day: "2-digit",
-      month: "2-digit", 
-      year: "numeric"
+      month: "2-digit",
+      year: "numeric",
     });
 
     // Send cancellation email to each affected client
-    for (const clientEmail of clientEmails) {
+    for (const clientEmail of resolvedClientEmails) {
       try {
         console.log(`Sending cancellation email to: ${clientEmail}`);
-        
+
         const emailResult = await resend.emails.send({
           from: "RezervArena <noreply@rezervaarena.com>",
           to: [clientEmail],
@@ -71,7 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
                 
                 <p>Bună ziua,</p>
                 
-                <p>Ne pare rău să te informăm că rezervarea ta la <strong>${facilityName}</strong> a fost anulată din următorul motiv:</p>
+                <p>Ne pare rău să te informăm că rezervarea ta la <strong>${resolvedFacilityName}</strong> a fost anulată din următorul motiv:</p>
                 
                 <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;">
                   <strong>Motiv anulare:</strong> ${reason}
@@ -107,56 +155,40 @@ const handler = async (req: Request): Promise<Response> => {
 
         if (emailResult.error) {
           console.error(`Failed to send email to ${clientEmail}:`, emailResult.error);
-          results.push({ 
-            email: clientEmail, 
-            success: false, 
-            error: emailResult.error.message 
-          });
+          results.push({ email: clientEmail, success: false, error: emailResult.error.message });
         } else {
           console.log(`Email sent successfully to ${clientEmail}:`, emailResult.data);
-          results.push({ 
-            email: clientEmail, 
-            success: true, 
-            id: emailResult.data?.id 
-          });
+          results.push({ email: clientEmail, success: true, id: (emailResult.data as any)?.id });
         }
       } catch (emailError: any) {
         console.error(`Error sending email to ${clientEmail}:`, emailError);
-        results.push({ 
-          email: clientEmail, 
-          success: false, 
-          error: emailError.message 
-        });
+        results.push({ email: clientEmail, success: false, error: emailError.message });
       }
     }
 
     console.log("Cancellation email process completed:", results);
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      results,
-      message: `Sent ${results.filter(r => r.success).length} of ${results.length} cancellation emails`
-    }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
-
+    return new Response(
+      JSON.stringify({
+        success: true,
+        results,
+        message: `Sent ${results.filter((r) => r.success).length} of ${results.length} cancellation emails`,
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      }
+    );
   } catch (error: any) {
     console.error("Error in send-booking-cancellation-email function:", error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        success: false 
-      }),
+      JSON.stringify({ error: error.message, success: false }),
       {
         status: 500,
-        headers: { 
-          "Content-Type": "application/json", 
-          ...corsHeaders 
-        },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   }

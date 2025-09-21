@@ -137,7 +137,7 @@ export const deleteUserAccount = async () => {
     }
 
     // Send cancellation emails AFTER successful deletion if needed
-    if (cancellationData && cancellationData.clientEmails.length > 0) {
+    if (cancellationData && (cancellationData.clientEmails.length > 0 || cancellationData.bookingIds.length > 0)) {
       try {
         const emailResult = await supabase.functions.invoke('send-booking-cancellation-email', {
           body: {
