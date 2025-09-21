@@ -16,120 +16,136 @@ interface BookingCancellationRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log('Booking cancellation email function invoked');
-
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log("Starting booking cancellation email process");
+    
     const { bookingIds, clientEmails, facilityName, reason }: BookingCancellationRequest = await req.json();
     
-    console.log('Processing cancellation emails for:', { 
+    console.log("Booking cancellation request:", { 
       bookingCount: bookingIds?.length, 
       clientCount: clientEmails?.length,
-      facility: facilityName 
+      facilityName,
+      reason 
     });
 
-    if (!bookingIds?.length || !clientEmails?.length) {
-      console.error('Missing required data for cancellation emails');
-      return new Response(
-        JSON.stringify({ error: 'Missing booking IDs or client emails' }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    if (!bookingIds || !clientEmails || bookingIds.length === 0 || clientEmails.length === 0) {
+      throw new Error("Missing required booking or client data");
     }
 
-    // Send cancellation emails to all affected clients
-    const emailPromises = clientEmails.map(async (email) => {
+    const results = [];
+    const currentDate = new Date().toLocaleDateString("ro-RO", {
+      day: "2-digit",
+      month: "2-digit", 
+      year: "numeric"
+    });
+
+    // Send cancellation email to each affected client
+    for (const clientEmail of clientEmails) {
       try {
-        const emailResponse = await resend.emails.send({
-          from: "RezervArena <rezervarena@gmail.com>",
-          to: [email],
-          subject: `Rezervare anulată - ${facilityName}`,
+        console.log(`Sending cancellation email to: ${clientEmail}`);
+        
+        const emailResult = await resend.emails.send({
+          from: "RezervArena <noreply@rezervaarena.com>",
+          to: [clientEmail],
+          subject: "Rezervare anulată - RezervArena",
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <div style="background: linear-gradient(135deg, #1e40af, #3b82f6); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-                <h1 style="color: white; margin: 0; font-size: 28px;">RezervArena</h1>
-                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Platforma ta de rezervări sportive</p>
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <title>Rezervare anulată</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                <h1 style="margin: 0; font-size: 28px;">RezervArena</h1>
+                <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Notificare rezervare anulată</p>
               </div>
               
-              <div style="background: white; padding: 30px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb;">
-                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-                  <h2 style="color: #dc2626; margin: 0 0 10px 0; font-size: 20px; display: flex; align-items: center;">
-                    ⚠️ Rezervare Anulată
-                  </h2>
-                  <p style="color: #7f1d1d; margin: 0; font-size: 14px;">
-                    Din păcate, rezervarea dumneavoastră a fost anulată.
-                  </p>
+              <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
+                <h2 style="color: #d73527; margin-top: 0;">Rezervarea ta a fost anulată</h2>
+                
+                <p>Bună ziua,</p>
+                
+                <p>Ne pare rău să te informăm că rezervarea ta la <strong>${facilityName}</strong> a fost anulată din următorul motiv:</p>
+                
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;">
+                  <strong>Motiv anulare:</strong> ${reason}
                 </div>
                 
-                <div style="margin-bottom: 25px;">
-                  <h3 style="color: #374151; margin: 0 0 15px 0; font-size: 16px;">Detalii Rezervare:</h3>
-                  <div style="background: #f9fafb; border-radius: 8px; padding: 15px; border-left: 4px solid #3b82f6;">
-                    <p style="margin: 0 0 8px 0; color: #4b5563;"><strong>Facilitate:</strong> ${facilityName}</p>
-                    <p style="margin: 0 0 8px 0; color: #4b5563;"><strong>Motiv anulare:</strong> ${reason}</p>
-                    <p style="margin: 0; color: #6b7280; font-size: 12px;">Data anulării: ${new Date().toLocaleDateString('ro-RO')}</p>
-                  </div>
-                </div>
+                <p><strong>Data anulării:</strong> ${currentDate}</p>
                 
-                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-                  <h3 style="color: #1e40af; margin: 0 0 10px 0; font-size: 16px;">Ce se întâmplă cu plata?</h3>
-                  <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.5;">
-                    Dacă ați efectuat o plată pentru această rezervare, suma va fi rambursată în termen de 3-5 zile lucrătoare.
-                  </p>
-                </div>
+                <p>Dacă ai plătit pentru această rezervare, banii vor fi returnați automat în contul tău în maxim 5-10 zile lucrătoare.</p>
                 
-                <div style="text-align: center;">
-                  <a href="https://rezervaarena.com/facilities" 
-                     style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; margin: 0 10px 10px 0;">
-                    Vezi Alte Facilități
-                  </a>
-                  <a href="https://rezervaarena.com/contact" 
-                     style="background: #6b7280; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-                    Contactează-ne
+                <p>Pentru orice întrebări sau neclarități, te rugăm să ne contactezi:</p>
+                <ul>
+                  <li>Email: <a href="mailto:contact@rezervaarena.com">contact@rezervaarena.com</a></li>
+                  <li>Telefon: <a href="tel:+40720059535">+40720059535</a></li>
+                </ul>
+                
+                <p>Ne cerem scuze pentru inconveniențele create și te invităm să faci o nouă rezervare pe platforma noastră.</p>
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; text-align: center;">
+                  <a href="https://rezervaarena.com" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                    Caută alte facilități
                   </a>
                 </div>
-              </div>
-              
-              <div style="text-align: center; margin-top: 20px; padding: 20px; color: #6b7280; font-size: 12px;">
-                <p style="margin: 0;">© 2024 RezervArena. Toate drepturile rezervate.</p>
-                <p style="margin: 5px 0 0 0;">
-                  Conectăm pasionații de sport cu cele mai bune facilități.
+                
+                <p style="margin-top: 30px; font-size: 14px; color: #666; text-align: center;">
+                  Cu respect,<br>
+                  <strong>Echipa RezervArena</strong>
                 </p>
               </div>
-            </div>
+            </body>
+            </html>
           `,
         });
 
-        console.log(`Cancellation email sent to ${email}:`, emailResponse);
-        return { email, success: true, response: emailResponse };
-      } catch (emailError) {
-        console.error(`Failed to send cancellation email to ${email}:`, emailError);
-        return { email, success: false, error: emailError.message };
+        if (emailResult.error) {
+          console.error(`Failed to send email to ${clientEmail}:`, emailResult.error);
+          results.push({ 
+            email: clientEmail, 
+            success: false, 
+            error: emailResult.error.message 
+          });
+        } else {
+          console.log(`Email sent successfully to ${clientEmail}:`, emailResult.data);
+          results.push({ 
+            email: clientEmail, 
+            success: true, 
+            id: emailResult.data?.id 
+          });
+        }
+      } catch (emailError: any) {
+        console.error(`Error sending email to ${clientEmail}:`, emailError);
+        results.push({ 
+          email: clientEmail, 
+          success: false, 
+          error: emailError.message 
+        });
       }
+    }
+
+    console.log("Cancellation email process completed:", results);
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      results,
+      message: `Sent ${results.filter(r => r.success).length} of ${results.length} cancellation emails`
+    }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        ...corsHeaders,
+      },
     });
 
-    const results = await Promise.all(emailPromises);
-    
-    const successCount = results.filter(r => r.success).length;
-    const failureCount = results.filter(r => !r.success).length;
-    
-    console.log(`Cancellation email results: ${successCount} sent, ${failureCount} failed`);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: `Cancellation emails processed: ${successCount} sent, ${failureCount} failed`,
-        results
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
-
   } catch (error: any) {
-    console.error("Error in booking cancellation email function:", error);
+    console.error("Error in send-booking-cancellation-email function:", error);
     return new Response(
       JSON.stringify({ 
         error: error.message,
@@ -137,7 +153,10 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { 
+          "Content-Type": "application/json", 
+          ...corsHeaders 
+        },
       }
     );
   }
