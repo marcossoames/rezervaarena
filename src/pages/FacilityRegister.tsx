@@ -799,15 +799,17 @@ const FacilityRegister = () => {
                       value={facility.capacityMax || ''}
                       onChange={(e) => {
                         const numValue = e.target.value ? parseInt(e.target.value, 10) : '';
+                        updateFacilityField(index, 'capacityMax', numValue);
+                      }}
+                      onBlur={(e) => {
+                        const numValue = e.target.value ? parseInt(e.target.value, 10) : '';
                         if (numValue && facility.capacity && numValue < facility.capacity) {
                           toast({
                             title: "Eroare capacitate",
                             description: "Capacitatea maximă nu poate fi mai mică decât cea minimă",
                             variant: "destructive"
                           });
-                          return;
                         }
-                        updateFacilityField(index, 'capacityMax', numValue);
                       }}
                       className="bg-background/50"
                     />
