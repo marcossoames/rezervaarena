@@ -42,13 +42,7 @@ const SportsFacilityLogin = () => {
 
       if (data.user) {
         // Process pending images if any
-        const imagesProcessed = await processPendingImages();
-        if (imagesProcessed) {
-          toast({
-            title: "Imagini încărcate",
-            description: "Imaginile pentru facilitățile tale au fost încărcate cu succes!",
-          });
-        }
+        await processPendingImages();
 
         // Check if user has facilities (indicating they are a facility owner)
         const { data: facilities, error: facilityError } = await supabase
