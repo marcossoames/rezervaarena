@@ -183,53 +183,6 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    // Email către proprietarul terenului
-    const ownerEmailResponse = await resend.emails.send({
-      from: `RezervaArena <${fromEmail}>`,
-      to: [ownerProfile.email],
-      subject: "🔔 Rezervare Nouă Confirmată - RezervaArena",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <h1 style="color: #3b82f6; text-align: center; margin-bottom: 30px;">Rezervare Nouă Confirmată</h1>
-            
-            <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; border-left: 4px solid #3b82f6; margin-bottom: 25px;">
-              <h2 style="color: #1e40af; margin-top: 0;">Detalii Rezervare</h2>
-              <p><strong>Cod Rezervare:</strong> #${booking.id.slice(0, 8).toUpperCase()}</p>
-              <p><strong>Teren:</strong> ${facilityData.name}</p>
-              <p><strong>Data:</strong> ${bookingDate}</p>
-              <p><strong>Ora:</strong> ${startTime} - ${endTime}</p>
-              <p><strong>Valoare:</strong> ${booking.total_price} RON</p>
-              <p><strong>Metoda de Plată:</strong> ${booking.payment_method === 'cash' ? 'Cash la fața locului' : 'Online'}</p>
-            </div>
-
-            <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid #22c55e; margin-bottom: 25px;">
-              <h3 style="color: #15803d; margin-top: 0;">Informații Client</h3>
-              <p><strong>Nume:</strong> ${clientProfile.full_name}</p>
-              <p><strong>Telefon:</strong> ${clientProfile.phone}</p>
-              <p><strong>Email:</strong> ${clientProfile.email}</p>
-            </div>
-
-            <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin-bottom: 25px;">
-              <h4 style="color: #92400e; margin-top: 0;">💰 Detalii Financiare</h4>
-              <p style="color: #92400e; margin: 0;">
-                <strong>Suma Totală:</strong> ${booking.total_price} RON<br>
-                <strong>Comision Platformă (10%):</strong> ${booking.platform_fee_amount} RON<br>
-                <strong>Suma Dumneavoastră (90%):</strong> ${(booking.total_price - booking.platform_fee_amount).toFixed(2)} RON
-              </p>
-            </div>
-
-            <div style="text-align: center; margin-top: 30px;">
-              <p style="color: #666; font-size: 14px;">
-                Această rezervare a fost procesată prin RezervaArena<br>
-                Pentru întrebări despre platformă, contactați suportul la: <strong>rezervaarena@gmail.com</strong>
-              </p>
-            </div>
-          </div>
-        </div>
-      `,
-    });
-
     // Send notification email to facility owner using the dedicated function
     if (supabase) {
       const ownerNotificationResponse = await supabase.functions.invoke('send-facility-owner-notification', {
