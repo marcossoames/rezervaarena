@@ -334,7 +334,7 @@ const UserManagement = () => {
               <SelectContent>
                 <SelectItem value="all">Toți utilizatorii ({users.length})</SelectItem>
                 <SelectItem value="client">Clienți ({userStats.clients})</SelectItem>
-                <SelectItem value="facility_owner">Baze Sportive ({userStats.facilityOwners})</SelectItem>
+                <SelectItem value="facility_owner">Proprietari de baze sportive ({userStats.facilityOwners})</SelectItem>
                 <SelectItem value="admin">Administratori ({userStats.admins})</SelectItem>
                 <SelectItem value="problematic">
                   <div className="flex items-center gap-2">

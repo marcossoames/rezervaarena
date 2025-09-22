@@ -421,7 +421,7 @@ const FacilityOwnerProfilePage = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Înapoi la pagina principală
           </Button>
-          <h1 className="text-3xl font-bold text-foreground">Profilul Proprietarului</h1>
+          <h1 className="text-3xl font-bold text-foreground">Profil Proprietar de Bază Sportivă</h1>
           <p className="text-muted-foreground mt-2">
             Gestionează-ți profilul și facilitățile sportive
           </p>
@@ -455,7 +455,7 @@ const FacilityOwnerProfilePage = () => {
                     </div>
                     <div>
                       <span className="text-sm text-muted-foreground">Rol:</span>
-                      <p className="font-medium capitalize">{profile.role}</p>
+                      <p className="font-medium">Proprietar de bază sportivă</p>
                     </div>
                   </div>
                 </div>
