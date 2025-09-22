@@ -652,15 +652,16 @@ export type Database = {
       get_facilities_for_authenticated_users: {
         Args: Record<PropertyKey, never>
         Returns: {
-          amenities: string[]
-          area_info: string
+          address: string
           capacity: number
           capacity_max: number
           city: string
+          created_at: string
           description: string
           facility_type: Database["public"]["Enums"]["facility_type"]
           id: string
           images: string[]
+          main_image_url: string
           name: string
           price_per_hour: number
           sports_complex_address: string
