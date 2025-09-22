@@ -230,15 +230,36 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Client email sent:", clientEmailResponse);
-    console.log("Owner email sent:", ownerEmailResponse);
-
-    if (clientEmailResponse.error || ownerEmailResponse.error) {
-      console.error("Email errors:", {
-        clientError: clientEmailResponse.error,
-        ownerError: ownerEmailResponse.error
+    // Send notification email to facility owner using the dedicated function
+    if (supabase) {
+      const ownerNotificationResponse = await supabase.functions.invoke('send-facility-owner-notification', {
+        body: {
+          ownerEmail: ownerProfile.email,
+          ownerName: ownerProfile.full_name,
+          facilityName: facilityData.name,
+          clientName: clientProfile.full_name,
+          clientEmail: clientProfile.email,
+          bookingDate: bookingDate,
+          bookingTime: `${startTime} - ${endTime}`,
+          totalPrice: booking.total_price,
+          notificationType: 'booking_confirmed'
+        }
       });
-      throw new Error("Failed to send one or more emails");
+
+      if (ownerNotificationResponse.error) {
+        console.error('Owner notification error:', ownerNotificationResponse.error);
+      } else {
+        console.log('Owner notification sent successfully');
+      }
+    }
+
+    console.log("Client email sent:", { data: clientEmailResponse.data, error: clientEmailResponse.error });
+
+    if (clientEmailResponse.error) {
+      console.error("Email errors:", {
+        clientError: clientEmailResponse.error
+      });
+      throw new Error("Failed to send client email");
     }
 
     return new Response(
@@ -246,8 +267,7 @@ const handler = async (req: Request): Promise<Response> => {
         success: true, 
         message: "Booking confirmation emails sent successfully",
         emailsSent: {
-          client: clientEmailResponse.data?.id,
-          owner: ownerEmailResponse.data?.id
+          client: clientEmailResponse.data?.id
         }
       }),
       {

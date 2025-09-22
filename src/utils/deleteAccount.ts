@@ -100,28 +100,38 @@ export const deleteUserAccount = async () => {
     let cancellationData = null;
     if (profile?.role === 'facility_owner' && ownerFacilitiesData.activeBookings > 0) {
       try {
-        // Get client emails for bookings that will be cancelled
+        // Get booking details with client information for cancellation emails
         const { data: bookingData } = await supabase
           .from('bookings')
-          .select('id, client_id, facility_id, booking_date, start_time')
+          .select(`
+            id, 
+            client_id, 
+            facility_id, 
+            booking_date, 
+            start_time,
+            end_time,
+            total_price,
+            profiles:client_id (email, full_name),
+            facilities:facility_id (name)
+          `)
           .in('facility_id', ownerFacilitiesData.facilities?.map((f: any) => f.id) || [])
           .gte('booking_date', new Date().toISOString().split('T')[0])
           .in('status', ['confirmed', 'pending']);
 
         if (bookingData && bookingData.length > 0) {
-          // Get client emails
-          const clientIds = [...new Set(bookingData.map(b => b.client_id))];
-          const { data: profilesData } = await supabase
-            .from('profiles')
-            .select('user_id, email')
-            .in('user_id', clientIds);
-
-          const clientEmails = profilesData?.map(p => p.email).filter(Boolean) || [];
+          // Get complete client and facility information for each booking
+          const bookingDetails = bookingData.map((booking: any) => ({
+            bookingId: booking.id,
+            clientEmail: booking.profiles?.email,
+            clientName: booking.profiles?.full_name,
+            facilityName: booking.facilities?.name,
+            bookingDate: new Date(booking.booking_date).toLocaleDateString("ro-RO"),
+            bookingTime: `${booking.start_time?.slice(0, 5)} - ${booking.end_time?.slice(0, 5)}`,
+            totalPrice: booking.total_price
+          })).filter(booking => booking.clientEmail); // Only include bookings with valid client emails
 
           cancellationData = {
-            bookingIds: bookingData.map((b: any) => b.id),
-            clientEmails: clientEmails,
-            facilityNames: ownerFacilitiesData.facilities?.map((f: any) => f.name).filter(Boolean) || [],
+            bookings: bookingDetails,
             reason: 'Proprietarul bazei sportive și-a șters contul'
           };
         }
@@ -139,21 +149,28 @@ export const deleteUserAccount = async () => {
     }
 
     // Send cancellation emails AFTER successful deletion if needed
-    if (cancellationData && (cancellationData.clientEmails.length > 0 || cancellationData.bookingIds.length > 0)) {
+    if (cancellationData && cancellationData.bookings && cancellationData.bookings.length > 0) {
       try {
-        const emailResult = await supabase.functions.invoke('send-booking-cancellation-email', {
-          body: {
-            bookingIds: cancellationData.bookingIds,
-            clientEmails: cancellationData.clientEmails,
-            facilityName: cancellationData.facilityNames.join(', '),
-            reason: cancellationData.reason
+        // Send individual cancellation emails for each booking
+        for (const booking of cancellationData.bookings) {
+          const emailResult = await supabase.functions.invoke('send-booking-cancellation-email', {
+            body: {
+              clientEmails: [booking.clientEmail],
+              facilityName: booking.facilityName,
+              reason: cancellationData.reason,
+              bookingDetails: {
+                date: booking.bookingDate,
+                time: booking.bookingTime,
+                price: booking.totalPrice
+              }
+            }
+          });
+          
+          if (emailResult.error) {
+            console.error(`Cancellation email error for ${booking.clientEmail}:`, emailResult.error);
+          } else {
+            console.log(`Cancellation email sent successfully to ${booking.clientEmail}`);
           }
-        });
-        
-        if (emailResult.error) {
-          console.error('Cancellation email function error:', emailResult.error);
-        } else {
-          console.log('Cancellation emails sent successfully');
         }
       } catch (emailError) {
         console.error('Error sending cancellation emails:', emailError);

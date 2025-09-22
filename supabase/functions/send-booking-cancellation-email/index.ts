@@ -14,6 +14,11 @@ interface BookingCancellationRequest {
   clientEmails?: string[];
   facilityName?: string;
   reason: string;
+  bookingDetails?: {
+    date?: string;
+    time?: string;
+    price?: number;
+  };
 }
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -31,7 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     console.log("Starting booking cancellation email process");
 
-    const { bookingIds = [], clientEmails = [], facilityName, reason }: BookingCancellationRequest = await req.json();
+    const { bookingIds = [], clientEmails = [], facilityName, reason, bookingDetails }: BookingCancellationRequest = await req.json();
 
     console.log("Booking cancellation request:", {
       bookingCount: bookingIds?.length,
@@ -137,9 +142,19 @@ const handler = async (req: Request): Promise<Response> => {
                 
                 <p>Ne pare rău să te informăm că rezervarea ta la <strong>${resolvedFacilityName}</strong> a fost anulată din următorul motiv:</p>
                 
+                ${bookingDetails ? `
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;">
+                  <h3 style="margin-top: 0; color: #856404;">Detalii rezervare anulată:</h3>
+                  <p style="margin: 8px 0;"><strong>Data:</strong> ${bookingDetails.date}</p>
+                  <p style="margin: 8px 0;"><strong>Ora:</strong> ${bookingDetails.time}</p>
+                  <p style="margin: 8px 0;"><strong>Preț:</strong> ${bookingDetails.price} RON</p>
+                  <p style="margin: 8px 0;"><strong>Motiv anulare:</strong> ${reason}</p>
+                </div>
+                ` : `
                 <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;">
                   <strong>Motiv anulare:</strong> ${reason}
                 </div>
+                `}
                 
                 <p><strong>Data anulării:</strong> ${currentDate}</p>
                 

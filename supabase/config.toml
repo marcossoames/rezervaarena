@@ -58,6 +58,9 @@ verify_jwt = false
 [functions.send-account-deletion-email]
 verify_jwt = false
 
+[functions.send-facility-owner-notification]
+verify_jwt = false
+
 [functions.send-facility-notification]
 verify_jwt = false
 
