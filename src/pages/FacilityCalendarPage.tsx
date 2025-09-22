@@ -1066,9 +1066,9 @@ const FacilityCalendarPage = () => {
                          {dayBlockedHours.map((blocked) => (
                            <div key={blocked.id} className="p-3 border border-orange-200 bg-orange-50 rounded-lg space-y-2">
                              <div className="flex items-center justify-between">
-                               <span className="font-medium text-sm text-orange-800">
-                                 {blocked.start_time} - {blocked.end_time}
-                               </span>
+                                <span className="font-medium text-sm text-orange-800">
+                                  {blocked.start_time?.slice(0, 5)} - {blocked.end_time?.slice(0, 5)}
+                                </span>
                                <Badge variant="secondary" className="bg-orange-100 text-orange-800">
                                  Blocat
                                </Badge>
@@ -1091,9 +1091,9 @@ const FacilityCalendarPage = () => {
                        {selectedDateBookings.map((booking) => (
                          <div key={booking.id} className="p-3 border rounded-lg space-y-2">
                            <div className="flex items-center justify-between">
-                             <span className="font-medium text-sm">
-                               {booking.start_time} - {booking.end_time}
-                             </span>
+                              <span className="font-medium text-sm">
+                                {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                              </span>
                              <Badge variant={getStatusBadgeVariant(booking.status)}>
                                {getStatusLabel(booking.status)}
                              </Badge>
@@ -1142,7 +1142,7 @@ const FacilityCalendarPage = () => {
                         {format(new Date(booking.booking_date), 'dd MMMM yyyy', { locale: ro })}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {booking.start_time} - {booking.end_time}
+                        {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
                       </div>
                     </div>
                     <div className="text-right space-y-1">
