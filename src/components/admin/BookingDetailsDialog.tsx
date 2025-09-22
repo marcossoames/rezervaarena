@@ -28,6 +28,7 @@ import {
 import { format } from "date-fns";
 import { ro } from "date-fns/locale";
 import ClientBehaviorStats from "@/components/admin/ClientBehaviorStats";
+import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 
 interface Booking {
   id: string;
@@ -274,8 +275,8 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
                       </div>
                       <div>
                         <div className="font-medium">{facility.name}</div>
-                        <div className="text-sm text-muted-foreground capitalize">
-                          {facility.facility_type}
+                        <div className="text-sm text-muted-foreground">
+                          {getFacilityTypeLabel(facility.facility_type)}
                         </div>
                       </div>
                     </div>

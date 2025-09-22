@@ -2,6 +2,22 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { Resend } from "npm:resend@2.0.0";
 
+// Utility function to translate facility types from English to Romanian
+const getFacilityTypeLabel = (facilityType: string): string => {
+  const facilityTypeLabels: Record<string, string> = {
+    'football': 'Fotbal',
+    'tennis': 'Tenis',
+    'padel': 'Padel',
+    'squash': 'Squash',
+    'basketball': 'Baschet',
+    'volleyball': 'Volei',
+    'foot_tennis': 'Tenis de Picior',
+    'ping_pong': 'Ping Pong'
+  };
+
+  return facilityTypeLabels[facilityType] || facilityType;
+};
+
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const rawFrom = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@rezervaarena.com";
 const fromDomain = rawFrom.split("@").pop()?.toLowerCase() || "";
@@ -142,7 +158,7 @@ const handler = async (req: Request): Promise<Response> => {
               <h2 style="color: #15803d; margin-top: 0;">Detalii Rezervare</h2>
               <p><strong>Cod Rezervare:</strong> #${booking.id.slice(0, 8).toUpperCase()}</p>
               <p><strong>Teren:</strong> ${facilityData.name}</p>
-              <p><strong>Tip Teren:</strong> ${facilityData.facility_type}</p>
+              <p><strong>Tip Teren:</strong> ${getFacilityTypeLabel(facilityData.facility_type)}</p>
               <p><strong>Data:</strong> ${bookingDate}</p>
               <p><strong>Ora:</strong> ${startTime} - ${endTime}</p>
               <p><strong>Preț Total:</strong> ${booking.total_price} RON</p>
