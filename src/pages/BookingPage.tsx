@@ -142,7 +142,7 @@ const BookingPage = () => {
           address: data.sports_complex_address?.split(', ')[0] || data.city,
           price_per_hour: data.price_per_hour,
           capacity: data.capacity,
-          amenities: data.amenities,
+          amenities: [], // This RPC doesn't return amenities
           images: data.images,
           operating_hours_start: "08:00", // Default value
           operating_hours_end: "22:00", // Default value
