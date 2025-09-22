@@ -16,6 +16,7 @@ import { ro } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { filterAllowedTimeSlots, getMinimumAllowedTime } from "@/utils/dateTimeValidation";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
+import { getImagePublicUrl } from "@/utils/imageUtils";
 import tennisImage from "@/assets/tennis-court.jpg";
 
 interface Facility {
@@ -144,8 +145,8 @@ const BookingPage = () => {
           capacity: data.capacity,
           amenities: [], // This RPC doesn't return amenities
           images: data.images,
-          operating_hours_start: "08:00", // Default value
-          operating_hours_end: "22:00", // Default value
+          operating_hours_start: (data as any).operating_hours_start || "08:00",
+          operating_hours_end: (data as any).operating_hours_end || "22:00", 
           sports_complex_name: data.sports_complex_name,
           sports_complex_address: data.sports_complex_address,
           // Note: phone_number removed to protect personal information
@@ -391,7 +392,7 @@ const BookingPage = () => {
               <CardContent className="p-0">
                 <div className="relative">
                   <img 
-                    src={facility.images?.[0] || tennisImage} 
+                    src={facility.images?.[0] ? getImagePublicUrl(facility.images[0]) : tennisImage} 
                     alt={facility.name}
                     className="w-full h-64 object-cover rounded-t-lg"
                     loading="lazy"
@@ -411,6 +412,14 @@ const BookingPage = () => {
                     <MapPin className="h-4 w-4 mr-2" />
                     {facility.city} area
                   </div>
+                  
+                  {/* Operating Hours */}
+                  {facility.operating_hours_start && facility.operating_hours_end && (
+                    <div className="flex items-center text-muted-foreground mb-4">
+                      <Clock className="h-4 w-4 mr-2" />
+                      Orar: {facility.operating_hours_start?.slice(0, 5)} - {facility.operating_hours_end?.slice(0, 5)}
+                    </div>
+                  )}
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     {facility.amenities?.map((amenity, index) => (

@@ -44,6 +44,8 @@ interface Facility {
   sports_complex_name?: string;
   sports_complex_address?: string;
   phone_number?: string;
+  operating_hours_start?: string;
+  operating_hours_end?: string;
 }
 interface UserProfile {
   role: 'client' | 'facility_owner' | 'admin';
@@ -750,11 +752,18 @@ applyFilters();
                           {facility.sports_complex_name && <div className="text-sm font-medium text-primary mb-1">
                               {facility.sports_complex_name}
                             </div>}
-                          <div className="flex items-center text-muted-foreground text-sm mb-1">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {/* Show exact address instead of area_info */}
-                            {facility.address || facility.sports_complex_address || `${facility.city}`}
-                           </div>
+                           <div className="flex items-center text-muted-foreground text-sm mb-1">
+                             <MapPin className="h-4 w-4 mr-1" />
+                             {/* Show exact address instead of area_info */}
+                             {facility.address || facility.sports_complex_address || `${facility.city}`}
+                            </div>
+                            {/* Operating Hours */}
+                            {((facility as any).operating_hours_start && (facility as any).operating_hours_end) && (
+                              <div className="flex items-center text-muted-foreground text-sm mb-1">
+                                <Clock className="h-4 w-4 mr-1" />
+                                Orar: {(facility as any).operating_hours_start?.slice(0, 5)} - {(facility as any).operating_hours_end?.slice(0, 5)}
+                              </div>
+                            )}
                         </div>
                       </div>
                       
