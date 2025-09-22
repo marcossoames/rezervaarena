@@ -61,7 +61,7 @@ const PaymentPage = () => {
       try {
         const { data, error } = await supabase
           .rpc('get_facility_for_payment_secure', { facility_id_param: facilityId })
-          .single();
+          .maybeSingle();
 
         if (error || !data) {
           toast({

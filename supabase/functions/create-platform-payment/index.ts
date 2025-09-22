@@ -57,12 +57,13 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Get facility details using secure RPC to bypass RLS
-    const { data: facilityData, error: facilityError } = await supabaseService
-      .rpc('get_facility_for_payment_processing', { facility_id_param: facilityId });
+    // Get facility details using client with auth context
+    const { data: facilityData, error: facilityError } = await supabase
+      .rpc('get_facility_for_payment_secure', { facility_id_param: facilityId });
 
     if (facilityError || !facilityData || facilityData.length === 0) {
-      throw new Error('Facility not found');
+      logStep("Facility fetch error", facilityError);
+      throw new Error(`Facility not found: ${facilityError?.message || 'Unknown error'}`);
     }
 
     const facility = facilityData[0];

@@ -738,6 +738,7 @@ export type Database = {
       get_facility_for_payment_secure: {
         Args: { facility_id_param: string }
         Returns: {
+          address: string
           amenities: string[]
           capacity: number
           city: string
@@ -747,6 +748,7 @@ export type Database = {
           name: string
           owner_id: string
           price_per_hour: number
+          sports_complex_address: string
           sports_complex_name: string
         }[]
       }
