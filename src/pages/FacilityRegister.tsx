@@ -763,7 +763,7 @@ const FacilityRegister = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Preț/Oră (RON) *</Label>
                 <Input
@@ -777,73 +777,62 @@ const FacilityRegister = () => {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Capacitate (jucători)*</Label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={`useRange-${index}`}
-                      checked={facility.useCapacityRange}
-                      onChange={(e) => updateFacilityField(index, 'useCapacityRange', e.target.checked)}
-                      className="h-4 w-4 rounded border-input"
-                    />
-                    <Label htmlFor={`useRange-${index}`} className="text-sm font-normal">
-                      Interval (min-max)
-                    </Label>
-                  </div>
-                </div>
-                  
+                <Label>Capacitate (jucători)*</Label>
                 {facility.useCapacityRange ? (
                   <div className="flex gap-2 items-center">
                     <Input
-                      type="text"
+                      type="number"
+                      min="1"
                       placeholder="Min"
                       value={facility.capacity || ''}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/[^\d]/g, '');
-                        const numValue = value ? parseInt(value, 10) : '';
+                        const numValue = e.target.value ? parseInt(e.target.value, 10) : '';
                         updateFacilityField(index, 'capacity', numValue);
-                        
-                        // Set a default max if not set when min is entered
-                        if (!facility.capacityMax && numValue) {
-                          updateFacilityField(index, 'capacityMax', numValue);
-                        }
                       }}
                       className="bg-background/50"
                     />
                     <span className="text-muted-foreground">-</span>
                     <Input
-                      type="text"
+                      type="number"
+                      min={facility.capacity || 1}
                       placeholder="Max"
                       value={facility.capacityMax || ''}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/[^\d]/g, '');
-                        const numValue = value ? parseInt(value, 10) : '';
-                        const minCapacity = facility.capacity || 1;
-                        
-                        // Ensure max is at least equal to min
-                        if (numValue && numValue < minCapacity) {
-                          updateFacilityField(index, 'capacityMax', minCapacity);
-                        } else {
-                          updateFacilityField(index, 'capacityMax', numValue);
-                        }
+                        const numValue = e.target.value ? parseInt(e.target.value, 10) : '';
+                        updateFacilityField(index, 'capacityMax', numValue);
                       }}
                       className="bg-background/50"
                     />
                   </div>
                 ) : (
                   <Input
-                    type="text"
+                    type="number"
+                    min="1"
                     placeholder="ex: 20"
                     value={facility.capacity || ''}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/[^\d]/g, '');
-                      const numValue = value ? parseInt(value, 10) : '';
+                      const numValue = e.target.value ? parseInt(e.target.value, 10) : '';
                       updateFacilityField(index, 'capacity', numValue);
                     }}
                     className="bg-background/50"
                   />
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`useRange-${index}`}
+                    checked={facility.useCapacityRange}
+                    onChange={(e) => updateFacilityField(index, 'useCapacityRange', e.target.checked)}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  <Label htmlFor={`useRange-${index}`} className="text-sm font-normal">
+                    Interval (min-max)
+                  </Label>
+                </div>
+                <div className="h-10"></div>
               </div>
             </div>
 
