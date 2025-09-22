@@ -138,7 +138,7 @@ const Header = () => {
                 }} 
                 variant="ghost" 
                 size="sm" 
-                className="px-2 focus:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent"
+                className="px-2 text-foreground hover:text-primary hover:bg-secondary/50 focus:outline-none focus:bg-transparent active:bg-transparent"
               >
                 {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </Button>
