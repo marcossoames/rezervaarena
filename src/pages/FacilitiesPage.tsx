@@ -160,12 +160,12 @@ const FacilitiesPage = () => {
           allFacilities = facilitiesData;
           error = facilitiesError;
         } else if (session && userProfile?.role === 'admin') {
-          // Admins get full data
+          // Admins should also see sports complex name
           const {
-            data,
+            data: adminFacilities,
             error: rpcError
-          } = await supabase.rpc('get_public_facilities');
-          allFacilities = data;
+          } = await supabase.rpc('get_facilities_for_authenticated_users');
+          allFacilities = adminFacilities;
           error = rpcError;
         } else if (session) {
           // Authenticated users get enhanced data with contact info
