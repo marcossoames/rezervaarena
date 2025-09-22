@@ -118,9 +118,11 @@ const BookingPage = () => {
       try {
         // Use the secure RPC function to get facility data with sports complex info
         const { data, error } = await supabase
-          .rpc('get_facility_for_payment_secure', { facility_id_param: facilityId });
+          .rpc('get_facilities_for_authenticated_users')
+          .eq('id', facilityId)
+          .single();
 
-        if (error || !data || data.length === 0) {
+        if (error || !data) {
           toast({
             title: "Eroare",
             description: "Facilitatea nu a fost găsită",
@@ -131,22 +133,21 @@ const BookingPage = () => {
 
         // The RPC function already provides complete facility information
         // Map from RPC response to Facility interface
-        const facilityData = data[0]; // get_facility_for_payment_secure returns array
         const facilityWithSportsComplex: Facility = {
-          id: facilityData.id,
-          name: facilityData.name,
-          description: facilityData.name, // Use name as description for now
-          facility_type: facilityData.facility_type,
-          city: facilityData.city,
-          address: facilityData.city, // Use city as address for display
-          price_per_hour: facilityData.price_per_hour,
-          capacity: facilityData.capacity,
-          amenities: facilityData.amenities || [],
-          images: facilityData.images || [],
+          id: data.id,
+          name: data.name,
+          description: data.description,
+          facility_type: data.facility_type,
+          city: data.city,
+          address: data.sports_complex_address?.split(', ')[0] || data.city,
+          price_per_hour: data.price_per_hour,
+          capacity: data.capacity,
+          amenities: data.amenities,
+          images: data.images,
           operating_hours_start: "08:00", // Default value
           operating_hours_end: "22:00", // Default value
-          sports_complex_name: facilityData.sports_complex_name,
-          sports_complex_address: facilityData.city, // Use city as address for display
+          sports_complex_name: data.sports_complex_name,
+          sports_complex_address: data.sports_complex_address,
           // Note: phone_number removed to protect personal information
           // Contact info will be provided only when booking is confirmed
         };

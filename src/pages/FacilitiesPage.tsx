@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, Filter, Search, LogIn, CalendarIcon, Users, ArrowUpDown, Building2 } from "lucide-react";
+import { Calendar, MapPin, Clock, Filter, Search, LogIn, CalendarIcon, Users, ArrowUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,7 +54,6 @@ const FacilitiesPage = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [locationFilter, setLocationFilter] = useState<string>('');
-  const [sportsComplexFilter, setSportsComplexFilter] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
@@ -120,13 +119,11 @@ const FacilitiesPage = () => {
     const dateParam = searchParams.get('date');
     const locationParam = searchParams.get('location');
     const searchParam = searchParams.get('search');
-    const sportsComplexParam = searchParams.get('sportsComplex');
     const startTimeParam = searchParams.get('startTime');
     const durationParam = searchParams.get('duration');
     setSelectedType(typeParam);
     setLocationFilter(locationParam || '');
     setSearchTerm(searchParam || '');
-    setSportsComplexFilter(sportsComplexParam || '');
     setStartTime(startTimeParam || '');
     setDuration(durationParam || '');
     // Handle date parameter
@@ -246,11 +243,6 @@ const FacilitiesPage = () => {
       // Apply location filter
       if (locationFilter) {
         filteredFacilities = filteredFacilities.filter(f => f.city.toLowerCase().includes(locationFilter.toLowerCase()) || f.address && f.address.toLowerCase().includes(locationFilter.toLowerCase()));
-      }
-
-      // Apply sports complex filter
-      if (sportsComplexFilter) {
-        filteredFacilities = filteredFacilities.filter(f => f.sports_complex_name && f.sports_complex_name.toLowerCase().includes(sportsComplexFilter.toLowerCase()));
       }
 
       // Apply search term filter
@@ -392,7 +384,7 @@ const FacilitiesPage = () => {
   setLoading(false);
 };
 applyFilters();
-}, [allFacilities, selectedType, locationFilter, sportsComplexFilter, searchTerm, selectedDate, startTime, duration, sortBy]);
+}, [allFacilities, selectedType, locationFilter, searchTerm, selectedDate, startTime, duration, sortBy]);
   const getTimeOptions = () => {
     const times = [];
     const dateToCheck = selectedDate || new Date(); // Use today if no date selected
@@ -497,22 +489,6 @@ applyFilters();
                     />
                   </div>
                 </div>
-                
-                {/* Sports Complex Filter - Only show for authenticated users */}
-                {session && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Baza Sportivă</label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        placeholder="Numele bazei sportive..." 
-                        className="h-11 pl-10 bg-white border-2 border-primary/20 focus:border-primary shadow-sm"
-                        value={sportsComplexFilter} 
-                        onChange={(e) => setSportsComplexFilter(e.target.value)} 
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Second Row: Date and Time */}
@@ -651,7 +627,6 @@ applyFilters();
                   onClick={() => {
                     setSearchTerm('');
                     setLocationFilter('');
-                    setSportsComplexFilter('');
                     setSelectedDate(undefined);
                     setStartTime('');
                     setDuration('');
