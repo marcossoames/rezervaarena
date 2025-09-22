@@ -372,6 +372,10 @@ const FacilitiesPage = () => {
         return (b.capacity || 0) - (a.capacity || 0);
       case 'capacity-low':
         return (a.capacity || 0) - (b.capacity || 0);
+      case 'complex-az':
+        return (a.sports_complex_name || 'Zzz').localeCompare(b.sports_complex_name || 'Zzz');
+      case 'complex-za':
+        return (b.sports_complex_name || 'Zzz').localeCompare(a.sports_complex_name || 'Zzz');
       case 'oldest':
         return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
       case 'newest':
@@ -695,6 +699,12 @@ applyFilters();
                     <SelectItem value="price-high">Preț: Descrescător</SelectItem>
                     <SelectItem value="name-az">Nume: A-Z</SelectItem>
                     <SelectItem value="name-za">Nume: Z-A</SelectItem>
+                    {session && (
+                      <>
+                        <SelectItem value="complex-az">Bază sportivă: A-Z</SelectItem>
+                        <SelectItem value="complex-za">Bază sportivă: Z-A</SelectItem>
+                      </>
+                    )}
                     <SelectItem value="capacity-high">Capacitate: Mare-Mică</SelectItem>
                     <SelectItem value="capacity-low">Capacitate: Mică-Mare</SelectItem>
                   </SelectContent>
