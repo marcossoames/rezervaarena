@@ -757,11 +757,11 @@ applyFilters();
                               </span>
                             </div>
                             {/* Operating Hours */}
-                            {((facility as any).operating_hours_start && (facility as any).operating_hours_end) && (
+                            {(facility.operating_hours_start && facility.operating_hours_end) && (
                               <div className="flex items-center text-muted-foreground text-sm mb-1">
                                 <Clock className="h-4 w-4 mr-1 flex-shrink-0" />
                                 <span className="text-left">
-                                  Orar: {(facility as any).operating_hours_start?.slice(0, 5)} - {(facility as any).operating_hours_end?.slice(0, 5)}
+                                  Orar: {facility.operating_hours_start?.slice(0, 5)} - {facility.operating_hours_end?.slice(0, 5)}
                                 </span>
                               </div>
                             )}

@@ -46,7 +46,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
         <SelectTrigger id={id} className={`bg-background/50 ${className}`}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent className="max-h-60 overflow-y-auto" position="popper" side="bottom" align="start" sideOffset={4}>
+        <SelectContent className="max-h-60 overflow-y-auto" position="popper" side="bottom" align="start" sideOffset={4} collisionPadding={8}>
           {timeOptions.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}

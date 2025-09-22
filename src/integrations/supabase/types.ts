@@ -663,6 +663,8 @@ export type Database = {
           images: string[]
           main_image_url: string
           name: string
+          operating_hours_end: string
+          operating_hours_start: string
           price_per_hour: number
           sports_complex_address: string
           sports_complex_name: string
@@ -698,6 +700,8 @@ export type Database = {
           images: string[]
           main_image_url: string
           name: string
+          operating_hours_end: string
+          operating_hours_start: string
           price_per_hour: number
           sports_complex_address: string
           sports_complex_name: string
@@ -792,6 +796,8 @@ export type Database = {
           is_active: boolean
           main_image_url: string
           name: string
+          operating_hours_end: string
+          operating_hours_start: string
           owner_id: string
           updated_at: string
         }[]

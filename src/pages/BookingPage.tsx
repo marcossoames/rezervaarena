@@ -145,8 +145,8 @@ const BookingPage = () => {
           capacity: data.capacity,
           amenities: [], // This RPC doesn't return amenities
           images: data.images,
-          operating_hours_start: (data as any).operating_hours_start || "08:00",
-          operating_hours_end: (data as any).operating_hours_end || "22:00", 
+          operating_hours_start: data.operating_hours_start || "08:00",
+          operating_hours_end: data.operating_hours_end || "22:00",
           sports_complex_name: data.sports_complex_name,
           sports_complex_address: data.sports_complex_address,
           // Note: phone_number removed to protect personal information
