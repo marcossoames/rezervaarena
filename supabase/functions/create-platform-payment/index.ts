@@ -3,7 +3,7 @@ import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('APP_ALLOWED_ORIGINS') || 'https://sportspot-booker.lovable.app',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Max-Age': '3600'
@@ -140,8 +140,8 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${Deno.env.get('APP_BASE_URL') || 'https://ukopxkymzywfpobpcana.supabase.co'}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${Deno.env.get('APP_BASE_URL') || 'https://ukopxkymzywfpobpcana.supabase.co'}/facilities`,
+      success_url: `https://947ae49f-e8d5-4283-95f7-ef683f84f2b9.lovableproject.com/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://947ae49f-e8d5-4283-95f7-ef683f84f2b9.lovableproject.com/facilities`,
       metadata: {
         facility_id: facilityId,
         booking_date: bookingDate,
