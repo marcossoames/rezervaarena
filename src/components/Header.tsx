@@ -135,7 +135,11 @@ const Header = () => {
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
                 variant="ghost" 
                 size="sm" 
-                className="px-2"
+                className="px-2 focus:outline-none focus:bg-transparent active:bg-transparent"
+                onBlur={() => {
+                  // Small delay to allow for menu item clicks
+                  setTimeout(() => setIsMobileMenuOpen(false), 150);
+                }}
               >
                 {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </Button>
@@ -187,38 +191,45 @@ const Header = () => {
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-card/95 backdrop-blur-sm border-b border-border shadow-lg z-50">
-            <nav className="px-4 py-3 space-y-2 text-center">
-              <Link 
-                to="/facilities" 
-                className={getMobileNavClasses("/facilities")}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Terenuri
-              </Link>
-              <Link 
-                to="/about" 
-                className={getMobileNavClasses("/about")}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Despre noi
-              </Link>
-              <Link 
-                to="/contact" 
-                className={getMobileNavClasses("/contact")}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Contact
-              </Link>
-              <Link 
-                to="/articles" 
-                className={getMobileNavClasses("/articles")}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Articole
-              </Link>
-            </nav>
-          </div>
+          <>
+            {/* Overlay to close menu when clicking outside */}
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <div className="md:hidden absolute top-full left-0 right-0 bg-card/95 backdrop-blur-sm border-b border-border shadow-lg z-50">
+              <nav className="px-4 py-3 space-y-2 text-center">
+                <Link 
+                  to="/facilities" 
+                  className={getMobileNavClasses("/facilities")}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Terenuri
+                </Link>
+                <Link 
+                  to="/about" 
+                  className={getMobileNavClasses("/about")}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Despre noi
+                </Link>
+                <Link 
+                  to="/contact" 
+                  className={getMobileNavClasses("/contact")}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Contact
+                </Link>
+                <Link 
+                  to="/articles" 
+                  className={getMobileNavClasses("/articles")}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Articole
+                </Link>
+              </nav>
+            </div>
+          </>
         )}
       </div>
     </header>
