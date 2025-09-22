@@ -132,14 +132,13 @@ const Header = () => {
             {/* Mobile menu toggle button */}
             {isMobile && (
               <Button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+                onClick={(e) => {
+                  setIsMobileMenuOpen(!isMobileMenuOpen);
+                  e.currentTarget.blur(); // Remove focus immediately
+                }} 
                 variant="ghost" 
                 size="sm" 
-                className="px-2 focus:outline-none focus:bg-transparent active:bg-transparent"
-                onBlur={() => {
-                  // Small delay to allow for menu item clicks
-                  setTimeout(() => setIsMobileMenuOpen(false), 150);
-                }}
+                className="px-2 focus:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent"
               >
                 {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </Button>
