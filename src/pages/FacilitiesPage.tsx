@@ -725,11 +725,11 @@ applyFilters();
             <Button variant="sport" asChild>
               <a href="/facility/register">Înregistrează prima facilitate</a>
             </Button>
-          </div> : <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            {facilities.map((facility, index) => <Card key={facility.id} className="group hover:shadow-elegant transition-all duration-300 animate-fade-in" style={{
+          </div> : <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-stretch">
+            {facilities.map((facility, index) => <Card key={facility.id} className="group h-full hover:shadow-elegant transition-all duration-300 animate-fade-in" style={{
           animationDelay: `${index * 0.1}s`
         }}>
-                <CardContent className="p-0">
+                <CardContent className="p-0 h-full">
                   <div className="flex flex-col md:flex-row h-full">
                     <div className="md:w-1/3 relative overflow-hidden rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg">
                         <ImageCarousel 
@@ -743,7 +743,7 @@ applyFilters();
                       </Badge>
                     </div>
                     
-                    <div className="md:w-2/3 p-6 flex flex-col">
+                    <div className="md:w-2/3 p-6 flex flex-col flex-1">
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="text-xl font-bold text-foreground mb-1">{facility.name}</h3>
