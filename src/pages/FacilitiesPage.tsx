@@ -734,7 +734,8 @@ applyFilters();
                     <div className="md:w-1/3 relative overflow-hidden rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg">
                         <ImageCarousel 
                           images={facility.images || []}
-                          facilityName={facility.name} 
+                          facilityName={facility.name}
+                          facilityType={facility.facility_type}
                           className="w-full h-48 md:h-full rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg" 
                         />
                       <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground z-10">
@@ -802,8 +803,8 @@ applyFilters();
                        
                         <div className="flex gap-3">
                           {session ? (
-                            <Button variant="sport" asChild className="flex-1">
-                              <Link to={`/booking/${facility.id}`}>
+                            <Button variant="sport" asChild className="flex-1 justify-center">
+                              <Link to={`/booking/${facility.id}`} className="text-center">
                                 Rezervă Acum
                               </Link>
                             </Button>
@@ -815,7 +816,7 @@ applyFilters();
                                   sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
                                   navigate('/client/login');
                                 }} 
-                                className="w-full text-sm"
+                                className="w-full text-sm justify-center"
                               >
                                 <LogIn className="h-4 w-4 mr-2" />
                                 Autentifică-te pentru rezervare

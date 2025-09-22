@@ -7,10 +7,11 @@ import { convertImagesToPublicUrls } from "@/utils/imageUtils";
 interface ImageCarouselProps {
   images: string[];
   facilityName: string;
+  facilityType?: string;
   className?: string;
 }
 
-const ImageCarousel = ({ images, facilityName, className = "" }: ImageCarouselProps) => {
+const ImageCarousel = ({ images, facilityName, facilityType, className = "" }: ImageCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [modalIndex, setModalIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,10 +20,34 @@ const ImageCarousel = ({ images, facilityName, className = "" }: ImageCarouselPr
   const publicImages = convertImagesToPublicUrls(images);
 
   if (!publicImages || publicImages.length === 0) {
+    // Show default facility images based on facility type or name
+    const typeToCheck = (facilityType || facilityName).toLowerCase();
+    let defaultImage = "/placeholder-football.jpg"; // default fallback
+    
+    if (typeToCheck.includes('football') || typeToCheck.includes('fotbal')) {
+      defaultImage = "/placeholder-football.jpg";
+    } else if (typeToCheck.includes('tennis') || typeToCheck.includes('tenis')) {
+      defaultImage = "/placeholder-tennis.jpg";
+    } else if (typeToCheck.includes('padel')) {
+      defaultImage = "/placeholder-padel.jpg";
+    } else if (typeToCheck.includes('squash')) {
+      defaultImage = "/placeholder-squash.jpg";
+    } else if (typeToCheck.includes('basketball') || typeToCheck.includes('baschet')) {
+      defaultImage = "/placeholder-basketball.jpg";
+    } else if (typeToCheck.includes('volleyball') || typeToCheck.includes('volei')) {
+      defaultImage = "/placeholder-volleyball.jpg";
+    } else if (typeToCheck.includes('ping_pong') || typeToCheck.includes('ping-pong') || typeToCheck.includes('ping pong')) {
+      defaultImage = "/placeholder-ping-pong.jpg";
+    } else if (typeToCheck.includes('foot_tennis') || typeToCheck.includes('foot-tennis') || typeToCheck.includes('picior')) {
+      defaultImage = "/placeholder-foot-tennis.jpg";
+    } else if (typeToCheck.includes('swimming') || typeToCheck.includes('inot')) {
+      defaultImage = "/placeholder-swimming.jpg";
+    }
+    
     return (
       <div className={`bg-muted flex items-center justify-center ${className}`}>
         <img 
-          src="/placeholder.svg" 
+          src={defaultImage}
           alt={facilityName}
           className="w-full h-full object-cover rounded-inherit"
         />
