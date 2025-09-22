@@ -4,7 +4,7 @@ export const getImagePublicUrl = (imagePath: string): string => {
   if (!imagePath) return "/placeholder.svg";
   
   // Already a full URL (including Supabase public URLs) -> return as is
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('blob:') || imagePath.startsWith('data:')) {
     return imagePath;
   }
   

@@ -15,7 +15,7 @@ import ImageCarousel from "@/components/ImageCarousel";
 import Footer from "@/components/Footer";
 import { facilityTypeOptions } from "@/utils/facilityTypes";
 import { TimePicker } from "@/components/ui/time-picker";
-
+import { getImagePublicUrl } from "@/utils/imageUtils";
 interface FacilityFormData {
   facilityName: string;
   description: string;
@@ -61,7 +61,7 @@ const EditFacilityPage = () => {
   const [uploading, setUploading] = useState(false);
   const [isCapacityRange, setIsCapacityRange] = useState(false);
 
-  const { register, handleSubmit, setValue, formState: { errors }, getValues } = useForm<FacilityFormData>();
+  const { register, handleSubmit, setValue, formState: { errors }, getValues, watch } = useForm<FacilityFormData>();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -622,16 +622,16 @@ const EditFacilityPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <TimePicker
                       label="Ora de deschidere"
-                      value={getValues("operatingHoursStart") || "08:00"}
-                      onChange={(value) => setValue("operatingHoursStart", value)}
+                      value={watch("operatingHoursStart") || "08:00"}
+                      onChange={(value) => setValue("operatingHoursStart", value, { shouldDirty: true })}
                       placeholder="Selectează ora de deschidere"
                       error={errors.operatingHoursStart?.message}
                     />
                     
                     <TimePicker
                       label="Ora de închidere"
-                      value={getValues("operatingHoursEnd") || "22:00"}
-                      onChange={(value) => setValue("operatingHoursEnd", value)}
+                      value={watch("operatingHoursEnd") || "22:00"}
+                      onChange={(value) => setValue("operatingHoursEnd", value, { shouldDirty: true })}
                       placeholder="Selectează ora de închidere"
                       error={errors.operatingHoursEnd?.message}
                     />
@@ -674,9 +674,10 @@ const EditFacilityPage = () => {
                         {existingImages.map((url, index) => (
                           <div key={`existing-${index}`} className="relative group">
                             <img
-                              src={url}
+                              src={getImagePublicUrl(url)}
                               alt={`Existing ${index + 1}`}
                               className="w-full h-24 object-cover rounded-lg border"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
                             />
                             <Button
                               type="button"
