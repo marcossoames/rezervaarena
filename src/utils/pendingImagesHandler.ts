@@ -88,11 +88,13 @@ export const processPendingImages = async () => {
 
         // Update facility with uploaded image URLs
         if (imageUrls.length > 0) {
+          const mainImageUrl = imageUrls[facilityData.mainImageIndex] || imageUrls[0];
+          
           const { error: updateError } = await supabase
             .from('facilities')
             .update({ 
               images: imageUrls,
-              main_image_url: imageUrls[facilityData.mainImageIndex] || imageUrls[0]
+              main_image_url: mainImageUrl
             })
             .eq('id', facility.id);
 

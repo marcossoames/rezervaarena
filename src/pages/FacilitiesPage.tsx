@@ -176,7 +176,7 @@ const FacilitiesPage = () => {
           allFacilities = data;
           error = rpcError;
         } else {
-          // Non-authenticated users get safe public facility data
+          // Non-authenticated users get safe public facility data with proper address and complex name
           const {
             data,
             error: rpcError
