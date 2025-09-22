@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 import { saveFacilitiesForUser } from "@/utils/facilityRegistration";
+import { TimePicker } from "@/components/ui/time-picker";
 
 interface AccountFormData {
   email: string;
@@ -814,27 +815,21 @@ const FacilityRegister = () => {
             </div>
 
             {/* Operating Hours */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>Ore de Funcționare *</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">De la</Label>
-                  <Input
-                    type="time"
-                    value={facility.operatingHoursStart}
-                    onChange={(e) => updateFacilityField(index, 'operatingHoursStart', e.target.value)}
-                    className="bg-background/50"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">Până la</Label>
-                  <Input
-                    type="time"
-                    value={facility.operatingHoursEnd}
-                    onChange={(e) => updateFacilityField(index, 'operatingHoursEnd', e.target.value)}
-                    className="bg-background/50"
-                  />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <TimePicker
+                  label="De la"
+                  value={facility.operatingHoursStart}
+                  onChange={(value) => updateFacilityField(index, 'operatingHoursStart', value)}
+                  placeholder="Selectează ora de început"
+                />
+                <TimePicker
+                  label="Până la"
+                  value={facility.operatingHoursEnd}
+                  onChange={(value) => updateFacilityField(index, 'operatingHoursEnd', value)}
+                  placeholder="Selectează ora de sfârșit"
+                />
               </div>
             </div>
 

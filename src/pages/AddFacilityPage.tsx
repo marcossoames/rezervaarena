@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { facilityTypeOptions } from "@/utils/facilityTypes";
+import { TimePicker } from "@/components/ui/time-picker";
 
 interface FacilityFormData {
   facilityName: string;
@@ -563,34 +564,33 @@ const AddFacilityPage = () => {
                 <div className="space-y-4">
                   <Label className="text-base font-medium">Ore de Funcționare *</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="operatingHoursStart">Ora de deschidere</Label>
-                      <Input
-                        id="operatingHoursStart"
-                        type="time"
-                        defaultValue="08:00"
-                        {...register("operatingHoursStart", { required: "Ora de deschidere este obligatorie" })}
-                        className="bg-background/50"
-                      />
-                      {errors.operatingHoursStart && (
-                        <p className="text-sm text-destructive">{errors.operatingHoursStart.message}</p>
-                      )}
-                    </div>
+                    <TimePicker
+                      label="Ora de deschidere"
+                      value={getValues("operatingHoursStart") || "08:00"}
+                      onChange={(value) => setValue("operatingHoursStart", value)}
+                      placeholder="Selectează ora de deschidere"
+                      error={errors.operatingHoursStart?.message}
+                    />
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="operatingHoursEnd">Ora de închidere</Label>
-                      <Input
-                        id="operatingHoursEnd"
-                        type="time"
-                        defaultValue="22:00"
-                        {...register("operatingHoursEnd", { required: "Ora de închidere este obligatorie" })}
-                        className="bg-background/50"
-                      />
-                      {errors.operatingHoursEnd && (
-                        <p className="text-sm text-destructive">{errors.operatingHoursEnd.message}</p>
-                      )}
-                    </div>
+                    <TimePicker
+                      label="Ora de închidere"
+                      value={getValues("operatingHoursEnd") || "22:00"}
+                      onChange={(value) => setValue("operatingHoursEnd", value)}
+                      placeholder="Selectează ora de închidere"
+                      error={errors.operatingHoursEnd?.message}
+                    />
                   </div>
+                  
+                  {/* Hidden inputs for form validation */}
+                  <input
+                    type="hidden"
+                    {...register("operatingHoursStart", { required: "Ora de deschidere este obligatorie" })}
+                  />
+                  <input
+                    type="hidden"
+                    {...register("operatingHoursEnd", { required: "Ora de închidere este obligatorie" })}
+                  />
+                  
                   <div className="p-3 bg-muted/30 rounded-lg">
                     <p className="text-sm text-muted-foreground">
                       Orele de funcționare determină intervalul în care clienții pot face rezervări și tu poți bloca ore în calendar.
