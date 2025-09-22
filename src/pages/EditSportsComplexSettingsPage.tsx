@@ -244,10 +244,10 @@ const EditSportsComplexSettingsPage = () => {
           <div className="flex justify-center mb-4">
             <Button
               variant="ghost"
-              onClick={() => navigate("/manage-facilities")}
+              onClick={() => navigate("/facility-owner-profile")}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Înapoi la Facilități
+              Înapoi la Profil
             </Button>
           </div>
           <h1 className="text-3xl font-bold text-center">Setări Bază Sportivă</h1>
@@ -361,7 +361,7 @@ const EditSportsComplexSettingsPage = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate("/manage-facilities")}
+                  onClick={() => navigate("/facility-owner-profile")}
                   className="flex-1"
                 >
                   Anulează
