@@ -321,10 +321,20 @@ const FacilityRegister = () => {
 
       console.log('User signed up successfully:', authData.user?.id);
 
-      // If user was created successfully, create facilities and upload images
+      // If user was created successfully, sign them in and create facilities
       if (authData.user?.id) {
-        // Store user credentials temporarily for creating facilities
-        const tempUserId = authData.user.id;
+        // Sign in the user immediately to establish a proper session
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: accountData.email,
+          password: accountData.password
+        });
+
+        if (signInError) {
+          console.error('Sign in error:', signInError);
+          throw signInError;
+        }
+
+        console.log('User signed in successfully');
         
         // Create facilities one by one with images
         for (let i = 0; i < facilities.length; i++) {
