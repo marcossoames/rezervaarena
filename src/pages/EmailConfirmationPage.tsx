@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { processPendingImages } from "@/utils/pendingImagesHandler";
 
 const EmailConfirmationPage = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -34,6 +35,13 @@ const EmailConfirmationPage = () => {
           if (data?.user) {
             setStatus('success');
             try { window.history.replaceState({}, document.title, window.location.origin + '/email-confirmation'); } catch {}
+            
+            // Process pending images if any
+            const imagesProcessed = await processPendingImages();
+            if (imagesProcessed) {
+              console.log('Pending images processed successfully');
+            }
+            
             const { data: profile } = await supabase
               .from('profiles')
               .select('user_type_comment, full_name')

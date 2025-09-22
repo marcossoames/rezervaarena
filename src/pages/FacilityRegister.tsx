@@ -288,6 +288,27 @@ const FacilityRegister = () => {
     return fileName;
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const base64ToFile = (base64: string, filename: string): File => {
+    const arr = base64.split(',');
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  };
+
   const handleFinalSubmit = async () => {
     if (!accountData || !validateFacilities()) return;
 
@@ -308,6 +329,25 @@ const FacilityRegister = () => {
         operatingHoursStart: facility.operatingHoursStart,
         operatingHoursEnd: facility.operatingHoursEnd
       }));
+
+      // Store images temporarily in localStorage for upload after email confirmation
+      const facilitiesWithImages = await Promise.all(
+        facilities.map(async (facility, index) => {
+          const imageData: string[] = [];
+          for (const file of facility.images) {
+            const base64 = await fileToBase64(file);
+            imageData.push(base64);
+          }
+          return {
+            ...facilitiesMetadata[index],
+            images: imageData,
+            mainImageIndex: facility.mainImageIndex
+          };
+        })
+      );
+
+      localStorage.setItem('pendingFacilityImages', JSON.stringify(facilitiesWithImages));
+      localStorage.setItem('pendingUserEmail', accountData.email);
 
       // Sign up the user with all data in metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({

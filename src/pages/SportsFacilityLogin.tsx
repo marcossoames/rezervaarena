@@ -7,6 +7,7 @@ import { Building2, Mail, Lock, ArrowLeft, Phone, MapPin, Eye, EyeOff } from "lu
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { processPendingImages } from "@/utils/pendingImagesHandler";
 
 const SportsFacilityLogin = () => {
   const [email, setEmail] = useState("");
@@ -40,6 +41,15 @@ const SportsFacilityLogin = () => {
       if (error) throw error;
 
       if (data.user) {
+        // Process pending images if any
+        const imagesProcessed = await processPendingImages();
+        if (imagesProcessed) {
+          toast({
+            title: "Imagini încărcate",
+            description: "Imaginile pentru facilitățile tale au fost încărcate cu succes!",
+          });
+        }
+
         // Check if user has facilities (indicating they are a facility owner)
         const { data: facilities, error: facilityError } = await supabase
           .from('facilities')
