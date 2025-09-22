@@ -409,15 +409,17 @@ const BookingPage = () => {
                 <div className="p-6">
                   <h2 className="text-2xl font-bold text-foreground mb-2">{facility.name}</h2>
                   <div className="flex items-center text-muted-foreground mb-4">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    {facility.city} area
+                    <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span className="text-left">{facility.city} area</span>
                   </div>
                   
                   {/* Operating Hours */}
                   {facility.operating_hours_start && facility.operating_hours_end && (
                     <div className="flex items-center text-muted-foreground mb-4">
-                      <Clock className="h-4 w-4 mr-2" />
-                      Orar: {facility.operating_hours_start?.slice(0, 5)} - {facility.operating_hours_end?.slice(0, 5)}
+                      <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="text-left">
+                        Orar: {facility.operating_hours_start?.slice(0, 5)} - {facility.operating_hours_end?.slice(0, 5)}
+                      </span>
                     </div>
                   )}
                   

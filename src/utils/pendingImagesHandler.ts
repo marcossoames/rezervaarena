@@ -86,22 +86,54 @@ export const processPendingImages = async () => {
           }
         }
 
-        // Update facility with uploaded image URLs
+        // Update facility with uploaded image URLs and operating hours
         if (imageUrls.length > 0) {
           const mainImageUrl = imageUrls[facilityData.mainImageIndex] || imageUrls[0];
           
+          const updateData: any = { 
+            images: imageUrls,
+            main_image_url: mainImageUrl
+          };
+
+          // Also update operating hours if they exist in the pending data
+          if (facilityData.operatingHoursStart) {
+            updateData.operating_hours_start = facilityData.operatingHoursStart;
+          }
+          if (facilityData.operatingHoursEnd) {
+            updateData.operating_hours_end = facilityData.operatingHoursEnd;
+          }
+          
           const { error: updateError } = await supabase
             .from('facilities')
-            .update({ 
-              images: imageUrls,
-              main_image_url: mainImageUrl
-            })
+            .update(updateData)
             .eq('id', facility.id);
 
           if (updateError) {
             console.error('Error updating facility with images:', updateError);
           } else {
-            console.log(`Updated facility ${facility.name} with ${imageUrls.length} images`);
+            console.log(`Updated facility ${facility.name} with ${imageUrls.length} images and operating hours`);
+          }
+        }
+      } else {
+        // Even if no images, try to update operating hours if they exist
+        const updateData: any = {};
+        if (facilityData.operatingHoursStart) {
+          updateData.operating_hours_start = facilityData.operatingHoursStart;
+        }
+        if (facilityData.operatingHoursEnd) {
+          updateData.operating_hours_end = facilityData.operatingHoursEnd;
+        }
+
+        if (Object.keys(updateData).length > 0) {
+          const { error: updateError } = await supabase
+            .from('facilities')
+            .update(updateData)
+            .eq('id', facility.id);
+
+          if (updateError) {
+            console.error('Error updating facility operating hours:', updateError);
+          } else {
+            console.log(`Updated facility ${facility.name} operating hours`);
           }
         }
       }

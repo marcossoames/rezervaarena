@@ -26,6 +26,8 @@ export interface FacilityData {
   amenities: string[];
   images: File[];
   mainImageIndex: number;
+  operatingHoursStart?: string;
+  operatingHoursEnd?: string;
 }
 
 export const saveFacilitiesForUser = async (
@@ -57,6 +59,8 @@ export const saveFacilitiesForUser = async (
           price_per_hour: facility.pricePerHour,
           capacity: facility.capacity,
           capacity_max: facility.capacityMax || null,
+          operating_hours_start: facility.operatingHoursStart || '08:00',
+          operating_hours_end: facility.operatingHoursEnd || '22:00',
           amenities: facility.amenities,
           is_active: true
         })
