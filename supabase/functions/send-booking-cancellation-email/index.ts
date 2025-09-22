@@ -49,24 +49,40 @@ const handler = async (req: Request): Promise<Response> => {
         console.warn("Supabase service client not configured. Skipping email resolution from DB.");
       } else {
         console.log("Resolving client emails from DB using bookingIds...");
-        const { data, error } = await supabase
+        
+        // First get the bookings with client_ids and facility_ids
+        const { data: bookingsData, error: bookingsError } = await supabase
           .from('bookings')
-          .select(`
-            id,
-            profiles:profiles!bookings_client_id_fkey(email),
-            facilities:facilities!bookings_facility_id_fkey(name)
-          `)
+          .select('id, client_id, facility_id')
           .in('id', bookingIds);
 
-        if (error) {
-          console.error('Error fetching emails from DB:', error);
-        } else if (data && data.length > 0) {
-          const emails = data.map((b: any) => b.profiles?.email).filter(Boolean);
-          resolvedClientEmails = [...new Set(emails)];
+        if (bookingsError) {
+          console.error('Error fetching bookings from DB:', bookingsError);
+        } else if (bookingsData && bookingsData.length > 0) {
+          // Get client emails
+          const clientIds = [...new Set(bookingsData.map(b => b.client_id))];
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('user_id, email')
+            .in('user_id', clientIds);
 
+          if (profilesData) {
+            const emails = profilesData.map(p => p.email).filter(Boolean);
+            resolvedClientEmails = [...new Set(emails)];
+          }
+
+          // Get facility names if needed
           if (!resolvedFacilityName) {
-            const names = [...new Set(data.map((b: any) => b.facilities?.name).filter(Boolean))];
-            resolvedFacilityName = names.length > 0 ? names.join(', ') : undefined;
+            const facilityIds = [...new Set(bookingsData.map(b => b.facility_id))];
+            const { data: facilitiesData } = await supabase
+              .from('facilities')
+              .select('id, name')
+              .in('id', facilityIds);
+
+            if (facilitiesData) {
+              const names = facilitiesData.map(f => f.name).filter(Boolean);
+              resolvedFacilityName = names.length > 0 ? names.join(', ') : undefined;
+            }
           }
         }
       }

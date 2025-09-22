@@ -103,23 +103,25 @@ export const deleteUserAccount = async () => {
         // Get client emails for bookings that will be cancelled
         const { data: bookingData } = await supabase
           .from('bookings')
-          .select(`
-            id,
-            client_id,
-            booking_date,
-            start_time,
-            profiles!bookings_client_id_fkey(email),
-            facilities!bookings_facility_id_fkey(name)
-          `)
+          .select('id, client_id, facility_id, booking_date, start_time')
           .in('facility_id', ownerFacilitiesData.facilities?.map((f: any) => f.id) || [])
           .gte('booking_date', new Date().toISOString().split('T')[0])
           .in('status', ['confirmed', 'pending']);
 
         if (bookingData && bookingData.length > 0) {
+          // Get client emails
+          const clientIds = [...new Set(bookingData.map(b => b.client_id))];
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('user_id, email')
+            .in('user_id', clientIds);
+
+          const clientEmails = profilesData?.map(p => p.email).filter(Boolean) || [];
+
           cancellationData = {
             bookingIds: bookingData.map((b: any) => b.id),
-            clientEmails: [...new Set(bookingData.map((b: any) => b.profiles?.email).filter(Boolean))],
-            facilityNames: [...new Set(bookingData.map((b: any) => b.facilities?.name).filter(Boolean))],
+            clientEmails: clientEmails,
+            facilityNames: ownerFacilitiesData.facilities?.map((f: any) => f.name).filter(Boolean) || [],
             reason: 'Proprietarul bazei sportive și-a șters contul'
           };
         }
