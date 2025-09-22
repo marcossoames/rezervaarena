@@ -732,13 +732,11 @@ applyFilters();
                 <CardContent className="p-0">
                   <div className="flex flex-col md:flex-row h-full">
                     <div className="md:w-1/3 relative overflow-hidden rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg">
-                      <ImageCarousel 
-                        images={(facility.images || []).map(img => 
-                          img.startsWith('http') ? img : `https://ukopxkymzywfpobpcana.supabase.co/storage/v1/object/public/facility-images/${img}`
-                        )} 
-                        facilityName={facility.name} 
-                        className="w-full h-48 md:h-full rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg" 
-                      />
+                        <ImageCarousel 
+                          images={facility.images || []}
+                          facilityName={facility.name} 
+                          className="w-full h-48 md:h-full rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg" 
+                        />
                       <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground z-10">
                         {getFacilityTypeLabel(facility.facility_type)}
                       </Badge>
