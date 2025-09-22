@@ -720,7 +720,13 @@ applyFilters();
                 <CardContent className="p-0">
                   <div className="flex flex-col md:flex-row h-full">
                     <div className="md:w-1/3 relative overflow-hidden rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg">
-                      <ImageCarousel images={facility.images || []} facilityName={facility.name} className="w-full h-48 md:h-full rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg" />
+                      <ImageCarousel 
+                        images={(facility.images || []).map(img => 
+                          img.startsWith('http') ? img : `https://ukopxkymzywfpobpcana.supabase.co/storage/v1/object/public/facility-images/${img}`
+                        )} 
+                        facilityName={facility.name} 
+                        className="w-full h-48 md:h-full rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg" 
+                      />
                       <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground z-10">
                         {getFacilityTypeLabel(facility.facility_type)}
                       </Badge>
@@ -736,8 +742,8 @@ applyFilters();
                             </div>}
                           <div className="flex items-center text-muted-foreground text-sm mb-1">
                             <MapPin className="h-4 w-4 mr-1" />
-                            {/* Show sports complex address for better UX */}
-                            {facility.sports_complex_address || facility.area_info || facility.general_area || (facility.address ? `${facility.address}, ${facility.city}` : `${facility.city} area`)}
+                            {/* Show exact address instead of area_info */}
+                            {facility.address || facility.sports_complex_address || `${facility.city}`}
                            </div>
                         </div>
                       </div>
