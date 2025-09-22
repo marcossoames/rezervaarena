@@ -296,7 +296,20 @@ const FacilityRegister = () => {
     try {
       console.log('Starting facility owner signup...');
       
-      // First, sign up the user to get a user ID
+      // Prepare facilities data for metadata
+      const facilitiesMetadata = facilities.map(facility => ({
+        name: facility.name,
+        description: facility.description,
+        facilityType: facility.facilityType,
+        pricePerHour: facility.pricePerHour,
+        capacity: facility.capacity,
+        capacityMax: facility.capacityMax,
+        amenities: facility.amenities,
+        operatingHoursStart: facility.operatingHoursStart,
+        operatingHoursEnd: facility.operatingHoursEnd
+      }));
+
+      // Sign up the user with all data in metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: accountData.email,
         password: accountData.password,
@@ -309,7 +322,8 @@ const FacilityRegister = () => {
             role: 'facility_owner',
             user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`,
             city: accountData.city,
-            address: accountData.address
+            address: accountData.address,
+            facilities: facilitiesMetadata
           }
         }
       });
@@ -321,110 +335,13 @@ const FacilityRegister = () => {
 
       console.log('User signed up successfully:', authData.user?.id);
 
-      // If user was created successfully, sign them in and create facilities
-      if (authData.user?.id) {
-        // Sign in the user immediately to establish a proper session
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: accountData.email,
-          password: accountData.password
-        });
-
-        if (signInError) {
-          console.error('Sign in error:', signInError);
-          throw signInError;
-        }
-
-        console.log('User signed in successfully');
-        
-        // Create facilities one by one with images
-        for (let i = 0; i < facilities.length; i++) {
-          const facility = facilities[i];
-          
-          try {
-            // Create the facility first using the secure function
-            const { data: facilityData, error: facilityError } = await supabase
-              .rpc('register_facility_with_profile_secure', {
-                p_email: accountData.email,
-                p_full_name: accountData.fullName,
-                p_phone: accountData.phone,
-                p_facility_name: facility.name,
-                p_description: facility.description || '',
-                p_facility_type: facility.facilityType as any,
-                p_address: accountData.address,
-                p_city: accountData.city,
-                p_price_per_hour: parseFloat(facility.pricePerHour.toString()),
-                p_capacity: parseInt(facility.capacity.toString()),
-                p_capacity_max: facility.capacityMax ? parseInt(facility.capacityMax.toString()) : null,
-                p_amenities: facility.amenities
-              });
-
-            if (facilityError) {
-              console.error('Error creating facility:', facilityError);
-              continue; // Continue with next facility instead of failing completely
-            }
-
-            const facilityId = facilityData;
-            console.log(`Created facility ${i + 1} with ID:`, facilityId);
-
-            // Upload images for this facility if any exist
-            if (facility.images.length > 0) {
-              const imageUrls: string[] = [];
-              
-              for (let j = 0; j < facility.images.length; j++) {
-                const file = facility.images[j];
-                try {
-                  const imageUrl = await uploadImage(file, facilityId);
-                  imageUrls.push(imageUrl);
-                  console.log(`Uploaded image ${j + 1} for facility ${i + 1}`);
-                } catch (imageError) {
-                  console.error(`Error uploading image ${j + 1} for facility ${i + 1}:`, imageError);
-                  // Continue with other images instead of failing
-                }
-              }
-
-              // Update facility with uploaded image URLs
-              if (imageUrls.length > 0) {
-                const { error: updateError } = await supabase
-                  .from('facilities')
-                  .update({ 
-                    images: imageUrls,
-                    main_image_url: imageUrls[facility.mainImageIndex] || imageUrls[0]
-                  })
-                  .eq('id', facilityId);
-
-                if (updateError) {
-                  console.error('Error updating facility with images:', updateError);
-                }
-              }
-            }
-
-            // Update facility with operating hours
-            const { error: hoursError } = await supabase
-              .from('facilities')
-              .update({
-                operating_hours_start: facility.operatingHoursStart,
-                operating_hours_end: facility.operatingHoursEnd
-              })
-              .eq('id', facilityId);
-
-            if (hoursError) {
-              console.error('Error updating operating hours:', hoursError);
-            }
-
-          } catch (facilityError) {
-            console.error(`Error processing facility ${i + 1}:`, facilityError);
-            // Continue with next facility
-          }
-        }
-      }
-
       // Show email verification dialog for all facility owners
       setUserEmail(accountData.email);
       setShowEmailVerification(true);
 
       toast({
         title: "Cont creat cu succes!",
-        description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul. Facilitățile și imaginile au fost salvate.",
+        description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul. După confirmarea emailului, facilitățile vor fi create automat.",
         duration: 10000
       });
     } catch (error: any) {
