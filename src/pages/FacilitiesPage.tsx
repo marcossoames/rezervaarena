@@ -54,6 +54,7 @@ const FacilitiesPage = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [locationFilter, setLocationFilter] = useState<string>('');
+  const [sportsComplexFilter, setSportsComplexFilter] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
