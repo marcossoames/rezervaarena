@@ -53,10 +53,9 @@ export const TimePicker: React.FC<TimePickerProps> = ({
           type="time"
           value={value ?? ''}
           onChange={(e) => onChange(e.currentTarget.value)}
-          step={900}
-          className={`bg-background/50 w-full h-10 rounded-md border border-input px-3 py-2 ${className}`}
+          step="900"
+          className={`bg-background/50 w-full h-10 rounded-md border border-input px-3 py-2 text-foreground ${className}`}
           placeholder={placeholder}
-          inputMode="numeric"
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
