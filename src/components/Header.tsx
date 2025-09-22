@@ -145,7 +145,7 @@ const Header = () => {
               <>
                 <Button onClick={handleClientClick} variant="ghost" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
                   <User className="h-4 w-4" />
-                  {!isMobile && (userProfile?.role === 'admin' ? 'Dashboard' : 'Profilul Meu')}
+                  {!isMobile && (userProfile?.role === 'admin' ? 'Dashboard' : 'Profil')}
                 </Button>
                 <Button onClick={handleSignOut} variant="outline" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
                   <LogOut className="h-4 w-4" />
