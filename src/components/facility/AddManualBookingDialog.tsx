@@ -19,7 +19,7 @@ interface AddManualBookingDialogProps {
     operating_hours_start?: string;
     operating_hours_end?: string;
     price_per_hour: number;
-  };
+  } | null;
   onBookingAdded: () => void;
   selectedDate?: Date;
 }
@@ -137,7 +137,7 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
   };
 
   const calculatePrice = () => {
-    if (!startTime || !endTime || !facility) return 0;
+    if (!startTime || !endTime || !facility?.price_per_hour) return 0;
     
     const start = new Date(`2000-01-01T${startTime}:00`);
     const end = new Date(`2000-01-01T${endTime}:00`);
@@ -300,6 +300,15 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
       setIsLoading(false);
     }
   };
+
+  if (!facility) {
+    return (
+      <Button className="w-full" disabled>
+        <UserPlus className="h-4 w-4 mr-2" />
+        Adaugă Rezervare Manuală
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -471,7 +480,7 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
                   <span className="font-bold text-lg">{calculatePrice().toFixed(2)} RON</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {((new Date(`2000-01-01T${endTime}:00`).getTime() - new Date(`2000-01-01T${startTime}:00`).getTime()) / (1000 * 60 * 60)).toFixed(1)} ore × {facility.price_per_hour} RON/oră
+                  {((new Date(`2000-01-01T${endTime}:00`).getTime() - new Date(`2000-01-01T${startTime}:00`).getTime()) / (1000 * 60 * 60)).toFixed(1)} ore × {facility?.price_per_hour || 0} RON/oră
                 </p>
               </div>
             )}

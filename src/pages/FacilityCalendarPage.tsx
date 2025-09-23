@@ -738,7 +738,7 @@ const FacilityCalendarPage = () => {
               {selectedDate && (
                 <>
                   {/* Add Manual Booking */}
-                  {selectedDate && !isBefore(selectedDate, today) && !isDateFullyBlocked(selectedDate) && (
+                  {selectedDate && !isBefore(selectedDate, today) && !isDateFullyBlocked(selectedDate) && facility && (
                     <div className="space-y-2">
                       <AddManualBookingDialog 
                         facilityId={facilityId!}
