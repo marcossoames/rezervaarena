@@ -116,12 +116,12 @@ serve(async (req) => {
       logStep("No existing customer, will create during checkout");
     }
 
-    // Calculate fees - Stripe fee is 1.5% + 1 RON
+    // Calculate fees - Stripe fee is 1.5% + 1 RON, clamp so owner amount is never negative
     const totalAmountCents = Math.round(totalPrice * 100);
     const stripeFeePercentage = 0.015; // 1.5%
     const stripeFixedFeeCents = 100; // 1 RON in cents
     const stripeTotalFeeCents = Math.round(totalAmountCents * stripeFeePercentage) + stripeFixedFeeCents;
-    const facilityOwnerAmountCents = totalAmountCents - stripeTotalFeeCents;
+    const facilityOwnerAmountCents = Math.max(totalAmountCents - stripeTotalFeeCents, 0);
 
     logStep("Fee calculation", {
       totalAmountCents,
@@ -170,8 +170,8 @@ serve(async (req) => {
     logStep("Stripe session created", { sessionId: session.id, url: session.url });
 
     // Create the booking using the existing service client
-
-    const { data: booking, error: bookingError } = await supabaseService
+    // Create the booking using the authenticated user client so RLS and triggers see auth.uid()
+    const { data: booking, error: bookingError } = await supabase
       .from('bookings')
       .insert({
         facility_id: facilityId,

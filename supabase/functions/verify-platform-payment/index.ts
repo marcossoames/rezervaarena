@@ -70,38 +70,92 @@ serve(async (req) => {
       (session.payment_intent ? (await stripe.paymentIntents.retrieve(session.payment_intent as string)).status === 'succeeded' : false);
 
     if (isPaid) {
-      // Get booking to verify ownership
-      const { data: booking, error: getBookingError } = await supabaseService
+      // Try to find existing booking for this session
+      let { data: booking, error: getBookingError } = await supabaseService
         .from('bookings')
         .select('id, client_id')
         .eq('stripe_session_id', sessionId)
         .single();
 
-      if (getBookingError || !booking) {
-        throw new Error('Booking not found for session');
-      }
-
-      // Get user from auth header for security verification
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader) {
-        throw new Error('No authorization header provided');
-      }
-
+      // Get user now for ownership and for potential booking creation
       const token = authHeader.replace('Bearer ', '');
       const { data: { user }, error: authError } = await supabaseService.auth.getUser(token);
-      
       if (authError || !user) {
         throw new Error('Invalid authentication token');
       }
 
-      // Verify that the authenticated user is the booking owner
+      if (getBookingError || !booking) {
+        // Create booking now using session metadata
+        const md: any = session.metadata || {};
+        const facilityId = md.facility_id;
+        const bookingDate = md.booking_date;
+        const startTime = md.start_time;
+        const endTime = md.end_time;
+        if (!facilityId || !bookingDate || !startTime || !endTime) {
+          throw new Error('Missing booking metadata on session');
+        }
+
+        // Optional server-side price calculation (triggers also recalc)
+        const startDate = new Date(`2000-01-01T${startTime}:00`);
+        const endDate = new Date(`2000-01-01T${endTime}:00`);
+        const durationMs = endDate.getTime() - startDate.getTime();
+        const durationHours = durationMs / (1000 * 60 * 60);
+        const pricePerHour = Number(md.price_per_hour || 0);
+        const totalPrice = pricePerHour > 0 ? durationHours * pricePerHour : null;
+
+        const insertPayload: any = {
+          facility_id: facilityId,
+          client_id: user.id,
+          booking_date: bookingDate,
+          start_time: startTime,
+          end_time: endTime,
+          status: 'confirmed',
+          payment_method: 'card',
+          stripe_session_id: sessionId,
+          stripe_payment_intent_id: session.payment_intent,
+        };
+        if (totalPrice !== null) insertPayload.total_price = totalPrice;
+
+        const { data: newBooking, error: createErr } = await supabaseService
+          .from('bookings')
+          .insert(insertPayload)
+          .select('id, client_id')
+          .single();
+
+        if (createErr || !newBooking) {
+          throw new Error(`Failed to create booking after payment: ${createErr?.message}`);
+        }
+        booking = newBooking;
+
+        // Also ensure platform_payments exists
+        const { data: existingPayment } = await supabaseService
+          .from('platform_payments')
+          .select('id')
+          .eq('stripe_session_id', sessionId)
+          .maybeSingle();
+
+        if (!existingPayment) {
+          const totalAmount = totalPrice ?? undefined;
+          await supabaseService.from('platform_payments').insert({
+            booking_id: booking.id,
+            facility_owner_id: md.facility_owner_id,
+            client_id: user.id,
+            stripe_session_id: sessionId,
+            total_amount: totalAmount,
+            payment_status: 'paid',
+            distributed_status: 'pending'
+          });
+        }
+      }
+
+      // Verify ownership
       if (booking.client_id !== user.id) {
         throw new Error('Unauthorized: User does not own this booking');
       }
 
       logStep("User verified as booking owner");
 
-      // Update booking status
+      // Update booking status (idempotent)
       const { error: bookingError } = await supabaseService
         .from('bookings')
         .update({ 
