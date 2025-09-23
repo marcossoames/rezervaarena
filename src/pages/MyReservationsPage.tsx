@@ -231,6 +231,11 @@ const MyReservationsPage = () => {
             const clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
             console.log('Client info for booking:', booking.id, clientInfo);
 
+            // Use preserved facility data if facility no longer exists (deleted)
+            const facilityName = facilityDetail?.name || booking.facility_name || 'Teren nedefinit';
+            const facilityAddress = facilityDetail?.address || booking.facility_address || 'Adresă nedefinită';
+            const facilityCity = facilityDetail?.city || 'Oraș nedefinit';
+
             return {
               ...booking,
               client_info: clientInfo ? {
@@ -244,13 +249,13 @@ const MyReservationsPage = () => {
               },
               facilities: {
                 id: booking.facility_id,
-                name: facilityDetail?.name || 'Teren necunoscut',
+                name: facilityName,
                 facility_type: facilityDetail?.facility_type || 'nedefinit',
-                city: facilityDetail?.city || 'Oraș nedefinit',
-                address: facilityDetail?.address?.split(', ')[0] || '',
+                city: facilityCity,
+                address: facilityAddress?.split(', ')[0] || '',
                 owner_id: user.id,
                 sports_complex_name: profile?.user_type_comment?.replace(' - Proprietar bază sportivă', '') || 'Baza Sportivă',
-                sports_complex_address: facilityDetail?.address ? `${facilityDetail.address}, ${facilityDetail.city}` : facilityDetail?.city || 'Adresă nedefinită',
+                sports_complex_address: `${facilityAddress}, ${facilityCity}`,
                 profiles: profile?.phone ? {
                   user_type_comment: profile.user_type_comment || '',
                   full_name: profile.full_name || '',
@@ -311,18 +316,23 @@ const MyReservationsPage = () => {
         const completeBookings = userBookings.map(booking => {
           const facility = facilities.find(f => f.id === booking.facility_id);
           console.log('Facility for booking:', facility);
+          
+          // Use preserved facility data if facility no longer exists (deleted)
+          const facilityName = facility?.name || booking.facility_name || 'Teren nedefinit';
+          const facilityAddress = facility?.sports_complex_address || booking.facility_address || facility?.city || 'Adresă nedefinită';
+          const facilityCity = facility?.city || 'Oraș nedefinit';
+          
           return {
             ...booking,
             facilities: {
               id: facility?.id || booking.facility_id,
-              name: facility?.name || 'Teren nedefinit',
+              name: facilityName,
               facility_type: facility?.facility_type || 'nedefinit',
-              city: facility?.city || 'Oraș nedefinit',
-              address: facility?.sports_complex_address?.split(', ')[0] || '',
+              city: facilityCity,
+              address: facilityAddress?.split(', ')[0] || '',
               owner_id: facility?.id,
-              // Not available in RPC response but not needed
-              sports_complex_name: facility?.sports_complex_name || 'Baza Sportivă',
-              sports_complex_address: facility?.sports_complex_address || facility?.city || 'Adresă nedefinită',
+              sports_complex_name: facility?.sports_complex_name || 'Baza Sportivă [Ștearsă]',
+              sports_complex_address: facilityAddress,
               profiles: null // Contact info removed for privacy protection
             }
           };

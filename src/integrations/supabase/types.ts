@@ -232,7 +232,9 @@ export type Database = {
           client_id: string
           created_at: string
           end_time: string
+          facility_address: string | null
           facility_id: string
+          facility_name: string | null
           facility_owner_amount: number | null
           id: string
           notes: string | null
@@ -254,7 +256,9 @@ export type Database = {
           client_id: string
           created_at?: string
           end_time: string
+          facility_address?: string | null
           facility_id: string
+          facility_name?: string | null
           facility_owner_amount?: number | null
           id?: string
           notes?: string | null
@@ -276,7 +280,9 @@ export type Database = {
           client_id?: string
           created_at?: string
           end_time?: string
+          facility_address?: string | null
           facility_id?: string
+          facility_name?: string | null
           facility_owner_amount?: number | null
           id?: string
           notes?: string | null
