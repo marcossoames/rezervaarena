@@ -285,7 +285,7 @@ const FacilityCalendarPage = () => {
     }
 
     // Check for conflicts with existing active bookings (excluding cancelled)
-    const dayBookings = getBookingsForDate(selectedDate);
+    const dayBookings = getActiveBookingsForDate(selectedDate);
     const hasBookingConflict = dayBookings.some(booking => {
       const bookingStart = booking.start_time.slice(0, 5);
       const bookingEnd = booking.end_time.slice(0, 5);
