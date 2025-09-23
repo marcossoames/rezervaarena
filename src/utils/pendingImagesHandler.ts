@@ -41,19 +41,31 @@ const uploadImage = async (file: File, facilityId: string): Promise<string> => {
 
 export const processPendingImages = async () => {
   try {
+    console.log('Checking for pending images...');
     const pendingImagesData = localStorage.getItem('pendingFacilityImages');
     const pendingUserEmail = localStorage.getItem('pendingUserEmail');
     
+    console.log('Pending images data exists:', !!pendingImagesData);
+    console.log('Pending user email:', pendingUserEmail);
+    
     if (!pendingImagesData || !pendingUserEmail) {
+      console.log('No pending images or email found');
       return false;
     }
 
     const { data: { user } } = await supabase.auth.getUser();
+    console.log('Current user:', user?.email);
+    console.log('Expected email:', pendingUserEmail);
+    
     if (!user || user.email !== pendingUserEmail) {
+      console.log('User mismatch - clearing pending data');
+      localStorage.removeItem('pendingFacilityImages');
+      localStorage.removeItem('pendingUserEmail');
       return false;
     }
 
     const facilitiesData: PendingFacilityData[] = JSON.parse(pendingImagesData);
+    console.log('Parsed facilities data:', facilitiesData.length, 'facilities');
     
     // Get user's facilities
     const { data: facilities, error: facilitiesError } = await supabase
@@ -66,12 +78,19 @@ export const processPendingImages = async () => {
       return false;
     }
 
+    console.log('User facilities found:', facilities?.length || 0);
+
     // Process images for each facility
     for (const facilityData of facilitiesData) {
+      console.log('Processing facility:', facilityData.name);
       const facility = facilities?.find(f => f.name === facilityData.name);
-      if (!facility) continue;
+      if (!facility) {
+        console.log('No matching facility found for:', facilityData.name);
+        continue;
+      }
 
       if (facilityData.images.length > 0) {
+        console.log('Processing', facilityData.images.length, 'images for', facility.name);
         const imageUrls: string[] = [];
         
         for (let i = 0; i < facilityData.images.length; i++) {
