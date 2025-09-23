@@ -201,7 +201,10 @@ const FacilityCalendarPage = () => {
 
   const getBookingsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return bookings.filter(booking => booking.booking_date === dateStr);
+    return bookings.filter(booking => 
+      booking.booking_date === dateStr && 
+      booking.status !== 'cancelled'
+    );
   };
 
   const getBlockedHoursForDate = (date: Date) => {
@@ -277,7 +280,7 @@ const FacilityCalendarPage = () => {
       return;
     }
 
-    // Check for conflicts with existing bookings
+    // Check for conflicts with existing active bookings (excluding cancelled)
     const dayBookings = getBookingsForDate(selectedDate);
     const hasBookingConflict = dayBookings.some(booking => {
       const bookingStart = booking.start_time.slice(0, 5);
