@@ -204,10 +204,12 @@ const FacilityCalendarPage = () => {
     // Check for conflicts with existing bookings
     const dayBookings = getBookingsForDate(selectedDate);
     const hasBookingConflict = dayBookings.some(booking => {
+      const bookingStart = booking.start_time.slice(0, 5);
+      const bookingEnd = booking.end_time.slice(0, 5);
       return (
-        (blockStartTime >= booking.start_time && blockStartTime < booking.end_time) ||
-        (blockEndTime > booking.start_time && blockEndTime <= booking.end_time) ||
-        (blockStartTime <= booking.start_time && blockEndTime >= booking.end_time)
+        (blockStartTime >= bookingStart && blockStartTime < bookingEnd) ||
+        (blockEndTime > bookingStart && blockEndTime <= bookingEnd) ||
+        (blockStartTime <= bookingStart && blockEndTime >= bookingEnd)
       );
     });
 
@@ -227,10 +229,12 @@ const FacilityCalendarPage = () => {
     );
     
     const hasBlockConflict = dayBlocks.some(blocked => {
+      const blockedStart = (blocked.start_time || '').slice(0, 5);
+      const blockedEnd = (blocked.end_time || '').slice(0, 5);
       return (
-        (blockStartTime >= (blocked.start_time || '') && blockStartTime < (blocked.end_time || '')) ||
-        (blockEndTime > (blocked.start_time || '') && blockEndTime <= (blocked.end_time || '')) ||
-        (blockStartTime <= (blocked.start_time || '') && blockEndTime >= (blocked.end_time || ''))
+        (blockStartTime >= blockedStart && blockStartTime < blockedEnd) ||
+        (blockEndTime > blockedStart && blockEndTime <= blockedEnd) ||
+        (blockStartTime <= blockedStart && blockEndTime >= blockedEnd)
       );
     });
 
@@ -449,12 +453,6 @@ const FacilityCalendarPage = () => {
               </div>
             </div>
             
-            <AddManualBookingDialog 
-              facilityId={facilityId!}
-              onBookingAdded={refreshBookings}
-              facility={facility}
-              selectedDate={selectedDate}
-            />
           </div>
         </div>
 
@@ -544,7 +542,7 @@ const FacilityCalendarPage = () => {
                     {getBookingsForDate(selectedDate).length === 0 ? (
                       <p className="text-muted-foreground text-sm">Nu există rezervări pentru această dată</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                         {getBookingsForDate(selectedDate).map((booking) => (
                           <div key={booking.id} className="flex items-start justify-between p-3 bg-muted/50 rounded-lg">
                             <div className="flex-1">
@@ -721,7 +719,7 @@ const FacilityCalendarPage = () => {
                             <DialogTrigger asChild>
                               <Button variant="outline" className="w-full">
                                 <Clock className="h-4 w-4 mr-2" />
-                                Blochează Anumite Ore ({availableSlots} ore disponibile)
+                                Blochează Anumite Ore ({availableSlots} intervale disponibile)
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -909,9 +907,6 @@ const FacilityCalendarPage = () => {
                       </div>
                     </div>
                     <div className="text-right space-y-1">
-                      <Badge variant={getStatusBadgeVariant(booking.status)}>
-                        {getStatusLabel(booking.status)}
-                      </Badge>
                       <div className="text-sm font-medium">
                         {booking.total_price} RON
                       </div>
