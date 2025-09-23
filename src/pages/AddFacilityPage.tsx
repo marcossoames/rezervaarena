@@ -42,7 +42,7 @@ const AddFacilityPage = () => {
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>('');
   const [isCapacityRange, setIsCapacityRange] = useState(false);
 
-  const { register, handleSubmit, setValue, formState: { errors }, getValues } = useForm<FacilityFormData>();
+  const { register, handleSubmit, setValue, formState: { errors }, getValues, watch } = useForm<FacilityFormData>();
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -79,6 +79,20 @@ const AddFacilityPage = () => {
       }
 
       setUserProfile(profile);
+      
+      // Set default city for non-admin users based on existing facilities
+      if (profile?.role !== 'admin') {
+        // Try to get the default city from user's existing facilities
+        const { data: userFacilities } = await supabase
+          .from('facilities')
+          .select('city')
+          .eq('owner_id', user.id)
+          .limit(1);
+        
+        if (userFacilities && userFacilities.length > 0) {
+          setValue("city", userFacilities[0].city);
+        }
+      }
       
       // If admin, load facility owners
       if (profile?.role === 'admin') {
@@ -511,12 +525,16 @@ const AddFacilityPage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="city">Oraș *</Label>
+                    <Label htmlFor="city">Oraș {userProfile?.role !== 'admin' ? '(auto-completat)' : '*'}</Label>
                     <Input
                       id="city"
                       type="text"
-                      {...register("city", { required: "Orașul este obligatoriu" })}
+                      {...register("city", { 
+                        required: userProfile?.role === 'admin' ? "Orașul este obligatoriu" : false 
+                      })}
                       className="bg-background/50"
+                      placeholder={userProfile?.role !== 'admin' ? "Se completează automat din setările bazei" : "Introduceți orașul"}
+                      disabled={userProfile?.role !== 'admin'}
                     />
                     {errors.city && (
                       <p className="text-sm text-destructive">{errors.city.message}</p>
@@ -564,21 +582,37 @@ const AddFacilityPage = () => {
                 <div className="space-y-4">
                   <Label className="text-base font-medium">Ore de Funcționare *</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <TimePicker
-                      label="Ora de deschidere"
-                      value={getValues("operatingHoursStart") || "08:00"}
-                      onChange={(value) => setValue("operatingHoursStart", value)}
-                      placeholder="Selectează ora de deschidere"
-                      error={errors.operatingHoursStart?.message}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="operatingHoursStart">Ora de deschidere</Label>
+                      <TimePicker
+                        value={watch("operatingHoursStart") || "08:00"}
+                        onChange={(value) => {
+                          setValue("operatingHoursStart", value);
+                          // Trigger validation
+                          register("operatingHoursStart", { required: "Ora de deschidere este obligatorie" });
+                        }}
+                        placeholder="Selectează ora de deschidere"
+                      />
+                      {errors.operatingHoursStart && (
+                        <p className="text-sm text-destructive">{errors.operatingHoursStart.message}</p>
+                      )}
+                    </div>
                     
-                    <TimePicker
-                      label="Ora de închidere"
-                      value={getValues("operatingHoursEnd") || "22:00"}
-                      onChange={(value) => setValue("operatingHoursEnd", value)}
-                      placeholder="Selectează ora de închidere"
-                      error={errors.operatingHoursEnd?.message}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="operatingHoursEnd">Ora de închidere</Label>
+                      <TimePicker
+                        value={watch("operatingHoursEnd") || "22:00"}
+                        onChange={(value) => {
+                          setValue("operatingHoursEnd", value);
+                          // Trigger validation
+                          register("operatingHoursEnd", { required: "Ora de închidere este obligatorie" });
+                        }}
+                        placeholder="Selectează ora de închidere"
+                      />
+                      {errors.operatingHoursEnd && (
+                        <p className="text-sm text-destructive">{errors.operatingHoursEnd.message}</p>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Hidden inputs for form validation */}
