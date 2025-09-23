@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -99,13 +99,21 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
     });
   };
 
-  // Load date data when booking date changes
+  // Load date data when booking date changes or when selectedDate prop changes
   const handleDateChange = (date: Date | undefined) => {
     setBookingDate(date);
     if (date) {
       loadDateData(date);
     }
   };
+
+  // Reset form when selectedDate prop changes
+  useEffect(() => {
+    if (selectedDate) {
+      setBookingDate(selectedDate);
+      loadDateData(selectedDate);
+    }
+  }, [selectedDate]);
 
   const weekdayLabels = [
     { value: 1, label: 'Luni' },

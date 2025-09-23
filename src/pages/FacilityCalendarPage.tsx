@@ -64,20 +64,13 @@ const FacilityCalendarPage = () => {
   const [facility, setFacility] = useState<Facility | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
   const [blockStartTime, setBlockStartTime] = useState("");
   const [blockEndTime, setBlockEndTime] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [blockReason, setBlockReason] = useState("");
-  const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Stati pentru blocarea recurentă
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [recurringType, setRecurringType] = useState<'weekly'>('weekly');
-  const [recurringEndDate, setRecurringEndDate] = useState<Date>();
-  const [weeklyDays, setWeeklyDays] = useState<number[]>([]);
-  
-  // Restricții pentru proprietarii de facilități: modificări doar de la astăzi înainte
   const today = startOfDay(new Date());
 
   useEffect(() => {
@@ -633,15 +626,154 @@ const FacilityCalendarPage = () => {
                          }
                          
                          return (
-                           <CombinedBlockDialog
-                             facilityId={facilityId}
-                             selectedDate={selectedDate}
-                              onBlockingAdded={() => {
-                                refreshBookings();
-                                refreshBlockedDates();
-                              }}
-                             hasExistingBookings={hasExistingBookings}
-                           />
+                           <>
+                             <CombinedBlockDialog
+                               facilityId={facilityId}
+                               selectedDate={selectedDate}
+                                onBlockingAdded={() => {
+                                  refreshBookings();
+                                  refreshBlockedDates();
+                                }}
+                               hasExistingBookings={hasExistingBookings}
+                             />
+                             
+                             {/* Block Specific Hours Button */}
+                             <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
+                               <DialogTrigger asChild>
+                                 <Button variant="outline" className="w-full">
+                                   <Clock className="h-4 w-4 mr-2" />
+                                   Blochează Anumite Ore
+                                 </Button>
+                               </DialogTrigger>
+                               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                                 <DialogHeader>
+                                   <DialogTitle>Blochează Anumite Ore</DialogTitle>
+                                   <DialogDescription>
+                                     Selectează intervalul orar pe care vrei să îl blochezi pentru {selectedDate && format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
+                                   </DialogDescription>
+                                 </DialogHeader>
+                                 
+                                 <div className="grid gap-4">
+                                   <div className="grid grid-cols-2 gap-4">
+                                     <div className="space-y-2">
+                                       <Label htmlFor="start-time">Ora de început</Label>
+                                       <Select value={blockStartTime} onValueChange={setBlockStartTime}>
+                                         <SelectTrigger>
+                                           <SelectValue placeholder="Selectează ora" />
+                                         </SelectTrigger>
+                                         <SelectContent className="max-h-[200px] overflow-y-auto">
+                                           {(() => {
+                                             const options = [];
+                                             const startHour = parseInt(facility?.operating_hours_start?.slice(0, 2) || '08');
+                                             const endHour = parseInt(facility?.operating_hours_end?.slice(0, 2) || '22');
+                                             
+                                             for (let hour = startHour; hour < endHour; hour++) {
+                                               for (let minute = 0; minute < 60; minute += 30) {
+                                                 const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                                                 
+                                                 // Check if this time slot has any booking conflicts
+                                                 const existingBookings = selectedDate ? getBookingsForDate(selectedDate) : [];
+                                                 const hasBookingConflict = existingBookings.some(booking => {
+                                                   const bookingStart = booking.start_time.slice(0, 5);
+                                                   const bookingEnd = booking.end_time.slice(0, 5);
+                                                   return timeString >= bookingStart && timeString < bookingEnd;
+                                                 });
+                                                 
+                                                 // Check if this time slot overlaps with any blocked time
+                                                 const existingBlocks = selectedDate ? getBlockedHoursForDate(selectedDate) : [];
+                                                 const hasBlockConflict = existingBlocks.some(block => {
+                                                   if (!block.start_time || !block.end_time) return true; // Full day block
+                                                   const blockStart = block.start_time.slice(0, 5);
+                                                   const blockEnd = block.end_time.slice(0, 5);
+                                                   return timeString >= blockStart && timeString < blockEnd;
+                                                 });
+                                                 
+                                                 options.push(
+                                                   <SelectItem 
+                                                     key={timeString} 
+                                                     value={timeString}
+                                                     disabled={hasBookingConflict || hasBlockConflict}
+                                                   >
+                                                     {timeString} {hasBookingConflict ? '(rezervat)' : hasBlockConflict ? '(blocat)' : ''}
+                                                   </SelectItem>
+                                                 );
+                                               }
+                                             }
+                                             return options;
+                                           })()}
+                                         </SelectContent>
+                                       </Select>
+                                     </div>
+                                     
+                                     <div className="space-y-2">
+                                       <Label htmlFor="end-time">Ora de sfârșit</Label>
+                                       <Select value={blockEndTime} onValueChange={setBlockEndTime}>
+                                         <SelectTrigger>
+                                           <SelectValue placeholder="Selectează ora" />
+                                         </SelectTrigger>
+                                         <SelectContent className="max-h-[200px] overflow-y-auto">
+                                           {(() => {
+                                             const options = [];
+                                             const startHour = parseInt(facility?.operating_hours_start?.slice(0, 2) || '08');
+                                             const endHour = parseInt(facility?.operating_hours_end?.slice(0, 2) || '22');
+                                             
+                                             for (let hour = startHour; hour <= endHour; hour++) {
+                                               for (let minute = 0; minute < 60; minute += 30) {
+                                                 if (hour === endHour && minute > 0) break;
+                                                 
+                                                 const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                                                 
+                                                 // Only show end times that are after the selected start time
+                                                 const isAfterStartTime = !blockStartTime || timeString > blockStartTime;
+                                                 
+                                                 options.push(
+                                                   <SelectItem 
+                                                     key={timeString} 
+                                                     value={timeString}
+                                                     disabled={!isAfterStartTime}
+                                                   >
+                                                     {timeString}
+                                                   </SelectItem>
+                                                 );
+                                               }
+                                             }
+                                             return options;
+                                           })()}
+                                         </SelectContent>
+                                       </Select>
+                                     </div>
+                                   </div>
+                                   
+                                   <div className="space-y-2">
+                                     <Label htmlFor="reason-partial">Motivul blocării *</Label>
+                                     <Textarea
+                                       id="reason-partial"
+                                       value={blockReason}
+                                       onChange={(e) => setBlockReason(e.target.value)}
+                                       placeholder="ex: Întreținere, eveniment privat, etc."
+                                     />
+                                   </div>
+                                   
+                                   <div className="flex gap-2">
+                                     <Button 
+                                       onClick={blockPartialHours} 
+                                       disabled={!blockReason.trim() || !blockStartTime || !blockEndTime}
+                                     >
+                                       Blochează Orele
+                                     </Button>
+                                     <Button variant="outline" onClick={() => {
+                                       setIsBlockDialogOpen(false);
+                                       setBlockStartTime("");
+                                       setBlockEndTime("");
+                                       setBlockReason("");
+                                     }}>
+                                       Anulează
+                                     </Button>
+                                   </div>
+                                 </div>
+                               </DialogContent>
+                             </Dialog>
+                           </>
                          );
                        })()}
                        
