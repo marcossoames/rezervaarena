@@ -102,6 +102,9 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
   // Load date data when booking date changes or when selectedDate prop changes
   const handleDateChange = (date: Date | undefined) => {
     setBookingDate(date);
+    // Reset time selections when date changes to avoid invalid carry-over
+    setStartTime("");
+    setEndTime("");
     if (date) {
       loadDateData(date);
     }
@@ -114,6 +117,19 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
       loadDateData(selectedDate);
     }
   }, [selectedDate]);
+
+  // Ensure latest selected date is used when opening the dialog
+  useEffect(() => {
+    if (isOpen) {
+      const dateToUse = selectedDate || new Date();
+      setBookingDate(dateToUse);
+      loadDateData(dateToUse);
+      // Clear time/notes to prevent stale values from previous date
+      setStartTime("");
+      setEndTime("");
+      setNotes("");
+    }
+  }, [isOpen, selectedDate]);
 
   const weekdayLabels = [
     { value: 1, label: 'Luni' },
@@ -264,7 +280,7 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
         total_amount: calculatedPrice,
         platform_fee_amount: 0, // No platform fee for manual bookings
         facility_owner_amount: calculatedPrice,
-        payment_method: 'manual',
+        payment_method: 'cash',
         status: 'confirmed' as const,
         notes: `REZERVARE MANUALĂ - Client: ${clientName}${clientPhone ? ` (Tel: ${clientPhone})` : ''} | Creat manual de proprietarul facilității${notes ? ` | Note suplimentare: ${notes}` : ''}`
       }));
