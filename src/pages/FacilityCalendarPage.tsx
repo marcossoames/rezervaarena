@@ -145,6 +145,67 @@ const FacilityCalendarPage = () => {
     loadData();
   }, [facilityId, navigate, toast]);
 
+  // Real-time updates for blocked dates and recurring blocked dates
+  useEffect(() => {
+    if (!facilityId) return;
+
+    const channel = supabase
+      .channel('facility-blocks-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'blocked_dates',
+          filter: `facility_id=eq.${facilityId}`
+        },
+        () => {
+          console.log('Blocked dates changed, refreshing...');
+          // Refresh blocked dates data
+          supabase
+            .from('blocked_dates')
+            .select('*')
+            .eq('facility_id', facilityId)
+            .gte('blocked_date', format(new Date(), 'yyyy-MM-dd'))
+            .order('blocked_date', { ascending: true })
+            .then(({ data, error }) => {
+              if (!error) {
+                setBlockedDates(data || []);
+              }
+            });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'recurring_blocked_dates',
+          filter: `facility_id=eq.${facilityId}`
+        },
+        () => {
+          console.log('Recurring blocked dates changed, refreshing...');
+          // Refresh blocked dates data to include new recurring blocks
+          supabase
+            .from('blocked_dates')
+            .select('*')
+            .eq('facility_id', facilityId)
+            .gte('blocked_date', format(new Date(), 'yyyy-MM-dd'))
+            .order('blocked_date', { ascending: true })
+            .then(({ data, error }) => {
+              if (!error) {
+                setBlockedDates(data || []);
+              }
+            });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [facilityId]);
+
   const getBookingsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return bookings.filter(booking => booking.booking_date === dateStr);
