@@ -239,7 +239,7 @@ const ManageFacilitiesPage = () => {
     if (error) {
       toast({
         title: "Eroare",
-        description: "Nu s-a putut actualiza statusul facilității",
+        description: "Nu s-a putut actualiza statusul terenului",
         variant: "destructive"
       });
     } else {
@@ -248,13 +248,13 @@ const ManageFacilitiesPage = () => {
       );
       toast({
         title: "Status actualizat",
-        description: `Facilitatea a fost ${!currentStatus ? 'activată' : 'dezactivată'}`
+        description: `Terenul a fost ${!currentStatus ? 'activat' : 'dezactivat'}`
       });
     }
   };
 
   const deleteFacility = async (facilityId: string) => {
-    if (!confirm("Ești sigur că vrei să ștergi această facilitate? Această acțiune nu poate fi anulată.")) {
+    if (!confirm("Ești sigur că vrei să ștergi acest teren? Această acțiune nu poate fi anulată.")) {
       return;
     }
 
@@ -275,7 +275,7 @@ const ManageFacilitiesPage = () => {
     if (error) {
       toast({
         title: "Eroare",
-        description: "Nu s-a putut șterge facilitatea",
+        description: "Nu s-a putut șterge terenul",
         variant: "destructive"
       });
     } else {
@@ -298,8 +298,8 @@ const ManageFacilitiesPage = () => {
 
       setFacilities(prev => prev.filter(f => f.id !== facilityId));
       toast({
-        title: "Facilitate ștearsă",
-        description: "Facilitatea a fost ștearsă cu succes"
+        title: "Teren șters",
+        description: "Terenul a fost șters cu succes"
       });
     }
   };
@@ -378,7 +378,7 @@ const ManageFacilitiesPage = () => {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="facilities" className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              Facilitățile Mele ({facilities.length})
+              Terenurile Mele ({facilities.length})
             </TabsTrigger>
             <TabsTrigger value="bookings" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -394,9 +394,9 @@ const ManageFacilitiesPage = () => {
                 <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                   <Plus className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Nicio facilitate adăugată</h3>
+                <h3 className="text-xl font-semibold mb-2">Niciun teren adăugat</h3>
                 <p className="text-muted-foreground mb-6">
-                  Începe prin a adăuga prima ta facilitate sportivă
+                  Începe prin a adăuga primul tău teren sportiv
                 </p>
                 <Link to="/add-facility">
                   <Button>Adaugă Primul Teren</Button>
@@ -601,7 +601,7 @@ const ManageFacilitiesPage = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Nicio rezervare</h3>
                 <p className="text-muted-foreground">
-                  Când clienții vor face rezervări pentru facilitățile tale le vei vedea aici
+                  Când clienții vor face rezervări pentru terenurile tale le vei vedea aici
                 </p>
               </CardContent>
             </Card>

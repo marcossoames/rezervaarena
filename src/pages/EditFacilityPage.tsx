@@ -415,7 +415,7 @@ const EditFacilityPage = () => {
       <div className="container mx-auto max-w-2xl mb-4">
         <Link to="/manage-facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
           <ArrowLeft className="h-4 w-4" />
-          Înapoi la facilitățile mele
+          Înapoi la terenurile mele
         </Link>
       </div>
       

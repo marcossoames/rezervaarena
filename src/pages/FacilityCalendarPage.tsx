@@ -418,7 +418,7 @@ const FacilityCalendarPage = () => {
         <div className="mb-8">
           <Link to="/manage-facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4">
             <ArrowLeft className="h-4 w-4" />
-            Înapoi la facilitățile mele
+            Înapoi la terenurile mele
           </Link>
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
