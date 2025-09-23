@@ -92,7 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="text-align: center; margin-top: 30px;">
               <p style="color: #666; font-size: 14px;">
                 Cu respect,<br>
-                <strong>Echipa RezervArena</strong>
+                <strong>Echipa RezervaArena</strong>
               </p>
             </div>
           </div>
@@ -109,7 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="margin: 0; font-size: 28px;">RezervArena</h1>
+            <h1 style="margin: 0; font-size: 28px;">RezervaArena</h1>
             <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Rezervare anulată</p>
           </div>
           
@@ -144,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
             
             <p style="margin-top: 30px; font-size: 14px; color: #666; text-align: center;">
               Cu respect,<br>
-              <strong>Echipa RezervArena</strong>
+              <strong>Echipa RezervaArena</strong>
             </p>
           </div>
         </body>
@@ -153,7 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResult = await resend.emails.send({
-      from: "RezervArena <noreply@rezervaarena.com>",
+      from: "RezervaArena <noreply@rezervaarena.com>",
       to: [ownerEmail],
       subject: subject,
       html: htmlContent,

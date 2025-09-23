@@ -753,7 +753,7 @@ const BookingManagement = () => {
                                 booking.status === 'cancelled' ? 'opacity-60 line-through' :
                                 ''
                               }`}
-                             title={`Click pentru detalii - ${booking.start_time} - ${booking.facility_name} (${getFacilityTypeLabel(booking.facility_type)})`}
+                             title={`Click pentru detalii - ${booking.start_time.slice(0, 5)} - ${booking.facility_name} (${getFacilityTypeLabel(booking.facility_type)})`}
                              onClick={(e) => {
                                e.stopPropagation();
                                setSelectedBookingId(booking.id);
@@ -762,7 +762,7 @@ const BookingManagement = () => {
                            >
                              <div className="flex items-center gap-1">
                                <Clock className="h-2 w-2 sm:h-3 sm:w-3" />
-                               <span className="truncate">{booking.start_time}</span>
+                               <span className="truncate">{booking.start_time.slice(0, 5)}</span>
                              </div>
                              <div className="text-[8px] sm:text-[10px] opacity-90 truncate hidden sm:block">
                                {getFacilityTypeLabel(booking.facility_type)}
@@ -823,7 +823,7 @@ const BookingManagement = () => {
                               {blocked.start_time && blocked.end_time && (
                                 <div className="flex items-center gap-2">
                                   <Clock className="h-4 w-4" />
-                                  <span>Interval: {blocked.start_time} - {blocked.end_time}</span>
+                                  <span>Interval: {blocked.start_time.slice(0, 5)} - {blocked.end_time.slice(0, 5)}</span>
                                 </div>
                               )}
                               {blocked.reason && (
@@ -894,7 +894,7 @@ const BookingManagement = () => {
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <Clock className="h-4 w-4" />
-                                  {booking.start_time} - {booking.end_time}
+                                  {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <MapPin className="h-4 w-4" />

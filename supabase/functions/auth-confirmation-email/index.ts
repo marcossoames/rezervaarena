@@ -60,9 +60,9 @@ serve(async (req) => {
     console.log("Confirmation URL:", confirmationUrl);
 
     const { error: resendError } = await resend.emails.send({
-      from: "RezervArena <onboarding@resend.dev>",
+      from: "RezervaArena <onboarding@resend.dev>",
       to: [user.email],
-      subject: "Confirmă-ți contul RezervArena",
+      subject: "Confirmă-ți contul RezervaArena",
       html: `
         <!DOCTYPE html>
         <html>
@@ -81,7 +81,7 @@ serve(async (req) => {
           </head>
           <body>
             <div class="wrap">
-              <h1>RezervArena</h1>
+              <h1>RezervaArena</h1>
               <div class="card">
                 <h2 style="margin-top:0">Bun venit${fullName ? ", " + fullName : ""}!</h2>
                 <p>Te rugăm să îți confirmi adresa de email pentru a activa contul.</p>

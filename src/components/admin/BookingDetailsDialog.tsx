@@ -309,7 +309,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
                       </div>
                       <div>
                         <div className="font-medium">
-                          {booking.start_time} - {booking.end_time}
+                          {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
                         </div>
                         <div className="text-sm text-muted-foreground">Interval orar</div>
                       </div>

@@ -898,13 +898,13 @@ const FacilityCalendarPage = () => {
               <div className="space-y-3">
                 {bookings.slice(0, 10).map((booking) => (
                   <div key={booking.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="space-y-1">
-                      <div className="font-medium">
-                        {format(new Date(booking.booking_date), 'dd MMMM yyyy', { locale: ro })}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
-                      </div>
+                      <div className="space-y-1">
+                        <div className="font-medium">
+                          {format(new Date(booking.booking_date), 'dd MMMM yyyy', { locale: ro })}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                        </div>
                     </div>
                     <div className="text-right space-y-1">
                       <div className="text-sm font-medium">
