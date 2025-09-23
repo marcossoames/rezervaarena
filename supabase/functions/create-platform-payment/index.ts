@@ -141,7 +141,7 @@ serve(async (req) => {
     });
 
     // Create Stripe Checkout session
-    const successBase = 'https://947ae49f-e8d5-4283-95f7-ef683f84f2b9.lovableproject.com';
+    const successBase = 'https://rezervaarena.com';
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email ?? undefined,
