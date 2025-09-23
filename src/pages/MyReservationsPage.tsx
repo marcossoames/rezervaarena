@@ -556,6 +556,7 @@ const MyReservationsPage = () => {
         </div>
 
         {(() => {
+          // Updated function to handle sorting without status filtering
           const sortedBookings = getSortedBookings();
           return sortedBookings.length === 0 ? (
           <Card className="text-center py-12">
