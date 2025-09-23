@@ -478,6 +478,36 @@ export type Database = {
           },
         ]
       }
+      pending_cancellation_emails: {
+        Row: {
+          booking_ids: string[] | null
+          client_emails: string[] | null
+          created_at: string | null
+          facility_names: string[] | null
+          id: string
+          processed: boolean | null
+          reason: string | null
+        }
+        Insert: {
+          booking_ids?: string[] | null
+          client_emails?: string[] | null
+          created_at?: string | null
+          facility_names?: string[] | null
+          id?: string
+          processed?: boolean | null
+          reason?: string | null
+        }
+        Update: {
+          booking_ids?: string[] | null
+          client_emails?: string[] | null
+          created_at?: string | null
+          facility_names?: string[] | null
+          id?: string
+          processed?: boolean | null
+          reason?: string | null
+        }
+        Relationships: []
+      }
       platform_payments: {
         Row: {
           booking_id: string | null

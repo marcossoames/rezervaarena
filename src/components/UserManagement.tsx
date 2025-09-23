@@ -156,6 +156,41 @@ const UserManagement = () => {
         throw error;
       }
 
+      // After successful deletion, check for pending cancellation emails and send them
+      const { data: pendingEmails } = await supabase
+        .from('pending_cancellation_emails')
+        .select('*')
+        .eq('processed', false)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (pendingEmails && pendingEmails.length > 0) {
+        const emailData = pendingEmails[0];
+        
+        try {
+          console.log('Sending cancellation emails for deleted account...');
+          await supabase.functions.invoke('send-booking-cancellation-email', {
+            body: {
+              bookingIds: emailData.booking_ids,
+              clientEmails: emailData.client_emails,
+              facilityName: emailData.facility_names?.join(', '),
+              reason: emailData.reason
+            }
+          });
+
+          // Mark as processed
+          await supabase
+            .from('pending_cancellation_emails')
+            .update({ processed: true })
+            .eq('id', emailData.id);
+
+          console.log('Cancellation emails sent successfully');
+        } catch (emailError) {
+          console.error('Error sending cancellation emails:', emailError);
+          // Don't fail the entire operation if email sending fails
+        }
+      }
+
       if (data) {
         toast({
           title: "Succes",
