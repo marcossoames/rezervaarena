@@ -686,30 +686,57 @@ const FacilityCalendarPage = () => {
                                          <SelectValue placeholder="Selectează ora" />
                                        </SelectTrigger>
                                        <SelectContent>
-                                         {Array.from({ length: 48 }, (_, i) => {
-                                           const hour = Math.floor(i / 2);
-                                           const minute = i % 2 === 0 ? '00' : '30';
-                                           const timeValue = `${hour.toString().padStart(2, '0')}:${minute}`;
+                                         {(() => {
+                                           const startHour = facility?.operating_hours_start ? parseInt(facility.operating_hours_start.split(':')[0]) : 8;
+                                           const endHour = facility?.operating_hours_end ? parseInt(facility.operating_hours_end.split(':')[0]) : 22;
+                                           const times = [];
                                            
-                                           // Skip past times for today
-                                           if (selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')) {
-                                             const now = new Date();
-                                             const currentHour = now.getHours();
-                                             const currentMinute = now.getMinutes();
-                                             const timeHour = parseInt(timeValue.split(':')[0]);
-                                             const timeMinute = parseInt(timeValue.split(':')[1]);
-                                             
-                                             if (timeHour < currentHour || (timeHour === currentHour && timeMinute <= currentMinute)) {
-                                               return null;
+                                           for (let hour = startHour; hour < endHour; hour++) {
+                                             for (let minute = 0; minute < 60; minute += 30) {
+                                               const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                                               
+                                               // Skip past times for today
+                                               if (selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')) {
+                                                 const now = new Date();
+                                                 const currentHour = now.getHours();
+                                                 const currentMinute = now.getMinutes();
+                                                 const timeHour = parseInt(timeValue.split(':')[0]);
+                                                 const timeMinute = parseInt(timeValue.split(':')[1]);
+                                                 
+                                                 if (timeHour < currentHour || (timeHour === currentHour && timeMinute <= currentMinute)) {
+                                                   continue;
+                                                 }
+                                               }
+                                               
+                                               // Check if this time conflicts with existing bookings
+                                               const dayBookings = selectedDate ? getBookingsForDate(selectedDate) : [];
+                                               const hasConflict = dayBookings.some(booking => {
+                                                 const bookingStart = booking.start_time;
+                                                 const bookingEnd = booking.end_time;
+                                                 return timeValue >= bookingStart && timeValue < bookingEnd;
+                                               });
+                                               
+                                               // Check if this time conflicts with existing blocked hours
+                                               const dateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+                                               const dayBlockedHours = blockedDates.filter(blocked => 
+                                                 blocked.blocked_date === dateStr && blocked.start_time && blocked.end_time
+                                               );
+                                               const hasBlockConflict = dayBlockedHours.some(blocked => {
+                                                 return timeValue >= (blocked.start_time || '') && timeValue < (blocked.end_time || '');
+                                               });
+                                               
+                                               if (!hasConflict && !hasBlockConflict) {
+                                                 times.push(timeValue);
+                                               }
                                              }
                                            }
                                            
-                                           return (
+                                           return times.map(timeValue => (
                                              <SelectItem key={timeValue} value={timeValue}>
                                                {timeValue}
                                              </SelectItem>
-                                           );
-                                         })}
+                                           ));
+                                         })()}
                                        </SelectContent>
                                      </Select>
                                    </div>
@@ -721,22 +748,55 @@ const FacilityCalendarPage = () => {
                                          <SelectValue placeholder="Selectează ora" />
                                        </SelectTrigger>
                                        <SelectContent>
-                                         {Array.from({ length: 48 }, (_, i) => {
-                                           const hour = Math.floor(i / 2);
-                                           const minute = i % 2 === 0 ? '00' : '30';
-                                           const timeValue = `${hour.toString().padStart(2, '0')}:${minute}`;
+                                         {(() => {
+                                           if (!blockStartTime) return [];
                                            
-                                           // Only show times after start time
-                                           if (blockStartTime && timeValue <= blockStartTime) {
-                                             return null;
+                                           const startHour = facility?.operating_hours_start ? parseInt(facility.operating_hours_start.split(':')[0]) : 8;
+                                           const endHour = facility?.operating_hours_end ? parseInt(facility.operating_hours_end.split(':')[0]) : 22;
+                                           const times = [];
+                                           
+                                           for (let hour = startHour; hour <= endHour; hour++) {
+                                             for (let minute = 0; minute < 60; minute += 30) {
+                                               if (hour === endHour && minute > 0) break; // Don't go past end hour
+                                               
+                                               const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                                               
+                                               // Only show times after start time
+                                               if (timeValue <= blockStartTime) {
+                                                 continue;
+                                               }
+                                               
+                                               // Check if this end time would conflict with existing bookings
+                                               const dayBookings = selectedDate ? getBookingsForDate(selectedDate) : [];
+                                               const hasConflict = dayBookings.some(booking => {
+                                                 const bookingStart = booking.start_time;
+                                                 const bookingEnd = booking.end_time;
+                                                 // Check if the proposed blocking period overlaps with any booking
+                                                 return (blockStartTime < bookingEnd && timeValue > bookingStart);
+                                               });
+                                               
+                                               // Check if this end time would conflict with existing blocked hours
+                                               const dateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+                                               const dayBlockedHours = blockedDates.filter(blocked => 
+                                                 blocked.blocked_date === dateStr && blocked.start_time && blocked.end_time
+                                               );
+                                               const hasBlockConflict = dayBlockedHours.some(blocked => {
+                                                 // Check if the proposed blocking period overlaps with any existing block
+                                                 return (blockStartTime < (blocked.end_time || '') && timeValue > (blocked.start_time || ''));
+                                               });
+                                               
+                                               if (!hasConflict && !hasBlockConflict) {
+                                                 times.push(timeValue);
+                                               }
+                                             }
                                            }
                                            
-                                           return (
+                                           return times.map(timeValue => (
                                              <SelectItem key={timeValue} value={timeValue}>
                                                {timeValue}
                                              </SelectItem>
-                                           );
-                                         })}
+                                           ));
+                                         })()}
                                        </SelectContent>
                                      </Select>
                                    </div>
