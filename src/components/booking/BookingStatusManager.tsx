@@ -155,7 +155,7 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
                 price: bookingData.total_price
               };
 
-              await supabase.functions.invoke('send-booking-cancellation-email', {
+              const response = await supabase.functions.invoke('send-booking-cancellation-email', {
                 body: {
                   bookingIds: [booking.id],
                   clientEmails: [profileData.email],
@@ -165,7 +165,22 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
                 }
               });
 
-              console.log('Cancellation email sent successfully');
+              console.log('Email function response:', response);
+              
+              if (response.error) {
+                console.error('Email function error:', response.error);
+                toast({
+                  title: "Avertisment",
+                  description: "Statusul a fost actualizat, dar nu s-a putut trimite emailul de notificare.",
+                  variant: "destructive"
+                });
+              } else {
+                console.log('Cancellation email sent successfully');
+                toast({
+                  title: "Email trimis",
+                  description: "Clientul a fost notificat prin email despre anulare.",
+                });
+              }
             }
           }
         } catch (emailError) {
@@ -174,10 +189,13 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
         }
       }
 
-      toast({
-        title: "Status actualizat",
-        description: `Rezervarea a fost marcată ca "${getStatusInfo(selectedStatus).label.toLowerCase()}"${selectedStatus === 'cancelled' ? '. Clientul va fi notificat prin email.' : ''}`,
-      });
+      // Only show the main success toast if no specific email toast was shown
+      if (selectedStatus !== 'cancelled' || booking.status === 'cancelled') {
+        toast({
+          title: "Status actualizat",
+          description: `Rezervarea a fost marcată ca "${getStatusInfo(selectedStatus).label.toLowerCase()}"`,
+        });
+      }
 
       setIsDialogOpen(false);
       onStatusUpdate();
