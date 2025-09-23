@@ -7,27 +7,30 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { TimePicker } from "@/components/ui/time-picker";
-import { Plus, Repeat, UserPlus } from "lucide-react";
-import { format, addDays, addWeeks, getDay } from "date-fns";
+import { UserPlus, Repeat } from "lucide-react";
+import { format, addDays, getDay } from "date-fns";
 import { ro } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AddManualBookingDialogProps {
   facilityId: string;
+  facility: {
+    operating_hours_start?: string;
+    operating_hours_end?: string;
+    price_per_hour: number;
+  };
   onBookingAdded: () => void;
   selectedDate?: Date;
 }
 
-const AddManualBookingDialog = ({ facilityId, onBookingAdded, selectedDate }: AddManualBookingDialogProps) => {
+const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selectedDate }: AddManualBookingDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [bookingDate, setBookingDate] = useState<Date | undefined>(selectedDate || new Date());
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [price, setPrice] = useState("");
   const [notes, setNotes] = useState("");
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringType, setRecurringType] = useState<'weekly'>('weekly');
@@ -46,6 +49,35 @@ const AddManualBookingDialog = ({ facilityId, onBookingAdded, selectedDate }: Ad
     { value: 6, label: 'Sâmbătă' },
     { value: 0, label: 'Duminică' }
   ];
+
+  const getTimeOptions = () => {
+    const times = [];
+    const startHour = facility?.operating_hours_start ? parseInt(facility.operating_hours_start.split(':')[0]) : 8;
+    const endHour = facility?.operating_hours_end ? parseInt(facility.operating_hours_end.split(':')[0]) : 22;
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        times.push({ value: timeString, label: timeString });
+      }
+    }
+    
+    // Add end hour
+    const endTimeString = `${endHour.toString().padStart(2, '0')}:00`;
+    times.push({ value: endTimeString, label: endTimeString });
+    
+    return times;
+  };
+
+  const calculatePrice = () => {
+    if (!startTime || !endTime || !facility) return 0;
+    
+    const start = new Date(`2000-01-01T${startTime}:00`);
+    const end = new Date(`2000-01-01T${endTime}:00`);
+    const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    
+    return durationHours * facility.price_per_hour;
+  };
 
   const generateRecurringDates = (startDate: Date, endDate: Date, selectedDays?: number[]) => {
     const dates = [];
@@ -74,7 +106,7 @@ const AddManualBookingDialog = ({ facilityId, onBookingAdded, selectedDate }: Ad
   };
 
   const handleSubmit = async () => {
-    if (!bookingDate || !startTime || !endTime || !clientName.trim() || !price) {
+    if (!bookingDate || !startTime || !endTime || !clientName.trim()) {
       toast({
         title: "Eroare",
         description: "Te rugăm să completezi toate câmpurile obligatorii",
@@ -114,8 +146,8 @@ const AddManualBookingDialog = ({ facilityId, onBookingAdded, selectedDate }: Ad
         datesToBook = generateRecurringDates(bookingDate, recurringEndDate, daysToUse);
       }
 
-      // Create a temporary client profile for manual bookings
-      const tempClientId = `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Create bookings for manual entries
+      const calculatedPrice = calculatePrice();
       
       const bookingsToInsert = datesToBook.map(date => ({
         client_id: user.id, // Use facility owner as client_id for manual bookings
@@ -123,10 +155,10 @@ const AddManualBookingDialog = ({ facilityId, onBookingAdded, selectedDate }: Ad
         booking_date: format(date, 'yyyy-MM-dd'),
         start_time: startTime + ':00',
         end_time: endTime + ':00',
-        total_price: parseFloat(price),
-        total_amount: parseFloat(price),
+        total_price: calculatedPrice,
+        total_amount: calculatedPrice,
         platform_fee_amount: 0, // No platform fee for manual bookings
-        facility_owner_amount: parseFloat(price),
+        facility_owner_amount: calculatedPrice,
         payment_method: 'manual',
         status: 'confirmed' as const,
         notes: `REZERVARE MANUALĂ - Client: ${clientName}${clientPhone ? ` (${clientPhone})` : ''}${notes ? ` | Note: ${notes}` : ''} | Nu realizată prin site`
@@ -153,7 +185,6 @@ const AddManualBookingDialog = ({ facilityId, onBookingAdded, selectedDate }: Ad
       setBookingDate(selectedDate || new Date());
       setStartTime("");
       setEndTime("");
-      setPrice("");
       setNotes("");
       setIsRecurring(false);
       setRecurringEndDate(undefined);
@@ -230,37 +261,55 @@ const AddManualBookingDialog = ({ facilityId, onBookingAdded, selectedDate }: Ad
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="startTime">Ora început *</Label>
-                <TimePicker
-                  id="startTime"
-                  value={startTime}
-                  onChange={setStartTime}
-                  placeholder="HH:MM"
-                />
+                <Select value={startTime} onValueChange={setStartTime}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selectează ora" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getTimeOptions()
+                      .filter(time => !endTime || time.value < endTime)
+                      .map((time) => (
+                        <SelectItem key={time.value} value={time.value}>
+                          {time.label}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="endTime">Ora sfârșit *</Label>
-                <TimePicker
-                  id="endTime"
-                  value={endTime}
-                  onChange={setEndTime}
-                  placeholder="HH:MM"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Preț (RON) *</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="0.00"
-                />
+                <Select value={endTime} onValueChange={setEndTime} disabled={!startTime}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selectează ora" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getTimeOptions()
+                      .filter(time => startTime && time.value > startTime)
+                      .map((time) => (
+                        <SelectItem key={time.value} value={time.value}>
+                          {time.label}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
+            {/* Price Display */}
+            {startTime && endTime && (
+              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Preț total:</span>
+                  <span className="font-bold text-lg">{calculatePrice().toFixed(2)} RON</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {((new Date(`2000-01-01T${endTime}:00`).getTime() - new Date(`2000-01-01T${startTime}:00`).getTime()) / (1000 * 60 * 60)).toFixed(1)} ore × {facility.price_per_hour} RON/oră
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Recurring Options */}
@@ -361,7 +410,7 @@ const AddManualBookingDialog = ({ facilityId, onBookingAdded, selectedDate }: Ad
           <div className="flex gap-2 pt-4">
             <Button 
               onClick={handleSubmit} 
-              disabled={isLoading || !clientName.trim() || !bookingDate || !startTime || !endTime || !price}
+              disabled={isLoading || !clientName.trim() || !bookingDate || !startTime || !endTime}
               className="flex-1"
             >
               {isLoading ? 'Se creează...' : (isRecurring ? 'Creează Rezervările' : 'Creează Rezervarea')}

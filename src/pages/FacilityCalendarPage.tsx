@@ -742,6 +742,7 @@ const FacilityCalendarPage = () => {
                     <div className="space-y-2">
                       <AddManualBookingDialog 
                         facilityId={facilityId!}
+                        facility={facility}
                         onBookingAdded={refreshBookings}
                         selectedDate={selectedDate}
                       />
