@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Building2, Calendar, LogOut, Settings, Coins, FileText, Landmark } from "lucide-react";
+import { Shield, Users, Building2, Calendar, LogOut, Settings, Coins, FileText, Landmark, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { secureSignOut } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
@@ -136,6 +136,15 @@ const AdminDashboard = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
+              <Button 
+                onClick={() => navigate("/")} 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Înapoi la Home
+              </Button>
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <Shield className="w-6 h-6 text-primary-foreground" />
               </div>

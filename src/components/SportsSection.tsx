@@ -153,7 +153,7 @@ const SportsSection = () => {
   }, []);
   return <section id="terenuri" className="pt-8 pb-20 bg-gradient-to-br from-secondary/10 via-background to-primary/5">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8">
           <h2 className="text-4xl font-bold text-foreground mb-4">
             Tipuri de <span className="text-primary">Terenuri Sportive</span>
           </h2>
@@ -167,10 +167,10 @@ const SportsSection = () => {
                   <OptimizedImage 
                     src={sport.image} 
                     alt={sport.name} 
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" 
+                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300" 
                     loading="lazy" 
                     width={395} 
-                    height={192}
+                    height={256}
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px" 
                     quality={70}
                   />
@@ -180,10 +180,10 @@ const SportsSection = () => {
                   </div>
                 </div>
                 
-                <div className="p-6 flex flex-col h-full">
-                  <p className="text-sm text-muted-foreground mb-3 flex-grow">{sport.description}</p>
+                <div className="p-4 flex flex-col h-full">
+                  <p className="text-sm text-muted-foreground mb-2 flex-grow">{sport.description}</p>
                   
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-1 mb-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Terenuri disponibile:</span>
                       <span className="font-semibold text-primary">{sport.facilities}</span>
