@@ -192,10 +192,13 @@ const handler = async (req: Request): Promise<Response> => {
           facilityName: facilityData.name,
           clientName: clientProfile.full_name,
           clientEmail: clientProfile.email,
+          clientPhone: clientProfile.phone,
           bookingDate: bookingDate,
           bookingTime: `${startTime} - ${endTime}`,
           totalPrice: booking.total_price,
-          notificationType: 'booking_confirmed'
+          notificationType: 'booking_confirmed',
+          bookingId: booking.id,
+          paymentMethod: booking.payment_method
         }
       });
 
