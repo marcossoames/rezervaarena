@@ -194,12 +194,70 @@ const BookingManagement = () => {
 
   const updateBookingStatus = async (bookingId: string, newStatus: 'confirmed' | 'cancelled' | 'completed' | 'no_show') => {
     try {
+      const oldBooking = bookings.find(b => b.id === bookingId);
+      
       const { error } = await supabase
         .from('bookings')
         .update({ status: newStatus })
         .eq('id', bookingId);
 
       if (error) throw error;
+
+      // Send cancellation email if booking was cancelled by admin
+      if (newStatus === 'cancelled' && oldBooking && oldBooking.status !== 'cancelled') {
+        try {
+          console.log('Admin cancelled booking, sending email notification...');
+          
+          // Get full booking details for the email
+          const { data: bookingData, error: bookingError } = await supabase
+            .from('bookings')
+            .select(`
+              id,
+              booking_date,
+              start_time,
+              end_time,
+              total_price,
+              client_id,
+              facility_id,
+              facilities (name)
+            `)
+            .eq('id', bookingId)
+            .single();
+
+          if (!bookingError && bookingData) {
+            // Get client email
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('email')
+              .eq('user_id', bookingData.client_id)
+              .single();
+
+            if (profileData?.email) {
+              const facilityName = (bookingData.facilities as any)?.name || 'Baza sportivă';
+              const bookingDetails = {
+                date: new Date(bookingData.booking_date).toLocaleDateString('ro-RO'),
+                time: `${bookingData.start_time.slice(0, 5)} - ${bookingData.end_time.slice(0, 5)}`,
+                price: bookingData.total_price
+              };
+
+              await supabase.functions.invoke('send-booking-cancellation-email', {
+                body: {
+                  bookingIds: [bookingId],
+                  clientEmails: [profileData.email],
+                  facilityName,
+                  reason: 'Rezervarea a fost anulată de către administrator.',
+                  bookingDetails
+                }
+              });
+
+              console.log('Admin cancellation email sent successfully');
+            }
+          }
+        } catch (emailError) {
+          console.error('Error sending admin cancellation email:', emailError);
+          // Don't block the status update if email fails
+        }
+      }
 
       setBookings(prev => prev.map(booking => 
         booking.id === bookingId 
@@ -209,7 +267,7 @@ const BookingManagement = () => {
 
       toast({
         title: "Succes",
-        description: "Statusul rezervării a fost actualizat",
+        description: `Statusul rezervării a fost actualizat${newStatus === 'cancelled' ? '. Clientul va fi notificat prin email.' : ''}`,
       });
     } catch (error) {
       console.error('Error updating booking status:', error);
