@@ -51,12 +51,19 @@ serve(async (req) => {
 
     const fullName = user.user_metadata?.full_name || user.email.split("@")[0] || "Utilizator";
 
-    // Build the standard Supabase verification link
+    // Build the standard Supabase verification link with proper redirect
     const supabaseUrl = site_url?.replace(/\/$/, "") || "https://ukopxkymzywfpobpcana.supabase.co";
-    const redirect = redirect_to || `${supabaseUrl}`;
-    const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect)}`;
+    
+    // Use the origin from the site_url or window origin for production/preview
+    const baseOrigin = supabaseUrl.includes('supabase.co') ? 
+      (redirect_to?.includes('localhost') ? 'http://localhost:3000' : 'https://rezervaarena.com') : 
+      redirect_to || `${supabaseUrl}`;
+    
+    const finalRedirect = `${baseOrigin}/email-confirmation`;
+    const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(finalRedirect)}`;
 
     console.log("Sending confirmation email via Resend to:", user.email);
+    console.log("Final redirect URL:", finalRedirect);
     console.log("Confirmation URL:", confirmationUrl);
 
     const { error: resendError } = await resend.emails.send({

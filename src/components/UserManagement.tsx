@@ -134,7 +134,8 @@ const UserManagement = () => {
 
       // First, send confirmation email with proper data
       try {
-        await supabase.functions.invoke('send-account-deletion-email', {
+        console.log('Admin sending deletion email to:', userEmail);
+        const emailResponse = await supabase.functions.invoke('send-account-deletion-email', {
           body: {
             userId: userId,
             userEmail: userEmail,
@@ -142,9 +143,15 @@ const UserManagement = () => {
             userType: targetProfile?.role === 'client' ? 'client' : 'facility_owner'
           }
         });
-        console.log('Deletion confirmation email sent successfully');
+        console.log('Admin deletion email response:', emailResponse);
+        
+        if (emailResponse.error) {
+          console.error('Admin deletion email error:', emailResponse.error);
+        } else {
+          console.log('Admin deletion confirmation email sent successfully');
+        }
       } catch (emailError) {
-        console.error('Error sending deletion email:', emailError);
+        console.error('Error sending admin deletion email:', emailError);
         // Continue with deletion even if email fails
       }
 

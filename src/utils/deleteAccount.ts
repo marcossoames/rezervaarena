@@ -181,6 +181,7 @@ export const deleteUserAccount = async () => {
     // Send deletion confirmation email AFTER successful deletion
     if (profile?.email && profile?.full_name) {
       try {
+        console.log('Attempting to send deletion confirmation email to:', profile.email);
         const emailResult = await supabase.functions.invoke('send-account-deletion-email', {
           body: {
             userId: user.id,
@@ -192,15 +193,22 @@ export const deleteUserAccount = async () => {
           }
         });
         
+        console.log('Email function response:', emailResult);
+        
         if (emailResult.error) {
           console.error('Email function error:', emailResult.error);
         } else {
-          console.log('Deletion confirmation email sent successfully');
+          console.log('Deletion confirmation email sent successfully to:', profile.email);
         }
       } catch (emailError) {
         console.error('Error sending deletion email:', emailError);
         // Don't fail the deletion if email fails
       }
+    } else {
+      console.log('Skipping deletion email - missing profile data:', { 
+        email: profile?.email, 
+        name: profile?.full_name 
+      });
     }
 
     // Sign out the user after successful deletion
