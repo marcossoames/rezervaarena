@@ -74,9 +74,6 @@ serve(async (req) => {
     }
 
     const facility = facilityData[0];
-    if (!facility.is_active) {
-      throw new Error('Facility is not active');
-    }
 
     // Calculate total price SERVER-SIDE (never trust client)
     const startDate = new Date(`2000-01-01T${startTime}:00`);
