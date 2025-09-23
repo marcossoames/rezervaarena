@@ -17,6 +17,7 @@ import { format, addDays, addWeeks, addMonths, startOfDay, endOfDay, isAfter, is
 import { ro } from "date-fns/locale";
 import { isBlockingTimeAllowed } from "@/utils/dateTimeValidation";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
+import AddManualBookingDialog from "@/components/facility/AddManualBookingDialog";
 
 interface Facility {
   id: string;
@@ -661,50 +662,52 @@ const FacilityCalendarPage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Calendar */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Calendar - Made more compact */}
+          <Card className="xl:col-span-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <CalendarIcon className="h-5 w-5" />
                 Calendar Rezervări
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 Selectează o dată pentru a vedea rezervările sau pentru a o bloca
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                className="rounded-md border p-3 pointer-events-auto"
-                disabled={(date) => isBefore(date, today)} // Dezactivează datele din trecut
-                modifiers={{
-                  booked: (date) => getBookingsForDate(date).length > 0 || hasPartialBlockings(date),
-                  fullyBlocked: (date) => isDateFullyBlocked(date),
-                  past: (date) => isBefore(date, today)
-                }}
-                modifiersClassNames={{
-                  booked: "bg-primary/20 text-primary-foreground font-semibold",
-                  fullyBlocked: "bg-pink-200 text-pink-800 font-semibold relative after:content-['×'] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:text-lg after:font-bold after:pointer-events-none",
-                  past: "text-muted-foreground opacity-50"
-                }}
-              />
+            <CardContent className="space-y-4">
+              <div className="flex justify-center">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="rounded-md border pointer-events-auto w-fit"
+                  disabled={(date) => isBefore(date, today)}
+                  modifiers={{
+                    booked: (date) => getBookingsForDate(date).length > 0 || hasPartialBlockings(date),
+                    fullyBlocked: (date) => isDateFullyBlocked(date),
+                    past: (date) => isBefore(date, today)
+                  }}
+                  modifiersClassNames={{
+                    booked: "bg-primary/20 text-primary-foreground font-semibold",
+                    fullyBlocked: "bg-pink-200 text-pink-800 font-semibold relative after:content-['×'] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:text-lg after:font-bold after:pointer-events-none",
+                    past: "text-muted-foreground opacity-50"
+                  }}
+                />
+              </div>
               
-               <div className="mt-4 space-y-2">
-                 <div className="flex items-center gap-2 text-sm">
-                   <div className="w-3 h-3 bg-primary/20 rounded border"></div>
-                   <span>Zile cu rezervări / ore blocate</span>
-                 </div>
-                 <div className="flex items-center gap-2 text-sm">
-                   <div className="w-3 h-3 bg-pink-200 rounded border flex items-center justify-center">
-                     <span className="text-xs font-bold text-pink-800 leading-none">×</span>
-                   </div>
-                   <span>Zile blocate complet</span>
-                 </div>
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm text-muted-foreground text-center">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-3 h-3 bg-primary/20 rounded border"></div>
+                  <span>Zile cu rezervări / ore blocate</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-3 h-3 bg-pink-200 rounded border flex items-center justify-center">
+                    <span className="text-xs font-bold text-pink-800 leading-none">×</span>
+                  </div>
+                  <span>Zile blocate complet</span>
+                </div>
+                <div className="p-2 bg-muted/50 rounded-lg">
+                  <p className="text-xs text-muted-foreground text-center">
                     ⚠️ Poți modifica calendarul doar de la data curentă înainte
                   </p>
                 </div>
@@ -713,30 +716,41 @@ const FacilityCalendarPage = () => {
           </Card>
 
           {/* Selected Date Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
+          <Card className="xl:col-span-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg">
                 {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: ro }) : 'Selectează o dată'}
               </CardTitle>
-               <CardDescription>
-                 {selectedDate && selectedDateBookings.length > 0 
-                   ? `${selectedDateBookings.length} rezervări`
-                   : selectedDate && isDateFullyBlocked(selectedDate)
-                     ? 'Zi blocată complet'
-                     : selectedDate && hasPartialBlockings(selectedDate)
-                       ? 'Are ore blocate'
-                       : selectedDate 
-                         ? 'Nicio rezervare'
-                         : 'Vezi detaliile pentru data selectată'
-                 }
-               </CardDescription>
+              <CardDescription className="text-sm">
+                {selectedDate && selectedDateBookings.length > 0 
+                  ? `${selectedDateBookings.length} rezervări`
+                  : selectedDate && isDateFullyBlocked(selectedDate)
+                    ? 'Zi blocată complet'
+                    : selectedDate && hasPartialBlockings(selectedDate)
+                      ? 'Are ore blocate'
+                      : selectedDate 
+                        ? 'Nicio rezervare'
+                        : 'Vezi detaliile pentru data selectată'
+                }
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {selectedDate && (
                 <>
-                   {/* Block/Unblock Date Actions */}
-                   {selectedDate && !isBefore(selectedDate, today) ? (
-                     <div className="space-y-2">
+                  {/* Add Manual Booking */}
+                  {selectedDate && !isBefore(selectedDate, today) && !isDateFullyBlocked(selectedDate) && (
+                    <div className="space-y-2">
+                      <AddManualBookingDialog 
+                        facilityId={facilityId!}
+                        onBookingAdded={refreshBookings}
+                        selectedDate={selectedDate}
+                      />
+                    </div>
+                  )}
+
+                  {/* Block/Unblock Date Actions */}
+                  {selectedDate && !isBefore(selectedDate, today) ? (
+                    <div className="space-y-2">
                        {/* Buton pentru blocarea întregii zile */}
                        {!isDateFullyBlocked(selectedDate) && (
                          <Dialog>
