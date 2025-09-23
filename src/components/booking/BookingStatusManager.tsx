@@ -121,67 +121,19 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
       // Send cancellation email if booking was cancelled
       if (selectedStatus === 'cancelled' && booking.status !== 'cancelled') {
         try {
-          console.log('Sending cancellation email for booking:', booking.id);
-          
-          // Get booking and facility details for the email
-          const { data: bookingData, error: bookingError } = await supabase
-            .from('bookings')
-            .select(`
-              id,
-              booking_date,
-              start_time,
-              end_time,
-              total_price,
-              client_id,
-              facility_id,
-              facilities (name)
-            `)
-            .eq('id', booking.id)
-            .single();
-
-          if (!bookingError && bookingData) {
-            // Get client email
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('email')
-              .eq('user_id', bookingData.client_id)
-              .single();
-
-            if (profileData?.email) {
-              const facilityName = (bookingData.facilities as any)?.name || 'Baza sportivă';
-              const bookingDetails = {
-                date: new Date(bookingData.booking_date).toLocaleDateString('ro-RO'),
-                time: `${bookingData.start_time.slice(0, 5)} - ${bookingData.end_time.slice(0, 5)}`,
-                price: bookingData.total_price
-              };
-
-              const response = await supabase.functions.invoke('send-booking-cancellation-email', {
-                body: {
-                  bookingIds: [booking.id],
-                  clientEmails: [profileData.email],
-                  facilityName,
-                  reason: notes.trim() || 'Rezervarea a fost anulată de către baza sportivă.',
-                  bookingDetails
-                }
-              });
-
-              console.log('Email function response:', response);
-              
-              if (response.error) {
-                console.error('Email function error:', response.error);
-                toast({
-                  title: "Avertisment",
-                  description: "Statusul a fost actualizat, dar nu s-a putut trimite emailul de notificare.",
-                  variant: "destructive"
-                });
-              } else {
-                console.log('Cancellation email sent successfully');
-                toast({
-                  title: "Email trimis",
-                  description: "Clientul a fost notificat prin email despre anulare.",
-                });
-              }
+          console.log('Sending cancellation email via Edge Function for booking:', booking.id);
+          const response = await supabase.functions.invoke('send-booking-cancellation-email', {
+            body: {
+              bookingIds: [booking.id],
+              reason: notes.trim() || 'Rezervarea a fost anulată de către baza sportivă.'
             }
+          });
+          console.log('Email function response:', response);
+          if (response.error) {
+            console.error('Email function error:', response.error);
+            toast({ title: 'Avertisment', description: 'Statusul a fost actualizat, dar emailul către client a eșuat.', variant: 'destructive' });
+          } else {
+            toast({ title: 'Email trimis', description: 'Clientul a fost notificat prin email despre anulare.' });
           }
         } catch (emailError) {
           console.error('Error sending cancellation email:', emailError);
