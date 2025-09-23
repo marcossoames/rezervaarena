@@ -453,7 +453,7 @@ const FacilityCalendarPage = () => {
               facilityId={facilityId!}
               onBookingAdded={refreshBookings}
               facility={facility}
-              existingBookings={bookings}
+              selectedDate={selectedDate}
             />
           </div>
         </div>
@@ -522,6 +522,15 @@ const FacilityCalendarPage = () => {
                   </>
                 )}
               </CardDescription>
+              {/* Add Manual Booking Button - Fixed position */}
+              <div className="pt-4 border-t">
+                <AddManualBookingDialog 
+                  facilityId={facilityId!}
+                  onBookingAdded={refreshBookings}
+                  facility={facility}
+                  selectedDate={selectedDate}
+                />
+              </div>
             </CardHeader>
             <CardContent>
               {selectedDate ? (
@@ -537,16 +546,26 @@ const FacilityCalendarPage = () => {
                     ) : (
                       <div className="space-y-2">
                         {getBookingsForDate(selectedDate).map((booking) => (
-                          <div key={booking.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                            <div>
-                              <span className="font-medium">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</span>
-                              <span className="text-muted-foreground text-sm ml-2">
+                          <div key={booking.id} className="flex items-start justify-between p-3 bg-muted/50 rounded-lg">
+                            <div className="flex-1">
+                              <div className="font-medium mb-1">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</div>
+                              <div className="text-muted-foreground text-sm">
                                 {booking.total_price} RON • {booking.payment_method === 'card' ? 'Card' : 'Cash'}
-                              </span>
+                              </div>
+                              {booking.notes && (
+                                <div className="text-xs text-muted-foreground mt-1 p-2 bg-muted rounded">
+                                  {booking.notes}
+                                </div>
+                              )}
                             </div>
-                            <Badge variant={getStatusBadgeVariant(booking.status)}>
-                              {getStatusLabel(booking.status)}
-                            </Badge>
+                            <div className="flex items-center gap-2 ml-3">
+                              <Badge variant={getStatusBadgeVariant(booking.status)}>
+                                {getStatusLabel(booking.status)}
+                              </Badge>
+                              <Button variant="outline" size="sm">
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -669,10 +688,15 @@ const FacilityCalendarPage = () => {
                             const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
                             
                             const hasBookingConflict = dayBookings.some(booking => {
-                              return timeValue >= booking.start_time && timeValue < booking.end_time;
+                              const bookingStart = booking.start_time.slice(0, 5);
+                              const bookingEnd = booking.end_time.slice(0, 5);
+                              return timeValue >= bookingStart && timeValue < bookingEnd;
                             });
                             const hasBlockConflict = dayBlockedHours.some(blocked => {
-                              return timeValue >= (blocked.start_time || '') && timeValue < (blocked.end_time || '');
+                              if (!blocked.start_time || !blocked.end_time) return false;
+                              const blockedStart = blocked.start_time.slice(0, 5);
+                              const blockedEnd = blocked.end_time.slice(0, 5);
+                              return timeValue >= blockedStart && timeValue < blockedEnd;
                             });
                             
                             if (!hasBookingConflict && !hasBlockConflict) {
@@ -723,14 +747,19 @@ const FacilityCalendarPage = () => {
                                               const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
                                               const timeDisplay = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
                                               
-                                              const hasBookingConflict = dayBookings.some(booking => {
-                                                return timeValue >= booking.start_time && timeValue < booking.end_time;
-                                              });
-                                              const hasBlockConflict = dayBlockedHours.some(blocked => {
-                                                return timeValue >= (blocked.start_time || '') && timeValue < (blocked.end_time || '');
-                                              });
-                                              
-                                              if (!hasBookingConflict && !hasBlockConflict) {
+                                               const hasBookingConflict = dayBookings.some(booking => {
+                                                 const bookingStart = booking.start_time.slice(0, 5);
+                                                 const bookingEnd = booking.end_time.slice(0, 5);
+                                                 return timeValue >= bookingStart && timeValue < bookingEnd;
+                                               });
+                                               const hasBlockConflict = dayBlockedHours.some(blocked => {
+                                                 if (!blocked.start_time || !blocked.end_time) return false;
+                                                 const blockedStart = blocked.start_time.slice(0, 5);
+                                                 const blockedEnd = blocked.end_time.slice(0, 5);
+                                                 return timeValue >= blockedStart && timeValue < blockedEnd;
+                                               });
+                                               
+                                               if (!hasBookingConflict && !hasBlockConflict) {
                                                 options.push(
                                                   <SelectItem key={timeValue} value={timeValue}>
                                                     {timeDisplay}
