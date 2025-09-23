@@ -165,14 +165,27 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
   };
 
   const getAvailableStatuses = async () => {
-    // Always exclude pending status since we simplified the booking flow
-    // Cash bookings are immediately confirmed, card payments are handled via Stripe
-    return [
+    const bookingDate = new Date(booking.booking_date);
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const bookingDateStr = bookingDate.toISOString().split('T')[0];
+    
+    // Base statuses that are always available
+    const baseStatuses = [
       { value: 'confirmed', label: 'Confirmată', description: 'Rezervarea este confirmată' },
-      { value: 'completed', label: 'Finalizată', description: 'Serviciul a fost prestat' },
-      { value: 'no_show', label: 'Lipsă', description: 'Clientul nu s-a prezentat' },
       { value: 'cancelled', label: 'Anulată', description: 'Rezervarea a fost anulată' }
     ];
+    
+    // Only allow 'completed' and 'no_show' after booking date has passed
+    const postBookingStatuses = [];
+    if (bookingDateStr <= todayStr) {
+      postBookingStatuses.push(
+        { value: 'completed', label: 'Finalizată', description: 'Serviciul a fost prestat' },
+        { value: 'no_show', label: 'Lipsă', description: 'Clientul nu s-a prezentat' }
+      );
+    }
+    
+    return [...baseStatuses, ...postBookingStatuses];
   };
 
   const statusInfo = getStatusInfo(booking.status);
