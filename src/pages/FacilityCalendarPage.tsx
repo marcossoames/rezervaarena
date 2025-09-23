@@ -167,144 +167,46 @@ const FacilityCalendarPage = () => {
     return blockedDates.some(blocked => blocked.blocked_date === dateStr);
   };
 
-  const getTimeOptions = () => {
-    const times = [];
-    const startHour = facility?.operating_hours_start ? parseInt(facility.operating_hours_start.split(':')[0]) : 8;
-    const endHour = facility?.operating_hours_end ? parseInt(facility.operating_hours_end.split(':')[0]) : 22;
+  const refreshBookings = async () => {
+    if (!facilityId) return;
     
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        
-        // Check if this time is allowed for the selected date
-        if (selectedDate && !isBlockingTimeAllowed(format(selectedDate, 'yyyy-MM-dd'), timeString)) {
-          continue; // Skip past times for today
-        }
-        
-        times.push({ value: timeString, label: timeString });
-      }
-    }
-    
-    // Add end hour if it's allowed
-    const endTimeString = `${endHour.toString().padStart(2, '0')}:00`;
-    if (!selectedDate || isBlockingTimeAllowed(format(selectedDate, 'yyyy-MM-dd'), endTimeString)) {
-      times.push({ value: endTimeString, label: endTimeString });
-    }
-    
-    return times;
+    const startDate = startOfDay(new Date());
+    const endDate = endOfDay(addDays(new Date(), 90));
+
+    const { data: bookingsData } = await supabase
+      .from('bookings')
+      .select('id, booking_date, start_time, end_time, status, total_price, payment_method, notes, client_id')
+      .eq('facility_id', facilityId)
+      .gte('booking_date', format(startDate, 'yyyy-MM-dd'))
+      .lte('booking_date', format(endDate, 'yyyy-MM-dd'))
+      .order('booking_date', { ascending: true });
+
+    setBookings((bookingsData || []).map(booking => ({
+      ...booking,
+      status: booking.status === 'pending' ? 'confirmed' : booking.status
+    })) as Booking[]);
   };
 
-  const getTimeSlots = () => {
-    const slots = [];
-    const startHour = facility?.operating_hours_start ? parseInt(facility.operating_hours_start.split(':')[0]) : 8;
-    const endHour = facility?.operating_hours_end ? parseInt(facility.operating_hours_end.split(':')[0]) : 22;
-    
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const startTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        const endTime = minute === 30 
-          ? `${(hour + 1).toString().padStart(2, '0')}:00`
-          : `${hour.toString().padStart(2, '0')}:30`;
-        slots.push(`${startTime} - ${endTime}`);
-      }
+  const selectedDateBookings = selectedDate ? getBookingsForDate(selectedDate) : [];
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'default';
+      case 'cancelled': return 'destructive';
+      case 'completed': return 'secondary';
+      case 'no_show': return 'outline';
+      default: return 'default';
     }
-    return slots;
   };
 
-  // Helper pentru zilele săptămânii
-  const weekdayLabels = [
-    { value: 1, label: 'Luni' },
-    { value: 2, label: 'Marți' },
-    { value: 3, label: 'Miercuri' },
-    { value: 4, label: 'Joi' },
-    { value: 5, label: 'Vineri' },
-    { value: 6, label: 'Sâmbătă' },
-    { value: 0, label: 'Duminică' }
-  ];
-
-  // Generare date recurente
-  const generateRecurringDates = (startDate: Date, endDate: Date, type: 'weekly', selectedDays?: number[]) => {
-    const dates = [];
-    let currentDate = new Date(startDate);
-    
-    if (type === 'weekly' && selectedDays && selectedDays.length > 0) {
-      while (currentDate <= endDate) {
-        const dayOfWeek = getDay(currentDate);
-        if (selectedDays.includes(dayOfWeek)) {
-          dates.push(new Date(currentDate));
-        }
-        currentDate = addDays(currentDate, 1);
-      }
-    } else if (type === 'weekly') {
-      // Weekly pentru aceeași zi din săptămână ca startDate
-      const startDayOfWeek = getDay(startDate);
-      while (currentDate <= endDate) {
-        if (getDay(currentDate) === startDayOfWeek) {
-          dates.push(new Date(currentDate));
-        }
-        currentDate = addDays(currentDate, 1);
-      }
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'Confirmată';
+      case 'cancelled': return 'Anulată';
+      case 'completed': return 'Completată';
+      case 'no_show': return 'Lipsă';
+      default: return status;
     }
-    
-    return dates;
-  };
-
-  // Deblocare în masă pentru blocări recurente
-  const unblockRecurringDates = async () => {
-    if (!selectedDate) return;
-    
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    const selectedBlock = blockedDates.find(block => block.blocked_date === dateStr);
-    
-    if (!selectedBlock) return;
-    
-    // Găsește toate blocările cu același motiv și interval orar
-    const relatedBlocks = blockedDates.filter(block => 
-      block.reason === selectedBlock.reason &&
-      block.start_time === selectedBlock.start_time &&
-      block.end_time === selectedBlock.end_time
-    );
-    
-    if (relatedBlocks.length > 1) {
-      const confirmed = window.confirm(
-        `S-au găsit ${relatedBlocks.length} blocări similare (același motiv și interval orar). Doriți să le deblocați pe toate?`
-      );
-      
-      if (confirmed) {
-        const blockIds = relatedBlocks.map(block => block.id);
-        
-        const { error } = await supabase
-          .from('blocked_dates')
-          .delete()
-          .in('id', blockIds);
-          
-        if (error) {
-          toast({
-            title: "Eroare",
-            description: "Nu s-au putut debloca toate datele",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        // Reload blocked dates
-        const { data: blockedDatesData } = await supabase
-          .from('blocked_dates')
-          .select('*')
-          .eq('facility_id', facilityId);
-          
-        setBlockedDates(blockedDatesData || []);
-        
-        toast({
-          title: "Date deblocate",
-          description: `${relatedBlocks.length} date au fost deblocate cu succes`
-        });
-        return;
-      }
-    }
-    
-    // Deblocare normală pentru o singură dată
-    unblockDate(selectedDate);
   };
 
   // Blocarea întregii zile
@@ -326,31 +228,21 @@ const FacilityCalendarPage = () => {
     if (!user) return;
 
     try {
-      let datesToBlock = [selectedDate];
-      
-      if (isRecurring && recurringEndDate) {
-        // Dacă sunt selectate zile specifice, folosește-le, altfel folosește ziua selectată inițial
-        const daysToUse = weeklyDays.length > 0 ? weeklyDays : [getDay(selectedDate)];
-        datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'weekly', daysToUse);
-      }
-
-      const blocksToInsert = datesToBlock.map(date => ({
-        facility_id: facilityId,
-        blocked_date: format(date, 'yyyy-MM-dd'),
-        start_time: null, // Toată ziua
-        end_time: null,   // Toată ziua
-        reason: blockReason,
-        created_by: user.id
-      }));
-
       const { error } = await supabase
         .from('blocked_dates')
-        .insert(blocksToInsert);
+        .insert({
+          facility_id: facilityId,
+          blocked_date: dateStr,
+          start_time: null, // Toată ziua
+          end_time: null,   // Toată ziua
+          reason: blockReason,
+          created_by: user.id
+        });
 
       if (error) {
         toast({
           title: "Eroare",
-          description: "Nu s-au putut bloca datele",
+          description: "Nu s-a putut bloca data",
           variant: "destructive"
         });
         return;
@@ -364,188 +256,35 @@ const FacilityCalendarPage = () => {
 
       setBlockedDates(blockedDatesData || []);
       setBlockReason("");
-      setIsRecurring(false);
-      setRecurringEndDate(undefined);
-      setWeeklyDays([]);
-      
-      const countInfo = datesToBlock.length > 1 ? ` (${datesToBlock.length} date)` : '';
       
       toast({
-        title: "Zile blocate complet",
-        description: `${datesToBlock.length === 1 ? 'Ziua' : 'Zilele'} ${datesToBlock.length === 1 ? 'a fost blocată' : 'au fost blocate'} complet${countInfo}`
+        title: "Zi blocată complet",
+        description: "Ziua a fost blocată complet"
       });
     } catch (error) {
-      console.error('Error blocking full days:', error);
+      console.error('Error blocking full day:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-au putut bloca zilele",
+        description: "Nu s-a putut bloca ziua",
         variant: "destructive"
       });
     }
   };
 
-  const blockDate = async () => {
+  // Deblocare în masă pentru blocări recurente
+  const unblockRecurringDates = async () => {
     if (!selectedDate) return;
     
-    // Validare date recurente
-    if (isRecurring) {
-      if (!recurringEndDate) {
-        toast({
-          title: "Eroare",
-          description: "Te rugăm să selectezi data de sfârșit pentru blocarea recurentă",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-    
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const selectedBlock = blockedDates.find(block => block.blocked_date === dateStr);
     
-    // Validate date and time restrictions
-    if (!isBlockingTimeAllowed(dateStr, blockStartTime)) {
-      toast({
-        title: "Eroare",
-        description: "Nu puteți bloca date/ore din trecut sau ore care au trecut deja astăzi",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!blockReason.trim()) {
-      toast({
-        title: "Eroare",
-        description: "Te rugăm să completezi motivul blocării",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validare interval orar
-    if (blockStartTime && blockEndTime && blockStartTime >= blockEndTime) {
-      toast({
-        title: "Eroare",
-        description: "Ora de sfârșit trebuie să fie după ora de început",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Check for existing bookings in the selected time range
-    if (blockStartTime && blockEndTime) {
-      const existingBookings = getBookingsForDate(selectedDate);
-      const hasConflict = existingBookings.some(booking => {
-        const bookingStart = booking.start_time;
-        const bookingEnd = booking.end_time;
-        
-        // Check if blocking time overlaps with existing booking
-        return (blockStartTime < bookingEnd && blockEndTime > bookingStart);
-      });
-      
-      if (hasConflict) {
-        toast({
-          title: "Eroare",
-          description: "Nu poți bloca ore care au rezervări existente. Verifică rezervările pentru această dată.",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
-    let startTime = null;
-    let endTime = null;
-    
-    if (blockStartTime && blockEndTime) {
-      startTime = blockStartTime;
-      endTime = blockEndTime;
-    }
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    try {
-      let datesToBlock = [selectedDate];
-      
-      // Generare date recurente dacă este cazul
-      if (isRecurring && recurringEndDate) {
-        // Dacă sunt selectate zile specifice, folosește-le, altfel folosește ziua selectată inițial
-        const daysToUse = weeklyDays.length > 0 ? weeklyDays : [getDay(selectedDate)];
-        datesToBlock = generateRecurringDates(selectedDate, recurringEndDate, 'weekly', daysToUse);
-      }
-
-      // Inserare pentru toate datele
-      const blocksToInsert = datesToBlock.map(date => ({
-        facility_id: facilityId,
-        blocked_date: format(date, 'yyyy-MM-dd'),
-        start_time: startTime,
-        end_time: endTime,
-        reason: blockReason,
-        created_by: user.id
-      }));
-
-      const { error } = await supabase
-        .from('blocked_dates')
-        .insert(blocksToInsert);
-
-      if (error) {
-        toast({
-          title: "Eroare",
-          description: "Nu s-au putut bloca datele",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Reload blocked dates
-      const { data: blockedDatesData } = await supabase
-        .from('blocked_dates')
-        .select('*')
-        .eq('facility_id', facilityId);
-
-      setBlockedDates(blockedDatesData || []);
-      setBlockReason("");
-      setBlockStartTime("");
-      setBlockEndTime("");
-      setIsRecurring(false);
-      setRecurringEndDate(undefined);
-      setWeeklyDays([]);
-      setIsBlockDialogOpen(false);
-      
-      const timeInfo = startTime && endTime ? ` între ${startTime} - ${endTime}` : '';
-      const countInfo = datesToBlock.length > 1 ? ` (${datesToBlock.length} date)` : '';
-      
-      toast({
-        title: "Date blocate",
-        description: `${datesToBlock.length === 1 ? 'Data' : 'Datele'} ${timeInfo} ${datesToBlock.length === 1 ? 'a fost blocată' : 'au fost blocate'}${countInfo}`
-      });
-    } catch (error) {
-      console.error('Error blocking dates:', error);
-      toast({
-        title: "Eroare",
-        description: "Nu s-au putut bloca datele",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const unblockDate = async (date: Date) => {
-    // Verifică că data este de la astăzi înainte
-    if (isBefore(date, today)) {
-      toast({
-        title: "Eroare", 
-        description: "Nu poți debloca date din trecut",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const dateStr = format(date, 'yyyy-MM-dd');
+    if (!selectedBlock) return;
     
     const { error } = await supabase
       .from('blocked_dates')
       .delete()
-      .eq('facility_id', facilityId)
-      .eq('blocked_date', dateStr);
-
+      .eq('id', selectedBlock.id);
+        
     if (error) {
       toast({
         title: "Eroare",
@@ -554,79 +293,47 @@ const FacilityCalendarPage = () => {
       });
       return;
     }
-
+    
     // Reload blocked dates
     const { data: blockedDatesData } = await supabase
       .from('blocked_dates')
       .select('*')
       .eq('facility_id', facilityId);
-
+        
     setBlockedDates(blockedDatesData || []);
     
     toast({
-      title: "Data deblocată",
-      description: `Data de ${format(date, 'dd MMMM yyyy', { locale: ro })} a fost deblocată`
+      title: "Dată deblocată",
+      description: "Data a fost deblocată cu succes"
     });
   };
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'default';
-      case 'pending': return 'secondary';
-      case 'cancelled': return 'destructive';
-      case 'completed': return 'default';
-      case 'no_show': return 'destructive';
-      default: return 'outline';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'Confirmată';
-      case 'pending': return 'În așteptare';
-      case 'cancelled': return 'Anulată';
-      case 'completed': return 'Finalizată';
-      case 'no_show': return 'Nu s-a prezentat';
-      default: return status;
-    }
-  };
-
-  const refreshBookings = async () => {
-    if (!facilityId) return;
-    
-    const startDate = startOfDay(new Date());
-    const endDate = endOfDay(addDays(new Date(), 90));
-
-    const { data: bookingsData } = await supabase
-      .from('bookings')
-      .select('id, booking_date, start_time, end_time, status, total_price, payment_method, notes, client_id')
-      .eq('facility_id', facilityId)
-      .gte('booking_date', format(startDate, 'yyyy-MM-dd'))
-      .lte('booking_date', format(endDate, 'yyyy-MM-dd'))
-      .order('booking_date', { ascending: true });
-
-    setBookings((bookingsData || []).map(booking => ({
-      ...booking,
-      status: booking.status === 'pending' ? 'confirmed' : booking.status
-    })) as Booking[]);
-  };
-
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Se încarcă...</div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-medium">Se încarcă calendarul...</div>
+        </div>
+      </div>
+    );
   }
 
   if (!facility) {
-    return <div className="flex items-center justify-center min-h-screen">Facilitatea nu a fost găsită</div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-medium text-destructive">Facilitatea nu a fost găsită</div>
+        </div>
+      </div>
+    );
   }
 
-  const selectedDateBookings = selectedDate ? getBookingsForDate(selectedDate) : [];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-      <div className="container mx-auto max-w-6xl">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-6">
-          <Link to="/manage-facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm mb-4">
+        <div className="mb-8">
+          <Link to="/manage-facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4">
             <ArrowLeft className="h-4 w-4" />
             Înapoi la facilitățile mele
           </Link>
@@ -662,381 +369,206 @@ const FacilityCalendarPage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          {/* Calendar - Made more compact */}
-          <Card className="xl:col-span-2">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <CalendarIcon className="h-5 w-5" />
-                Calendar Rezervări
-              </CardTitle>
-              <CardDescription className="text-sm">
-                Selectează o dată pentru a vedea rezervările sau pentru a o bloca
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  className="rounded-md border pointer-events-auto w-fit"
-                  disabled={(date) => isBefore(date, today)}
-                  modifiers={{
-                    booked: (date) => getBookingsForDate(date).length > 0 || hasPartialBlockings(date),
-                    fullyBlocked: (date) => isDateFullyBlocked(date),
-                    past: (date) => isBefore(date, today)
-                  }}
-                  modifiersClassNames={{
-                    booked: "bg-primary/20 text-primary-foreground font-semibold",
-                    fullyBlocked: "bg-pink-200 text-pink-800 font-semibold relative after:content-['×'] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:text-lg after:font-bold after:pointer-events-none",
-                    past: "text-muted-foreground opacity-50"
-                  }}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-3 h-3 bg-primary/20 rounded border"></div>
-                  <span>Zile cu rezervări / ore blocate</span>
+        {/* Main Calendar Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5" />
+              Calendar Rezervări
+            </CardTitle>
+            <CardDescription>
+              Selectează o dată pentru a vedea rezervările sau pentru a o bloca
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Calendar Section - Left */}
+              <div className="space-y-4">
+                <div className="flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    className="rounded-md border pointer-events-auto w-fit"
+                    disabled={(date) => isBefore(date, today)}
+                    modifiers={{
+                      booked: (date) => getBookingsForDate(date).length > 0 || hasPartialBlockings(date),
+                      fullyBlocked: (date) => isDateFullyBlocked(date),
+                      past: (date) => isBefore(date, today)
+                    }}
+                    modifiersClassNames={{
+                      booked: "bg-primary/20 text-primary-foreground font-semibold",
+                      fullyBlocked: "bg-pink-200 text-pink-800 font-semibold relative after:content-['×'] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:text-lg after:font-bold after:pointer-events-none",
+                      past: "text-muted-foreground opacity-50"
+                    }}
+                  />
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-3 h-3 bg-pink-200 rounded border flex items-center justify-center">
-                    <span className="text-xs font-bold text-pink-800 leading-none">×</span>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="w-3 h-3 bg-primary/20 rounded border"></div>
+                    <span>Zile cu rezervări / ore blocate</span>
                   </div>
-                  <span>Zile blocate complet</span>
-                </div>
-                <div className="p-2 bg-muted/50 rounded-lg">
-                  <p className="text-xs text-muted-foreground text-center">
-                    ⚠️ Poți modifica calendarul doar de la data curentă înainte
-                  </p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="w-3 h-3 bg-pink-200 rounded border flex items-center justify-center">
+                      <span className="text-xs font-bold text-pink-800 leading-none">×</span>
+                    </div>
+                    <span>Zile blocate complet</span>
+                  </div>
+                  <div className="p-2 bg-muted/50 rounded-lg">
+                    <p className="text-xs text-muted-foreground text-center">
+                      ⚠️ Poți modifica calendarul doar de la data curentă înainte
+                    </p>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Selected Date Details */}
-          <Card className="xl:col-span-2">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">
-                {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: ro }) : 'Selectează o dată'}
-              </CardTitle>
-              <CardDescription className="text-sm">
-                {selectedDate && selectedDateBookings.length > 0 
-                  ? `${selectedDateBookings.length} rezervări`
-                  : selectedDate && isDateFullyBlocked(selectedDate)
-                    ? 'Zi blocată complet'
-                    : selectedDate && hasPartialBlockings(selectedDate)
-                      ? 'Are ore blocate'
-                      : selectedDate 
-                        ? 'Nicio rezervare'
-                        : 'Vezi detaliile pentru data selectată'
-                }
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {selectedDate && (
-                <>
-                  {/* Add Manual Booking */}
-                  {selectedDate && !isBefore(selectedDate, today) && !isDateFullyBlocked(selectedDate) && facility && (
-                    <div className="space-y-2">
-                      <AddManualBookingDialog 
-                        facilityId={facilityId!}
-                        facility={facility}
-                        onBookingAdded={refreshBookings}
-                        selectedDate={selectedDate}
-                      />
+              {/* Day View Section - Right */}
+              <div className="border-l pl-6 min-h-[400px]">
+                {selectedDate ? (
+                  <div className="space-y-4">
+                    <div className="border-b pb-4">
+                      <h3 className="text-lg font-semibold mb-2">
+                        {format(selectedDate, 'EEEE, d MMMM yyyy', { locale: ro })}
+                      </h3>
+                      <div className="text-sm text-muted-foreground">
+                        Program: {facility?.operating_hours_start || '08:00'} - {facility?.operating_hours_end || '22:00'}
+                      </div>
+                      {selectedDate && selectedDateBookings.length > 0 && (
+                        <div className="text-sm text-muted-foreground">
+                          {selectedDateBookings.length} rezervări active
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  {/* Block/Unblock Date Actions */}
-                  {selectedDate && !isBefore(selectedDate, today) ? (
-                    <div className="space-y-2">
-                       {/* Buton pentru blocarea întregii zile */}
-                       {!isDateFullyBlocked(selectedDate) && (
-                         <Dialog>
-                           <DialogTrigger asChild>
-                             <Button variant="outline" className="w-full">
-                               <Ban className="h-4 w-4 mr-2" />
-                               Blochează Întreaga Zi
-                             </Button>
-                           </DialogTrigger>
-                           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                             <DialogHeader>
-                               <DialogTitle>Blochează Întreaga Zi</DialogTitle>
-                               <DialogDescription>
-                                 Blochează complet ziua de {format(selectedDate, 'dd MMMM yyyy', { locale: ro })} - nu se vor putea face rezervări
-                               </DialogDescription>
-                             </DialogHeader>
-                             <div className="space-y-4">
-                               {/* Blocarea recurentă pentru zi întreagă */}
-                               <div className="space-y-3">
-                                 <div className="flex items-center space-x-2">
-                                   <Checkbox 
-                                     id="recurring-full" 
-                                     checked={isRecurring}
-                                     onCheckedChange={(checked) => setIsRecurring(!!checked)}
-                                   />
-                                   <Label htmlFor="recurring-full" className="flex items-center gap-2">
-                                     <Repeat className="h-4 w-4" />
-                                     Blocare recurentă
-                                   </Label>
-                                 </div>
-                                 
-                                 {isRecurring && (
-                                   <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
-                                     <div className="space-y-2">
-                                       <Label>Tip recurență</Label>
-                                        <Select value={recurringType} onValueChange={(value: 'weekly') => setRecurringType(value)}>
-                                          <SelectTrigger>
-                                            <SelectValue />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="weekly">Săptămânal</SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                     </div>
-                                     
-                                     {recurringType === 'weekly' && (
-                                       <div className="space-y-2">
-                                         <Label>Zilele săptămânii (opțional)</Label>
-                                         <div className="p-3 bg-blue-50 rounded-lg mb-3">
-                                           <p className="text-sm text-blue-700">
-                                             💡 Implicit se va bloca <strong>{weekdayLabels.find(day => day.value === getDay(selectedDate))?.label}</strong> 
-                                             {recurringEndDate && (
-                                               <span> până la {format(recurringEndDate, 'dd.MM.yyyy', { locale: ro })}</span>
-                                             )}
-                                           </p>
-                                           <p className="text-xs text-blue-600 mt-1">
-                                             Selectează alte zile doar dacă vrei să blochezi zile suplimentare
-                                           </p>
-                                         </div>
-                                         <div className="grid grid-cols-2 gap-2">
-                                           {weekdayLabels.map((day) => (
-                                             <div key={day.value} className="flex items-center space-x-2">
-                                               <Checkbox
-                                                 id={`day-full-${day.value}`}
-                                                 checked={weeklyDays.includes(day.value)}
-                                                 onCheckedChange={(checked) => {
-                                                   if (checked) {
-                                                     setWeeklyDays([...weeklyDays, day.value]);
-                                                   } else {
-                                                     setWeeklyDays(weeklyDays.filter(d => d !== day.value));
-                                                   }
-                                                 }}
-                                               />
-                                               <Label htmlFor={`day-full-${day.value}`} className="text-sm">
-                                                 {day.label}
-                                               </Label>
-                                             </div>
-                                           ))}
-                                         </div>
-                                       </div>
-                                     )}
-                                     
-                                     <div className="space-y-2">
-                                       <Label>Data de sfârșit</Label>
-                                       <Calendar
-                                         mode="single"
-                                         selected={recurringEndDate}
-                                         onSelect={setRecurringEndDate}
-                                         disabled={(date) => isBefore(date, selectedDate) || isBefore(date, today)}
-                                         className="rounded-md border p-3 pointer-events-auto"
-                                       />
-                                     </div>
-                                   </div>
-                                 )}
-                               </div>
-                               
-                               <div className="space-y-2">
-                                 <Label htmlFor="reason-full">Motivul blocării *</Label>
-                                 <Textarea
-                                   id="reason-full"
-                                   value={blockReason}
-                                   onChange={(e) => setBlockReason(e.target.value)}
-                                   placeholder="ex: Lucrări de mentenanță, eveniment privat, etc."
-                                 />
-                               </div>
-                               
-                               <div className="flex gap-2">
-                                 <Button onClick={blockFullDay} disabled={!blockReason.trim()}>
-                                   {isRecurring ? 'Blochează Zilele' : 'Blochează Ziua'}
-                                 </Button>
-                                 <Button variant="outline" onClick={() => {
-                                   setBlockReason("");
-                                   setIsRecurring(false);
-                                   setRecurringEndDate(undefined);
-                                   setWeeklyDays([]);
-                                 }}>
-                                   Anulează
-                                 </Button>
-                               </div>
-                             </div>
-                           </DialogContent>
-                         </Dialog>
-                       )}
-                       
-                        {/* Buton pentru blocarea anumitor ore */}
+                    {/* Action Buttons */}
+                    {selectedDate && !isBefore(selectedDate, today) && !isDateFullyBlocked(selectedDate) && facility && (
+                      <div className="space-y-2">
+                        <AddManualBookingDialog 
+                          facilityId={facilityId!}
+                          facility={facility}
+                          onBookingAdded={refreshBookings}
+                          selectedDate={selectedDate}
+                        />
+                      </div>
+                    )}
+
+                    {/* Bookings for selected date */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-base flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Rezervări
+                      </h4>
+                      {selectedDateBookings.length > 0 ? (
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {selectedDateBookings.map((booking) => (
+                            <div key={booking.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border">
+                              <div className="flex items-center gap-3">
+                                <Clock className="h-4 w-4 text-blue-600" />
+                                <div>
+                                  <div className="font-medium text-sm">
+                                    {booking.start_time} - {booking.end_time}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {booking.total_price} RON • {booking.payment_method}
+                                  </div>
+                                </div>
+                              </div>
+                              <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'}>
+                                {booking.status === 'confirmed' ? 'Confirmată' : 
+                                 booking.status === 'cancelled' ? 'Anulată' :
+                                 booking.status === 'completed' ? 'Completată' : 'Lipsă'}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground italic">
+                          Nu există rezervări pentru această dată
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Blocked hours for selected date */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-base flex items-center gap-2">
+                        <Ban className="h-4 w-4" />
+                        Ore blocate
+                      </h4>
+                      {blockedDates.filter(blocked => blocked.blocked_date === format(selectedDate, 'yyyy-MM-dd')).length > 0 ? (
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {blockedDates
+                            .filter(blocked => blocked.blocked_date === format(selectedDate, 'yyyy-MM-dd'))
+                            .map((blocked) => (
+                              <div key={blocked.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border">
+                                <div className="flex items-center gap-3">
+                                  <Ban className="h-4 w-4 text-red-600" />
+                                  <div>
+                                    <div className="font-medium text-sm">
+                                      {blocked.start_time && blocked.end_time 
+                                        ? `${blocked.start_time} - ${blocked.end_time}`
+                                        : 'Toată ziua'
+                                      }
+                                    </div>
+                                    {blocked.reason && (
+                                      <div className="text-xs text-muted-foreground">
+                                        {blocked.reason}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <Badge variant="destructive">
+                                  Blocată
+                                </Badge>
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground italic">
+                          Nu există ore blocate pentru această dată
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Block/Unblock Actions */}
+                    {selectedDate && !isBefore(selectedDate, today) ? (
+                      <div className="space-y-2 border-t pt-4">
+                        {/* Buton pentru blocarea întregii zile */}
                         {!isDateFullyBlocked(selectedDate) && (
-                          <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
+                          <Dialog>
                             <DialogTrigger asChild>
                               <Button variant="outline" className="w-full">
                                 <Ban className="h-4 w-4 mr-2" />
-                                Blochează Data/Ora
+                                Blochează Întreaga Zi
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                               <DialogHeader>
-                                <DialogTitle>Blochează Data/Ora</DialogTitle>
+                                <DialogTitle>Blochează Întreaga Zi</DialogTitle>
                                 <DialogDescription>
-                                  Blochează data de {format(selectedDate, 'dd MMMM yyyy', { locale: ro })} pentru rezervări noi
+                                  Blochează complet ziua de {selectedDate && format(selectedDate, 'dd MMMM yyyy', { locale: ro })} - nu se vor putea face rezervări
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4">
                                 <div className="space-y-2">
-                                  <Label htmlFor="timeRange">Interval orar *</Label>
-                                  <div className="flex gap-2">
-                                    <div className="flex-1">
-                                      <Select value={blockStartTime} onValueChange={setBlockStartTime}>
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="De la" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-background border shadow-lg z-50">
-                                          {getTimeOptions().filter(time => !blockEndTime || time.value < blockEndTime).map((time) => (
-                                            <SelectItem key={time.value} value={time.value}>
-                                              {time.label}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <div className="flex-1">
-                                      <Select value={blockEndTime} onValueChange={setBlockEndTime} disabled={!blockStartTime}>
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Până la" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-background border shadow-lg z-50">
-                                          {getTimeOptions().filter(time => blockStartTime && time.value > blockStartTime).map((time) => (
-                                            <SelectItem key={time.value} value={time.value}>
-                                              {time.label}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  </div>
-                                  <p className="text-xs text-red-500">
-                                    * Intervalul orar este obligatoriu pentru blocarea parțială
-                                  </p>
-                                </div>
-                                
-                                {/* Blocarea recurentă pentru ore specifice */}
-                                <div className="space-y-3">
-                                  <div className="flex items-center space-x-2">
-                                    <Checkbox 
-                                      id="recurring-partial" 
-                                      checked={isRecurring}
-                                      onCheckedChange={(checked) => setIsRecurring(!!checked)}
-                                    />
-                                    <Label htmlFor="recurring-partial" className="flex items-center gap-2">
-                                      <Repeat className="h-4 w-4" />
-                                      Blocare recurentă
-                                    </Label>
-                                  </div>
-                                  
-                                  {isRecurring && (
-                                    <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
-                                      <div className="space-y-2">
-                                        <Label>Tip recurență</Label>
-                                         <Select value={recurringType} onValueChange={(value: 'weekly') => setRecurringType(value)}>
-                                           <SelectTrigger>
-                                             <SelectValue />
-                                           </SelectTrigger>
-                                           <SelectContent>
-                                             <SelectItem value="weekly">Săptămânal</SelectItem>
-                                           </SelectContent>
-                                         </Select>
-                                      </div>
-                                      
-                                      {recurringType === 'weekly' && (
-                                        <div className="space-y-2">
-                                          <Label>Zilele săptămânii (opțional)</Label>
-                                          <div className="p-3 bg-blue-50 rounded-lg mb-3">
-                                            <p className="text-sm text-blue-700">
-                                              💡 Implicit se va bloca <strong>{weekdayLabels.find(day => day.value === getDay(selectedDate))?.label}</strong> 
-                                              {recurringEndDate && (
-                                                <span> până la {format(recurringEndDate, 'dd.MM.yyyy', { locale: ro })}</span>
-                                              )}
-                                            </p>
-                                            <p className="text-xs text-blue-600 mt-1">
-                                              Selectează alte zile doar dacă vrei să blochezi zile suplimentare
-                                            </p>
-                                          </div>
-                                          <div className="grid grid-cols-2 gap-2">
-                                            {weekdayLabels.map((day) => (
-                                              <div key={day.value} className="flex items-center space-x-2">
-                                                <Checkbox
-                                                  id={`day-partial-${day.value}`}
-                                                  checked={weeklyDays.includes(day.value)}
-                                                  onCheckedChange={(checked) => {
-                                                    if (checked) {
-                                                      setWeeklyDays([...weeklyDays, day.value]);
-                                                    } else {
-                                                      setWeeklyDays(weeklyDays.filter(d => d !== day.value));
-                                                    }
-                                                  }}
-                                                />
-                                                <Label htmlFor={`day-partial-${day.value}`} className="text-sm">
-                                                  {day.label}
-                                                </Label>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
-                                      
-                                      <div className="space-y-2">
-                                        <Label>Data de sfârșit</Label>
-                                        <Calendar
-                                          mode="single"
-                                          selected={recurringEndDate}
-                                          onSelect={setRecurringEndDate}
-                                          disabled={(date) => isBefore(date, selectedDate) || isBefore(date, today)}
-                                          className="rounded-md border p-3 pointer-events-auto"
-                                        />
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <Label htmlFor="reason-partial">Motivul blocării *</Label>
+                                  <Label htmlFor="reason-full">Motivul blocării *</Label>
                                   <Textarea
-                                    id="reason-partial"
+                                    id="reason-full"
                                     value={blockReason}
                                     onChange={(e) => setBlockReason(e.target.value)}
-                                    placeholder="ex: Rezervări recurente pentru echipa locală, antrenamente, etc."
+                                    placeholder="ex: Întreținere, eveniment privat, etc."
                                   />
                                 </div>
                                 
                                 <div className="flex gap-2">
                                   <Button 
-                                    onClick={blockDate} 
-                                    disabled={!blockReason.trim() || !blockStartTime || !blockEndTime}
+                                    onClick={blockFullDay} 
+                                    disabled={!blockReason.trim()}
                                   >
-                                    {isRecurring 
-                                      ? 'Blochează Datele/Orele'
-                                      : 'Blochează Data/Ora'
-                                    }
+                                    Blochează Ziua
                                   </Button>
                                   <Button variant="outline" onClick={() => {
-                                    setIsBlockDialogOpen(false);
-                                    setBlockStartTime("");
-                                    setBlockEndTime("");
                                     setBlockReason("");
-                                    setIsRecurring(false);
-                                    setRecurringEndDate(undefined);
-                                    setWeeklyDays([]);
                                   }}>
                                     Anulează
                                   </Button>
@@ -1045,95 +577,39 @@ const FacilityCalendarPage = () => {
                             </DialogContent>
                           </Dialog>
                         )}
-                       
-                       {/* Buton pentru deblocare */}
-                       {isDateBlocked(selectedDate) && (
-                         <div className="space-y-2">
-                           <Button 
-                             variant="outline" 
-                             className="w-full"
-                             onClick={() => unblockRecurringDates()}
-                           >
-                             <Eye className="h-4 w-4 mr-2" />
-                             {isDateFullyBlocked(selectedDate) ? 'Deblochează Ziua' : 'Deblochează Orele'}
-                           </Button>
-                         </div>
-                       )}
-                     </div>
-                   ) : selectedDate && isBefore(selectedDate, today) ? (
-                     <div className="p-3 bg-muted/50 rounded-lg text-center">
-                       <p className="text-sm text-muted-foreground">
-                         Nu poți modifica datele din trecut
-                       </p>
-                     </div>
-                   ) : null}
-
-                   {/* Blocked hours for selected date */}
-                   {selectedDate && (() => {
-                     const dateStr = format(selectedDate, 'yyyy-MM-dd');
-                     const dayBlockedHours = blockedDates.filter(blocked => 
-                       blocked.blocked_date === dateStr && blocked.start_time && blocked.end_time
-                     );
-                     
-                     return dayBlockedHours.length > 0 && (
-                       <div className="space-y-3">
-                         <h4 className="font-medium text-sm">Ore Blocate</h4>
-                         {dayBlockedHours.map((blocked) => (
-                           <div key={blocked.id} className="p-3 border border-orange-200 bg-orange-50 rounded-lg space-y-2">
-                             <div className="flex items-center justify-between">
-                                <span className="font-medium text-sm text-orange-800">
-                                  {blocked.start_time?.slice(0, 5)} - {blocked.end_time?.slice(0, 5)}
-                                </span>
-                               <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                                 Blocat
-                               </Badge>
-                             </div>
-                             {blocked.reason && (
-                               <div className="text-sm text-orange-700">
-                                 {blocked.reason}
-                               </div>
-                             )}
-                           </div>
-                         ))}
-                       </div>
-                     );
-                   })()}
-
-                   {/* Bookings for selected date */}
-                   {selectedDateBookings.length > 0 && (
-                     <div className="space-y-3">
-                       <h4 className="font-medium text-sm">Rezervări</h4>
-                       {selectedDateBookings.map((booking) => (
-                         <div key={booking.id} className="p-3 border rounded-lg space-y-2">
-                           <div className="flex items-center justify-between">
-                              <span className="font-medium text-sm">
-                                {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
-                              </span>
-                             <Badge variant={getStatusBadgeVariant(booking.status)}>
-                               {getStatusLabel(booking.status)}
-                             </Badge>
-                           </div>
-                           <div className="text-sm text-muted-foreground">
-                             {booking.total_price} RON
-                           </div>
-                           {booking.notes && (
-                             <div className="text-xs text-muted-foreground">
-                               {booking.notes}
-                             </div>
-                           )}
-                           <BookingStatusManager 
-                             booking={booking}
-                             onStatusUpdate={refreshBookings}
-                           />
-                         </div>
-                       ))}
-                     </div>
-                   )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                        
+                        {/* Buton pentru deblocare */}
+                        {isDateBlocked(selectedDate) && (
+                          <Button 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={() => unblockRecurringDates()}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            {isDateFullyBlocked(selectedDate) ? 'Deblochează Ziua' : 'Deblochează Orele'}
+                          </Button>
+                        )}
+                      </div>
+                    ) : selectedDate && isBefore(selectedDate, today) ? (
+                      <div className="p-3 bg-muted/50 rounded-lg text-center border-t pt-4">
+                        <p className="text-sm text-muted-foreground">
+                          Nu poți modifica datele din trecut
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-64 text-muted-foreground">
+                    <div className="text-center">
+                      <CalendarIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>Selectează o dată din calendar pentru a vedea detaliile</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Recent Bookings */}
         <Card className="mt-6">
