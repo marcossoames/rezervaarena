@@ -507,7 +507,7 @@ const FacilityCalendarPage = () => {
     }
   };
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: string, paymentMethod?: string) => {
     switch (status) {
       case 'confirmed':
         return 'Confirmată';
@@ -517,6 +517,9 @@ const FacilityCalendarPage = () => {
         return 'Finalizată';
       case 'no_show':
         return 'Nu s-a prezentat';
+      case 'pending':
+        // For card payments, display as confirmed in calendar view
+        return paymentMethod === 'card' ? 'Confirmată' : 'În așteptare';
       default:
         return status;
     }
