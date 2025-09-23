@@ -13,15 +13,25 @@ export const getImagePublicUrl = (imagePath: string): string => {
     return imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
   }
 
-  // If the value accidentally includes the bucket prefix, strip it (to avoid double prefixing)
-  const cleanedPath = imagePath.replace(/^facility-images\//, '');
+  try {
+    // If the value accidentally includes the bucket prefix, strip it (to avoid double prefixing)
+    const cleanedPath = imagePath.replace(/^facility-images\//, '');
 
-  // For Supabase storage paths, build a public URL from the bucket
-  const { data } = supabase.storage
-    .from('facility-images')
-    .getPublicUrl(cleanedPath);
+    // For Supabase storage paths, build a public URL from the bucket
+    const { data } = supabase.storage
+      .from('facility-images')
+      .getPublicUrl(cleanedPath);
+    
+    // Verify that we got a valid URL
+    if (data?.publicUrl) {
+      return data.publicUrl;
+    }
+  } catch (error) {
+    console.error('Error generating public URL for image:', imagePath, error);
+  }
   
-  return data.publicUrl;
+  // Fallback to placeholder if URL generation fails
+  return "/placeholder.svg";
 };
 
 
