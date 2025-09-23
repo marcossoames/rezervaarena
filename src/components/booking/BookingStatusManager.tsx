@@ -125,7 +125,8 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
           const response = await supabase.functions.invoke('send-booking-cancellation-email', {
             body: {
               bookingIds: [booking.id],
-              reason: notes.trim() || 'Rezervarea a fost anulată de către baza sportivă.'
+              reason: notes.trim() || 'Rezervarea a fost anulată de către baza sportivă.',
+              cancelledBy: 'facility'
             }
           });
           console.log('Email function response:', response);

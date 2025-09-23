@@ -20,6 +20,7 @@ import ClientBehaviorStats from "@/components/admin/ClientBehaviorStats";
 import BookingDetailsDialog from "@/components/admin/BookingDetailsDialog";
 import DayBookingsDialog from "@/components/admin/DayBookingsDialog";
 import SelectiveUnblockDialog from "@/components/facility/SelectiveUnblockDialog";
+import AddManualBookingDialog from "@/components/facility/AddManualBookingDialog";
 
 interface Booking {
   id: string;
@@ -44,6 +45,9 @@ interface Facility {
   name: string;
   facility_type: string;
   city: string;
+  operating_hours_start?: string;
+  operating_hours_end?: string;
+  price_per_hour: number;
 }
 
 interface BlockedDate {
@@ -83,6 +87,7 @@ const BookingManagement = () => {
   const [blockEndTime, setBlockEndTime] = useState('');
   const [blockReason, setBlockReason] = useState('');
   const [selectedFacilityForBlock, setSelectedFacilityForBlock] = useState('');
+  const [selectedFacilityForManual, setSelectedFacilityForManual] = useState('');
   
   // Booking details modal state
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
@@ -154,7 +159,7 @@ const BookingManagement = () => {
       // Load facilities for filter
       const { data: allFacilitiesData, error: facilitiesError } = await supabase
         .from('facilities')
-        .select('id, name, facility_type, city')
+        .select('id, name, facility_type, city, operating_hours_start, operating_hours_end, price_per_hour')
         .eq('is_active', true)
         .order('name');
 
@@ -573,6 +578,34 @@ const BookingManagement = () => {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+              <div className="flex gap-2">
+                <Select value={selectedFacilityForManual} onValueChange={setSelectedFacilityForManual}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Selectează teren pentru rezervare" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {facilities.map(facility => (
+                      <SelectItem key={facility.id} value={facility.id}>
+                        {facility.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedFacilityForManual && (() => {
+                  const facility = facilities.find(f => f.id === selectedFacilityForManual);
+                  return facility ? (
+                    <AddManualBookingDialog 
+                      facilityId={selectedFacilityForManual}
+                      facility={{
+                        operating_hours_start: facility.operating_hours_start,
+                        operating_hours_end: facility.operating_hours_end,
+                        price_per_hour: facility.price_per_hour
+                      }}
+                      onBookingAdded={loadData}
+                    />
+                  ) : null;
+                })()}
+              </div>
               <Dialog open={isBlockModalOpen} onOpenChange={setIsBlockModalOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="hover-scale shadow-sm w-full sm:w-auto">

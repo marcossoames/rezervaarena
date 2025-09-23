@@ -14,6 +14,7 @@ interface BookingCancellationRequest {
   clientEmails?: string[];
   facilityName?: string;
   reason: string;
+  cancelledBy?: 'client' | 'facility' | 'admin';
   bookingDetails?: {
     date?: string;
     time?: string;
@@ -36,7 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     console.log("Starting booking cancellation email process");
 
-    const { bookingIds = [], clientEmails = [], facilityName, reason, bookingDetails }: BookingCancellationRequest = await req.json();
+    const { bookingIds = [], clientEmails = [], facilityName, reason, cancelledBy = 'facility', bookingDetails }: BookingCancellationRequest = await req.json();
 
     console.log("Booking cancellation request:", {
       bookingCount: bookingIds?.length,
@@ -140,7 +141,7 @@ const handler = async (req: Request): Promise<Response> => {
                 
                 <p>Bună ziua,</p>
                 
-                <p>Ne pare rău să te informăm că rezervarea ta la <strong>${resolvedFacilityName}</strong> a fost anulată din următorul motiv:</p>
+                <p>Ne pare rău să te informăm că rezervarea ta la <strong>${resolvedFacilityName}</strong> a fost anulată${cancelledBy === 'admin' ? ' de către administrator' : cancelledBy === 'facility' ? ' de către baza sportivă' : ''}${reason ? ' din următorul motiv:' : '.'}</p>
                 
                 ${bookingDetails ? `
                 <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;">

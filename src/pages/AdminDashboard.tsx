@@ -309,14 +309,6 @@ const AdminDashboard = () => {
                 <Shield className="h-5 w-5" />
                 Audit Logs
               </Button>
-              <Button 
-                variant={activeTab === 'security' ? 'default' : 'outline'} 
-                onClick={() => setActiveTab('security')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
-              >
-                <Shield className="h-5 w-5" />
-                Securitate Bancară
-              </Button>
             </div>
             
             {/* Third row */}
@@ -359,9 +351,12 @@ const AdminDashboard = () => {
 
         {activeTab === 'bank' && <BankDetailsManagement />}
 
-        {activeTab === 'audit' && <BankAuditLogs />}
-
-        {activeTab === 'security' && <BankingActivityLogs />}
+        {activeTab === 'audit' && (
+          <div className="space-y-6">
+            <BankAuditLogs />
+            <BankingActivityLogs />
+          </div>
+        )}
 
         {activeTab === 'settings' && (
           <Card>
