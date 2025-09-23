@@ -38,8 +38,15 @@ serve(async (req) => {
 
     const supabaseUrl = 'https://ukopxkymzywfpobpcana.supabase.co';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrb3B4a3ltenl3ZnBvYnBjYW5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MTI4MzAsImV4cCI6MjA3MTM4ODgzMH0.GL1gd0IkKn-_r9wVG4omebQb8Pivq0_FjNDlR6LcLIc';
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
+    
+    // Create authenticated client
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
+      },
+    });
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
@@ -50,14 +57,14 @@ serve(async (req) => {
 
     logStep("User authenticated", { userId: user.id });
 
-    // Create service client for secure facility access
+    // Create service client for secure operations
     const supabaseService = createClient(
       supabaseUrl,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { persistSession: false } }
     );
 
-    // Get facility details using client with auth context
+    // Get facility details using authenticated client
     const { data: facilityData, error: facilityError } = await supabase
       .rpc('get_facility_for_payment_secure', { facility_id_param: facilityId });
 

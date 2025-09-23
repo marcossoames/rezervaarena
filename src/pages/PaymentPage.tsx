@@ -79,14 +79,14 @@ const PaymentPage = () => {
           description: '', // Not needed for payment page
           facility_type: data.facility_type,
           city: data.city,
-          address: data.city, // Use city as fallback for address
+          address: data.address || data.city, // Use full address from DB
           price_per_hour: data.price_per_hour,
           capacity: data.capacity,
           amenities: data.amenities,
           images: data.images,
           owner_id: data.owner_id,
           sports_complex_name: data.sports_complex_name,
-          sports_complex_address: data.city, // Use city as sports complex address
+          sports_complex_address: data.sports_complex_address || data.address || data.city, // Use full address
           phone_number: '' // Don't expose phone for security
         };
 
