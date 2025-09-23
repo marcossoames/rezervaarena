@@ -64,9 +64,9 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Get facility details using authenticated client
+    // Get facility details using the correct function
     const { data: facilityData, error: facilityError } = await supabase
-      .rpc('get_facility_for_payment_secure', { facility_id_param: facilityId });
+      .rpc('get_facility_for_payment_processing', { facility_id_param: facilityId });
 
     if (facilityError || !facilityData || facilityData.length === 0) {
       logStep("Facility fetch error", facilityError);
