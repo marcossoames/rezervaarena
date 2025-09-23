@@ -20,6 +20,7 @@ import BookingStatusManager from "@/components/booking/BookingStatusManager";
 import AddManualBookingDialog from "@/components/facility/AddManualBookingDialog";
 import CombinedBlockDialog from "@/components/facility/CombinedBlockDialog";
 import UnblockRecurringDialog from "@/components/facility/UnblockRecurringDialog";
+import SelectiveUnblockDialog from "@/components/facility/SelectiveUnblockDialog";
 
 interface Facility {
   id: string;
@@ -70,6 +71,7 @@ const FacilityCalendarPage = () => {
   const [blockEndTime, setBlockEndTime] = useState("");
   const [blockReason, setBlockReason] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   const today = startOfDay(new Date());
 
@@ -83,21 +85,37 @@ const FacilityCalendarPage = () => {
         return;
       }
 
-      // Load facility details
-      const { data: facilityData, error: facilityError } = await supabase
+      // Check user role for admin permissions
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const userIsAdmin = profileData?.role === 'admin';
+      setIsAdmin(userIsAdmin);
+
+      // Load facility details - admin can view any facility, owner only their own
+      const facilityQuery = supabase
         .from('facilities')
         .select('*')
-        .eq('id', facilityId)
-        .eq('owner_id', user.id)
-        .single();
+        .eq('id', facilityId);
+
+      if (!userIsAdmin) {
+        facilityQuery.eq('owner_id', user.id);
+      }
+
+      const { data: facilityData, error: facilityError } = await facilityQuery.maybeSingle();
 
       if (facilityError || !facilityData) {
         toast({
           title: "Eroare",
-          description: "Nu s-a putut încărca facilitatea sau nu aveți permisiune să o vizualizați",
+          description: userIsAdmin 
+            ? "Nu s-a putut încărca facilitatea" 
+            : "Nu s-a putut încărca facilitatea sau nu aveți permisiune să o vizualizați",
           variant: "destructive"
         });
-        navigate("/manage-facilities");
+        navigate(userIsAdmin ? "/admin" : "/manage-facilities");
         return;
       }
 
@@ -212,6 +230,11 @@ const FacilityCalendarPage = () => {
   };
 
   const getBlockedHoursForDate = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return blockedDates.filter(blocked => blocked.blocked_date === dateStr);
+  };
+
+  const getBlockedSlotsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return blockedDates.filter(blocked => blocked.blocked_date === dateStr);
   };
@@ -784,18 +807,34 @@ const FacilityCalendarPage = () => {
                          );
                        })()}
                        
-                        {/* Enhanced Unblock Button */}
-                        {isDateBlocked(selectedDate) && (
-                          <UnblockRecurringDialog
-                            facilityId={facilityId}
-                            selectedDate={selectedDate}
-                            blockedDates={blockedDates}
-                            onUnblockComplete={() => {
-                              refreshBookings();
-                              refreshBlockedDates();
-                            }}
-                          />
-                         )}
+                         {/* Enhanced Unblock Buttons */}
+                         {isDateBlocked(selectedDate) && (
+                           <div className="space-y-2">
+                             {/* Use selective unblock if there are multiple blocked intervals */}
+                             {getBlockedSlotsForDate(selectedDate).length > 1 ? (
+                               <SelectiveUnblockDialog
+                                 facilityId={facilityId}
+                                 selectedDate={selectedDate}
+                                 blockedTimeSlots={blockedDates}
+                                 isAdmin={isAdmin}
+                                 onUnblockComplete={() => {
+                                   refreshBookings();
+                                   refreshBlockedDates();
+                                 }}
+                               />
+                             ) : (
+                               <UnblockRecurringDialog
+                                 facilityId={facilityId}
+                                 selectedDate={selectedDate}
+                                 blockedDates={blockedDates}
+                                 onUnblockComplete={() => {
+                                   refreshBookings();
+                                   refreshBlockedDates();
+                                 }}
+                               />
+                             )}
+                           </div>
+                          )}
                     </div>
                   ) : (
                     <div className="p-3 bg-muted/50 rounded-lg text-center">

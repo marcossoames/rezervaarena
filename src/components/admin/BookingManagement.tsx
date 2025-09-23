@@ -19,6 +19,7 @@ import BookingStatusManager from "@/components/booking/BookingStatusManager";
 import ClientBehaviorStats from "@/components/admin/ClientBehaviorStats";
 import BookingDetailsDialog from "@/components/admin/BookingDetailsDialog";
 import DayBookingsDialog from "@/components/admin/DayBookingsDialog";
+import SelectiveUnblockDialog from "@/components/facility/SelectiveUnblockDialog";
 
 interface Booking {
   id: string;
@@ -865,12 +866,25 @@ const BookingManagement = () => {
           {/* Blocked Times for Selected Date */}
           {filteredBlockedDates.length > 0 && (
             <div className="mb-8 animate-fade-in">
-              <div className="bg-gradient-to-r from-destructive/5 to-destructive/10 p-4 rounded-lg border border-destructive/20 mb-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-destructive">
-                  <Ban className="h-5 w-5" />
-                  Date/Ore Blocate
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">Intervalele blocate pentru data selectată</p>
+              <div className="bg-gradient-to-r from-destructive/5 to-destructive/10 p-4 rounded-lg border border-destructive/20 mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-destructive">
+                    <Ban className="h-5 w-5" />
+                    Date/Ore Blocate ({filteredBlockedDates.length})
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">Intervalele blocate pentru data selectată</p>
+                </div>
+                
+                {/* Add selective unblock for admin when multiple blocks exist */}
+                {selectedDate && filteredBlockedDates.length > 1 && (
+                  <SelectiveUnblockDialog
+                    facilityId={filteredBlockedDates[0]?.facility_id || ""}
+                    selectedDate={selectedDate}
+                    blockedTimeSlots={filteredBlockedDates}
+                    isAdmin={true}
+                    onUnblockComplete={loadData}
+                  />
+                )}
               </div>
               <div className="grid gap-3">
                 {filteredBlockedDates.map((blocked, index) => {
