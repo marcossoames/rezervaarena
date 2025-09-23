@@ -240,7 +240,7 @@ const BookingManagement = () => {
                 price: bookingData.total_price
               };
 
-              await supabase.functions.invoke('send-booking-cancellation-email', {
+              const response = await supabase.functions.invoke('send-booking-cancellation-email', {
                 body: {
                   bookingIds: [bookingId],
                   clientEmails: [profileData.email],
@@ -250,7 +250,21 @@ const BookingManagement = () => {
                 }
               });
 
-              console.log('Admin cancellation email sent successfully');
+              console.log('Email function response (admin):', response);
+              if (response.error) {
+                console.error('Email function error (admin):', response.error);
+                toast({
+                  title: 'Avertisment',
+                  description: 'Statusul a fost actualizat, dar emailul către client a eșuat.',
+                  variant: 'destructive'
+                });
+              } else {
+                console.log('Admin cancellation email sent successfully');
+                toast({
+                  title: 'Email trimis',
+                  description: 'Clientul a fost notificat prin email despre anulare.'
+                });
+              }
             }
           }
         } catch (emailError) {
