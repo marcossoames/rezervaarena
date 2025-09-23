@@ -61,7 +61,11 @@ serve(async (req) => {
     const supabaseService = createClient(
       supabaseUrl,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
+      {
+        auth: { persistSession: false },
+        // Propagate the end-user JWT so DB triggers that rely on auth.uid() work
+        global: { headers: { Authorization: authHeader } }
+      }
     );
 
     // Get facility details using the correct function
