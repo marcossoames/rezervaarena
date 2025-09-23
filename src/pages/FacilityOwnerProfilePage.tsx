@@ -638,6 +638,18 @@ const FacilityOwnerProfilePage = () => {
               </CardHeader>
             </Card>
 
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/facility-calendar')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Calendar Facilități
+                </CardTitle>
+                <CardDescription>
+                  Vizualizează calendarul și blochează zile/ore specifice
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/facility-owner-income')}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

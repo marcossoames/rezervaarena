@@ -525,6 +525,18 @@ const MyReservationsPage = () => {
               <ArrowLeft className="h-4 w-4" />
               {cameFromManageFacilities ? 'Înapoi la Facilități' : 'Înapoi la Profil'}
             </Button>
+            
+            {/* Calendar button for facility owners and admins */}
+            {(userProfile?.role === 'facility_owner' || userProfile?.user_type_comment?.includes('Proprietar bază sportivă') || userProfile?.role === 'admin') && (
+              <Button
+                variant="outline"
+                onClick={() => navigate('/facility-calendar')}
+                className="flex items-center gap-2"
+              >
+                <Calendar className="h-4 w-4" />
+                Calendar Facilități
+              </Button>
+            )}
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
           <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
