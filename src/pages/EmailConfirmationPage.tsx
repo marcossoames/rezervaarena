@@ -68,6 +68,13 @@ const EmailConfirmationPage = () => {
           if (data.user) {
             setStatus('success');
             try { window.history.replaceState({}, document.title, window.location.origin + '/email-confirmation'); } catch {}
+            
+            // Process pending images if any
+            const imagesProcessed = await processPendingImages();
+            if (imagesProcessed) {
+              console.log('Pending images processed successfully');
+            }
+            
             // Check if this is a facility owner
             const { data: profile } = await supabase
               .from('profiles')
@@ -100,6 +107,12 @@ const EmailConfirmationPage = () => {
         if (user?.email_confirmed_at) {
           setStatus('success');
           
+          // Process pending images if any
+          const imagesProcessed = await processPendingImages();
+          if (imagesProcessed) {
+            console.log('Pending images processed successfully');
+          }
+          
           // Check if this is a facility owner
           const { data: profile } = await supabase
             .from('profiles')
@@ -123,8 +136,15 @@ const EmailConfirmationPage = () => {
         // Mai așteptăm puțin și re-verificăm
         setTimeout(async () => {
           const { data: { user: updatedUser } } = await supabase.auth.getUser();
-          if (updatedUser?.email_confirmed_at) {
+        if (updatedUser?.email_confirmed_at) {
             setStatus('success');
+            
+            // Process pending images if any
+            const imagesProcessed = await processPendingImages();
+            if (imagesProcessed) {
+              console.log('Pending images processed successfully');
+            }
+            
             toast({
               title: "Email confirmat cu succes!",
               description: "Contul tău a fost activat cu succes. Te poți conecta pe site pentru a avea acces la cont.",

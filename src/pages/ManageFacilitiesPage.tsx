@@ -13,6 +13,7 @@ import { ro } from "date-fns/locale";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import ImageCarousel from "@/components/ImageCarousel";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
+import { processPendingImages } from "@/utils/pendingImagesHandler";
 
 interface Facility {
   id: string;
@@ -98,6 +99,15 @@ const ManageFacilitiesPage = () => {
       }
 
       setUserProfile(profile);
+
+      // Process any pending images that might not have been processed during email confirmation
+      const imagesProcessed = await processPendingImages();
+      if (imagesProcessed) {
+        console.log('Pending images processed successfully');
+        // Refresh the page to show updated images
+        window.location.reload();
+        return;
+      }
 
       // Load facilities owned by this user using secure RPC
       const { data: facilitiesData, error } = await supabase
