@@ -219,8 +219,8 @@ const PaymentPage = () => {
 
       if (data?.url) {
         console.log('Redirecting to Stripe checkout:', data.url);
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
+        // Redirect to Stripe checkout in the same tab for proper return flow
+        window.location.href = data.url;
       } else {
         throw new Error('Nu s-a primit URL-ul de checkout');
       }

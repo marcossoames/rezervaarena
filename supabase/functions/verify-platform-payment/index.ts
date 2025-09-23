@@ -3,7 +3,7 @@ import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('APP_ALLOWED_ORIGINS') || 'https://sportspot-booker.lovable.app',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Max-Age': '3600'
@@ -49,18 +49,31 @@ serve(async (req) => {
       status: session.status
     });
 
-    // Use service role to update booking and payment records
+    // Get user auth header and create service client with propagated JWT for trigger security
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header provided');
+    }
+
+    const supabaseUrl = 'https://ukopxkymzywfpobpcana.supabase.co';
     const supabaseService = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
+      supabaseUrl,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
+      {
+        auth: { persistSession: false },
+        global: { headers: { Authorization: authHeader } }
+      }
     );
 
-    if (session.payment_status === 'paid') {
+    // Robust check: also verify PaymentIntent status in case session.payment_status lags
+    const isPaid = session.payment_status === 'paid' ||
+      (session.payment_intent ? (await stripe.paymentIntents.retrieve(session.payment_intent as string)).status === 'succeeded' : false);
+
+    if (isPaid) {
       // Get booking to verify ownership
       const { data: booking, error: getBookingError } = await supabaseService
         .from('bookings')
-        .select('client_id')
+        .select('id, client_id')
         .eq('stripe_session_id', sessionId)
         .single();
 
@@ -119,7 +132,8 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ 
         status: 'success',
-        message: 'Payment verified and booking confirmed'
+        message: 'Payment verified and booking confirmed',
+        bookingId: booking.id
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
