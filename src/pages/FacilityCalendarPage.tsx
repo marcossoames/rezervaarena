@@ -199,11 +199,15 @@ const FacilityCalendarPage = () => {
     };
   }, [facilityId]);
 
-  const getBookingsForDate = (date: Date) => {
+  const getAllBookingsForDate = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return bookings.filter(booking => booking.booking_date === dateStr);
+  };
+
+  const getActiveBookingsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return bookings.filter(booking => 
-      booking.booking_date === dateStr && 
-      booking.status !== 'cancelled'
+      booking.booking_date === dateStr && (booking.status === 'confirmed' || booking.status === 'pending')
     );
   };
 
@@ -556,7 +560,7 @@ const FacilityCalendarPage = () => {
                 locale={ro}
                 className="rounded-md border"
                 modifiers={{
-                  hasBookings: (date) => getBookingsForDate(date).length > 0,
+                  hasBookings: (date) => getActiveBookingsForDate(date).length > 0,
                   partiallyBlocked: (date) => hasPartialBlockings(date),
                   fullyBlocked: (date) => isDateFullyBlocked(date)
                 }}
@@ -595,7 +599,7 @@ const FacilityCalendarPage = () => {
                   <>
                     Program: {facility.operating_hours_start?.slice(0, 5) || '08:00'} - {facility.operating_hours_end?.slice(0, 5) || '22:00'}
                     <br />
-                    {getBookingsForDate(selectedDate).length} rezervări active
+                    {getActiveBookingsForDate(selectedDate).length} rezervări active
                   </>
                 )}
               </CardDescription>
@@ -615,7 +619,7 @@ const FacilityCalendarPage = () => {
                   {!isBefore(selectedDate, today) ? (
                     <div className="space-y-3">
                        {(() => {
-                         const existingBookings = getBookingsForDate(selectedDate);
+                         const existingBookings = getActiveBookingsForDate(selectedDate);
                          const hasExistingBookings = existingBookings.length > 0;
                          
                          if (isDateFullyBlocked(selectedDate)) {
@@ -675,10 +679,10 @@ const FacilityCalendarPage = () => {
                                                  const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
                                                  
                                                  // Check if this time slot has any booking conflicts
-                                                 const existingBookings = selectedDate ? getBookingsForDate(selectedDate) : [];
-                                                 const hasBookingConflict = existingBookings.some(booking => {
-                                                   const bookingStart = booking.start_time.slice(0, 5);
-                                                   const bookingEnd = booking.end_time.slice(0, 5);
+                                                  const existingBookings = selectedDate ? getActiveBookingsForDate(selectedDate) : [];
+                                                  const hasBookingConflict = existingBookings.some(booking => {
+                                                    const bookingStart = booking.start_time.slice(0, 5);
+                                                    const bookingEnd = booking.end_time.slice(0, 5);
                                                    return timeString >= bookingStart && timeString < bookingEnd;
                                                  });
                                                  
@@ -828,13 +832,13 @@ const FacilityCalendarPage = () => {
                 <div>
                   <h3 className="flex items-center gap-2 font-semibold mb-3">
                     <CalendarIcon className="h-4 w-4" />
-                    Rezervări ({getBookingsForDate(selectedDate).length})
+                    Rezervări ({getAllBookingsForDate(selectedDate).length})
                   </h3>
-                  {getBookingsForDate(selectedDate).length === 0 ? (
+                  {getAllBookingsForDate(selectedDate).length === 0 ? (
                     <p className="text-muted-foreground text-sm p-3 bg-muted/30 rounded-lg">Nu există rezervări pentru această dată</p>
                   ) : (
                     <div className="space-y-3">
-                      {getBookingsForDate(selectedDate).map((booking) => (
+                      {getAllBookingsForDate(selectedDate).map((booking) => (
                         <div key={booking.id} className="flex items-start justify-between p-4 border rounded-lg bg-card">
                           <div className="flex-1">
                             <div className="font-medium mb-1">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</div>
