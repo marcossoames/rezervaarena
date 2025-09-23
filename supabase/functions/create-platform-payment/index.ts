@@ -115,6 +115,18 @@ serve(async (req) => {
 
     // Stripe fees for logging (not used by Checkout directly)
     const totalAmountCents = Math.round(totalPrice * 100);
+
+    // Enforce Stripe minimum charge for RON (2 RON)
+    const MIN_AMOUNT_CENTS = 200;
+    if (totalAmountCents < MIN_AMOUNT_CENTS) {
+      const msg = 'Suma minimă pentru plata cu cardul este 2 RON. Alegeți un interval mai lung sau metoda numerar.';
+      logStep('Amount too small', { totalAmountCents });
+      return new Response(JSON.stringify({ error: msg }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     const stripeFeePercentage = 0.015;
     const stripeFixedFeeCents = 100;
     const stripeTotalFeeCents = Math.round(totalAmountCents * stripeFeePercentage) + stripeFixedFeeCents;

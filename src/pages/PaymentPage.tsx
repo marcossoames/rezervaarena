@@ -211,7 +211,17 @@ const PaymentPage = () => {
         console.error('Payment creation error:', error);
         toast({
           title: "Eroare la procesarea plății",
-          description: error.message || "A apărut o eroare la crearea sesiunii de plată.",
+          description: (error as any)?.message || "A apărut o eroare la crearea sesiunii de plată.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.error) {
+        console.warn('Payment creation server message:', data.error);
+        toast({
+          title: "Plata nu poate fi inițiată",
+          description: String(data.error),
           variant: "destructive",
         });
         return;
