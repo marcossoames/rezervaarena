@@ -176,6 +176,31 @@ serve(async (req) => {
         if (payInsErr) logStep('Platform payment insert failed', { message: payInsErr.message });
       }
 
+      // Send booking confirmation emails only once here
+      if (booking?.id) {
+        try {
+          logStep('Sending booking confirmation emails for:', { bookingId: booking.id });
+          
+          const emailResponse = await fetch('https://ukopxkymzywfpobpcana.supabase.co/functions/v1/send-booking-confirmation', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+            },
+            body: JSON.stringify({ bookingId: booking.id })
+          });
+          
+          if (!emailResponse.ok) {
+            logStep('Email sending failed', { status: emailResponse.status });
+          } else {
+            logStep('Booking confirmation emails sent successfully');
+          }
+        } catch (emailError) {
+          logStep('Failed to send confirmation emails', { error: emailError });
+          // Non-fatal error - don't fail the payment verification
+        }
+      }
+
       return new Response(
         JSON.stringify({ status: 'success', message: 'Payment verified and booking confirmed', bookingId: booking?.id }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
