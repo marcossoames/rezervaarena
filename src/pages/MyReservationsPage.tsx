@@ -713,6 +713,7 @@ const MyReservationsPage = () => {
                     </div>
                   )}
 
+                  {/* Show cancel button only for non-cancelled bookings that can be cancelled */}
                   {booking.status !== 'cancelled' && canCancelBooking(booking) && <div className="flex justify-end pt-4 border-t">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -741,10 +742,23 @@ const MyReservationsPage = () => {
                       </AlertDialog>
                     </div>}
 
+                  {/* Show message for non-cancelled bookings that cannot be cancelled */}
                   {booking.status !== 'cancelled' && !canCancelBooking(booking) && <div className="pt-4 border-t">
                       <p className="text-sm text-muted-foreground text-center">
                         Rezervarea nu mai poate fi anulată (mai puțin de 24h până la începere)
                       </p>
+                    </div>}
+
+                  {/* Show message for cancelled bookings */}
+                  {booking.status === 'cancelled' && <div className="pt-4 border-t bg-red-50 p-3 rounded-lg">
+                      <p className="text-sm text-red-700 text-center font-medium">
+                        Această rezervare a fost anulată
+                      </p>
+                      {booking.notes && booking.notes.includes('anulată') && (
+                        <p className="text-xs text-red-600 text-center mt-1">
+                          {booking.notes}
+                        </p>
+                      )}
                     </div>}
                 </CardContent>
               </Card>)}

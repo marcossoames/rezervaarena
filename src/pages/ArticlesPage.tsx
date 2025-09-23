@@ -162,8 +162,8 @@ const ArticlesPage = () => {
       {/* Article Modal */}
       {selectedArticle && (
         <Dialog open={!!selectedArticle} onOpenChange={() => setSelectedArticle(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
-            <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b pb-4 mb-4">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col [&>button]:hidden">
+            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b pb-4 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold pr-8">
                   {selectedArticle.title}
@@ -181,7 +181,7 @@ const ArticlesPage = () => {
               </div>
             </div>
             
-            <div className="space-y-6">
+            <div className="overflow-y-auto flex-1 space-y-6 pt-4">
               {selectedArticle.images && selectedArticle.images.length > 0 && (
                 <div className="mb-6">
                   <ImageCarousel
