@@ -76,7 +76,7 @@ const ContactPage = () => {
                       <Mail className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-lg">Email Privat</h3>
+                      <h3 className="font-medium text-lg">Email Personal</h3>
                       <a href="mailto:efleihraian@gmail.com" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
                         efleihraian@gmail.com
                       </a>
