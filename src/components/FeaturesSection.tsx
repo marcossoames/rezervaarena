@@ -5,7 +5,7 @@ const features = [
   {
     icon: Calendar,
     title: "Rezervare Instantanee & Program Flexibil",
-    description: "Rezervă terenul în doar câteva click-uri pentru următoarele 2 săptămâni pe intervale de 30 de minute, adaptate programului tău"
+    description: "Rezervă terenul în doar câteva click-uri pentru următoarele 2 săptămâni pe intervale de 60 sau 90 de minute, adaptate programului tău"
   },
   {
     icon: CreditCard,
