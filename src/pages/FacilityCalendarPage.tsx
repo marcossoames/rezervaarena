@@ -211,6 +211,11 @@ const FacilityCalendarPage = () => {
     return bookings.filter(booking => booking.booking_date === dateStr);
   };
 
+  const getBlockedHoursForDate = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return blockedDates.filter(blocked => blocked.blocked_date === dateStr);
+  };
+
   const isDateFullyBlocked = (date: Date): boolean => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return blockedDates.some(blocked => 
@@ -610,77 +615,77 @@ const FacilityCalendarPage = () => {
             </CardHeader>
             <CardContent>
               {selectedDate ? (
-                <div className="space-y-6">
-                  {/* Existing Bookings */}
-                  <div>
-                    <h3 className="flex items-center gap-2 font-semibold mb-3">
-                      <CalendarIcon className="h-4 w-4" />
-                      Rezervări
-                    </h3>
-                    {getBookingsForDate(selectedDate).length === 0 ? (
-                      <p className="text-muted-foreground text-sm">Nu există rezervări pentru această dată</p>
-                    ) : (
-                      <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                        {getBookingsForDate(selectedDate).map((booking) => (
-                          <div key={booking.id} className="flex items-start justify-between p-3 bg-muted/50 rounded-lg">
-                            <div className="flex-1">
-                              <div className="font-medium mb-1">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</div>
-                              <div className="text-muted-foreground text-sm">
-                                {booking.total_price} RON • {booking.payment_method === 'card' ? 'Card' : 'Cash'}
-                              </div>
-                              {booking.notes && (
-                                <div className="text-xs text-muted-foreground mt-1 p-2 bg-muted rounded">
-                                  {booking.notes}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 ml-3">
-                              <Badge variant={getStatusBadgeVariant(booking.status)}>
-                                {getStatusLabel(booking.status)}
-                              </Badge>
-                              <Button variant="outline" size="sm">
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                <div className="space-y-4">
+                  {/* Add Manual Booking Button */}
+                  <AddManualBookingDialog 
+                    facilityId={facilityId!}
+                    onBookingAdded={refreshBookings}
+                    facility={facility}
+                    selectedDate={selectedDate}
+                  />
 
-                  {/* Blocked Hours */}
-                  <div>
-                    <h3 className="flex items-center gap-2 font-semibold mb-3">
-                      <Ban className="h-4 w-4" />
-                      Ore blocate
-                    </h3>
-                    {(() => {
-                      const dateStr = format(selectedDate, 'yyyy-MM-dd');
-                      const dayBlocks = blockedDates.filter(blocked => blocked.blocked_date === dateStr);
-                      
-                      if (dayBlocks.length === 0) {
-                        return <p className="text-muted-foreground text-sm">Nu există ore blocate pentru această dată</p>;
-                      }
-                      
-                      return (
-                        <div className="space-y-2">
-                          {dayBlocks.map((block) => (
-                            <div key={block.id} className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                              <div className="font-medium text-red-900">
-                                {block.start_time && block.end_time ? 
-                                  `${block.start_time.slice(0, 5)} - ${block.end_time.slice(0, 5)}` : 
-                                  'Întreaga zi'
-                                }
-                              </div>
-                              {block.reason && (
-                                <div className="text-sm text-red-700 mt-1">{block.reason}</div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })()}
+                  {/* Blocking Options */}
+                  {!isBefore(selectedDate, today) ? (
+                    <div className="space-y-3">
+                       {(() => {
+                         const existingBookings = getBookingsForDate(selectedDate);
+                         const hasExistingBookings = existingBookings.length > 0;
+                         
+                         if (isDateFullyBlocked(selectedDate)) {
+                           return (
+                             <div className="p-3 bg-red-50 rounded-lg border border-red-200 text-center">
+                               <p className="text-sm text-red-800 font-medium">
+                                 ⛔ Ziua este complet blocată
+                               </p>
+                             </div>
+                           );
+                         }
+                         
+                         return (
+                           <CombinedBlockDialog
+                             facilityId={facilityId}
+                             selectedDate={selectedDate}
+                              onBlockingAdded={() => {
+                                refreshBookings();
+                                refreshBlockedDates();
+                              }}
+                             hasExistingBookings={hasExistingBookings}
+                           />
+                         );
+                       })()}
+                       
+                        {/* Enhanced Unblock Button */}
+                        {isDateBlocked(selectedDate) && (
+                          <UnblockRecurringDialog
+                            facilityId={facilityId}
+                            selectedDate={selectedDate}
+                            blockedDates={blockedDates}
+                            onUnblockComplete={() => {
+                              refreshBookings();
+                              refreshBlockedDates();
+                            }}
+                          />
+                         )}
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-muted/50 rounded-lg text-center">
+                      <p className="text-sm text-muted-foreground">
+                        Nu poți modifica datele din trecut
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-32 text-muted-foreground">
+                  <div className="text-center">
+                    <CalendarIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Selectează o dată din calendar</p>
                   </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
                   {/* Block/Unblock Actions */}
                   {selectedDate && !isBefore(selectedDate, today) ? (
@@ -908,10 +913,10 @@ const FacilityCalendarPage = () => {
                   ) : null}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-64 text-muted-foreground">
+                <div className="flex items-center justify-center h-32 text-muted-foreground">
                   <div className="text-center">
-                    <CalendarIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>Selectează o dată din calendar pentru a vedea detaliile</p>
+                    <CalendarIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Selectează o dată din calendar</p>
                   </div>
                 </div>
               )}
@@ -919,47 +924,83 @@ const FacilityCalendarPage = () => {
           </Card>
         </div>
 
-        {/* Recent Bookings */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Rezervări Recente</CardTitle>
-            <CardDescription>
-              Ultimele rezervări pentru această facilitate
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {bookings.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">
-                Nu există rezervări pentru această facilitate
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {bookings.slice(0, 10).map((booking) => (
-                  <div key={booking.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="space-y-1">
-                        <div className="font-medium">
-                          {format(new Date(booking.booking_date), 'dd MMMM yyyy', { locale: ro })}
+        {/* Day-Specific Reservations */}
+        {selectedDate && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Rezervări pentru {format(selectedDate, 'd MMMM yyyy', { locale: ro })}</CardTitle>
+              <CardDescription>
+                Toate rezervările, blocările și rezervările manuale pentru data selectată
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Existing Bookings */}
+                <div>
+                  <h3 className="flex items-center gap-2 font-semibold mb-3">
+                    <CalendarIcon className="h-4 w-4" />
+                    Rezervări ({getBookingsForDate(selectedDate).length})
+                  </h3>
+                  {getBookingsForDate(selectedDate).length === 0 ? (
+                    <p className="text-muted-foreground text-sm p-3 bg-muted/30 rounded-lg">Nu există rezervări pentru această dată</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {getBookingsForDate(selectedDate).map((booking) => (
+                        <div key={booking.id} className="flex items-start justify-between p-4 border rounded-lg bg-card">
+                          <div className="flex-1">
+                            <div className="font-medium mb-1">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</div>
+                            <div className="text-muted-foreground text-sm">
+                              {booking.total_price} RON • {booking.payment_method === 'card' ? 'Plată cu cardul' : 'Plată cash'}
+                            </div>
+                            {booking.notes && (
+                              <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted/50 rounded">
+                                <strong>Notă:</strong> {booking.notes}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 ml-4">
+                            <BookingStatusManager 
+                              booking={booking}
+                              onStatusUpdate={refreshBookings}
+                              showStatusUpdate={true}
+                            />
+                          </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Blocked Hours */}
+                <div>
+                  <h3 className="flex items-center gap-2 font-semibold mb-3">
+                    <Clock className="h-4 w-4" />
+                    Ore Blocate ({getBlockedHoursForDate(selectedDate).length})
+                  </h3>
+                  {getBlockedHoursForDate(selectedDate).length === 0 ? (
+                    <p className="text-muted-foreground text-sm p-3 bg-muted/30 rounded-lg">Nu există ore blocate pentru această dată</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {getBlockedHoursForDate(selectedDate).map((block) => (
+                        <div key={block.id} className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <div>
+                            <div className="font-medium text-red-800">
+                              {block.start_time ? `${block.start_time.slice(0, 5)} - ${block.end_time?.slice(0, 5)}` : 'Toată ziua'}
+                            </div>
+                            {block.reason && (
+                              <div className="text-sm text-red-600">{block.reason}</div>
+                            )}
+                          </div>
+                          <Badge variant="destructive" className="text-xs">Blocat</Badge>
                         </div>
+                      ))}
                     </div>
-                    <div className="text-right space-y-1">
-                      <div className="text-sm font-medium">
-                        {booking.total_price} RON
-                      </div>
-                      <BookingStatusManager 
-                        booking={booking}
-                        onStatusUpdate={refreshBookings}
-                        showStatusUpdate={true}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  )}
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
