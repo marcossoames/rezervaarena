@@ -662,22 +662,75 @@ const FacilityCalendarPage = () => {
                          )}
 
                          {/* Buton pentru blocarea anumitor ore */}
-                         {!isDateFullyBlocked(selectedDate) && (
-                           <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
-                             <DialogTrigger asChild>
-                               <Button variant="outline" className="w-full">
-                                 <Clock className="h-4 w-4 mr-2" />
-                                 Blochează Anumite Ore
-                               </Button>
-                             </DialogTrigger>
-                             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                               <DialogHeader>
-                                 <DialogTitle>Blochează Anumite Ore</DialogTitle>
-                                 <DialogDescription>
-                                   Selectează intervalul orar pe care vrei să îl blochezi pentru {selectedDate && format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
-                                 </DialogDescription>
-                               </DialogHeader>
-                               <div className="space-y-4">
+                         {!isDateFullyBlocked(selectedDate) && (() => {
+                           // Check if there are any available time slots for blocking
+                           const startHour = facility?.operating_hours_start ? parseInt(facility.operating_hours_start.split(':')[0]) : 8;
+                           const endHour = facility?.operating_hours_end ? parseInt(facility.operating_hours_end.split(':')[0]) : 22;
+                           const dayBookings = selectedDate ? getBookingsForDate(selectedDate) : [];
+                           const dateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+                           const dayBlockedHours = blockedDates.filter(blocked => 
+                             blocked.blocked_date === dateStr && blocked.start_time && blocked.end_time
+                           );
+                           
+                           let availableSlots = 0;
+                           for (let hour = startHour; hour < endHour; hour++) {
+                             for (let minute = 0; minute < 60; minute += 30) {
+                               const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                               
+                               // Skip past times for today
+                               if (selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')) {
+                                 const now = new Date();
+                                 const currentHour = now.getHours();
+                                 const currentMinute = now.getMinutes();
+                                 const timeHour = parseInt(timeValue.split(':')[0]);
+                                 const timeMinute = parseInt(timeValue.split(':')[1]);
+                                 
+                                 if (timeHour < currentHour || (timeHour === currentHour && timeMinute <= currentMinute)) {
+                                   continue;
+                                 }
+                               }
+                               
+                               // Check conflicts with bookings and blocks
+                               const hasBookingConflict = dayBookings.some(booking => {
+                                 return timeValue >= booking.start_time && timeValue < booking.end_time;
+                               });
+                               const hasBlockConflict = dayBlockedHours.some(blocked => {
+                                 return timeValue >= (blocked.start_time || '') && timeValue < (blocked.end_time || '');
+                               });
+                               
+                               if (!hasBookingConflict && !hasBlockConflict) {
+                                 availableSlots++;
+                               }
+                             }
+                           }
+                           
+                           if (availableSlots < 2) { // Need at least 2 slots (start and end)
+                             return (
+                               <div className="p-3 bg-muted/50 rounded-lg border border-dashed">
+                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                   <Clock className="h-4 w-4" />
+                                   <span>Nu există ore disponibile pentru blocare (toate orele sunt rezervate sau deja blocate)</span>
+                                 </div>
+                               </div>
+                             );
+                           }
+                           
+                           return (
+                             <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
+                               <DialogTrigger asChild>
+                                 <Button variant="outline" className="w-full">
+                                   <Clock className="h-4 w-4 mr-2" />
+                                   Blochează Anumite Ore ({availableSlots} ore disponibile)
+                                 </Button>
+                               </DialogTrigger>
+                                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>Blochează Anumite Ore</DialogTitle>
+                                    <DialogDescription>
+                                      Selectează intervalul orar pe care vrei să îl blochezi pentru {selectedDate && format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="space-y-4">
                                  <div className="grid grid-cols-2 gap-4">
                                    <div className="space-y-2">
                                      <Label>Ora de început *</Label>
@@ -745,11 +798,17 @@ const FacilityCalendarPage = () => {
                                      <Label>Ora de sfârșit *</Label>
                                      <Select value={blockEndTime} onValueChange={setBlockEndTime}>
                                        <SelectTrigger>
-                                         <SelectValue placeholder="Selectează ora" />
+                                         <SelectValue placeholder={blockStartTime ? "Selectează ora de sfârșit" : "Alege mai întâi ora de început"} />
                                        </SelectTrigger>
                                        <SelectContent>
                                          {(() => {
-                                           if (!blockStartTime) return [];
+                                           if (!blockStartTime) {
+                                             return (
+                                               <div className="p-3 text-sm text-muted-foreground text-center">
+                                                 Selectează mai întâi ora de început
+                                               </div>
+                                             );
+                                           }
                                            
                                            const startHour = facility?.operating_hours_start ? parseInt(facility.operating_hours_start.split(':')[0]) : 8;
                                            const endHour = facility?.operating_hours_end ? parseInt(facility.operating_hours_end.split(':')[0]) : 22;
@@ -791,6 +850,15 @@ const FacilityCalendarPage = () => {
                                              }
                                            }
                                            
+                                           if (times.length === 0) {
+                                             return (
+                                               <div className="p-3 text-sm text-muted-foreground text-center">
+                                                 Nu există ore disponibile după {blockStartTime}<br/>
+                                                 <span className="text-xs">(conflicte cu rezervări existente sau ore blocate)</span>
+                                               </div>
+                                             );
+                                           }
+                                           
                                            return times.map(timeValue => (
                                              <SelectItem key={timeValue} value={timeValue}>
                                                {timeValue}
@@ -828,10 +896,11 @@ const FacilityCalendarPage = () => {
                                      Anulează
                                    </Button>
                                  </div>
-                               </div>
-                             </DialogContent>
-                           </Dialog>
-                         )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                           );
+                         })()}
                         
                         {/* Buton pentru deblocare */}
                         {isDateBlocked(selectedDate) && (
