@@ -176,7 +176,7 @@ const MyReservationsPage = () => {
           .from('bookings')
           .select('*')
           .in('facility_id', facilityIds)
-          .order('booking_date', { ascending: false });
+          .order('created_at', { ascending: false }); // Order by creation date first (most recent reservations)
 
         if (bookingsError) {
           console.error('Error fetching bookings:', bookingsError);
@@ -266,13 +266,15 @@ const MyReservationsPage = () => {
         })));
 
       } else {
-        // For regular clients, get their own bookings
+        // For regular clients, get their own bookings ordered by most recent first
         const {
           data: userBookings,
           error: bookingsError
-        } = await supabase.from('bookings').select('*').eq('client_id', user.id).order('booking_date', {
-          ascending: false
-        });
+        } = await supabase.from('bookings')
+          .select('*')
+          .eq('client_id', user.id)
+          .order('created_at', { ascending: false }); // Order by creation date first (most recent reservations)
+        
         
         if (bookingsError) {
           console.error('Error fetching bookings:', bookingsError);
