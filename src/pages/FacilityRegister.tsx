@@ -209,6 +209,16 @@ const FacilityRegister = () => {
     const availableSlots = 8 - currentImages.length;
     const filesToAdd = newFiles.slice(0, availableSlots);
     
+    // Check file sizes and warn if too large
+    const largFiles = filesToAdd.filter(file => file.size > 5 * 1024 * 1024); // 5MB
+    if (largFiles.length > 0) {
+      toast({
+        title: "Imagini mari detectate",
+        description: `${largFiles.length} imagini sunt foarte mari (>5MB). Acestea vor fi comprimate automat pentru a evita erorile de stocare.`,
+        variant: "default"
+      });
+    }
+    
     updatedFacilities[facilityIndex].images = [...currentImages, ...filesToAdd];
     setFacilities(updatedFacilities);
     
@@ -298,16 +308,29 @@ const FacilityRegister = () => {
     });
   };
 
-  const base64ToFile = (base64: string, filename: string): File => {
-    const arr = base64.split(',');
-    const mime = arr[0].match(/:(.*?);/)![1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new File([u8arr], filename, { type: mime });
+  const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions
+        const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to base64 with compression
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+      
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
   };
 
   const handleFinalSubmit = async () => {
@@ -331,13 +354,21 @@ const FacilityRegister = () => {
         operatingHoursEnd: facility.operatingHoursEnd
       }));
 
-      // Store images temporarily in localStorage for upload after email confirmation
+      // Store compressed images temporarily in localStorage for upload after email confirmation
       const facilitiesWithImages = await Promise.all(
         facilities.map(async (facility, index) => {
           const imageData: string[] = [];
           for (const file of facility.images) {
-            const base64 = await fileToBase64(file);
-            imageData.push(base64);
+            try {
+              // Compress image to reduce localStorage usage
+              const compressedBase64 = await compressImage(file, 800, 0.7);
+              imageData.push(compressedBase64);
+            } catch (error) {
+              console.error('Error compressing image:', error);
+              // Fallback to original base64 if compression fails
+              const base64 = await fileToBase64(file);
+              imageData.push(base64);
+            }
           }
           return {
             ...facilitiesMetadata[index],
@@ -347,8 +378,19 @@ const FacilityRegister = () => {
         })
       );
 
-      localStorage.setItem('pendingFacilityImages', JSON.stringify(facilitiesWithImages));
-      localStorage.setItem('pendingUserEmail', accountData.email);
+      try {
+        localStorage.setItem('pendingFacilityImages', JSON.stringify(facilitiesWithImages));
+        localStorage.setItem('pendingUserEmail', accountData.email);
+      } catch (storageError) {
+        console.error('localStorage quota exceeded:', storageError);
+        toast({
+          title: "Prea multe imagini",
+          description: "Imaginile sunt prea mari pentru a fi procesate. Te rugăm să reduci numărul de imagini sau să folosești imagini mai mici.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
 
       // Sign up the user with all data in metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
