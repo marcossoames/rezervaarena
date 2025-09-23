@@ -19,6 +19,7 @@ import { isBlockingTimeAllowed } from "@/utils/dateTimeValidation";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
 import AddManualBookingDialog from "@/components/facility/AddManualBookingDialog";
 import RecurringBlockDialog from "@/components/facility/RecurringBlockDialog";
+import UnblockRecurringDialog from "@/components/facility/UnblockRecurringDialog";
 
 interface Facility {
   id: string;
@@ -515,7 +516,7 @@ const FacilityCalendarPage = () => {
               <CardDescription>
                 {selectedDate && (
                   <>
-                    Program: {facility.operating_hours_start || '08:00'} - {facility.operating_hours_end || '22:00'}
+                    Program: {facility.operating_hours_start?.slice(0, 5) || '08:00'} - {facility.operating_hours_end?.slice(0, 5) || '22:00'}
                     <br />
                     {getBookingsForDate(selectedDate).length} rezervări active
                   </>
@@ -850,16 +851,14 @@ const FacilityCalendarPage = () => {
                         );
                       })()}
                       
-                      {/* Unblock Button */}
-                      {isDateBlocked(selectedDate) && (
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={unblockRecurringDates}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          {isDateFullyBlocked(selectedDate) ? 'Deblochează Ziua' : 'Deblochează Orele'}
-                        </Button>
+                       {/* Enhanced Unblock Button */}
+                       {isDateBlocked(selectedDate) && (
+                         <UnblockRecurringDialog
+                           facilityId={facilityId}
+                           selectedDate={selectedDate}
+                           blockedDates={blockedDates}
+                           onUnblockComplete={refreshBookings}
+                         />
                        )}
                        
                        {/* Recurring Block Button */}
