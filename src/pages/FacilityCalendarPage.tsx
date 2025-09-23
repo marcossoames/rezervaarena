@@ -756,7 +756,7 @@ const FacilityCalendarPage = () => {
                             <DialogTrigger asChild>
                               <Button variant="outline" className="w-full">
                                 <Clock className="h-4 w-4 mr-2" />
-                                Blochează Anumite Ore ({availableSlots} intervale disponibile)
+                                Blochează Anumite Ore
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
