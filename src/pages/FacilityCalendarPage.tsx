@@ -18,7 +18,7 @@ import { ro } from "date-fns/locale";
 import { isBlockingTimeAllowed } from "@/utils/dateTimeValidation";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
 import AddManualBookingDialog from "@/components/facility/AddManualBookingDialog";
-import RecurringBlockDialog from "@/components/facility/RecurringBlockDialog";
+import CombinedBlockDialog from "@/components/facility/CombinedBlockDialog";
 import UnblockRecurringDialog from "@/components/facility/UnblockRecurringDialog";
 
 interface Facility {
@@ -609,68 +609,24 @@ const FacilityCalendarPage = () => {
                   {/* Block/Unblock Actions */}
                   {selectedDate && !isBefore(selectedDate, today) ? (
                     <div className="space-y-2 border-t pt-4">
-                      {/* Block Entire Day Button */}
-                      {(() => {
-                        const dayBookings = getBookingsForDate(selectedDate);
-                        const hasExistingBookings = dayBookings.length > 0;
-                        
-                        if (isDateFullyBlocked(selectedDate)) {
-                          return null;
-                        }
-                        
-                        if (hasExistingBookings) {
-                          return (
-                            <div className="p-3 bg-muted/50 rounded-lg border border-dashed">
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Ban className="h-4 w-4" />
-                                <span>Nu se poate bloca întreaga zi - există rezervări active</span>
-                              </div>
-                            </div>
-                          );
-                        }
-                        
-                        return (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" className="w-full">
-                                <Ban className="h-4 w-4 mr-2" />
-                                Blochează Întreaga Zi
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle>Blochează Întreaga Zi</DialogTitle>
-                                <DialogDescription>
-                                  Blochează complet ziua de {format(selectedDate, 'dd MMMM yyyy', { locale: ro })} - nu se vor putea face rezervări
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="reason-full">Motivul blocării *</Label>
-                                  <Textarea
-                                    id="reason-full"
-                                    value={blockReason}
-                                    onChange={(e) => setBlockReason(e.target.value)}
-                                    placeholder="ex: Întreținere, eveniment privat, etc."
-                                  />
-                                </div>
-                                
-                                <div className="flex gap-2">
-                                  <Button 
-                                    onClick={blockFullDay} 
-                                    disabled={!blockReason.trim()}
-                                  >
-                                    Blochează Ziua
-                                  </Button>
-                                  <Button variant="outline" onClick={() => setBlockReason("")}>
-                                    Anulează
-                                  </Button>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        );
-                      })()}
+                       {/* Combined Block Dialog */}
+                       {(() => {
+                         const dayBookings = getBookingsForDate(selectedDate);
+                         const hasExistingBookings = dayBookings.length > 0;
+                         
+                         if (isDateFullyBlocked(selectedDate)) {
+                           return null;
+                         }
+                         
+                         return (
+                           <CombinedBlockDialog
+                             facilityId={facilityId}
+                             selectedDate={selectedDate}
+                             onBlockingAdded={refreshBookings}
+                             hasExistingBookings={hasExistingBookings}
+                           />
+                         );
+                       })()}
 
                       {/* Block Specific Hours Button */}
                       {!isDateFullyBlocked(selectedDate) && (() => {
@@ -859,15 +815,7 @@ const FacilityCalendarPage = () => {
                            blockedDates={blockedDates}
                            onUnblockComplete={refreshBookings}
                          />
-                       )}
-                       
-                       {/* Recurring Block Button */}
-                       {!isDateFullyBlocked(selectedDate) && (
-                         <RecurringBlockDialog 
-                           facilityId={facilityId}
-                           onBlockingAdded={refreshBookings}
-                         />
-                       )}
+                        )}
                     </div>
                   ) : selectedDate && isBefore(selectedDate, today) ? (
                     <div className="p-3 bg-muted/50 rounded-lg text-center border-t pt-4">
