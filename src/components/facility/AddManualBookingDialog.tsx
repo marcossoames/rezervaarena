@@ -37,8 +37,75 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
   const [recurringEndDate, setRecurringEndDate] = useState<Date>();
   const [weeklyDays, setWeeklyDays] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [existingBookings, setExistingBookings] = useState<any[]>([]);
+  const [blockedDates, setBlockedDates] = useState<any[]>([]);
   
   const { toast } = useToast();
+
+  // Load existing bookings and blocked dates when date changes
+  const loadDateData = async (date: Date) => {
+    if (!date) return;
+    
+    const dateStr = format(date, 'yyyy-MM-dd');
+    
+    // Load existing bookings for the date
+    const { data: bookingsData } = await supabase
+      .from('bookings')
+      .select('id, start_time, end_time, status')
+      .eq('facility_id', facilityId)
+      .eq('booking_date', dateStr)
+      .in('status', ['confirmed', 'pending']);
+    
+    // Load blocked dates for the date
+    const { data: blockedData } = await supabase
+      .from('blocked_dates')
+      .select('*')
+      .eq('facility_id', facilityId)
+      .eq('blocked_date', dateStr);
+    
+    setExistingBookings(bookingsData || []);
+    setBlockedDates(blockedData || []);
+  };
+
+  // Check if date is fully blocked
+  const isDateFullyBlocked = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return blockedDates.some(blocked => 
+      blocked.blocked_date === dateStr && 
+      (!blocked.start_time || !blocked.end_time) // Blocked all day if no specific times
+    );
+  };
+
+  // Check if time range overlaps with existing bookings
+  const hasTimeConflict = (startTime: string, endTime: string) => {
+    return existingBookings.some(booking => {
+      const bookingStart = booking.start_time.slice(0, 5); // Remove seconds
+      const bookingEnd = booking.end_time.slice(0, 5);
+      
+      // Check if times overlap
+      return (startTime < bookingEnd && endTime > bookingStart);
+    });
+  };
+
+  // Check if time range overlaps with blocked hours
+  const hasBlockedTimeConflict = (startTime: string, endTime: string) => {
+    return blockedDates.some(blocked => {
+      if (!blocked.start_time || !blocked.end_time) return false; // Skip full day blocks
+      
+      const blockedStart = blocked.start_time.slice(0, 5);
+      const blockedEnd = blocked.end_time.slice(0, 5);
+      
+      return (startTime < blockedEnd && endTime > blockedStart);
+    });
+  };
+
+  // Load date data when booking date changes
+  const handleDateChange = (date: Date | undefined) => {
+    setBookingDate(date);
+    if (date) {
+      loadDateData(date);
+    }
+  };
 
   const weekdayLabels = [
     { value: 1, label: 'Luni' },
@@ -110,6 +177,36 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
       toast({
         title: "Eroare",
         description: "Te rugăm să completezi toate câmpurile obligatorii",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if date is fully blocked
+    if (isDateFullyBlocked(bookingDate)) {
+      toast({
+        title: "Eroare",
+        description: "Nu poți crea rezervări pentru o zi complet blocată",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check for time conflicts with existing bookings
+    if (hasTimeConflict(startTime, endTime)) {
+      toast({
+        title: "Eroare",
+        description: "Intervalul orar selectat se suprapune cu o rezervare existentă",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check for time conflicts with blocked hours
+    if (hasBlockedTimeConflict(startTime, endTime)) {
+      toast({
+        title: "Eroare",
+        description: "Intervalul orar selectat se suprapune cu ore blocate",
         variant: "destructive"
       });
       return;
@@ -255,44 +352,112 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
               <Calendar
                 mode="single"
                 selected={bookingDate}
-                onSelect={setBookingDate}
+                onSelect={handleDateChange}
                 className="rounded-md border p-3 pointer-events-auto"
                 disabled={(date) => date < new Date()}
               />
+              
+              {/* Show warnings for selected date */}
+              {bookingDate && isDateFullyBlocked(bookingDate) && (
+                <div className="p-2 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-700">
+                    ⚠️ Această zi este complet blocată. Nu se pot adăuga rezervări.
+                  </p>
+                </div>
+              )}
+              
+              {bookingDate && existingBookings.length > 0 && (
+                <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-700 mb-1">
+                    ⚠️ Există rezervări pentru această zi:
+                  </p>
+                  <div className="text-xs text-amber-600">
+                    {existingBookings.map((booking, index) => (
+                      <div key={booking.id}>
+                        {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {bookingDate && blockedDates.some(b => b.start_time && b.end_time) && (
+                <div className="p-2 bg-orange-50 border border-orange-200 rounded-lg">
+                  <p className="text-sm text-orange-700 mb-1">
+                    ⚠️ Ore blocate pentru această zi:
+                  </p>
+                  <div className="text-xs text-orange-600">
+                    {blockedDates
+                      .filter(b => b.start_time && b.end_time)
+                      .map((blocked, index) => (
+                        <div key={blocked.id}>
+                          {blocked.start_time.slice(0, 5)} - {blocked.end_time.slice(0, 5)}
+                          {blocked.reason && ` (${blocked.reason})`}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="startTime">Ora început *</Label>
-                <Select value={startTime} onValueChange={setStartTime}>
+                <Select 
+                  value={startTime} 
+                  onValueChange={setStartTime}
+                  disabled={isDateFullyBlocked(bookingDate || new Date())}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selectează ora" />
                   </SelectTrigger>
                   <SelectContent>
                     {getTimeOptions()
                       .filter(time => !endTime || time.value < endTime)
-                      .map((time) => (
-                        <SelectItem key={time.value} value={time.value}>
-                          {time.label}
-                        </SelectItem>
-                      ))}
+                      .map((time) => {
+                        const isConflicted = hasTimeConflict(time.value, endTime || time.value) || 
+                                           hasBlockedTimeConflict(time.value, endTime || time.value);
+                        return (
+                          <SelectItem 
+                            key={time.value} 
+                            value={time.value}
+                            disabled={isConflicted}
+                            className={isConflicted ? "text-muted-foreground opacity-50" : ""}
+                          >
+                            {time.label} {isConflicted && "(ocupat)"}
+                          </SelectItem>
+                        );
+                      })}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="endTime">Ora sfârșit *</Label>
-                <Select value={endTime} onValueChange={setEndTime} disabled={!startTime}>
+                <Select 
+                  value={endTime} 
+                  onValueChange={setEndTime} 
+                  disabled={!startTime || isDateFullyBlocked(bookingDate || new Date())}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selectează ora" />
                   </SelectTrigger>
                   <SelectContent>
                     {getTimeOptions()
                       .filter(time => startTime && time.value > startTime)
-                      .map((time) => (
-                        <SelectItem key={time.value} value={time.value}>
-                          {time.label}
-                        </SelectItem>
-                      ))}
+                      .map((time) => {
+                        const isConflicted = hasTimeConflict(startTime, time.value) || 
+                                           hasBlockedTimeConflict(startTime, time.value);
+                        return (
+                          <SelectItem 
+                            key={time.value} 
+                            value={time.value}
+                            disabled={isConflicted}
+                            className={isConflicted ? "text-muted-foreground opacity-50" : ""}
+                          >
+                            {time.label} {isConflicted && "(ocupat)"}
+                          </SelectItem>
+                        );
+                      })}
                   </SelectContent>
                 </Select>
               </div>
