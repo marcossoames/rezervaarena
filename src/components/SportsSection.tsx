@@ -151,46 +151,46 @@ const SportsSection = () => {
     
     fetchSportsData();
   }, []);
-  return <section id="terenuri" className="pt-8 pb-20 bg-gradient-to-br from-secondary/10 via-background to-primary/5">
+  return <section id="terenuri" className="pt-8 pb-16 bg-gradient-to-br from-secondary/10 via-background to-primary/5">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-foreground mb-4">
+        <div className="text-center mb-6">
+          <h2 className="text-4xl font-bold text-foreground mb-3">
             Tipuri de <span className="text-primary">Terenuri Sportive</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Descoperă varietatea de facilități sportive disponibile pentru rezervare pe site-ul nostru!</p>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Descoperă varietatea de facilități sportive disponibile pentru rezervare pe site-ul nostru!</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sportsData.map(sport => <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none flex flex-col h-full">
               <CardContent className="p-0 flex flex-col h-full">
                 <div className="relative overflow-hidden rounded-t-lg">
                   <OptimizedImage 
                     src={sport.image} 
                     alt={sport.name} 
-                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300" 
+                    className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-300" 
                     loading="lazy" 
                     width={395} 
-                    height={256}
+                    height={288}
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px" 
-                    quality={70}
+                    quality={75}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
-                    <h3 className="text-xl font-bold text-primary-foreground">{sport.name}</h3>
+                    <h3 className="text-xl font-bold text-primary-foreground drop-shadow-lg">{sport.name}</h3>
                   </div>
                 </div>
                 
                 <div className="p-4 flex flex-col h-full">
-                  <p className="text-sm text-muted-foreground mb-2 flex-grow">{sport.description}</p>
+                  <p className="text-sm text-muted-foreground mb-3 flex-grow leading-relaxed">{sport.description}</p>
                   
-                  <div className="space-y-1 mb-3">
+                  <div className="space-y-1 mb-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Terenuri disponibile:</span>
-                      <span className="font-semibold text-primary">{sport.facilities}</span>
+                      <span className="text-sm font-medium text-muted-foreground">Terenuri disponibile:</span>
+                      <span className="font-bold text-primary">{sport.facilities}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">De la:</span>
-                      <span className="font-semibold text-accent">{sport.minPrice}</span>
+                      <span className="text-sm font-medium text-muted-foreground">De la:</span>
+                      <span className="font-bold text-accent">{sport.minPrice}</span>
                     </div>
                   </div>
                   
