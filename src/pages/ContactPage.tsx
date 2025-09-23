@@ -73,6 +73,18 @@ const ContactPage = () => {
 
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <Mail className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-lg">Email Privat</h3>
+                      <a href="mailto:efleihraian@gmail.com" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                        efleihraian@gmail.com
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                       <Phone className="w-6 h-6 text-primary" />
                     </div>
                     <div>
