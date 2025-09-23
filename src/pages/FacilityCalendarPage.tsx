@@ -209,6 +209,89 @@ const FacilityCalendarPage = () => {
     }
   };
 
+  // Blocarea anumitor ore
+  const blockPartialHours = async () => {
+    if (!selectedDate || !blockReason.trim() || !blockStartTime || !blockEndTime) return;
+    
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    
+    if (!isBlockingTimeAllowed(dateStr, blockStartTime)) {
+      toast({
+        title: "Eroare", 
+        description: "Nu puteți bloca ore din trecut",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check for existing bookings in the selected time range
+    const existingBookings = getBookingsForDate(selectedDate);
+    const hasConflict = existingBookings.some(booking => {
+      const bookingStart = booking.start_time;
+      const bookingEnd = booking.end_time;
+      
+      // Check if blocking time overlaps with existing booking
+      return (blockStartTime < bookingEnd && blockEndTime > bookingStart);
+    });
+    
+    if (hasConflict) {
+      toast({
+        title: "Eroare",
+        description: "Nu poți bloca ore care au rezervări existente. Verifică rezervările pentru această dată.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('blocked_dates')
+        .insert({
+          facility_id: facilityId,
+          blocked_date: dateStr,
+          start_time: blockStartTime,
+          end_time: blockEndTime,
+          reason: blockReason,
+          created_by: user.id
+        });
+
+      if (error) {
+        toast({
+          title: "Eroare",
+          description: "Nu s-au putut bloca orele",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Reload blocked dates
+      const { data: blockedDatesData } = await supabase
+        .from('blocked_dates')
+        .select('*')
+        .eq('facility_id', facilityId);
+
+      setBlockedDates(blockedDatesData || []);
+      setBlockReason("");
+      setBlockStartTime("");
+      setBlockEndTime("");
+      setIsBlockDialogOpen(false);
+      
+      toast({
+        title: "Ore blocate",
+        description: `Orele ${blockStartTime} - ${blockEndTime} au fost blocate`
+      });
+    } catch (error) {
+      console.error('Error blocking partial hours:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-au putut bloca orele",
+        variant: "destructive"
+      });
+    }
+  };
   // Blocarea întregii zile
   const blockFullDay = async () => {
     if (!selectedDate || !blockReason.trim()) return;
@@ -532,51 +615,163 @@ const FacilityCalendarPage = () => {
 
                     {/* Block/Unblock Actions */}
                     {selectedDate && !isBefore(selectedDate, today) ? (
-                      <div className="space-y-2 border-t pt-4">
-                        {/* Buton pentru blocarea întregii zile */}
-                        {!isDateFullyBlocked(selectedDate) && (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" className="w-full">
-                                <Ban className="h-4 w-4 mr-2" />
-                                Blochează Întreaga Zi
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle>Blochează Întreaga Zi</DialogTitle>
-                                <DialogDescription>
-                                  Blochează complet ziua de {selectedDate && format(selectedDate, 'dd MMMM yyyy', { locale: ro })} - nu se vor putea face rezervări
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="reason-full">Motivul blocării *</Label>
-                                  <Textarea
-                                    id="reason-full"
-                                    value={blockReason}
-                                    onChange={(e) => setBlockReason(e.target.value)}
-                                    placeholder="ex: Întreținere, eveniment privat, etc."
-                                  />
-                                </div>
-                                
-                                <div className="flex gap-2">
-                                  <Button 
-                                    onClick={blockFullDay} 
-                                    disabled={!blockReason.trim()}
-                                  >
-                                    Blochează Ziua
-                                  </Button>
-                                  <Button variant="outline" onClick={() => {
-                                    setBlockReason("");
-                                  }}>
-                                    Anulează
-                                  </Button>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        )}
+                       <div className="space-y-2 border-t pt-4">
+                         {/* Buton pentru blocarea întregii zile */}
+                         {!isDateFullyBlocked(selectedDate) && (
+                           <Dialog>
+                             <DialogTrigger asChild>
+                               <Button variant="outline" className="w-full">
+                                 <Ban className="h-4 w-4 mr-2" />
+                                 Blochează Întreaga Zi
+                               </Button>
+                             </DialogTrigger>
+                             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                               <DialogHeader>
+                                 <DialogTitle>Blochează Întreaga Zi</DialogTitle>
+                                 <DialogDescription>
+                                   Blochează complet ziua de {selectedDate && format(selectedDate, 'dd MMMM yyyy', { locale: ro })} - nu se vor putea face rezervări
+                                 </DialogDescription>
+                               </DialogHeader>
+                               <div className="space-y-4">
+                                 <div className="space-y-2">
+                                   <Label htmlFor="reason-full">Motivul blocării *</Label>
+                                   <Textarea
+                                     id="reason-full"
+                                     value={blockReason}
+                                     onChange={(e) => setBlockReason(e.target.value)}
+                                     placeholder="ex: Întreținere, eveniment privat, etc."
+                                   />
+                                 </div>
+                                 
+                                 <div className="flex gap-2">
+                                   <Button 
+                                     onClick={blockFullDay} 
+                                     disabled={!blockReason.trim()}
+                                   >
+                                     Blochează Ziua
+                                   </Button>
+                                   <Button variant="outline" onClick={() => {
+                                     setBlockReason("");
+                                   }}>
+                                     Anulează
+                                   </Button>
+                                 </div>
+                               </div>
+                             </DialogContent>
+                           </Dialog>
+                         )}
+
+                         {/* Buton pentru blocarea anumitor ore */}
+                         {!isDateFullyBlocked(selectedDate) && (
+                           <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
+                             <DialogTrigger asChild>
+                               <Button variant="outline" className="w-full">
+                                 <Clock className="h-4 w-4 mr-2" />
+                                 Blochează Anumite Ore
+                               </Button>
+                             </DialogTrigger>
+                             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                               <DialogHeader>
+                                 <DialogTitle>Blochează Anumite Ore</DialogTitle>
+                                 <DialogDescription>
+                                   Selectează intervalul orar pe care vrei să îl blochezi pentru {selectedDate && format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
+                                 </DialogDescription>
+                               </DialogHeader>
+                               <div className="space-y-4">
+                                 <div className="grid grid-cols-2 gap-4">
+                                   <div className="space-y-2">
+                                     <Label>Ora de început *</Label>
+                                     <Select value={blockStartTime} onValueChange={setBlockStartTime}>
+                                       <SelectTrigger>
+                                         <SelectValue placeholder="Selectează ora" />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                         {Array.from({ length: 48 }, (_, i) => {
+                                           const hour = Math.floor(i / 2);
+                                           const minute = i % 2 === 0 ? '00' : '30';
+                                           const timeValue = `${hour.toString().padStart(2, '0')}:${minute}`;
+                                           
+                                           // Skip past times for today
+                                           if (selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')) {
+                                             const now = new Date();
+                                             const currentHour = now.getHours();
+                                             const currentMinute = now.getMinutes();
+                                             const timeHour = parseInt(timeValue.split(':')[0]);
+                                             const timeMinute = parseInt(timeValue.split(':')[1]);
+                                             
+                                             if (timeHour < currentHour || (timeHour === currentHour && timeMinute <= currentMinute)) {
+                                               return null;
+                                             }
+                                           }
+                                           
+                                           return (
+                                             <SelectItem key={timeValue} value={timeValue}>
+                                               {timeValue}
+                                             </SelectItem>
+                                           );
+                                         })}
+                                       </SelectContent>
+                                     </Select>
+                                   </div>
+                                   
+                                   <div className="space-y-2">
+                                     <Label>Ora de sfârșit *</Label>
+                                     <Select value={blockEndTime} onValueChange={setBlockEndTime}>
+                                       <SelectTrigger>
+                                         <SelectValue placeholder="Selectează ora" />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                         {Array.from({ length: 48 }, (_, i) => {
+                                           const hour = Math.floor(i / 2);
+                                           const minute = i % 2 === 0 ? '00' : '30';
+                                           const timeValue = `${hour.toString().padStart(2, '0')}:${minute}`;
+                                           
+                                           // Only show times after start time
+                                           if (blockStartTime && timeValue <= blockStartTime) {
+                                             return null;
+                                           }
+                                           
+                                           return (
+                                             <SelectItem key={timeValue} value={timeValue}>
+                                               {timeValue}
+                                             </SelectItem>
+                                           );
+                                         })}
+                                       </SelectContent>
+                                     </Select>
+                                   </div>
+                                 </div>
+                                 
+                                 <div className="space-y-2">
+                                   <Label htmlFor="reason-partial">Motivul blocării *</Label>
+                                   <Textarea
+                                     id="reason-partial"
+                                     value={blockReason}
+                                     onChange={(e) => setBlockReason(e.target.value)}
+                                     placeholder="ex: Antrenament echipă, întreținere, etc."
+                                   />
+                                 </div>
+                                 
+                                 <div className="flex gap-2">
+                                   <Button 
+                                     onClick={blockPartialHours} 
+                                     disabled={!blockReason.trim() || !blockStartTime || !blockEndTime}
+                                   >
+                                     Blochează Orele
+                                   </Button>
+                                   <Button variant="outline" onClick={() => {
+                                     setIsBlockDialogOpen(false);
+                                     setBlockStartTime("");
+                                     setBlockEndTime("");
+                                     setBlockReason("");
+                                   }}>
+                                     Anulează
+                                   </Button>
+                                 </div>
+                               </div>
+                             </DialogContent>
+                           </Dialog>
+                         )}
                         
                         {/* Buton pentru deblocare */}
                         {isDateBlocked(selectedDate) && (
