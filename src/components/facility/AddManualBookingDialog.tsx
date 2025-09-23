@@ -243,11 +243,11 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
         datesToBook = generateRecurringDates(bookingDate, recurringEndDate, daysToUse);
       }
 
-      // Create bookings for manual entries
+      // Create bookings for manual entries with proper user handling
       const calculatedPrice = calculatePrice();
       
       const bookingsToInsert = datesToBook.map(date => ({
-        client_id: user.id, // Use facility owner as client_id for manual bookings
+        client_id: user.id, // Use facility owner as client_id for manual bookings - this will be adjusted by the notes field
         facility_id: facilityId,
         booking_date: format(date, 'yyyy-MM-dd'),
         start_time: startTime + ':00',
@@ -258,7 +258,7 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
         facility_owner_amount: calculatedPrice,
         payment_method: 'manual',
         status: 'confirmed' as const,
-        notes: `REZERVARE MANUALĂ - Client: ${clientName}${clientPhone ? ` (${clientPhone})` : ''}${notes ? ` | Note: ${notes}` : ''} | Nu realizată prin site`
+        notes: `REZERVARE MANUALĂ - Client: ${clientName}${clientPhone ? ` (Tel: ${clientPhone})` : ''} | Creat manual de proprietarul facilității${notes ? ` | Note suplimentare: ${notes}` : ''}`
       }));
 
       const { error } = await supabase

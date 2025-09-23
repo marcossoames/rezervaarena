@@ -636,6 +636,39 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_blocked_dates: {
+        Row: {
+          created_at: string
+          created_by: string
+          day_of_week: number
+          end_date: string | null
+          facility_id: string
+          id: string
+          reason: string | null
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          day_of_week: number
+          end_date?: string | null
+          facility_id: string
+          id?: string
+          reason?: string | null
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          day_of_week?: number
+          end_date?: string | null
+          facility_id?: string
+          id?: string
+          reason?: string | null
+          start_date?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

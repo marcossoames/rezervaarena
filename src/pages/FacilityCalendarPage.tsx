@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Calendar as CalendarIcon, Ban, Edit, Eye, Clock, Users, MapPin, Repeat } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Ban, Edit, Eye, Clock, Users, MapPin, Repeat, CalendarOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, addWeeks, addMonths, startOfDay, endOfDay, isAfter, isBefore, isSameDay, getDay } from "date-fns";
@@ -18,6 +18,7 @@ import { ro } from "date-fns/locale";
 import { isBlockingTimeAllowed } from "@/utils/dateTimeValidation";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
 import AddManualBookingDialog from "@/components/facility/AddManualBookingDialog";
+import RecurringBlockDialog from "@/components/facility/RecurringBlockDialog";
 
 interface Facility {
   id: string;
@@ -859,7 +860,15 @@ const FacilityCalendarPage = () => {
                           <Eye className="h-4 w-4 mr-2" />
                           {isDateFullyBlocked(selectedDate) ? 'Deblochează Ziua' : 'Deblochează Orele'}
                         </Button>
-                      )}
+                       )}
+                       
+                       {/* Recurring Block Button */}
+                       {!isDateFullyBlocked(selectedDate) && (
+                         <RecurringBlockDialog 
+                           facilityId={facilityId}
+                           onBlockingAdded={refreshBookings}
+                         />
+                       )}
                     </div>
                   ) : selectedDate && isBefore(selectedDate, today) ? (
                     <div className="p-3 bg-muted/50 rounded-lg text-center border-t pt-4">
