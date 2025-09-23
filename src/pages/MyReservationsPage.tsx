@@ -56,7 +56,6 @@ const MyReservationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('recent'); // recent, upcoming, date_asc, date_desc, price_asc, price_desc
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -430,37 +429,10 @@ const MyReservationsPage = () => {
     }
   };
 
-  // Filter and sort bookings based on status filter and sort criteria
-  const getFilteredAndSortedBookings = () => {
-    let filteredBookings = bookings;
-    
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      const now = new Date();
-      
-      switch (statusFilter) {
-        case 'upcoming':
-          filteredBookings = bookings.filter(booking => {
-            const bookingDate = new Date(booking.booking_date);
-            return booking.status === 'confirmed' && bookingDate >= now;
-          });
-          break;
-        case 'completed':
-          filteredBookings = bookings.filter(booking => {
-            const bookingDate = new Date(booking.booking_date);
-            return booking.status === 'completed' || booking.status === 'cancelled' || booking.status === 'no_show' || bookingDate < now;
-          });
-          break;
-        case 'completed_only':
-          filteredBookings = bookings.filter(booking => booking.status === 'completed');
-          break;
-        default:
-          filteredBookings = bookings.filter(booking => booking.status === statusFilter);
-      }
-    }
-    
+  // Sort bookings based on sort criteria
+  const getSortedBookings = () => {
     // Apply sorting
-    const sortedBookings = [...filteredBookings].sort((a, b) => {
+    const sortedBookings = [...bookings].sort((a, b) => {
       const now = new Date();
       
       switch (sortBy) {
@@ -557,27 +529,10 @@ const MyReservationsPage = () => {
           <h1 className="text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
           <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
           
-          {/* Add filters and sorting for regular clients */}
+          {/* Add sorting for regular clients */}
           {userProfile && !userProfile.user_type_comment?.includes('Proprietar bază sportivă') && userProfile.role !== 'admin' && (
-            <div className="mt-4 space-y-4">
+            <div className="mt-4">
               <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <label className="text-sm font-medium text-muted-foreground">Filtrează după status:</label>
-                  <select 
-                    value={statusFilter} 
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="ml-2 px-3 py-1 border border-border rounded-md bg-background text-foreground"
-                  >
-                    <option value="all">Toate rezervările</option>
-                    <option value="upcoming">Viitoare (Confirmate)</option>
-                    <option value="completed">Terminate (Finalizate + Anulate + Lipsă)</option>
-                    <option value="confirmed">Doar confirmate</option>
-                    <option value="cancelled">Anulate</option>
-                    <option value="completed_only">Finalizate</option>
-                    <option value="no_show">Lipsă</option>
-                  </select>
-                </div>
-                
                 <div className="flex-1">
                   <label className="text-sm font-medium text-muted-foreground">Sortează după:</label>
                   <Select value={sortBy} onValueChange={setSortBy}>
@@ -601,13 +556,13 @@ const MyReservationsPage = () => {
         </div>
 
         {(() => {
-          const filteredBookings = getFilteredAndSortedBookings();
-          return filteredBookings.length === 0 ? (
+          const sortedBookings = getSortedBookings();
+          return sortedBookings.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">
-                {statusFilter === 'all' ? 'Nu ai rezervări' : `Nu ai rezervări ${statusFilter === 'upcoming' ? 'viitoare' : statusFilter === 'completed' ? 'terminate' : 'cu acest status'}`}
+                Nu ai rezervări
               </h3>
               <p className="text-muted-foreground mb-6">
                 {userProfile?.user_type_comment?.includes('Proprietar bază sportivă') || userProfile?.role === 'admin' 
@@ -621,7 +576,7 @@ const MyReservationsPage = () => {
           </Card>
         ) : (
           <div className="grid gap-6">
-            {filteredBookings.map(booking => <Card key={booking.id} id={`booking-${booking.id}`} className="transition-all duration-200 hover:shadow-lg">
+            {sortedBookings.map(booking => <Card key={booking.id} id={`booking-${booking.id}`} className="transition-all duration-200 hover:shadow-lg">
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <div>
