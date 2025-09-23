@@ -373,6 +373,16 @@ const ClientProfilePage = () => {
                     <span className="text-muted-foreground">Rezervări Anulate</span>
                     <span className="text-2xl font-bold text-red-600">{bookingStats.cancelled}</span>
                   </div>
+                  <div className="mt-4">
+                    <Button 
+                      onClick={() => navigate("/my-reservations")}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Rezervările Mele
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
