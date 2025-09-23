@@ -90,9 +90,6 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
 
             <div style="text-align: center; margin-top: 30px;">
-              <div style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; padding: 12px 30px; border-radius: 5px; display: inline-block; font-weight: bold; margin-bottom: 20px;">
-                Vezi calendarul facilității
-              </div>
               <p style="color: #666; font-size: 14px;">
                 Cu respect,<br>
                 <strong>Echipa RezervArena</strong>
@@ -143,11 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
               <li>Telefon: <a href="tel:+40720059535">+40720059535</a></li>
             </ul>
             
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; text-align: center;">
-              <a href="https://rezervaarena.com/facility-calendar" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-                Vezi calendarul facilității
-              </a>
-            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef;"></div>
             
             <p style="margin-top: 30px; font-size: 14px; color: #666; text-align: center;">
               Cu respect,<br>
