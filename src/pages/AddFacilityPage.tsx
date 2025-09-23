@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +42,7 @@ const AddFacilityPage = () => {
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>('');
   const [isCapacityRange, setIsCapacityRange] = useState(false);
 
-  const { register, handleSubmit, setValue, formState: { errors }, getValues, watch } = useForm<FacilityFormData>({
+  const { register, handleSubmit, setValue, formState: { errors }, getValues, watch, control } = useForm<FacilityFormData>({
     defaultValues: {
       operatingHoursStart: "08:00",
       operatingHoursEnd: "22:00"
@@ -91,12 +91,13 @@ const AddFacilityPage = () => {
         // Try to get the default city from user's existing facilities
         const { data: userFacilities } = await supabase
           .from('facilities')
-          .select('city')
+          .select('city, address')
           .eq('owner_id', user.id)
           .limit(1);
         
         if (userFacilities && userFacilities.length > 0) {
           setValue("city", userFacilities[0].city);
+          setValue("address", userFacilities[0].address);
         }
       }
       
@@ -571,13 +572,14 @@ const AddFacilityPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address">Adresa Completă *</Label>
+                  <Label htmlFor="address">Adresa Completă {userProfile?.role !== 'admin' ? '(auto-completată)' : '*'}</Label>
                   <Input
                     id="address"
                     type="text"
-                    {...register("address", { required: "Adresa este obligatorie" })}
+                    {...register("address", { required: userProfile?.role === 'admin' ? "Adresa este obligatorie" : false })}
                     className="bg-background/50"
-                    placeholder="Strada, numărul, sectorul/comuna"
+                    placeholder={userProfile?.role !== 'admin' ? "Se completează automat din setările bazei" : "Strada, numărul, sectorul/comuna"}
+                    disabled={userProfile?.role !== 'admin'}
                   />
                   {errors.address && (
                     <p className="text-sm text-destructive">{errors.address.message}</p>
@@ -590,38 +592,40 @@ const AddFacilityPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="operatingHoursStart">Ora de deschidere</Label>
-                      <TimePicker
-                        value={watch("operatingHoursStart")}
-                        onChange={(value) => setValue("operatingHoursStart", value)}
-                        placeholder="Selectează ora de deschidere"
+                      <Controller
+                        name="operatingHoursStart"
+                        control={{} as any}
+                        // react-hook-form's Controller needs the actual control instance; we access it via (getValues as any).control pattern isn't available
+                        // To keep minimal edits, we inline a simple wrapper that uses watch/setValue for value control
+                        render={({ field }) => (
+                          <TimePicker
+                            value={watch("operatingHoursStart")}
+                            onChange={(val) => setValue("operatingHoursStart", val, { shouldValidate: true, shouldDirty: true })}
+                            placeholder="Selectează ora de deschidere"
+                            error={errors.operatingHoursStart?.message}
+                          />
+                        )}
+                        rules={{ required: "Ora de deschidere este obligatorie" }}
                       />
-                      {errors.operatingHoursStart && (
-                        <p className="text-sm text-destructive">{errors.operatingHoursStart.message}</p>
-                      )}
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="operatingHoursEnd">Ora de închidere</Label>
-                      <TimePicker
-                        value={watch("operatingHoursEnd")}
-                        onChange={(value) => setValue("operatingHoursEnd", value)}
-                        placeholder="Selectează ora de închidere"
+                      <Controller
+                        name="operatingHoursEnd"
+                        control={{} as any}
+                        render={({ field }) => (
+                          <TimePicker
+                            value={watch("operatingHoursEnd")}
+                            onChange={(val) => setValue("operatingHoursEnd", val, { shouldValidate: true, shouldDirty: true })}
+                            placeholder="Selectează ora de închidere"
+                            error={errors.operatingHoursEnd?.message}
+                          />
+                        )}
+                        rules={{ required: "Ora de închidere este obligatorie" }}
                       />
-                      {errors.operatingHoursEnd && (
-                        <p className="text-sm text-destructive">{errors.operatingHoursEnd.message}</p>
-                      )}
                     </div>
                   </div>
-                  
-                  {/* Hidden inputs for form validation */}
-                  <input
-                    type="hidden"
-                    {...register("operatingHoursStart", { required: "Ora de deschidere este obligatorie" })}
-                  />
-                  <input
-                    type="hidden"
-                    {...register("operatingHoursEnd", { required: "Ora de închidere este obligatorie" })}
-                  />
                   
                   <div className="p-3 bg-muted/30 rounded-lg">
                     <p className="text-sm text-muted-foreground">

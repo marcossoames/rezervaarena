@@ -8,6 +8,7 @@ import { Suspense, lazy, useEffect } from "react";
 // Critical pages loaded immediately
 import Index from "./pages/Index";
 const EmailConfirmationPage = lazy(() => import("./pages/EmailConfirmationPage"));
+const AuthRedirect = lazy(() => import("./pages/AuthRedirect"));
 
 // Non-critical pages loaded lazily
 const ClientLogin = lazy(() => import("./pages/ClientLogin"));
@@ -104,6 +105,7 @@ const App = () => (
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
+            <Route path="/verify" element={<AuthRedirect />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/my-reservations" element={<MyReservationsPage />} />
             <Route path="/booking/:facilityId" element={<BookingPage />} />
