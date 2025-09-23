@@ -52,17 +52,42 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      // Force refresh from server to get latest data including booking stats
-      const { data, error } = await supabase
+      // Force refresh from server and recalculate booking stats in real-time
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('*, total_bookings, completed_bookings, no_show_bookings, cancelled_bookings')
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (profilesError) throw profilesError;
 
-      const userData = data || [];
+      // For each user, get their actual booking counts from the bookings table
+      const usersWithStats = await Promise.all(
+        (profilesData || []).map(async (profile) => {
+          if (profile.role !== 'client') {
+            return profile;
+          }
+          
+          // Get real-time booking counts
+          const { data: bookingStats } = await supabase
+            .from('bookings')
+            .select('status')
+            .eq('client_id', profile.user_id);
+          
+          const stats = {
+            total_bookings: bookingStats?.length || 0,
+            completed_bookings: bookingStats?.filter(b => b.status === 'completed').length || 0,
+            no_show_bookings: bookingStats?.filter(b => b.status === 'no_show').length || 0,
+            cancelled_bookings: bookingStats?.filter(b => b.status === 'cancelled').length || 0
+          };
+          
+          return {
+            ...profile,
+            ...stats
+          };
+        })
+      );
+
+      const userData = usersWithStats || [];
       setUsers(userData);
       setFilteredUsers(userData);
       
