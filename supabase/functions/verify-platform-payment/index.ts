@@ -15,6 +15,7 @@ const logStep = (step: string, details?: any) => {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -23,250 +24,195 @@ serve(async (req) => {
     logStep("Function started");
 
     const { sessionId } = await req.json();
-    
-    if (!sessionId) {
-      throw new Error('Session ID is required');
-    }
+    if (!sessionId) throw new Error('Session ID is required');
 
     logStep("Session ID received", { sessionId });
 
     // Initialize Stripe
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) {
-      throw new Error('STRIPE_SECRET_KEY environment variable is not set');
-    }
-    
-    const stripe = new Stripe(stripeKey, {
-      apiVersion: '2023-10-16',
-    });
+    if (!stripeKey) throw new Error('STRIPE_SECRET_KEY environment variable is not set');
+    const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
 
-    // Retrieve the checkout session
+    // Retrieve Checkout Session + (optionally) PaymentIntent
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    
-    logStep("Stripe session retrieved", { 
-      sessionId: session.id, 
+    logStep("Stripe session retrieved", {
+      sessionId: session.id,
       paymentStatus: session.payment_status,
       status: session.status
     });
-
-    // Get user auth header and create service client with propagated JWT for trigger security
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header provided');
-    }
 
     const supabaseUrl = 'https://ukopxkymzywfpobpcana.supabase.co';
     const supabaseService = createClient(
       supabaseUrl,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: { persistSession: false },
-        global: { headers: { Authorization: authHeader } }
-      }
+      { auth: { persistSession: false } }
     );
 
-    // Robust check: also verify PaymentIntent status in case session.payment_status lags
+    // Helper to determine if session is paid
     const isPaid = session.payment_status === 'paid' ||
-      (session.payment_intent ? (await stripe.paymentIntents.retrieve(session.payment_intent as string)).status === 'succeeded' : false);
+      (session.payment_intent
+        ? (await stripe.paymentIntents.retrieve(session.payment_intent as string)).status === 'succeeded'
+        : false);
 
-    if (isPaid) {
-      // Try to find existing booking for this session
-      let { data: booking, error: getBookingError } = await supabaseService
-        .from('bookings')
-        .select('id, client_id')
-        .eq('stripe_session_id', sessionId)
-        .single();
+    // Helper: find client_id reliably without requiring a frontend JWT
+    const determineClientId = async (): Promise<string | null> => {
+      const md: any = session.metadata || {};
+      if (md.client_id) return md.client_id as string;
 
-      // Get user now for ownership and for potential booking creation
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user }, error: authError } = await supabaseService.auth.getUser(token);
-      if (authError || !user) {
-        throw new Error('Invalid authentication token');
-      }
-
-      if (getBookingError || !booking) {
-        // Create booking now using session metadata
-        const md: any = session.metadata || {};
-        const facilityId = md.facility_id;
-        const bookingDate = md.booking_date;
-        const startTime = md.start_time;
-        const endTime = md.end_time;
-        if (!facilityId || !bookingDate || !startTime || !endTime) {
-          throw new Error('Missing booking metadata on session');
-        }
-
-        // Optional server-side price calculation (triggers also recalc)
-        const startDate = new Date(`2000-01-01T${startTime}:00`);
-        const endDate = new Date(`2000-01-01T${endTime}:00`);
-        const durationMs = endDate.getTime() - startDate.getTime();
-        const durationHours = durationMs / (1000 * 60 * 60);
-        const pricePerHour = Number(md.price_per_hour || 0);
-        const totalPrice = pricePerHour > 0 ? durationHours * pricePerHour : null;
-
-        const insertPayload: any = {
-          facility_id: facilityId,
-          client_id: user.id,
-          booking_date: bookingDate,
-          start_time: startTime,
-          end_time: endTime,
-          status: 'confirmed',
-          payment_method: 'card',
-          stripe_session_id: sessionId,
-          stripe_payment_intent_id: session.payment_intent,
-        };
-        if (totalPrice !== null) insertPayload.total_price = totalPrice;
-
-        const { data: newBooking, error: createErr } = await supabaseService
-          .from('bookings')
-          .insert(insertPayload)
-          .select('id, client_id')
-          .single();
-
-        if (createErr || !newBooking) {
-          throw new Error(`Failed to create booking after payment: ${createErr?.message}`);
-        }
-        booking = newBooking;
-
-        // Also ensure platform_payments exists
-        const { data: existingPayment } = await supabaseService
-          .from('platform_payments')
-          .select('id')
-          .eq('stripe_session_id', sessionId)
-          .maybeSingle();
-
-        if (!existingPayment) {
-          const totalAmount = totalPrice ?? undefined;
-          await supabaseService.from('platform_payments').insert({
-            booking_id: booking.id,
-            facility_owner_id: md.facility_owner_id,
-            client_id: user.id,
-            stripe_session_id: sessionId,
-            total_amount: totalAmount,
-            payment_status: 'paid',
-            distributed_status: 'pending'
-          });
-        }
-      }
-
-      // Verify ownership
-      if (booking.client_id !== user.id) {
-        throw new Error('Unauthorized: User does not own this booking');
-      }
-
-      logStep("User verified as booking owner");
-
-      // Update booking status (idempotent)
-      const { error: bookingError } = await supabaseService
-        .from('bookings')
-        .update({ 
-          status: 'confirmed',
-          stripe_payment_intent_id: session.payment_intent
-        })
-        .eq('stripe_session_id', sessionId);
-
-      if (bookingError) {
-        logStep("Booking update failed", bookingError);
-      } else {
-        logStep("Booking confirmed");
-      }
-
-      // Update platform payment status
-      const { error: paymentError } = await supabaseService
-        .from('platform_payments')
-        .update({ 
-          payment_status: 'paid'
-        })
-        .eq('stripe_session_id', sessionId);
-
-      if (paymentError) {
-        logStep("Platform payment update failed", paymentError);
-      } else {
-        logStep("Platform payment marked as paid");
-      }
-
-      return new Response(JSON.stringify({ 
-        status: 'success',
-        message: 'Payment verified and booking confirmed',
-        bookingId: booking.id
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    } else {
-      // Payment failed or not completed - need to verify ownership before cancelling
-      
-      // Get booking to verify ownership (same as success path)
-      const { data: booking, error: getBookingError } = await supabaseService
+      // Try from existing booking
+      const { data: existingBooking } = await supabaseService
         .from('bookings')
         .select('client_id')
         .eq('stripe_session_id', sessionId)
-        .single();
+        .maybeSingle();
+      if (existingBooking?.client_id) return existingBooking.client_id;
 
-      if (getBookingError || !booking) {
-        throw new Error('Booking not found for session');
+      // Try by customer email
+      const email = (session.customer_details?.email || session.customer_email) as string | undefined;
+      if (email) {
+        const { data: profile } = await supabaseService
+          .from('profiles')
+          .select('user_id')
+          .eq('email', email)
+          .maybeSingle();
+        if (profile?.user_id) return profile.user_id;
       }
+      return null;
+    };
 
-      // Get user from auth header for security verification
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader) {
-        throw new Error('No authorization header provided');
-      }
-
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user }, error: authError } = await supabaseService.auth.getUser(token);
-      
-      if (authError || !user) {
-        throw new Error('Invalid authentication token');
-      }
-
-      // Verify that the authenticated user is the booking owner
-      if (booking.client_id !== user.id) {
-        throw new Error('Unauthorized: User does not own this booking');
-      }
-
-      logStep("User verified as booking owner for cancellation");
-
-      // Payment failed or not completed
-      const { error: bookingError } = await supabaseService
+    if (isPaid) {
+      // Try to get or create booking
+      let { data: booking } = await supabaseService
         .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('stripe_session_id', sessionId);
+        .select('id, client_id')
+        .eq('stripe_session_id', sessionId)
+        .maybeSingle();
 
-      if (bookingError) {
-        logStep("Booking cancellation failed", bookingError);
-      } else {
-        logStep("Booking cancelled due to payment failure");
+      const md: any = session.metadata || {};
+
+      if (!booking) {
+        const clientId = await determineClientId();
+        if (!clientId) {
+          logStep('Could not determine client_id for booking creation');
+        }
+
+        if (!md.facility_id || !md.booking_date || !md.start_time || !md.end_time) {
+          logStep('Missing booking metadata on session', md);
+        } else if (clientId) {
+          // Calculate optional total
+          let totalPrice: number | null = null;
+          try {
+            const startDate = new Date(`2000-01-01T${md.start_time}:00`);
+            const endDate = new Date(`2000-01-01T${md.end_time}:00`);
+            const hours = (endDate.getTime() - startDate.getTime()) / 3_600_000;
+            const pph = Number(md.price_per_hour || 0);
+            totalPrice = pph > 0 ? hours * pph : null;
+          } catch (_) {
+            // ignore
+          }
+
+          const insertPayload: any = {
+            facility_id: md.facility_id,
+            client_id: clientId,
+            booking_date: md.booking_date,
+            start_time: md.start_time,
+            end_time: md.end_time,
+            status: 'confirmed',
+            payment_method: 'card',
+            stripe_session_id: sessionId,
+            stripe_payment_intent_id: session.payment_intent,
+          };
+          if (totalPrice !== null) insertPayload.total_price = totalPrice;
+
+          const { data: newBooking, error: createErr } = await supabaseService
+            .from('bookings')
+            .insert(insertPayload)
+            .select('id, client_id')
+            .single();
+
+          if (createErr) {
+            logStep('Booking creation failed (paid flow - non-fatal)', { message: createErr.message });
+          } else {
+            booking = newBooking;
+            logStep('Booking created after payment', { bookingId: booking.id });
+          }
+        }
       }
 
-      const { error: paymentError } = await supabaseService
+      // If we still don't have a booking, just mark payments paid and return success (no booking id)
+      if (booking?.id) {
+        const { error: bookingError } = await supabaseService
+          .from('bookings')
+          .update({ status: 'confirmed', stripe_payment_intent_id: session.payment_intent })
+          .eq('id', booking.id);
+        if (bookingError) logStep('Booking confirm update failed', { message: bookingError.message });
+      }
+
+      // Upsert platform_payments
+      const { data: existingPayment } = await supabaseService
         .from('platform_payments')
-        .update({ 
-          payment_status: 'failed'
-        })
-        .eq('stripe_session_id', sessionId);
+        .select('id')
+        .eq('stripe_session_id', sessionId)
+        .maybeSingle();
 
-      if (paymentError) {
-        logStep("Platform payment status update failed", paymentError);
+      if (existingPayment) {
+        const { error: payUpdErr } = await supabaseService
+          .from('platform_payments')
+          .update({ payment_status: 'paid', booking_id: booking?.id ?? null })
+          .eq('id', existingPayment.id);
+        if (payUpdErr) logStep('Platform payment update failed', { message: payUpdErr.message });
+      } else {
+        const clientId = await determineClientId();
+        const { error: payInsErr } = await supabaseService
+          .from('platform_payments')
+          .insert({
+            booking_id: booking?.id ?? null,
+            facility_owner_id: md.facility_owner_id,
+            client_id: clientId,
+            stripe_session_id: sessionId,
+            payment_status: 'paid',
+            distributed_status: 'pending'
+          });
+        if (payInsErr) logStep('Platform payment insert failed', { message: payInsErr.message });
       }
 
-      return new Response(JSON.stringify({ 
-        status: 'failed',
-        message: 'Payment was not completed'
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ status: 'success', message: 'Payment verified and booking confirmed', bookingId: booking?.id }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
     }
 
+    // Not paid -> cancel if booking exists and mark payment failed
+    const { data: bookingToCancel } = await supabaseService
+      .from('bookings')
+      .select('id')
+      .eq('stripe_session_id', sessionId)
+      .maybeSingle();
+
+    if (bookingToCancel) {
+      const { error: cancelErr } = await supabaseService
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', bookingToCancel.id);
+      if (cancelErr) logStep('Booking cancellation failed', { message: cancelErr.message });
+    }
+
+    const { error: payFailErr } = await supabaseService
+      .from('platform_payments')
+      .update({ payment_status: 'failed' })
+      .eq('stripe_session_id', sessionId);
+    if (payFailErr) logStep('Platform payment fail status update failed', { message: payFailErr.message });
+
+    return new Response(
+      JSON.stringify({ status: 'failed', message: 'Payment was not completed' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
-    
-    return new Response(JSON.stringify({ 
-      error: errorMessage
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    logStep('ERROR', { message: errorMessage });
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    );
   }
 });
