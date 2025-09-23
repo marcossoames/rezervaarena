@@ -48,6 +48,12 @@ const EmailConfirmationPage = () => {
               .eq('user_id', data.user.id)
               .single();
             toast({ title: 'Email confirmat cu succes!', description: 'Contul tău a fost activat cu succes. Te poți conecta pe site pentru a avea acces la cont.' });
+            
+            // Redirect to appropriate dashboard after 2 seconds
+            setTimeout(() => {
+              const isOwner = profile?.user_type_comment === 'facility_owner';
+              navigate(isOwner ? '/manage-facilities' : '/');
+            }, 2000);
             return;
           }
         } else if (type === 'signup' && accessToken && refreshToken && !errorCode) {
@@ -73,6 +79,12 @@ const EmailConfirmationPage = () => {
               title: "Email confirmat cu succes!",
               description: "Contul tău a fost activat cu succes. Te poți conecta pe site pentru a avea acces la cont.",
             });
+            
+            // Redirect to appropriate dashboard after 2 seconds
+            setTimeout(() => {
+              const isOwner = profile?.user_type_comment === 'facility_owner';
+              navigate(isOwner ? '/manage-facilities' : '/');
+            }, 2000);
             return;
           }
         }
@@ -99,6 +111,12 @@ const EmailConfirmationPage = () => {
             title: "Email confirmat cu succes!",
             description: "Contul tău a fost activat cu succes. Te poți conecta pe site pentru a avea acces la cont.",
           });
+          
+          // Redirect to appropriate dashboard after 2 seconds
+          setTimeout(() => {
+            const isOwner = profile?.user_type_comment === 'facility_owner';
+            navigate(isOwner ? '/manage-facilities' : '/');
+          }, 2000);
           return;
         }
 
@@ -111,6 +129,18 @@ const EmailConfirmationPage = () => {
               title: "Email confirmat cu succes!",
               description: "Contul tău a fost activat cu succes. Te poți conecta pe site pentru a avea acces la cont.",
             });
+            
+            // Get user profile and redirect
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('user_type_comment')
+              .eq('user_id', updatedUser.id)
+              .single();
+              
+            setTimeout(() => {
+              const isOwner = profile?.user_type_comment === 'facility_owner';
+              navigate(isOwner ? '/manage-facilities' : '/');
+            }, 2000);
           } else {
             setStatus('error');
           }

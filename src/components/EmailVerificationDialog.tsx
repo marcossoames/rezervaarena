@@ -33,7 +33,7 @@ export const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = (
   const [showResendPrompt, setShowResendPrompt] = useState(false);
   const { toast } = useToast();
 
-  // Timer to track elapsed time and show resend prompt after 1 minute
+  // Timer to track elapsed time and show resend prompt after 1 minute with countdown
   useEffect(() => {
     if (!isOpen) {
       setTimeElapsed(0);
@@ -55,8 +55,9 @@ export const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = (
   }, [isOpen, showResendPrompt]);
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const remainingSeconds = Math.max(0, 60 - seconds);
+    const mins = Math.floor(remainingSeconds / 60);
+    const secs = remainingSeconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -118,9 +119,13 @@ export const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = (
           <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Timp așteptare:</span>
+              <span className="text-sm text-muted-foreground">
+                {timeElapsed < 60 ? "Poți retrimite în:" : "Timp așteptare:"}
+              </span>
             </div>
-            <span className="text-sm font-mono">{formatTime(timeElapsed)}</span>
+            <span className={`text-sm font-mono ${timeElapsed < 60 ? 'text-primary font-semibold' : ''}`}>
+              {formatTime(timeElapsed)}
+            </span>
           </div>
 
           <Alert className="border-primary/20 bg-primary/5">
