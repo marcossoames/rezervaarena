@@ -420,24 +420,47 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
                   <SelectTrigger>
                     <SelectValue placeholder="Selectează ora" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {getTimeOptions()
-                      .filter(time => !endTime || time.value < endTime)
-                      .map((time) => {
-                        const isConflicted = hasTimeConflict(time.value, endTime || time.value) || 
-                                           hasBlockedTimeConflict(time.value, endTime || time.value);
-                        return (
-                          <SelectItem 
-                            key={time.value} 
-                            value={time.value}
-                            disabled={isConflicted}
-                            className={isConflicted ? "text-muted-foreground opacity-50" : ""}
-                          >
-                            {time.label} {isConflicted && "(ocupat)"}
-                          </SelectItem>
-                        );
-                      })}
-                  </SelectContent>
+                   <SelectContent>
+                     {(() => {
+                       const availableTimes = getTimeOptions()
+                         .filter(time => {
+                           // If end time is selected, only show start times that are before it
+                           if (endTime && time.value >= endTime) return false;
+                           
+                           // Check for conflicts with existing bookings
+                           const hasBookingConflict = existingBookings.some(booking => {
+                             const bookingStart = booking.start_time.slice(0, 5);
+                             const bookingEnd = booking.end_time.slice(0, 5);
+                             return time.value >= bookingStart && time.value < bookingEnd;
+                           });
+                           
+                           // Check for conflicts with blocked hours
+                           const hasBlockConflict = blockedDates.some(blocked => {
+                             if (!blocked.start_time || !blocked.end_time) return false;
+                             const blockedStart = blocked.start_time.slice(0, 5);
+                             const blockedEnd = blocked.end_time.slice(0, 5);
+                             return time.value >= blockedStart && time.value < blockedEnd;
+                           });
+                           
+                           return !hasBookingConflict && !hasBlockConflict;
+                         });
+                       
+                       if (availableTimes.length === 0) {
+                         return (
+                           <div className="p-3 text-sm text-muted-foreground text-center">
+                             Nu există ore disponibile<br/>
+                             <span className="text-xs">(toate orele sunt rezervate sau blocate)</span>
+                           </div>
+                         );
+                       }
+                       
+                       return availableTimes.map((time) => (
+                         <SelectItem key={time.value} value={time.value}>
+                           {time.label}
+                         </SelectItem>
+                       ));
+                     })()}
+                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
@@ -450,24 +473,57 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
                   <SelectTrigger>
                     <SelectValue placeholder="Selectează ora" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {getTimeOptions()
-                      .filter(time => startTime && time.value > startTime)
-                      .map((time) => {
-                        const isConflicted = hasTimeConflict(startTime, time.value) || 
-                                           hasBlockedTimeConflict(startTime, time.value);
-                        return (
-                          <SelectItem 
-                            key={time.value} 
-                            value={time.value}
-                            disabled={isConflicted}
-                            className={isConflicted ? "text-muted-foreground opacity-50" : ""}
-                          >
-                            {time.label} {isConflicted && "(ocupat)"}
-                          </SelectItem>
-                        );
-                      })}
-                  </SelectContent>
+                   <SelectContent>
+                     {(() => {
+                       if (!startTime) {
+                         return (
+                           <div className="p-3 text-sm text-muted-foreground text-center">
+                             Selectează mai întâi ora de început
+                           </div>
+                         );
+                       }
+                       
+                       const availableTimes = getTimeOptions()
+                         .filter(time => {
+                           // Only show times after start time
+                           if (time.value <= startTime) return false;
+                           
+                           // Check if this end time would create conflicts with existing bookings
+                           const hasBookingConflict = existingBookings.some(booking => {
+                             const bookingStart = booking.start_time.slice(0, 5);
+                             const bookingEnd = booking.end_time.slice(0, 5);
+                             // Check if the proposed booking period overlaps with any existing booking
+                             return (startTime < bookingEnd && time.value > bookingStart);
+                           });
+                           
+                           // Check if this end time would create conflicts with blocked hours
+                           const hasBlockConflict = blockedDates.some(blocked => {
+                             if (!blocked.start_time || !blocked.end_time) return false;
+                             const blockedStart = blocked.start_time.slice(0, 5);
+                             const blockedEnd = blocked.end_time.slice(0, 5);
+                             // Check if the proposed booking period overlaps with any blocked period
+                             return (startTime < blockedEnd && time.value > blockedStart);
+                           });
+                           
+                           return !hasBookingConflict && !hasBlockConflict;
+                         });
+                       
+                       if (availableTimes.length === 0) {
+                         return (
+                           <div className="p-3 text-sm text-muted-foreground text-center">
+                             Nu există ore disponibile după {startTime}<br/>
+                             <span className="text-xs">(conflicte cu rezervări existente sau ore blocate)</span>
+                           </div>
+                         );
+                       }
+                       
+                       return availableTimes.map((time) => (
+                         <SelectItem key={time.value} value={time.value}>
+                           {time.label}
+                         </SelectItem>
+                       ));
+                     })()}
+                   </SelectContent>
                 </Select>
               </div>
             </div>
