@@ -42,7 +42,13 @@ const AddFacilityPage = () => {
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>('');
   const [isCapacityRange, setIsCapacityRange] = useState(false);
 
-  const { register, handleSubmit, setValue, formState: { errors }, getValues, watch } = useForm<FacilityFormData>();
+  const { register, handleSubmit, setValue, formState: { errors }, getValues, watch } = useForm<FacilityFormData>({
+    defaultValues: {
+      operatingHoursStart: "08:00",
+      operatingHoursEnd: "22:00"
+    }
+  });
+  
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -585,12 +591,8 @@ const AddFacilityPage = () => {
                     <div className="space-y-2">
                       <Label htmlFor="operatingHoursStart">Ora de deschidere</Label>
                       <TimePicker
-                        value={watch("operatingHoursStart") || "08:00"}
-                        onChange={(value) => {
-                          setValue("operatingHoursStart", value);
-                          // Trigger validation
-                          register("operatingHoursStart", { required: "Ora de deschidere este obligatorie" });
-                        }}
+                        value={watch("operatingHoursStart")}
+                        onChange={(value) => setValue("operatingHoursStart", value)}
                         placeholder="Selectează ora de deschidere"
                       />
                       {errors.operatingHoursStart && (
@@ -601,12 +603,8 @@ const AddFacilityPage = () => {
                     <div className="space-y-2">
                       <Label htmlFor="operatingHoursEnd">Ora de închidere</Label>
                       <TimePicker
-                        value={watch("operatingHoursEnd") || "22:00"}
-                        onChange={(value) => {
-                          setValue("operatingHoursEnd", value);
-                          // Trigger validation
-                          register("operatingHoursEnd", { required: "Ora de închidere este obligatorie" });
-                        }}
+                        value={watch("operatingHoursEnd")}
+                        onChange={(value) => setValue("operatingHoursEnd", value)}
                         placeholder="Selectează ora de închidere"
                       />
                       {errors.operatingHoursEnd && (
