@@ -245,6 +245,21 @@ const FacilityCalendarPage = () => {
     }
   };
 
+  const refreshBlockedDates = async () => {
+    if (!facilityId) return;
+    
+    const { data: blockedData, error: blockedError } = await supabase
+      .from('blocked_dates')
+      .select('*')
+      .eq('facility_id', facilityId)
+      .gte('blocked_date', format(new Date(), 'yyyy-MM-dd'))
+      .order('blocked_date', { ascending: true });
+
+    if (!blockedError) {
+      setBlockedDates(blockedData || []);
+    }
+  };
+
   const blockPartialHours = async () => {
     if (!selectedDate || !blockStartTime || !blockEndTime || !blockReason.trim()) {
       toast({
@@ -683,7 +698,10 @@ const FacilityCalendarPage = () => {
                            <CombinedBlockDialog
                              facilityId={facilityId}
                              selectedDate={selectedDate}
-                             onBlockingAdded={refreshBookings}
+                              onBlockingAdded={() => {
+                                refreshBookings();
+                                refreshBlockedDates();
+                              }}
                              hasExistingBookings={hasExistingBookings}
                            />
                          );
@@ -874,7 +892,10 @@ const FacilityCalendarPage = () => {
                            facilityId={facilityId}
                            selectedDate={selectedDate}
                            blockedDates={blockedDates}
-                           onUnblockComplete={refreshBookings}
+                            onUnblockComplete={() => {
+                              refreshBookings();
+                              refreshBlockedDates();
+                            }}
                          />
                         )}
                     </div>

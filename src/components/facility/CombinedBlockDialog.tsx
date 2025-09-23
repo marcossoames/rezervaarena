@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -62,6 +62,13 @@ const CombinedBlockDialog = ({
     setEndDate(addDays(selectedDate, 30));
     setSelectedDays([selectedDate.getDay()]);
   };
+
+  // Reset form when selectedDate changes
+  useEffect(() => {
+    setStartDate(selectedDate);
+    setEndDate(addDays(selectedDate, 30));
+    setSelectedDays([selectedDate.getDay()]);
+  }, [selectedDate]);
 
   const handleSubmit = async () => {
     if (!reason.trim()) {
@@ -146,6 +153,7 @@ const CombinedBlockDialog = ({
 
       resetForm();
       setIsOpen(false);
+      // Immediate refresh by calling onBlockingAdded
       onBlockingAdded();
     } catch (error) {
       console.error('Error creating block:', error);
@@ -174,7 +182,16 @@ const CombinedBlockDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       setIsOpen(open);
-      if (!open) resetForm();
+      if (!open) {
+        resetForm();
+      } else {
+        // Reset form when dialog opens with new selectedDate
+        setStartDate(selectedDate);
+        setEndDate(addDays(selectedDate, 30));
+        setSelectedDays([selectedDate.getDay()]);
+        setBlockType('single');
+        setReason("");
+      }
     }}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
@@ -237,7 +254,7 @@ const CombinedBlockDialog = ({
                     mode="single"
                     selected={startDate}
                     onSelect={(date) => date && setStartDate(date)}
-                    className="rounded-md border p-2"
+                    className="rounded-md border p-2 pointer-events-auto"
                     disabled={(date) => date < new Date()}
                   />
                 </div>
@@ -248,7 +265,7 @@ const CombinedBlockDialog = ({
                     mode="single"
                     selected={endDate}
                     onSelect={setEndDate}
-                    className="rounded-md border p-2"
+                    className="rounded-md border p-2 pointer-events-auto"
                     disabled={(date) => date <= startDate}
                   />
                 </div>
