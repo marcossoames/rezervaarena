@@ -4,12 +4,13 @@ import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import footballFieldSyntetic from "@/assets/football-field-synthetic-indoor.jpg";
 
 // Debug logging for missing images
 console.log('Checking image imports...');
 
 // Temporary placeholder until we add real images
-const footballImage = "/placeholder-football-synthetic-interior.jpg";
+const footballImage = footballFieldSyntetic;
 const tennisImage = "/placeholder-tennis-modern.jpg";
 const padelImage = "/placeholder-padel.jpg";
 const squashImage = "/placeholder-squash.jpg";
@@ -180,9 +181,9 @@ const SportsSection = () => {
                 </div>
                 
                 <div className="p-6 flex flex-col h-full">
-                  <p className="text-sm text-muted-foreground mb-4 flex-grow">{sport.description}</p>
+                  <p className="text-sm text-muted-foreground mb-3 flex-grow">{sport.description}</p>
                   
-                  <div className="space-y-2 mb-6">
+                  <div className="space-y-2 mb-4">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Terenuri disponibile:</span>
                       <span className="font-semibold text-primary">{sport.facilities}</span>
