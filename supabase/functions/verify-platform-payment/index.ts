@@ -163,16 +163,19 @@ serve(async (req) => {
         if (payUpdErr) logStep('Platform payment update failed', { message: payUpdErr.message });
       } else {
         const clientId = await determineClientId();
-        const { error: payInsErr } = await supabaseService
-          .from('platform_payments')
-          .insert({
-            booking_id: booking?.id ?? null,
-            facility_owner_id: md.facility_owner_id,
-            client_id: clientId,
-            stripe_session_id: sessionId,
-            payment_status: 'paid',
-            distributed_status: 'pending'
-          });
+      const { error: payInsErr } = await supabaseService
+        .from('platform_payments')
+        .insert({
+          booking_id: booking?.id ?? null,
+          facility_owner_id: md.facility_owner_id,
+          client_id: clientId,
+          stripe_session_id: sessionId,
+          payment_status: 'paid',
+          distributed_status: 'pending',
+          total_amount: (session.amount_total || 0) / 100,
+          platform_fee_amount: 0.10 * ((session.amount_total || 0) / 100),
+          facility_owner_amount: 0.90 * ((session.amount_total || 0) / 100)
+        });
         if (payInsErr) logStep('Platform payment insert failed', { message: payInsErr.message });
       }
 
