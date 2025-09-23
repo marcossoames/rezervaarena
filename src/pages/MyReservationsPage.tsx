@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Calendar, Clock, MapPin, CreditCard, Banknote, X, User, ArrowLeft } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar, Clock, MapPin, CreditCard, Banknote, X, User, ArrowLeft, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { ro } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +26,7 @@ interface BasicBooking {
   facility_id: string;
   client_id: string;
   notes?: string;
+  created_at?: string;
 }
 
 interface Booking extends BasicBooking {
@@ -55,6 +57,7 @@ const MyReservationsPage = () => {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('recent'); // recent, upcoming, date_asc, date_desc, price_asc, price_desc
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -427,28 +430,78 @@ const MyReservationsPage = () => {
     }
   };
 
-  // Filter bookings based on status filter
-  const getFilteredBookings = () => {
-    if (statusFilter === 'all') return bookings;
+  // Filter and sort bookings based on status filter and sort criteria
+  const getFilteredAndSortedBookings = () => {
+    let filteredBookings = bookings;
     
-    const now = new Date();
-    
-    switch (statusFilter) {
-      case 'upcoming':
-        return bookings.filter(booking => {
-          const bookingDate = new Date(booking.booking_date);
-          return booking.status === 'confirmed' && bookingDate >= now;
-        });
-      case 'completed':
-        return bookings.filter(booking => {
-          const bookingDate = new Date(booking.booking_date);
-          return booking.status === 'completed' || booking.status === 'cancelled' || booking.status === 'no_show' || bookingDate < now;
-        });
-      case 'completed_only':
-        return bookings.filter(booking => booking.status === 'completed');
-      default:
-        return bookings.filter(booking => booking.status === statusFilter);
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      const now = new Date();
+      
+      switch (statusFilter) {
+        case 'upcoming':
+          filteredBookings = bookings.filter(booking => {
+            const bookingDate = new Date(booking.booking_date);
+            return booking.status === 'confirmed' && bookingDate >= now;
+          });
+          break;
+        case 'completed':
+          filteredBookings = bookings.filter(booking => {
+            const bookingDate = new Date(booking.booking_date);
+            return booking.status === 'completed' || booking.status === 'cancelled' || booking.status === 'no_show' || bookingDate < now;
+          });
+          break;
+        case 'completed_only':
+          filteredBookings = bookings.filter(booking => booking.status === 'completed');
+          break;
+        default:
+          filteredBookings = bookings.filter(booking => booking.status === statusFilter);
+      }
     }
+    
+    // Apply sorting
+    const sortedBookings = [...filteredBookings].sort((a, b) => {
+      const now = new Date();
+      
+      switch (sortBy) {
+        case 'recent':
+          // Most recently created reservations first
+          return new Date(b.created_at || b.booking_date).getTime() - new Date(a.created_at || a.booking_date).getTime();
+          
+        case 'upcoming':
+          // Next upcoming reservations first (only future ones)
+          const aDate = new Date(`${a.booking_date}T${a.start_time}`);
+          const bDate = new Date(`${b.booking_date}T${b.start_time}`);
+          const aIsFuture = aDate > now;
+          const bIsFuture = bDate > now;
+          
+          if (aIsFuture && !bIsFuture) return -1;
+          if (!aIsFuture && bIsFuture) return 1;
+          if (aIsFuture && bIsFuture) return aDate.getTime() - bDate.getTime();
+          return bDate.getTime() - aDate.getTime(); // Past dates in descending order
+          
+        case 'date_asc':
+          // Oldest booking date first
+          return new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime();
+          
+        case 'date_desc':
+          // Newest booking date first
+          return new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime();
+          
+        case 'price_asc':
+          // Lowest price first
+          return (a.total_price || 0) - (b.total_price || 0);
+          
+        case 'price_desc':
+          // Highest price first
+          return (b.total_price || 0) - (a.total_price || 0);
+          
+        default:
+          return 0;
+      }
+    });
+    
+    return sortedBookings;
   };
 
   // Function to check if user can manage booking status
@@ -504,28 +557,52 @@ const MyReservationsPage = () => {
           <h1 className="text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
           <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
           
-          {/* Add status filter for regular clients */}
+          {/* Add filters and sorting for regular clients */}
           {userProfile && !userProfile.user_type_comment?.includes('Proprietar bază sportivă') && userProfile.role !== 'admin' && (
-            <div className="mt-4">
-              <label className="text-sm font-medium text-muted-foreground">Filtrează după status:</label>
-              <select 
-                value={statusFilter} 
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="ml-2 px-3 py-1 border border-border rounded-md bg-background text-foreground"
-              >
-                <option value="all">Toate rezervările</option>
-                <option value="upcoming">Viitoare (Confirmate)</option>
-                <option value="completed">Terminate (Finalizate + Anulate + Lipsă)</option>
-                <option value="confirmed">Doar confirmate</option>
-                <option value="cancelled">Anulate</option>
-                <option value="completed_only">Finalizate</option>
-                <option value="no_show">Lipsă</option>
-              </select>
+            <div className="mt-4 space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-muted-foreground">Filtrează după status:</label>
+                  <select 
+                    value={statusFilter} 
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="ml-2 px-3 py-1 border border-border rounded-md bg-background text-foreground"
+                  >
+                    <option value="all">Toate rezervările</option>
+                    <option value="upcoming">Viitoare (Confirmate)</option>
+                    <option value="completed">Terminate (Finalizate + Anulate + Lipsă)</option>
+                    <option value="confirmed">Doar confirmate</option>
+                    <option value="cancelled">Anulate</option>
+                    <option value="completed_only">Finalizate</option>
+                    <option value="no_show">Lipsă</option>
+                  </select>
+                </div>
+                
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-muted-foreground">Sortează după:</label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="ml-2 w-auto min-w-[200px]">
+                      <ArrowUpDown className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Alege criteriul de sortare" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recent">Cea mai recent făcută</SelectItem>
+                      <SelectItem value="upcoming">Cea care urmează</SelectItem>
+                      <SelectItem value="date_desc">Data rezervării (recent → vechi)</SelectItem>
+                      <SelectItem value="date_asc">Data rezervării (vechi → recent)</SelectItem>
+                      <SelectItem value="price_desc">Preț (mare → mic)</SelectItem>
+                      <SelectItem value="price_asc">Preț (mic → mare)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
           )}
         </div>
 
-        {getFilteredBookings().length === 0 ? (
+        {(() => {
+          const filteredBookings = getFilteredAndSortedBookings();
+          return filteredBookings.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -544,7 +621,7 @@ const MyReservationsPage = () => {
           </Card>
         ) : (
           <div className="grid gap-6">
-            {getFilteredBookings().map(booking => <Card key={booking.id} id={`booking-${booking.id}`} className="transition-all duration-200 hover:shadow-lg">
+            {filteredBookings.map(booking => <Card key={booking.id} id={`booking-${booking.id}`} className="transition-all duration-200 hover:shadow-lg">
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -704,7 +781,8 @@ const MyReservationsPage = () => {
                 </CardContent>
               </Card>)}
           </div>
-        )}
+        );
+        })()}
       </main>
       
       <Footer />
