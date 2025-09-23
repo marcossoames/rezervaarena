@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Plus, Edit, Trash2, MapPin, Users, Clock, Calendar, User } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Plus, Edit, Trash2, MapPin, Users, Clock, Calendar, User, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -42,6 +43,7 @@ interface BookingWithDetails {
   payment_method: string;
   facility_id: string;
   client_id: string;
+  created_at: string; // Add this field for sorting by creation date
   facility_name?: string;
   facility_type?: string;
   client_name?: string;
@@ -52,6 +54,8 @@ interface BookingWithDetails {
 const ManageFacilitiesPage = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
+  const [sortedBookings, setSortedBookings] = useState<BookingWithDetails[]>([]);
+  const [sortBy, setSortBy] = useState<string>('booking_date_asc'); // booking_date_asc, booking_date_desc, created_at_asc, created_at_desc, facility_name_asc, facility_name_desc
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'facilities' | 'bookings'>('facilities');
@@ -121,12 +125,19 @@ const ManageFacilitiesPage = () => {
     loadData();
   }, []);
 
+  // Apply sorting when bookings or sortBy changes
+  useEffect(() => {
+    if (bookings.length > 0) {
+      applySorting(bookings, sortBy);
+    }
+  }, [bookings, sortBy]);
+
   const loadBookings = async (facilityIds: string[]) => {
     try {
       // Get bookings with facility and profile data
       const { data: bookingsData, error } = await supabase
         .from('bookings')
-        .select('*')
+        .select('*, created_at')
         .in('facility_id', facilityIds)
         .gte('booking_date', new Date().toISOString().split('T')[0])
         .order('booking_date', { ascending: true })
@@ -169,9 +180,39 @@ const ManageFacilitiesPage = () => {
       );
 
       setBookings(enhancedBookings);
+      applySorting(enhancedBookings, sortBy);
     } catch (error) {
       console.error('Error loading bookings:', error);
     }
+  };
+
+  // Sorting function
+  const applySorting = (bookingsToSort: BookingWithDetails[], sortType: string) => {
+    const sorted = [...bookingsToSort].sort((a, b) => {
+      switch (sortType) {
+        case 'booking_date_asc':
+          return new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime();
+        case 'booking_date_desc':
+          return new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime();
+        case 'created_at_asc':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'created_at_desc':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'facility_name_asc':
+          return (a.facility_name || '').localeCompare(b.facility_name || '');
+        case 'facility_name_desc':
+          return (b.facility_name || '').localeCompare(a.facility_name || '');
+        default:
+          return 0;
+      }
+    });
+    setSortedBookings(sorted);
+  };
+
+  // Handle sort change
+  const handleSortChange = (newSortBy: string) => {
+    setSortBy(newSortBy);
+    applySorting(bookings, newSortBy);
   };
 
   const getStatusBadge = (status: string) => {
@@ -526,6 +567,31 @@ const ManageFacilitiesPage = () => {
         </TabsContent>
 
         <TabsContent value="bookings" className="space-y-6">
+          {/* Sorting Controls */}
+          {bookings.length > 0 && (
+            <Card className="p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Sortează după:</span>
+                </div>
+                <Select value={sortBy} onValueChange={handleSortChange}>
+                  <SelectTrigger className="w-64">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="booking_date_asc">Data rezervării (Cronologic)</SelectItem>
+                    <SelectItem value="booking_date_desc">Data rezervării (Cronologic invers)</SelectItem>
+                    <SelectItem value="created_at_asc">Data când s-a făcut rezervarea (Vechi la nou)</SelectItem>
+                    <SelectItem value="created_at_desc">Data când s-a făcut rezervarea (Nou la vechi)</SelectItem>
+                    <SelectItem value="facility_name_asc">Teren (A-Z)</SelectItem>
+                    <SelectItem value="facility_name_desc">Teren (Z-A)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </Card>
+          )}
+
           {/* Bookings List */}
           {bookings.length === 0 ? (
             <Card className="text-center py-12">
@@ -541,7 +607,7 @@ const ManageFacilitiesPage = () => {
             </Card>
           ) : (
             <div className="grid gap-4">
-              {bookings.map((booking) => (
+              {sortedBookings.map((booking) => (
                 <Card key={booking.id} className="transition-all duration-200 hover:shadow-lg">
                   <CardHeader className="pb-4">
                     <div className="flex justify-between items-start">
