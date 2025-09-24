@@ -32,9 +32,14 @@ serve(async (req) => {
       throw new Error("SUPABASE_SERVICE_ROLE_KEY missing");
     }
 
-    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+    // Build a safe redirect base (avoid localhost in production)
+    const reqOrigin = req.headers.get("origin") || "";
+    const safeBase =
+      (redirectUrl && !redirectUrl.includes("localhost") && redirectUrl) ||
+      (reqOrigin && !reqOrigin.includes("localhost") && reqOrigin) ||
+      "https://rezervaarena.com";
 
-    const redirect = `${redirectUrl || "https://947ae49f-e8d5-4283-95f7-ef683f84f2b9.lovableproject.com"}/reset-password`;
+    const redirect = `${safeBase}/reset-password`;
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "recovery",
       email,
