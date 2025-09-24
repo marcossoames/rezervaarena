@@ -539,9 +539,9 @@ const AddFacilityPage = () => {
                       {...register("city", { 
                         required: userProfile?.role === 'admin' ? "Orașul este obligatoriu" : false 
                       })}
-                      className="bg-background/50"
+                       className="bg-background/50"
                       placeholder={userProfile?.role !== 'admin' ? "Se completează automat din setările bazei" : "Introduceți orașul"}
-                      disabled={userProfile?.role !== 'admin'}
+                      disabled={userProfile?.role !== 'admin' && !!watch("city")}
                     />
                     {errors.city && (
                       <p className="text-sm text-destructive">{errors.city.message}</p>
@@ -577,9 +577,9 @@ const AddFacilityPage = () => {
                     id="address"
                     type="text"
                     {...register("address", { required: userProfile?.role === 'admin' ? "Adresa este obligatorie" : false })}
-                    className="bg-background/50"
+                     className="bg-background/50"
                     placeholder={userProfile?.role !== 'admin' ? "Se completează automat din setările bazei" : "Strada, numărul, sectorul/comuna"}
-                    disabled={userProfile?.role !== 'admin'}
+                    disabled={userProfile?.role !== 'admin' && !!watch("address")}
                   />
                   {errors.address && (
                     <p className="text-sm text-destructive">{errors.address.message}</p>
@@ -594,9 +594,7 @@ const AddFacilityPage = () => {
                       <Label htmlFor="operatingHoursStart">Ora de deschidere</Label>
                       <Controller
                         name="operatingHoursStart"
-                        control={{} as any}
-                        // react-hook-form's Controller needs the actual control instance; we access it via (getValues as any).control pattern isn't available
-                        // To keep minimal edits, we inline a simple wrapper that uses watch/setValue for value control
+                        control={control}
                         render={({ field }) => (
                           <TimePicker
                             value={watch("operatingHoursStart")}
@@ -613,7 +611,7 @@ const AddFacilityPage = () => {
                       <Label htmlFor="operatingHoursEnd">Ora de închidere</Label>
                       <Controller
                         name="operatingHoursEnd"
-                        control={{} as any}
+                        control={control}
                         render={({ field }) => (
                           <TimePicker
                             value={watch("operatingHoursEnd")}
