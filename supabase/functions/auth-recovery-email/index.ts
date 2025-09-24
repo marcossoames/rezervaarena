@@ -32,6 +32,8 @@ serve(async (req) => {
       throw new Error("SUPABASE_SERVICE_ROLE_KEY missing");
     }
 
+    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+
     // Build a safe redirect base (avoid localhost in production)
     const reqOrigin = req.headers.get("origin") || "";
     const safeBase =
