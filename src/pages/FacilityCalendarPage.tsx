@@ -901,11 +901,26 @@ const FacilityCalendarPage = () => {
               selectedFacility={facility?.id || 'all'}
               onBookingClick={(bookingId) => {
                 console.log('Clicked booking:', bookingId);
+                // Scroll to specific booking in the list
+                setTimeout(() => {
+                  const bookingElement = document.getElementById(`booking-${bookingId}`);
+                  if (bookingElement) {
+                    bookingElement.scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'center'
+                    });
+                    // Add highlight effect
+                    bookingElement.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+                    setTimeout(() => {
+                      bookingElement.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+                    }, 3000);
+                  }
+                }, 100);
               }}
               blockedDates={blockedDates.map(b => ({ ...b, facility_id: facilityId || '' })) as any}
             />
 
-            <Card className="mt-6">
+            <Card className="mt-6" id="reservations-section">
               <CardHeader>
                 <CardTitle>Rezervări pentru {format(selectedDate, 'd MMMM yyyy', { locale: ro })}</CardTitle>
                 <CardDescription>
@@ -925,7 +940,11 @@ const FacilityCalendarPage = () => {
                   ) : (
                     <div className="space-y-3">
                       {getAllBookingsForDate(selectedDate).map((booking) => (
-                        <div key={booking.id} className="flex items-start justify-between p-4 border rounded-lg bg-card">
+                        <div 
+                          key={booking.id} 
+                          id={`booking-${booking.id}`}
+                          className="flex items-start justify-between p-4 border rounded-lg bg-card transition-all duration-300"
+                        >
                           <div className="flex-1">
                             <div className="font-medium mb-1">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</div>
                             <div className="text-muted-foreground text-sm">
