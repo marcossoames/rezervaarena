@@ -100,64 +100,58 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
     }
 
     setIsUpdating(true);
-    
+
     try {
-      // Use secure RPC function for facility owners
+      // For cancellations, use the secure Edge Function which also sends emails and handles refunds
+      if (selectedStatus === 'cancelled' && booking.status !== 'cancelled') {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+        if (!accessToken) throw new Error('Nu sunteți autentificat');
+
+        const { data, error } = await supabase.functions.invoke('cancel-booking', {
+          body: { bookingId: booking.id },
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+
+        if (error || (data && (data as any).success === false)) {
+          const message = (data as any)?.error || error?.message || 'Nu s-a putut anula rezervarea';
+          throw new Error(message);
+        }
+
+        toast({
+          title: 'Rezervare anulată',
+          description: (data as any)?.message || 'Clientul a fost notificat prin email despre anulare.'
+        });
+
+        setIsDialogOpen(false);
+        onStatusUpdate();
+        return;
+      }
+
+      // For other status changes, use the RPC
       const { data, error } = await supabase.rpc('update_booking_status_owner', {
         p_booking_id: booking.id,
         p_new_status: selectedStatus,
         p_notes: notes.trim() || null
       });
 
-      if (error) {
-        console.error('RPC error:', error);
-        throw new Error(error.message || 'Nu s-a putut actualiza statusul rezervării');
+      if (error || !data) {
+        throw new Error(error?.message || 'Nu s-a putut actualiza statusul rezervării');
       }
 
-      if (!data) {
-        throw new Error('Nu s-a putut actualiza statusul rezervării');
-      }
-
-      // Send cancellation email if booking was cancelled
-      if (selectedStatus === 'cancelled' && booking.status !== 'cancelled') {
-        try {
-          console.log('Sending cancellation email via Edge Function for booking:', booking.id);
-          const response = await supabase.functions.invoke('send-booking-cancellation-email', {
-            body: {
-              bookingIds: [booking.id],
-              reason: notes.trim() || 'Rezervarea a fost anulată de către baza sportivă.',
-              cancelledBy: 'facility'
-            }
-          });
-          console.log('Email function response:', response);
-          if (response.error) {
-            console.error('Email function error:', response.error);
-            toast({ title: 'Avertisment', description: 'Statusul a fost actualizat, dar emailul către client a eșuat.', variant: 'destructive' });
-          } else {
-            toast({ title: 'Email trimis', description: 'Clientul a fost notificat prin email despre anulare.' });
-          }
-        } catch (emailError) {
-          console.error('Error sending cancellation email:', emailError);
-          // Don't block the status update if email fails
-        }
-      }
-
-      // Only show the main success toast if no specific email toast was shown
-      if (selectedStatus !== 'cancelled' || booking.status === 'cancelled') {
-        toast({
-          title: "Status actualizat",
-          description: `Rezervarea a fost marcată ca "${getStatusInfo(selectedStatus).label.toLowerCase()}"`,
-        });
-      }
+      toast({
+        title: 'Status actualizat',
+        description: `Rezervarea a fost marcată ca "${getStatusInfo(selectedStatus).label.toLowerCase()}"`,
+      });
 
       setIsDialogOpen(false);
       onStatusUpdate();
     } catch (error: any) {
       console.error('Error updating booking status:', error);
       toast({
-        title: "Eroare",
-        description: error.message || "Nu s-a putut actualiza statusul rezervării",
-        variant: "destructive"
+        title: 'Eroare',
+        description: error.message || 'A apărut o eroare',
+        variant: 'destructive'
       });
     } finally {
       setIsUpdating(false);
