@@ -109,6 +109,19 @@ const DayScheduleCalendar = ({
     });
   };
 
+  // Normalize various facility_type values to a consistent sport key
+  const normalizeSport = (t?: string) => {
+    const s = (t || '').toLowerCase();
+    if (s.includes('fotb') || s.includes('foot')) return 'fotbal';
+    if (s.includes('ten')) return 'tenis';
+    if (s.includes('basc') || s.includes('basket')) return 'baschet';
+    if (s.includes('vol')) return 'volei';
+    if (s.includes('padel')) return 'padel';
+    if (s.includes('squash')) return 'squash';
+    if (s.includes('inot') || s.includes('swim')) return 'inot';
+    return 'fotbal';
+  };
+
   // Get booking type color based on sport and status
   const getBookingColor = (booking: Booking) => {
     const isManual = booking.payment_method === 'cash';
@@ -131,26 +144,20 @@ const DayScheduleCalendar = ({
     
     // Online bookings - different colors for each sport type
     const sportColors = {
-      'football': 'bg-emerald-500 hover:bg-emerald-600',
-      'tennis': 'bg-blue-500 hover:bg-blue-600', 
-      'basketball': 'bg-orange-600 hover:bg-orange-700',
-      'volleyball': 'bg-purple-500 hover:bg-purple-600',
-      'padel': 'bg-pink-500 hover:bg-pink-600',
-      'squash': 'bg-yellow-500 hover:bg-yellow-600',
-      'swimming': 'bg-cyan-500 hover:bg-cyan-600',
       'fotbal': 'bg-emerald-500 hover:bg-emerald-600',
       'tenis': 'bg-blue-500 hover:bg-blue-600',
       'baschet': 'bg-orange-600 hover:bg-orange-700',
       'volei': 'bg-purple-500 hover:bg-purple-600',
+      'padel': 'bg-pink-500 hover:bg-pink-600',
+      'squash': 'bg-yellow-500 hover:bg-yellow-600',
       'inot': 'bg-cyan-500 hover:bg-cyan-600',
-    };
+    } as const;
     
-    const sportType = booking.facility_type?.toLowerCase() || 'fotbal';
-    const colorClass = sportColors[sportType as keyof typeof sportColors] || 'bg-emerald-500 hover:bg-emerald-600';
+    const sportKey = normalizeSport(booking.facility_type);
+    const colorClass = sportColors[sportKey] || 'bg-emerald-500 hover:bg-emerald-600';
     
     return `${baseClasses} ${colorClass}`;
   };
-
   // Check if a time slot spans multiple slots for a booking
   const getBookingSpan = (booking: Booking, currentSlot: string) => {
     const startTime = booking.start_time.substring(0, 5);
@@ -253,8 +260,8 @@ const DayScheduleCalendar = ({
         </div>
       </CardHeader>
       
-      <CardContent className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 min-h-[320px]">
+      <CardContent className="p-4 max-h-[560px] overflow-y-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-1 min-h-[280px]">
           {timeSlots.map((timeSlot, index) => {
             const booking = getBookingForTimeSlot(timeSlot);
             const span = booking ? getBookingSpan(booking, timeSlot) : 0;
