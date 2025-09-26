@@ -146,6 +146,23 @@ const DayScheduleCalendar = ({
     });
   };
 
+  // Check if this slot is the start of a booking
+  const isBookingStart = (timeSlot: string, booking: Booking) => {
+    const startTime = booking.start_time.substring(0, 5);
+    return timeSlot === startTime;
+  };
+
+  // Check if this slot is the end of a booking
+  const isBookingEnd = (timeSlot: string, booking: Booking) => {
+    const endTime = booking.end_time.substring(0, 5);
+    const slotMinutes = timeToMinutes(timeSlot);
+    const endMinutes = timeToMinutes(endTime);
+    
+    // This is the end if this slot + 30 minutes would go past the booking end
+    const nextSlotMinutes = slotMinutes + 30;
+    return nextSlotMinutes > endMinutes;
+  };
+
   // Helper function to convert HH:MM to minutes
   const timeToMinutes = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
@@ -250,11 +267,25 @@ const DayScheduleCalendar = ({
                 {/* Booking slot */}
                 <div className="h-16 border border-t-0 rounded-b p-1">
                   {booking ? (
-                    <button
-                      onClick={() => handleBookingClick(booking.id)}
-                      className={`w-full h-full ${getBookingColor(booking)} rounded cursor-pointer hover:opacity-80 transition-opacity`}
-                      title={`${booking.start_time.substring(0, 5)}-${booking.end_time.substring(0, 5)}`}
-                    />
+                    (() => {
+                      const isStart = isBookingStart(timeSlot, booking);
+                      const isEnd = isBookingEnd(timeSlot, booking);
+                      const borderClass = isStart && isEnd 
+                        ? 'border-4 border-white' // Single slot booking
+                        : isStart 
+                        ? 'border-l-4 border-t-4 border-b-4 border-white border-r-0' // Start of multi-slot
+                        : isEnd 
+                        ? 'border-r-4 border-t-4 border-b-4 border-white border-l-0' // End of multi-slot
+                        : 'border-t-4 border-b-4 border-white border-l-0 border-r-0'; // Middle of multi-slot
+                      
+                      return (
+                        <button
+                          onClick={() => handleBookingClick(booking.id)}
+                          className={`w-full h-full ${getBookingColor(booking)} ${borderClass} cursor-pointer hover:opacity-80 transition-opacity`}
+                          title={`${booking.start_time.substring(0, 5)}-${booking.end_time.substring(0, 5)}`}
+                        />
+                      );
+                    })()
                   ) : isClosingSlot ? (
                     <div className="w-full h-full bg-muted/50 border-dashed border rounded flex items-center justify-center">
                       <span className="text-xs text-muted-foreground">Închidere</span>
