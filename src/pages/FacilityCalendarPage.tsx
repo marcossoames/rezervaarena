@@ -49,6 +49,11 @@ interface Booking {
   notes?: string;
   client_id: string;
   created_at?: string;
+  client_info?: {
+    full_name: string;
+    phone: string;
+    email: string;
+  };
 }
 
 interface BlockedDate {
@@ -123,7 +128,7 @@ const FacilityCalendarPage = () => {
 
       setFacility(facilityData);
 
-      // Load bookings
+      // Load bookings with client information
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
@@ -134,8 +139,30 @@ const FacilityCalendarPage = () => {
 
       if (bookingsError) {
         console.error('Error fetching bookings:', bookingsError);
-      } else {
-        setBookings(bookingsData || []);
+        setBookings([]);
+      } else if (bookingsData) {
+        // Get client information for each booking
+        const bookingsWithClientInfo = await Promise.all(
+          bookingsData.map(async (booking) => {
+            // Get client info from profiles table
+            const { data: clientProfile } = await supabase
+              .from('profiles')
+              .select('full_name, phone, email')
+              .eq('user_id', booking.client_id)
+              .maybeSingle();
+
+            return {
+              ...booking,
+              client_info: clientProfile ? {
+                full_name: clientProfile.full_name,
+                phone: clientProfile.phone,
+                email: clientProfile.email
+              } : null
+            };
+          })
+        );
+        
+        setBookings(bookingsWithClientInfo);
       }
 
       // Load blocked dates
@@ -270,8 +297,29 @@ const FacilityCalendarPage = () => {
       .order('booking_date', { ascending: true })
       .order('start_time', { ascending: true });
 
-    if (!bookingsError) {
-      setBookings(bookingsData || []);
+    if (!bookingsError && bookingsData) {
+      // Get client information for each booking
+      const bookingsWithClientInfo = await Promise.all(
+        bookingsData.map(async (booking) => {
+          // Get client info from profiles table
+          const { data: clientProfile } = await supabase
+            .from('profiles')
+            .select('full_name, phone, email')
+            .eq('user_id', booking.client_id)
+            .maybeSingle();
+
+          return {
+            ...booking,
+            client_info: clientProfile ? {
+              full_name: clientProfile.full_name,
+              phone: clientProfile.phone,
+              email: clientProfile.email
+            } : null
+          };
+        })
+      );
+      
+      setBookings(bookingsWithClientInfo);
     }
   };
 
@@ -947,9 +995,23 @@ const FacilityCalendarPage = () => {
                         >
                           <div className="flex-1">
                             <div className="font-medium mb-1">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</div>
-                            <div className="text-muted-foreground text-sm">
+                            <div className="text-muted-foreground text-sm mb-2">
                               {booking.total_price} RON • {booking.payment_method === 'card' ? 'Plată cu cardul' : 'Plată cash'}
                             </div>
+                            {/* Client Information */}
+                            {booking.client_info && (
+                              <div className="text-sm bg-blue-50 border border-blue-200 rounded p-2 mt-2">
+                                <div className="font-medium text-blue-900 mb-1">👤 {booking.client_info.full_name}</div>
+                                <div className="flex gap-3 text-xs text-blue-700">
+                                  <a href={`tel:${booking.client_info.phone}`} className="hover:underline">
+                                    📞 {booking.client_info.phone}
+                                  </a>
+                                  <a href={`mailto:${booking.client_info.email}`} className="hover:underline">
+                                    📧 {booking.client_info.email}
+                                  </a>
+                                </div>
+                              </div>
+                            )}
                             {booking.notes && (
                               <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted/50 rounded">
                                 <strong>Notă:</strong> {booking.notes}
