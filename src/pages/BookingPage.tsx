@@ -281,38 +281,53 @@ const BookingPage = () => {
               const [slotHour, slotMinute] = slot.time.split(':').map(Number);
               const slotMinutes = slotHour * 60 + slotMinute;
               const endMinutes = slotMinutes + selectedDuration;
-              const endHour = Math.floor(endMinutes / 60);
-              const endMinute = endMinutes % 60;
-              const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+
+              // Helper to parse 'HH:MM' or 'HH:MM:SS' into minutes
+              const toMinutes = (t: string) => {
+                const parts = t.split(':').map(Number);
+                const h = parts[0] || 0;
+                const m = parts[1] || 0;
+                return h * 60 + m;
+              };
 
               // Check against all unavailable slots
-              available = !unavailableSlots.some((unavailable: any) => {
-                // If no start_time and end_time, it's a full day block
-                if (unavailable.unavailable_type === 'blocked' && !unavailable.start_time && !unavailable.end_time) {
-                  return true; // Block all time slots for this date
+              let available = true;
+              for (const unavailable of unavailableSlots as any[]) {
+                // Full day block detection (either nulls or 00:00:00-23:59:59)
+                const isFullDayBlocked =
+                  unavailable.unavailable_type === 'blocked' &&
+                  ((!unavailable.start_time && !unavailable.end_time) ||
+                   (unavailable.start_time === '00:00:00' && unavailable.end_time === '23:59:59'));
+                if (isFullDayBlocked) {
+                  available = false;
+                  break;
                 }
-                
-                // Check if our proposed booking would overlap with any unavailable period
+
                 if (unavailable.start_time && unavailable.end_time) {
-                  // Our booking: slot.time to endTime
-                  // Unavailable: unavailable.start_time to unavailable.end_time
-                  // Overlap if: (start1 < end2) && (start2 < end1)
-                  return (slot.time < unavailable.end_time) && (unavailable.start_time < endTime);
+                  const unStart = toMinutes(unavailable.start_time as string);
+                  const unEnd = toMinutes(unavailable.end_time as string);
+                  // Our booking interval [slotMinutes, endMinutes)
+                  // Overlap if: start < otherEnd && otherStart < end
+                  if (slotMinutes < unEnd && unStart < endMinutes) {
+                    available = false;
+                    break;
+                  }
                 }
-                return false;
-              });
+              }
 
               // Also check if end time exceeds facility operating hours
-              if (facility.operating_hours_end) {
+              if (available && facility.operating_hours_end) {
                 const [opEndHour, opEndMinute] = facility.operating_hours_end.split(':').map(Number);
                 const opEndMinutes = opEndHour * 60 + opEndMinute;
                 if (endMinutes > opEndMinutes) {
                   available = false;
                 }
               }
+
+              return { ...slot, available };
             }
 
-            return { ...slot, available };
+            return { ...slot, available: slot.available };
           });
         };
 
