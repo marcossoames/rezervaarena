@@ -26,6 +26,15 @@ interface Booking {
   stripe_session_id?: string;
 }
 
+interface BlockedDate {
+  id: string;
+  facility_id: string;
+  blocked_date: string;
+  start_time?: string;
+  end_time?: string;
+  reason?: string;
+}
+
 interface Facility {
   id: string;
   name: string;
@@ -42,6 +51,7 @@ interface DayScheduleCalendarProps {
   facilities: Facility[];
   selectedFacility: string;
   onBookingClick: (bookingId: string) => void;
+  blockedDates?: BlockedDate[];
 }
 
 const DayScheduleCalendar = ({ 
@@ -49,7 +59,8 @@ const DayScheduleCalendar = ({
   bookings, 
   facilities, 
   selectedFacility,
-  onBookingClick 
+  onBookingClick,
+  blockedDates = []
 }: DayScheduleCalendarProps) => {
 
   // Get booking color based on priority: status > booking type
@@ -163,6 +174,27 @@ const DayScheduleCalendar = ({
     return nextSlotMinutes > endMinutes;
   };
 
+  // Check if a time slot is blocked
+  const getSlotBlocking = (timeSlot: string) => {
+    if (!selectedDate || blockedDates.length === 0) return null;
+    
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    
+    return blockedDates.find(blocked => {
+      if (blocked.blocked_date !== dateStr) return false;
+      if (blocked.facility_id !== selectedFacility && selectedFacility !== 'all') return false;
+      
+      // If no specific times, entire day is blocked
+      if (!blocked.start_time || !blocked.end_time) return true;
+      
+      const slotMinutes = timeToMinutes(timeSlot);
+      const startMinutes = timeToMinutes(blocked.start_time.substring(0, 5));
+      const endMinutes = timeToMinutes(blocked.end_time.substring(0, 5));
+      
+      return slotMinutes >= startMinutes && slotMinutes <= endMinutes;
+    });
+  };
+
   // Helper function to convert HH:MM to minutes
   const timeToMinutes = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
@@ -232,6 +264,18 @@ const DayScheduleCalendar = ({
             </div>
           </div>
           
+          <div className="text-sm font-medium mt-3">Blocări:</div>
+          <div className="flex flex-wrap gap-3 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+              <span>Blocat parțial</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-red-600 rounded"></div>
+              <span>Blocat complet</span>
+            </div>
+          </div>
+          
           <div className="text-sm font-medium mt-3">Status rezervări:</div>
           <div className="flex flex-wrap gap-3 text-xs">
             <div className="flex items-center gap-1">
@@ -251,21 +295,21 @@ const DayScheduleCalendar = ({
       </CardHeader>
       
       <CardContent className="p-4">
-        <div className="grid grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+        <div className="grid grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-0">
           {timeSlots.map((timeSlot) => {
             const isClosingSlot = timeSlot === end.substring(0, 5);
-            // Find booking that starts at this time slot (exclude closing label)
             const booking = !isClosingSlot ? getSlotBooking(timeSlot) : undefined;
+            const blocking = !isClosingSlot && !booking ? getSlotBlocking(timeSlot) : null;
             
             return (
-              <div key={timeSlot} className="relative">
+              <div key={timeSlot} className="relative border-r border-muted last:border-r-0">
                 {/* Time slot header */}
-                <div className="text-xs font-mono text-center text-muted-foreground p-1 border rounded-t">
+                <div className="text-xs font-mono text-center text-muted-foreground p-1 border-b bg-muted/20">
                   {timeSlot}
                 </div>
                 
-                {/* Booking slot */}
-                <div className="h-16 border border-t-0 rounded-b p-1">
+                {/* Booking/Blocking slot */}
+                <div className="h-16">
                   {booking ? (
                     (() => {
                       const isStart = isBookingStart(timeSlot, booking);
@@ -274,32 +318,36 @@ const DayScheduleCalendar = ({
                       return (
                         <button
                           onClick={() => handleBookingClick(booking.id)}
-                          className={`w-full h-full ${getBookingColor(booking)} cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center relative`}
+                          className={`w-full h-full ${getBookingColor(booking)} cursor-pointer hover:opacity-80 transition-opacity border-2 border-white/20`}
                           title={`${booking.start_time.substring(0, 5)}-${booking.end_time.substring(0, 5)}`}
                           style={{
                             borderRadius: isStart && isEnd 
-                              ? '6px' 
+                              ? '4px' 
                               : isStart 
-                                ? '6px 0 0 6px' 
+                                ? '4px 0 0 4px' 
                                 : isEnd 
-                                  ? '0 6px 6px 0' 
-                                  : '0',
-                            marginLeft: isStart ? '0' : '-1px',
-                            marginRight: isEnd ? '0' : '-1px',
-                            border: isStart || isEnd ? '2px solid rgba(255,255,255,0.3)' : 'none',
-                            borderLeft: isStart ? '2px solid rgba(255,255,255,0.3)' : 'none',
-                            borderRight: isEnd ? '2px solid rgba(255,255,255,0.3)' : 'none'
+                                  ? '0 4px 4px 0' 
+                                  : '0'
                           }}
                         />
                       );
                     })()
+                  ) : blocking ? (
+                    <div 
+                      className={`w-full h-full ${!blocking.start_time ? 'bg-red-600' : 'bg-yellow-500'} flex items-center justify-center border-2 border-white/20 rounded`}
+                      title={blocking.reason || 'Interval blocat'}
+                    >
+                      <span className="text-xs text-white font-medium">
+                        {!blocking.start_time ? 'BLOCAT' : 'PARȚIAL'}
+                      </span>
+                    </div>
                   ) : isClosingSlot ? (
-                    <div className="w-full h-full bg-muted/50 border-dashed border rounded flex items-center justify-center">
+                    <div className="w-full h-full bg-muted/50 flex items-center justify-center">
                       <span className="text-xs text-muted-foreground">Închidere</span>
                     </div>
                   ) : (
-                    <div className="w-full h-full bg-muted/30 border-dashed border rounded flex items-center justify-center">
-                      <span className="text-xs text-muted-foreground">Liber</span>
+                    <div className="w-full h-full bg-background hover:bg-muted/50 transition-colors flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground/70">Liber</span>
                     </div>
                   )}
                 </div>
