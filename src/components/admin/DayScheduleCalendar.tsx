@@ -51,19 +51,37 @@ const DayScheduleCalendar = ({
   selectedFacility,
   onBookingClick 
 }: DayScheduleCalendarProps) => {
-  // Generate time slots based on facility operating hours
+  // Compute operating hours for the current view (single facility or all)
+  const getOperatingHours = () => {
+    let startHour = 6; // default 06:00
+    let endHour = 22;  // default 22:00
+
+    if (facilities?.length) {
+      if (selectedFacility === 'all') {
+        // When viewing all, use the widest range among facilities
+        startHour = Math.min(
+          ...facilities.map(f => parseInt((f.operating_hours_start || '06:00').slice(0, 2)))
+        );
+        endHour = Math.max(
+          ...facilities.map(f => parseInt((f.operating_hours_end || '22:00').slice(0, 2)))
+        );
+      } else {
+        const f = facilities.find(f => f.id === selectedFacility);
+        if (f) {
+          startHour = parseInt((f.operating_hours_start || '06:00').slice(0, 2));
+          endHour = parseInt((f.operating_hours_end || '22:00').slice(0, 2));
+        }
+      }
+    }
+
+    return { startHour, endHour };
+  };
+
+  // Generate time slots (every 30 minutes within operating hours)
   const generateTimeSlots = () => {
     const slots: string[] = [];
-    const selectedFacilityData = facilities.find(f => f.id === selectedFacility) || facilities[0];
-    
-    // Use facility operating hours or default to 08:00-22:00
-    const startHour = selectedFacilityData?.operating_hours_start 
-      ? parseInt(selectedFacilityData.operating_hours_start.substring(0, 2)) 
-      : 8;
-    const endHour = selectedFacilityData?.operating_hours_end 
-      ? parseInt(selectedFacilityData.operating_hours_end.substring(0, 2)) 
-      : 22;
-    
+    const { startHour, endHour } = getOperatingHours();
+
     for (let minutes = startHour * 60; minutes < endHour * 60; minutes += 30) {
       const h = Math.floor(minutes / 60).toString().padStart(2, '0');
       const m = (minutes % 60).toString().padStart(2, '0');
@@ -177,7 +195,10 @@ const DayScheduleCalendar = ({
           Calendar Rezervări - {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
         </CardTitle>
         <div className="text-sm text-muted-foreground">
-          {facilityName} • Program: 06:00 - 24:00
+          {facilityName} • Program: {(() => {
+            const { startHour, endHour } = getOperatingHours();
+            return `${startHour.toString().padStart(2, '0')}:00 - ${endHour.toString().padStart(2, '0')}:00`;
+          })()}
         </div>
         
         {/* Legend */}
@@ -233,7 +254,7 @@ const DayScheduleCalendar = ({
       </CardHeader>
       
       <CardContent className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 min-h-[400px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 min-h-[320px]">
           {timeSlots.map((timeSlot, index) => {
             const booking = getBookingForTimeSlot(timeSlot);
             const span = booking ? getBookingSpan(booking, timeSlot) : 0;
@@ -246,7 +267,7 @@ const DayScheduleCalendar = ({
             return (
               <div 
                 key={timeSlot} 
-                className={`min-h-[60px] border rounded-md p-2 ${
+                className={`min-h-[44px] border rounded-md p-1 ${
                   booking ? '' : 'bg-muted/30 border-dashed'
                 }`}
                 style={span > 1 ? { gridColumn: `span ${Math.min(span, 4)}` } : {}}
