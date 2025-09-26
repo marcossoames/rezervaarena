@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { format, addMinutes, startOfDay, parse, isSameMinute } from "date-fns";
 import { ro } from "date-fns/locale";
@@ -51,124 +50,120 @@ const DayScheduleCalendar = ({
   selectedFacility,
   onBookingClick 
 }: DayScheduleCalendarProps) => {
-  // Helpers for HH:mm parsing/formatting
-  const parseTimeToMinutes = (t?: string) => {
-    if (!t) return null;
-    const parts = t.split(":");
-    const h = parseInt(parts[0] || "0", 10);
-    const m = parseInt(parts[1] || "0", 10);
-    return h * 60 + m;
-  };
-  const minutesToHHMM = (mins: number) => {
-    const h = Math.floor(mins / 60).toString().padStart(2, '0');
-    const m = (mins % 60).toString().padStart(2, '0');
-    return `${h}:${m}`;
-  };
 
-  // Compute operating hours for the current view (single facility or all)
-  const getOperatingHours = () => {
-    let startMinutes = 6 * 60; // default 06:00
-    let endMinutes = 22 * 60;  // default 22:00
-
-    if (facilities?.length) {
-      if (selectedFacility === 'all') {
-        // When viewing all, use the widest range among facilities
-        const starts = facilities.map(f => parseTimeToMinutes(f.operating_hours_start || '06:00') ?? 6*60);
-        const ends = facilities.map(f => parseTimeToMinutes(f.operating_hours_end || '22:00') ?? 22*60);
-        startMinutes = Math.min(...starts);
-        endMinutes = Math.max(...ends);
-      } else {
-        const f = facilities.find(f => f.id === selectedFacility);
-        if (f) {
-          startMinutes = parseTimeToMinutes(f.operating_hours_start || '06:00') ?? 6*60;
-          endMinutes = parseTimeToMinutes(f.operating_hours_end || '22:00') ?? 22*60;
-        }
-      }
-    }
-
-    return { startMinutes, endMinutes };
-  };
-  // Generate time slots (every 30 minutes within operating hours)
-  const generateTimeSlots = () => {
-    const slots: string[] = [];
-    const { startMinutes, endMinutes } = getOperatingHours();
-
-    for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
-      slots.push(minutesToHHMM(minutes));
-    }
-    return slots;
-  };
-
-  const timeSlots = generateTimeSlots();
-
-  // Filter bookings for selected date and facility
-  const filteredBookings = bookings.filter(booking => {
-    const matchesDate = selectedDate && 
-      format(new Date(booking.booking_date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
-    const matchesFacility = selectedFacility === 'all' || booking.facility_id === selectedFacility;
-    return matchesDate && matchesFacility;
-  });
-
-  // Get booking for a specific time slot (show only at the booking start)
-  const getBookingForTimeSlot = (timeSlot: string) => {
-    return filteredBookings.find(booking => {
-      const bookingStart = booking.start_time.substring(0, 5); // HH:MM
-      return timeSlot === bookingStart;
-    });
-  };
-
-  // Normalize various facility_type values to a consistent sport key
-  const normalizeSport = (t?: string) => {
-    const s = (t || '').toLowerCase();
-    if (s.includes('fotb') || s.includes('foot')) return 'fotbal';
-    if (s.includes('ten')) return 'tenis';
-    if (s.includes('basc') || s.includes('basket')) return 'baschet';
-    if (s.includes('vol')) return 'volei';
-    if (s.includes('padel')) return 'padel';
-    if (s.includes('squash')) return 'squash';
-    if (s.includes('inot') || s.includes('swim')) return 'inot';
+  // Normalize sport types to consistent keys
+  const normalizeSport = (facilityType?: string) => {
+    if (!facilityType) return 'fotbal';
+    const type = facilityType.toLowerCase();
+    if (type.includes('fotb') || type.includes('foot')) return 'fotbal';
+    if (type.includes('ten')) return 'tenis';
+    if (type.includes('basc') || type.includes('basket')) return 'baschet';
+    if (type.includes('vol')) return 'volei';
+    if (type.includes('padel')) return 'padel';
+    if (type.includes('squash')) return 'squash';
+    if (type.includes('inot') || type.includes('swim')) return 'inot';
     return 'fotbal';
   };
 
-  // Get booking type color based on sport and status
-  const getBookingColor = (booking: Booking) => {
-    const isManual = booking.payment_method === 'cash';
-    const baseClasses = "text-white text-xs font-medium p-2 rounded-md cursor-pointer transition-all hover:shadow-lg h-full overflow-hidden leading-tight flex flex-col gap-1";
-    
-    if (booking.status === 'cancelled') {
-      return `${baseClasses} bg-red-500 hover:bg-red-600`;
-    }
-    if (booking.status === 'completed') {
-      return `${baseClasses} bg-green-600 hover:bg-green-700`;
-    }
-    if (booking.status === 'no_show') {
-      return `${baseClasses} bg-orange-600 hover:bg-orange-700`;
-    }
-    
-    // Manual bookings are always black
-    if (isManual) {
-      return `${baseClasses} bg-black hover:bg-gray-900`;
-    }
-    
-    // Online bookings - different colors for each sport type
-    const sportColors = {
-      'fotbal': 'bg-emerald-500 hover:bg-emerald-600',
-      'tenis': 'bg-blue-500 hover:bg-blue-600',
-      'baschet': 'bg-orange-600 hover:bg-orange-700',
-      'volei': 'bg-purple-500 hover:bg-purple-600',
-      'padel': 'bg-pink-500 hover:bg-pink-600',
-      'squash': 'bg-yellow-500 hover:bg-yellow-600',
-      'inot': 'bg-cyan-500 hover:bg-cyan-600',
-    } as const;
-    
-    const sportKey = normalizeSport(booking.facility_type);
-    const colorClass = sportColors[sportKey] || 'bg-emerald-500 hover:bg-emerald-600';
-    
-    return `${baseClasses} ${colorClass}`;
+  // Get sport colors
+  const getSportColor = (facilityType?: string) => {
+    const sport = normalizeSport(facilityType);
+    const colors = {
+      'fotbal': 'bg-emerald-500',
+      'tenis': 'bg-blue-500',
+      'baschet': 'bg-orange-500',
+      'volei': 'bg-purple-500',
+      'padel': 'bg-pink-500',
+      'squash': 'bg-yellow-500',
+      'inot': 'bg-cyan-500',
+    };
+    return colors[sport] || 'bg-emerald-500';
   };
-  // Check if a time slot spans multiple slots for a booking (kept for future use)
-  const getBookingSpan = (booking: Booking, currentSlot: string) => {
-    return 0; // No spanning in compact grid; each 30-min slot has same size
+
+  // Get booking color based on priority: status > manual > sport
+  const getBookingColor = (booking: Booking) => {
+    // Priority 1: Status colors
+    if (booking.status === 'cancelled') return 'bg-red-500';
+    if (booking.status === 'completed') return 'bg-green-600';
+    if (booking.status === 'no_show') return 'bg-orange-600';
+    
+    // Priority 2: Manual bookings (cash payments)
+    if (booking.payment_method === 'cash') return 'bg-black';
+    
+    // Priority 3: Sport-specific colors for online bookings
+    return getSportColor(booking.facility_type);
+  };
+
+  // Get operating hours for selected facility
+  const getOperatingHours = () => {
+    if (selectedFacility === 'all') {
+      // For all facilities, use the widest range
+      const startTimes = facilities.map(f => f.operating_hours_start || '06:00');
+      const endTimes = facilities.map(f => f.operating_hours_end || '22:00');
+      const earliestStart = startTimes.reduce((earliest, current) => current < earliest ? current : earliest);
+      const latestEnd = endTimes.reduce((latest, current) => current > latest ? current : latest);
+      return { start: earliestStart, end: latestEnd };
+    } else {
+      const facility = facilities.find(f => f.id === selectedFacility);
+      return {
+        start: facility?.operating_hours_start || '06:00',
+        end: facility?.operating_hours_end || '22:00'
+      };
+    }
+  };
+
+  // Generate time slots for the day (30-minute intervals)
+  const generateTimeSlots = () => {
+    const { start, end } = getOperatingHours();
+    const slots = [];
+    
+    // Parse start and end times
+    const [startHour, startMin] = start.split(':').map(Number);
+    const [endHour, endMin] = end.split(':').map(Number);
+    
+    let currentHour = startHour;
+    let currentMin = startMin;
+    
+    while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
+      const timeSlot = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
+      slots.push(timeSlot);
+      
+      // Add 30 minutes
+      currentMin += 30;
+      if (currentMin >= 60) {
+        currentMin = 0;
+        currentHour++;
+      }
+    }
+    
+    return slots;
+  };
+
+  // Filter bookings for selected date and facility
+  const getDayBookings = () => {
+    if (!selectedDate) return [];
+    
+    return bookings.filter(booking => {
+      const matchesDate = format(new Date(booking.booking_date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+      const matchesFacility = selectedFacility === 'all' || booking.facility_id === selectedFacility;
+      return matchesDate && matchesFacility;
+    });
+  };
+
+  // Handle booking click with scroll to reservations section
+  const handleBookingClick = (bookingId: string) => {
+    onBookingClick(bookingId);
+    
+    // Scroll to reservations section
+    setTimeout(() => {
+      const reservationsSection = document.getElementById('reservations-section');
+      if (reservationsSection) {
+        reservationsSection.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 100);
   };
 
   if (!selectedDate) {
@@ -177,130 +172,130 @@ const DayScheduleCalendar = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Calendar Rezervări
+            Calendar Vizual Rezervări
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-8">
-            Selectează o dată pentru a vizualiza programul rezervărilor
+            Selectează o dată pentru a vizualiza calendarul rezervărilor
           </p>
         </CardContent>
       </Card>
     );
   }
 
-  const selectedFacilityData = facilities.find(f => f.id === selectedFacility);
-  const facilityName = selectedFacility === 'all' ? 'Toate facilitățile' : selectedFacilityData?.name;
+  const timeSlots = generateTimeSlots();
+  const dayBookings = getDayBookings();
+  const { start, end } = getOperatingHours();
+  const facilityName = selectedFacility === 'all' ? 'Toate facilitățile' : facilities.find(f => f.id === selectedFacility)?.name;
 
   return (
     <Card className="mb-6">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="h-5 w-5" />
-          Calendar Rezervări - {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
+          Calendar Vizual - {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
         </CardTitle>
-        <div className="text-sm text-muted-foreground">
-          {facilityName} • Program: {(() => {
-            const { startMinutes, endMinutes } = getOperatingHours();
-            return `${minutesToHHMM(startMinutes)} - ${minutesToHHMM(endMinutes)}`;
-          })()}
+        <div className="text-sm text-muted-foreground mb-4">
+          {facilityName} • Program: {start} - {end}
         </div>
         
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-emerald-500 rounded"></div>
-            <span>Fotbal</span>
+        {/* Color Legend */}
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Culori sporturi:</div>
+          <div className="flex flex-wrap gap-3 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-emerald-500 rounded"></div>
+              <span>Fotbal</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-blue-500 rounded"></div>
+              <span>Tenis</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-orange-500 rounded"></div>
+              <span>Baschet</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-purple-500 rounded"></div>
+              <span>Volei</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-pink-500 rounded"></div>
+              <span>Padel</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+              <span>Squash</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-cyan-500 rounded"></div>
+              <span>Înot</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-500 rounded"></div>
-            <span>Tenis</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-orange-600 rounded"></div>
-            <span>Baschet</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-purple-500 rounded"></div>
-            <span>Volei</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-pink-500 rounded"></div>
-            <span>Padel</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-            <span>Squash</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-cyan-500 rounded"></div>
-            <span>Înot</span>
-          </div>
-        </div>
-        
-        {/* Status Legend */}
-        <div className="flex flex-wrap gap-4 text-xs mt-2 pt-2 border-t">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-600 rounded"></div>
-            <span>Finalizate</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-500 rounded"></div>
-            <span>Anulate</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-orange-600 rounded"></div>
-            <span>Lipsă</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Negru = Manual</span>
+          
+          <div className="text-sm font-medium mt-3">Culori status:</div>
+          <div className="flex flex-wrap gap-3 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-black rounded"></div>
+              <span>Manual (Cash)</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <span>Anulat</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-green-600 rounded"></div>
+              <span>Finalizat</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-orange-600 rounded"></div>
+              <span>Lipsă</span>
+            </div>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="p-4 max-h-[560px] overflow-y-auto">
-        <div className="grid grid-cols-8 gap-1 min-h-[280px]">
+      <CardContent className="p-4">
+        <div className="grid grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
           {timeSlots.map((timeSlot) => {
-            const booking = getBookingForTimeSlot(timeSlot);
-
+            // Find booking that starts at this time slot
+            const booking = dayBookings.find(b => b.start_time.substring(0, 5) === timeSlot);
+            
             return (
-              <div 
-                key={timeSlot} 
-                className={`h-20 border rounded-md p-1 ${
-                  booking ? '' : 'bg-muted/30 border-dashed'
-                }`}
-              >
-                <div className="text-xs font-mono text-muted-foreground mb-1">
+              <div key={timeSlot} className="relative">
+                {/* Time slot header */}
+                <div className="text-xs font-mono text-center text-muted-foreground p-1 border rounded-t">
                   {timeSlot}
                 </div>
                 
-                {booking ? (
-                  <div 
-                    className={getBookingColor(booking)}
-                    onClick={() => onBookingClick(booking.id)}
-                  >
-                    <div className="font-medium truncate">
-                      {booking.facility_name}
+                {/* Booking slot */}
+                <div className="h-16 border border-t-0 rounded-b p-1">
+                  {booking ? (
+                    <button
+                      onClick={() => handleBookingClick(booking.id)}
+                      className={`w-full h-full ${getBookingColor(booking)} text-white text-xs p-1 rounded cursor-pointer hover:opacity-80 transition-opacity flex flex-col justify-center items-center text-center leading-tight`}
+                    >
+                      <div className="font-medium truncate w-full">{booking.facility_name}</div>
+                      <div className="text-xs opacity-90 truncate w-full">{booking.client_name}</div>
+                      <div className="text-xs opacity-75">{booking.start_time.substring(0, 5)}-{booking.end_time.substring(0, 5)}</div>
+                    </button>
+                  ) : (
+                    <div className="w-full h-full bg-muted/30 border-dashed border rounded flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground">Liber</span>
                     </div>
-                    <div className="text-xs opacity-90 truncate">
-                      {booking.client_name}
-                    </div>
-                    <div className="text-xs opacity-75">
-                      {booking.start_time.substring(0, 5)} - {booking.end_time.substring(0, 5)}
-                    </div>
-                    <div className="text-xs opacity-75">
-                      {booking.total_price} RON
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-xs text-muted-foreground text-center py-4">
-                    Liber
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
+        
+        {dayBookings.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            Nu există rezervări pentru această dată
+          </div>
+        )}
       </CardContent>
     </Card>
   );
