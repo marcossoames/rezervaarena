@@ -109,12 +109,11 @@ const DayScheduleCalendar = ({
     return matchesDate && matchesFacility;
   });
 
-  // Get booking for a specific time slot
+  // Get booking for a specific time slot (show only at the booking start)
   const getBookingForTimeSlot = (timeSlot: string) => {
     return filteredBookings.find(booking => {
-      const bookingStart = booking.start_time.substring(0, 5); // Get HH:MM format
-      const bookingEnd = booking.end_time.substring(0, 5);
-      return timeSlot >= bookingStart && timeSlot < bookingEnd;
+      const bookingStart = booking.start_time.substring(0, 5); // HH:MM
+      return timeSlot === bookingStart;
     });
   };
 
@@ -134,7 +133,7 @@ const DayScheduleCalendar = ({
   // Get booking type color based on sport and status
   const getBookingColor = (booking: Booking) => {
     const isManual = booking.payment_method === 'cash';
-    const baseClasses = "text-white text-xs font-medium p-2 rounded-md cursor-pointer transition-all hover:shadow-lg";
+    const baseClasses = "text-white text-xs font-medium p-2 rounded-md cursor-pointer transition-all hover:shadow-lg h-full overflow-hidden leading-tight flex flex-col gap-1";
     
     if (booking.status === 'cancelled') {
       return `${baseClasses} bg-red-500 hover:bg-red-600`;
