@@ -274,14 +274,6 @@ const DayScheduleCalendar = ({
             );
           })}
         </div>
-        
-        {filteredBookings.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">
-              Nu există rezervări pentru această dată
-            </p>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
