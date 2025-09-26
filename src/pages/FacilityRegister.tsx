@@ -402,10 +402,12 @@ const FacilityRegister = () => {
             full_name: accountData.fullName,
             phone: accountData.phone,
             business_name: accountData.businessName,
+            business_description: accountData.businessDescription,
             role: 'facility_owner',
             user_type_comment: `${accountData.businessName} - Proprietar bază sportivă`,
             city: accountData.city,
             address: accountData.address,
+            general_services: generalServices, // Pass general services
             facilities: facilitiesMetadata
           }
         }
