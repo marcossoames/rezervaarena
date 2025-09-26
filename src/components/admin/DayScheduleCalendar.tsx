@@ -265,30 +265,31 @@ const DayScheduleCalendar = ({
                 </div>
                 
                 {/* Booking slot */}
-                <div className={booking ? "h-16 p-0" : "h-16 border border-t-0 rounded-b p-1"}>
+                <div className="h-16 border border-t-0 rounded-b p-1">
                   {booking ? (
                     (() => {
                       const isStart = isBookingStart(timeSlot, booking);
                       const isEnd = isBookingEnd(timeSlot, booking);
-                      const marginClass = isStart && isEnd
-                        ? ""
-                        : isStart
-                          ? "-mr-2"
-                          : isEnd
-                            ? "-ml-2"
-                            : "-mx-2";
-                      const radiusClass = isStart && isEnd
-                        ? "rounded-md"
-                        : isStart
-                          ? "rounded-l-md"
-                          : isEnd
-                            ? "rounded-r-md"
-                            : "rounded-none";
+                      
                       return (
                         <button
                           onClick={() => handleBookingClick(booking.id)}
-                          className={`w-full h-full ${getBookingColor(booking)} ${radiusClass} ${marginClass} cursor-pointer hover:opacity-80 transition-opacity`}
+                          className={`w-full h-full ${getBookingColor(booking)} cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center relative`}
                           title={`${booking.start_time.substring(0, 5)}-${booking.end_time.substring(0, 5)}`}
+                          style={{
+                            borderRadius: isStart && isEnd 
+                              ? '6px' 
+                              : isStart 
+                                ? '6px 0 0 6px' 
+                                : isEnd 
+                                  ? '0 6px 6px 0' 
+                                  : '0',
+                            marginLeft: isStart ? '0' : '-1px',
+                            marginRight: isEnd ? '0' : '-1px',
+                            border: isStart || isEnd ? '2px solid rgba(255,255,255,0.3)' : 'none',
+                            borderLeft: isStart ? '2px solid rgba(255,255,255,0.3)' : 'none',
+                            borderRight: isEnd ? '2px solid rgba(255,255,255,0.3)' : 'none'
+                          }}
                         />
                       );
                     })()
