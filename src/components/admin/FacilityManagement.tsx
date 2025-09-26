@@ -431,11 +431,12 @@ const FacilityManagement = () => {
                             <TabsContent value="facilities" className="mt-4">
                               <div className="space-y-3">
                                 {complex.facilities.map((facility) => (
-                                  <Card key={facility.id} className="border border-border/50">
+                                   <Card key={facility.id} className="border border-border/50">
                                     <CardContent className="p-4">
                                       <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                          <div className="flex items-center gap-3 mb-2">
+                                        <div className="flex-1 space-y-3">
+                                          {/* Title and Status - Fixed height */}
+                                          <div className="flex items-center gap-3 h-6">
                                             <h4 className="font-semibold">{facility.name}</h4>
                                             <Badge variant={facility.is_active ? "default" : "secondary"}>
                                               {facility.is_active ? "Activă" : "Inactivă"}
@@ -445,7 +446,8 @@ const FacilityManagement = () => {
                                             </Badge>
                                           </div>
                                           
-                                          <div className="grid md:grid-cols-3 gap-2 text-sm text-muted-foreground mb-2">
+                                          {/* Basic Info - Fixed grid layout */}
+                                          <div className="grid md:grid-cols-3 gap-2 text-sm text-muted-foreground h-4">
                                             <div className="flex items-center gap-1">
                                               <MapPin className="h-3 w-3" />
                                               {facility.address}
@@ -460,26 +462,40 @@ const FacilityManagement = () => {
                                             </div>
                                           </div>
 
-                                          {facility.description && (
-                                            <p className="text-xs text-muted-foreground mb-2">
-                                              {facility.description}
-                                            </p>
-                                          )}
+                                          {/* Description - Fixed height section */}
+                                          <div className="h-8 flex items-start">
+                                            {facility.description ? (
+                                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                                {facility.description}
+                                              </p>
+                                            ) : (
+                                              <p className="text-xs text-muted-foreground italic">
+                                                Fără descriere
+                                              </p>
+                                            )}
+                                          </div>
 
-                                          {facility.amenities && facility.amenities.length > 0 && (
-                                            <div className="flex flex-wrap gap-1">
-                                              {facility.amenities.slice(0, 3).map((amenity, index) => (
-                                                <Badge key={index} variant="secondary" className="text-xs">
-                                                  {amenity}
-                                                </Badge>
-                                              ))}
-                                              {facility.amenities.length > 3 && (
-                                                <Badge variant="secondary" className="text-xs">
-                                                  +{facility.amenities.length - 3} mai multe
-                                                </Badge>
-                                              )}
-                                            </div>
-                                          )}
+                                          {/* Amenities - Fixed height section */}
+                                          <div className="h-6 flex items-start">
+                                            {facility.amenities && facility.amenities.length > 0 ? (
+                                              <div className="flex flex-wrap gap-1">
+                                                {facility.amenities.slice(0, 3).map((amenity, index) => (
+                                                  <Badge key={index} variant="secondary" className="text-xs">
+                                                    {amenity}
+                                                  </Badge>
+                                                ))}
+                                                {facility.amenities.length > 3 && (
+                                                  <Badge variant="secondary" className="text-xs">
+                                                    +{facility.amenities.length - 3} mai multe
+                                                  </Badge>
+                                                )}
+                                              </div>
+                                            ) : (
+                                              <p className="text-xs text-muted-foreground italic">
+                                                Fără dotări suplimentare
+                                              </p>
+                                            )}
+                                          </div>
                                         </div>
 
                                         <div className="flex flex-col gap-1 ml-4 min-w-[120px]">
