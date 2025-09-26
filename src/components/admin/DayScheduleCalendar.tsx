@@ -224,8 +224,8 @@ const DayScheduleCalendar = ({
         </div>
       </CardHeader>
       
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+      <CardContent className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 min-h-[400px]">
           {timeSlots.map((timeSlot, index) => {
             const booking = getBookingForTimeSlot(timeSlot);
             const span = booking ? getBookingSpan(booking, timeSlot) : 0;
