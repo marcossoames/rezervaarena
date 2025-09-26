@@ -141,27 +141,37 @@ const FacilityCalendarPage = () => {
         console.error('Error fetching bookings:', bookingsError);
         setBookings([]);
       } else if (bookingsData) {
-        // Get client information for each booking
-        const bookingsWithClientInfo = await Promise.all(
-          bookingsData.map(async (booking) => {
-            // Get client info from profiles table
-            const { data: clientProfile } = await supabase
-              .from('profiles')
-              .select('full_name, phone, email')
-              .eq('user_id', booking.client_id)
-              .maybeSingle();
-
-            return {
-              ...booking,
-              client_info: clientProfile ? {
-                full_name: clientProfile.full_name,
-                phone: clientProfile.phone,
-                email: clientProfile.email
-              } : null
-            };
-          })
-        );
+        console.log('Raw bookings data:', bookingsData);
         
+        // Use the RLS-safe function to get client info for facility bookings
+        const { data: clientsInfo, error: clientsError } = await supabase
+          .rpc('get_client_info_for_facility_bookings', { facility_owner_id: user.id });
+        
+        if (clientsError) {
+          console.error('Error fetching clients info:', clientsError);
+        } else {
+          console.log('Clients info from RPC:', clientsInfo);
+        }
+
+        // Map bookings with client information
+        const bookingsWithClientInfo = bookingsData.map((booking) => {
+          console.log(`Processing booking ${booking.id} with client_id: ${booking.client_id}`);
+          
+          // Find client info from the RPC result
+          const clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
+          console.log(`Client info for booking ${booking.id}:`, clientInfo);
+
+          return {
+            ...booking,
+            client_info: clientInfo ? {
+              full_name: clientInfo.client_name,
+              phone: clientInfo.client_phone,
+              email: clientInfo.client_email
+            } : null
+          };
+        });
+        
+        console.log('Bookings with client info:', bookingsWithClientInfo);
         setBookings(bookingsWithClientInfo);
       }
 
@@ -298,27 +308,41 @@ const FacilityCalendarPage = () => {
       .order('start_time', { ascending: true });
 
     if (!bookingsError && bookingsData) {
-      // Get client information for each booking
-      const bookingsWithClientInfo = await Promise.all(
-        bookingsData.map(async (booking) => {
-          // Get client info from profiles table
-          const { data: clientProfile } = await supabase
-            .from('profiles')
-            .select('full_name, phone, email')
-            .eq('user_id', booking.client_id)
-            .maybeSingle();
-
-          return {
-            ...booking,
-            client_info: clientProfile ? {
-              full_name: clientProfile.full_name,
-              phone: clientProfile.phone,
-              email: clientProfile.email
-            } : null
-          };
-        })
-      );
+      console.log('Refreshing bookings data:', bookingsData);
       
+      // Get current user for RLS function
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      // Use the RLS-safe function to get client info for facility bookings
+      const { data: clientsInfo, error: clientsError } = await supabase
+        .rpc('get_client_info_for_facility_bookings', { facility_owner_id: user.id });
+      
+      if (clientsError) {
+        console.error('Error fetching clients info during refresh:', clientsError);
+      } else {
+        console.log('Clients info from RPC during refresh:', clientsInfo);
+      }
+
+      // Map bookings with client information
+      const bookingsWithClientInfo = bookingsData.map((booking) => {
+        console.log(`Refreshing booking ${booking.id} with client_id: ${booking.client_id}`);
+        
+        // Find client info from the RPC result
+        const clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
+        console.log(`Client info for booking ${booking.id}:`, clientInfo);
+
+        return {
+          ...booking,
+          client_info: clientInfo ? {
+            full_name: clientInfo.client_name,
+            phone: clientInfo.client_phone,
+            email: clientInfo.client_email
+          } : null
+        };
+      });
+      
+      console.log('Refreshed bookings with client info:', bookingsWithClientInfo);
       setBookings(bookingsWithClientInfo);
     }
   };
@@ -1010,6 +1034,12 @@ const FacilityCalendarPage = () => {
                                     📧 {booking.client_info.email}
                                   </a>
                                 </div>
+                              </div>
+                            )}
+                            {!booking.client_info && (
+                              <div className="text-sm bg-red-50 border border-red-200 rounded p-2 mt-2">
+                                <div className="font-medium text-red-900">⚠️ Informații client indisponibile</div>
+                                <div className="text-xs text-red-700">Client ID: {booking.client_id}</div>
                               </div>
                             )}
                             {booking.notes && (
