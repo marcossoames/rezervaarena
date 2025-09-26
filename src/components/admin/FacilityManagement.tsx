@@ -20,6 +20,7 @@ interface Facility {
   price_per_hour: number;
   capacity: number;
   amenities: string[];
+  general_services?: string[];
   images: string[];
   is_active: boolean;
   created_at: string;
@@ -469,20 +470,38 @@ const FacilityManagement = () => {
                                             </p>
                                           </div>
 
-                                          {/* Amenities - Fixed height: 24px */}
-                                          <div className="h-6">
-                                            <div className="text-xs text-muted-foreground">
-                                              <span className="font-medium">Dotări teren: </span>
-                                              {facility.amenities && facility.amenities.length > 0 ? (
-                                                <span>
-                                                  {facility.amenities.slice(0, 3).join(', ')}
-                                                  {facility.amenities.length > 3 && ` (+${facility.amenities.length - 3} mai multe)`}
-                                                </span>
-                                              ) : (
-                                                <span className="italic">Fără dotări suplimentare</span>
-                                              )}
-                                            </div>
-                                          </div>
+                                           {/* Services and Amenities - Fixed height: 48px total */}
+                                           <div className="h-12 space-y-1">
+                                             {/* General Services */}
+                                             <div className="h-5">
+                                               <div className="text-xs text-muted-foreground">
+                                                 <span className="font-medium">Servicii generale: </span>
+                                                 {facility.general_services && facility.general_services.length > 0 ? (
+                                                   <span>
+                                                     {facility.general_services.slice(0, 2).join(', ')}
+                                                     {facility.general_services.length > 2 && ` (+${facility.general_services.length - 2} mai multe)`}
+                                                   </span>
+                                                 ) : (
+                                                   <span className="italic">Fără servicii generale</span>
+                                                 )}
+                                               </div>
+                                             </div>
+                                             
+                                             {/* Facility Amenities */}
+                                             <div className="h-5">
+                                               <div className="text-xs text-muted-foreground">
+                                                 <span className="font-medium">Dotări teren: </span>
+                                                 {facility.amenities && facility.amenities.length > 0 ? (
+                                                   <span>
+                                                     {facility.amenities.slice(0, 2).join(', ')}
+                                                     {facility.amenities.length > 2 && ` (+${facility.amenities.length - 2} mai multe)`}
+                                                   </span>
+                                                 ) : (
+                                                   <span className="italic">Fără dotări suplimentare pentru teren</span>
+                                                 )}
+                                               </div>
+                                             </div>
+                                           </div>
                                         </div>
 
                                         <div className="flex flex-col gap-1 ml-4 min-w-[120px]">
