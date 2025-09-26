@@ -51,41 +51,50 @@ const DayScheduleCalendar = ({
   selectedFacility,
   onBookingClick 
 }: DayScheduleCalendarProps) => {
+  // Helpers for HH:mm parsing/formatting
+  const parseTimeToMinutes = (t?: string) => {
+    if (!t) return null;
+    const parts = t.split(":");
+    const h = parseInt(parts[0] || "0", 10);
+    const m = parseInt(parts[1] || "0", 10);
+    return h * 60 + m;
+  };
+  const minutesToHHMM = (mins: number) => {
+    const h = Math.floor(mins / 60).toString().padStart(2, '0');
+    const m = (mins % 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
+  };
+
   // Compute operating hours for the current view (single facility or all)
   const getOperatingHours = () => {
-    let startHour = 6; // default 06:00
-    let endHour = 22;  // default 22:00
+    let startMinutes = 6 * 60; // default 06:00
+    let endMinutes = 22 * 60;  // default 22:00
 
     if (facilities?.length) {
       if (selectedFacility === 'all') {
         // When viewing all, use the widest range among facilities
-        startHour = Math.min(
-          ...facilities.map(f => parseInt((f.operating_hours_start || '06:00').slice(0, 2)))
-        );
-        endHour = Math.max(
-          ...facilities.map(f => parseInt((f.operating_hours_end || '22:00').slice(0, 2)))
-        );
+        const starts = facilities.map(f => parseTimeToMinutes(f.operating_hours_start || '06:00') ?? 6*60);
+        const ends = facilities.map(f => parseTimeToMinutes(f.operating_hours_end || '22:00') ?? 22*60);
+        startMinutes = Math.min(...starts);
+        endMinutes = Math.max(...ends);
       } else {
         const f = facilities.find(f => f.id === selectedFacility);
         if (f) {
-          startHour = parseInt((f.operating_hours_start || '06:00').slice(0, 2));
-          endHour = parseInt((f.operating_hours_end || '22:00').slice(0, 2));
+          startMinutes = parseTimeToMinutes(f.operating_hours_start || '06:00') ?? 6*60;
+          endMinutes = parseTimeToMinutes(f.operating_hours_end || '22:00') ?? 22*60;
         }
       }
     }
 
-    return { startHour, endHour };
+    return { startMinutes, endMinutes };
   };
-
   // Generate time slots (every 30 minutes within operating hours)
   const generateTimeSlots = () => {
     const slots: string[] = [];
-    const { startHour, endHour } = getOperatingHours();
+    const { startMinutes, endMinutes } = getOperatingHours();
 
-    for (let minutes = startHour * 60; minutes < endHour * 60; minutes += 30) {
-      const h = Math.floor(minutes / 60).toString().padStart(2, '0');
-      const m = (minutes % 60).toString().padStart(2, '0');
-      slots.push(`${h}:${m}`);
+    for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
+      slots.push(minutesToHHMM(minutes));
     }
     return slots;
   };
@@ -158,19 +167,9 @@ const DayScheduleCalendar = ({
     
     return `${baseClasses} ${colorClass}`;
   };
-  // Check if a time slot spans multiple slots for a booking
+  // Check if a time slot spans multiple slots for a booking (kept for future use)
   const getBookingSpan = (booking: Booking, currentSlot: string) => {
-    const startTime = booking.start_time.substring(0, 5);
-    const endTime = booking.end_time.substring(0, 5);
-    
-    if (currentSlot === startTime) {
-      // Calculate how many 30-minute slots this booking spans
-      const start = parse(startTime, "HH:mm", new Date());
-      const end = parse(endTime, "HH:mm", new Date());
-      const diffMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
-      return Math.ceil(diffMinutes / 30);
-    }
-    return 0;
+    return 0; // No spanning in compact grid; each 30-min slot has same size
   };
 
   if (!selectedDate) {
@@ -262,22 +261,15 @@ const DayScheduleCalendar = ({
       
       <CardContent className="p-4 max-h-[560px] overflow-y-auto">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-1 min-h-[280px]">
-          {timeSlots.map((timeSlot, index) => {
+          {timeSlots.map((timeSlot) => {
             const booking = getBookingForTimeSlot(timeSlot);
-            const span = booking ? getBookingSpan(booking, timeSlot) : 0;
-            
-            // Skip rendering if this slot is part of a multi-slot booking that started earlier
-            if (booking && span === 0) {
-              return null;
-            }
 
             return (
               <div 
                 key={timeSlot} 
-                className={`min-h-[44px] border rounded-md p-1 ${
+                className={`h-24 border rounded-md p-1 ${
                   booking ? '' : 'bg-muted/30 border-dashed'
                 }`}
-                style={span > 1 ? { gridColumn: `span ${Math.min(span, 4)}` } : {}}
               >
                 <div className="text-xs font-mono text-muted-foreground mb-1">
                   {timeSlot}
