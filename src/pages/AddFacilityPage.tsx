@@ -41,6 +41,7 @@ const AddFacilityPage = () => {
   const [facilityOwners, setFacilityOwners] = useState<any[]>([]);
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>('');
   const [isCapacityRange, setIsCapacityRange] = useState(false);
+  const [allowedDurations, setAllowedDurations] = useState<number[]>([60, 90, 120]);
 
   const { register, handleSubmit, setValue, formState: { errors }, getValues, watch, control } = useForm<FacilityFormData>({
     defaultValues: {
@@ -263,6 +264,16 @@ const AddFacilityPage = () => {
       return;
     }
 
+    // Validate allowed durations
+    if (allowedDurations.length === 0) {
+      toast({
+        title: "Eroare",
+        description: "Selectează cel puțin un interval orar pentru rezervări",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Validate owner selection for admin users
     if (userProfile.role === 'admin' && !selectedOwnerId) {
       toast({
@@ -292,7 +303,8 @@ const AddFacilityPage = () => {
           capacity_max: isCapacityRange ? data.capacityMax : null,
           operating_hours_start: data.operatingHoursStart,
           operating_hours_end: data.operatingHoursEnd,
-          amenities: amenities // These are facility-specific amenities, not general services
+          amenities: amenities, // These are facility-specific amenities, not general services
+          allowed_durations: allowedDurations
         })
         .select()
         .single();
@@ -629,6 +641,49 @@ const AddFacilityPage = () => {
                     <p className="text-sm text-muted-foreground">
                       Orele de funcționare determină intervalul în care clienții pot face rezervări și tu poți bloca ore în calendar.
                     </p>
+                  </div>
+                </div>
+
+                {/* Allowed Durations */}
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">Intervalele Orare Permise *</Label>
+                  <div className="p-4 border border-border rounded-lg bg-muted/30 space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                      Selectează intervalele de timp pentru care clienții pot face rezervări la acest teren:
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      {[60, 90, 120].map((duration) => (
+                        <div key={duration} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`duration-${duration}`}
+                            checked={allowedDurations.includes(duration)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setAllowedDurations([...allowedDurations, duration]);
+                              } else {
+                                setAllowedDurations(allowedDurations.filter(d => d !== duration));
+                              }
+                            }}
+                            className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary"
+                          />
+                          <Label htmlFor={`duration-${duration}`} className="text-sm cursor-pointer">
+                            {duration === 60 ? '60 min (1h)' : 
+                             duration === 90 ? '90 min (1h 30min)' : 
+                             '120 min (2h)'}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {allowedDurations.length === 0 && (
+                      <p className="text-sm text-destructive">Selectează cel puțin un interval orar</p>
+                    )}
+                    
+                    <div className="text-xs text-muted-foreground">
+                      Clienții vor putea rezerva doar pentru intervalele selectate
+                    </div>
                   </div>
                 </div>
 

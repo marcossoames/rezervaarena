@@ -333,6 +333,7 @@ export type Database = {
       facilities: {
         Row: {
           address: string
+          allowed_durations: number[] | null
           amenities: string[] | null
           capacity: number
           capacity_max: number | null
@@ -353,6 +354,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          allowed_durations?: number[] | null
           amenities?: string[] | null
           capacity?: number
           capacity_max?: number | null
@@ -373,6 +375,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          allowed_durations?: number[] | null
           amenities?: string[] | null
           capacity?: number
           capacity_max?: number | null

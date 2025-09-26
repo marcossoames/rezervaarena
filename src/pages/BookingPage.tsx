@@ -50,7 +50,8 @@ const BookingPage = () => {
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
   const [partiallyBlockedDates, setPartiallyBlockedDates] = useState<Set<string>>(new Set());
   const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
-  const [selectedDuration, setSelectedDuration] = useState<60 | 90 | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState<60 | 90 | 120 | null>(null);
+  const [allowedDurations, setAllowedDurations] = useState<number[]>([60, 90, 120]);
   
   // Restricții temporale pentru clienți: doar următoarele 2 săptămâni
   const today = startOfDay(new Date()); // Normalize to start of day
@@ -72,11 +73,13 @@ const BookingPage = () => {
     
     const durationHours = selectedDuration / 60;
     
-    // Calculate price: 60 min = base price, 90 min = 1.5x base price
+    // Calculate price based on duration
     const totalPrice = facility.price_per_hour * durationHours;
 
     // Format duration
-    const formattedDuration = selectedDuration === 60 ? "1h" : "1h 30min";
+    const formattedDuration = selectedDuration === 60 ? "1h" : 
+                             selectedDuration === 90 ? "1h 30min" : 
+                             selectedDuration === 120 ? "2h" : `${selectedDuration}min`;
 
     return { 
       duration: durationHours, 
@@ -117,13 +120,15 @@ const BookingPage = () => {
       }
 
       try {
-        // Use the secure RPC function to get facility data with sports complex info
-        const { data, error } = await supabase
-          .rpc('get_facilities_for_authenticated_users')
+        // Get facility data directly to include allowed_durations
+        const { data: facilityData, error: facilityError } = await supabase
+          .from('facilities')
+          .select('*, allowed_durations')
           .eq('id', facilityId)
+          .eq('is_active', true)
           .single();
 
-        if (error || !data) {
+        if (facilityError || !facilityData) {
           toast({
             title: "Eroare",
             description: "Facilitatea nu a fost găsită",
@@ -132,28 +137,36 @@ const BookingPage = () => {
           return;
         }
 
-        // The RPC function already provides complete facility information
-        // Map from RPC response to Facility interface
+        // Get sports complex info
+        const { data: sportsComplexData } = await supabase
+          .from('sports_complexes')
+          .select('name, address')
+          .eq('owner_id', facilityData.owner_id)
+          .single();
+
+        // Map to Facility interface
         const facilityWithSportsComplex: Facility = {
-          id: data.id,
-          name: data.name,
-          description: data.description,
-          facility_type: data.facility_type,
-          city: data.city,
-          address: data.sports_complex_address?.split(', ')[0] || data.city,
-          price_per_hour: data.price_per_hour,
-          capacity: data.capacity,
-          amenities: [], // This RPC doesn't return amenities
-          images: data.images,
-          operating_hours_start: data.operating_hours_start || "08:00",
-          operating_hours_end: data.operating_hours_end || "22:00",
-          sports_complex_name: data.sports_complex_name,
-          sports_complex_address: data.sports_complex_address,
-          // Note: phone_number removed to protect personal information
-          // Contact info will be provided only when booking is confirmed
+          id: facilityData.id,
+          name: facilityData.name,
+          description: facilityData.description,
+          facility_type: facilityData.facility_type,
+          city: facilityData.city,
+          address: sportsComplexData?.address?.split(', ')[0] || facilityData.city,
+          price_per_hour: facilityData.price_per_hour,
+          capacity: facilityData.capacity,
+          amenities: facilityData.amenities || [],
+          images: facilityData.images || [],
+          operating_hours_start: facilityData.operating_hours_start || "08:00",
+          operating_hours_end: facilityData.operating_hours_end || "22:00",
+          sports_complex_name: sportsComplexData?.name,
+          sports_complex_address: sportsComplexData?.address,
         };
 
         setFacility(facilityWithSportsComplex);
+        
+        // Set allowed durations from facility data
+        const durations = facilityData.allowed_durations;
+        setAllowedDurations(durations && durations.length > 0 ? durations : [60, 90, 120]);
       } catch (error) {
         console.error('Error loading facility:', error);
         toast({
@@ -516,46 +529,33 @@ const BookingPage = () => {
                 {/* Duration Selection */}
                 <div className="mb-6">
                   <h4 className="text-sm font-medium mb-3">Selectează durata rezervării:</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div 
-                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                        selectedDuration === 60 
-                          ? 'border-primary bg-primary/5' 
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                      onClick={() => {
-                        setSelectedDuration(60);
-                        setSelectedStartTime(null); // Reset start time when duration changes
-                      }}
-                    >
-                      <div className="text-center">
-                        <div className="text-lg font-bold">60 minute</div>
-                        <div className="text-sm text-muted-foreground">1 oră standard</div>
-                        <div className="text-lg font-bold text-primary mt-2">
-                          {facility?.price_per_hour} RON
+                  <div className={`grid gap-4 ${allowedDurations.length === 1 ? 'grid-cols-1' : allowedDurations.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+                    {allowedDurations.map((duration) => (
+                      <div 
+                        key={duration}
+                        className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                          selectedDuration === duration 
+                            ? 'border-primary bg-primary/5' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                        onClick={() => {
+                          setSelectedDuration(duration as 60 | 90 | 120);
+                          setSelectedStartTime(null); // Reset start time when duration changes
+                        }}
+                      >
+                        <div className="text-center">
+                          <div className="text-lg font-bold">{duration} minute</div>
+                          <div className="text-sm text-muted-foreground">
+                            {duration === 60 ? '1 oră standard' : 
+                             duration === 90 ? '1 oră și 30 minute' : 
+                             duration === 120 ? '2 ore' : `${duration} minute`}
+                          </div>
+                          <div className="text-lg font-bold text-primary mt-2">
+                            {facility ? Math.round(facility.price_per_hour * (duration / 60)) : 0} RON
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div 
-                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                        selectedDuration === 90 
-                          ? 'border-primary bg-primary/5' 
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                      onClick={() => {
-                        setSelectedDuration(90);
-                        setSelectedStartTime(null); // Reset start time when duration changes
-                      }}
-                    >
-                      <div className="text-center">
-                        <div className="text-lg font-bold">90 minute</div>
-                        <div className="text-sm text-muted-foreground">1 oră și 30 minute</div>
-                        <div className="text-lg font-bold text-primary mt-2">
-                          {facility ? Math.round(facility.price_per_hour * 1.5) : 0} RON
-                        </div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 

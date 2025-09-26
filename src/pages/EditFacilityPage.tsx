@@ -60,6 +60,7 @@ const EditFacilityPage = () => {
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [isCapacityRange, setIsCapacityRange] = useState(false);
+  const [allowedDurations, setAllowedDurations] = useState<number[]>([60, 90, 120]);
 
   const { register, handleSubmit, setValue, formState: { errors }, getValues, watch } = useForm<FacilityFormData>();
   const { toast } = useToast();
@@ -158,6 +159,10 @@ const EditFacilityPage = () => {
           });
           setAmenities(facilityData.amenities || []);
           setExistingImages(facilityData.images || []);
+          
+          // Set allowed durations (default to all if not set)
+          const durations = (facilityData as any).allowed_durations;
+          setAllowedDurations(durations && durations.length > 0 ? durations : [60, 90, 120]);
           
           // Find main image index
           if (facilityData.main_image_url && facilityData.images) {
@@ -340,6 +345,16 @@ const EditFacilityPage = () => {
       return;
     }
 
+    // Validate allowed durations
+    if (allowedDurations.length === 0) {
+      toast({
+        title: "Eroare",
+        description: "Selectează cel puțin un interval orar pentru rezervări",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     setUploading(true);
 
@@ -370,7 +385,8 @@ const EditFacilityPage = () => {
           images: allImages,
           main_image_url: mainImageUrl,
           operating_hours_start: data.operatingHoursStart,
-          operating_hours_end: data.operatingHoursEnd
+          operating_hours_end: data.operatingHoursEnd,
+          allowed_durations: allowedDurations
         })
         .eq('id', facility.id);
 
@@ -646,6 +662,49 @@ const EditFacilityPage = () => {
                     type="hidden"
                     {...register("operatingHoursEnd", { required: "Ora de închidere este obligatorie" })}
                   />
+                </div>
+
+                {/* Allowed Durations */}
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">Intervalele Orare Permise *</Label>
+                  <div className="p-4 border border-border rounded-lg bg-muted/30 space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                      Selectează intervalele de timp pentru care clienții pot face rezervări la acest teren:
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      {[60, 90, 120].map((duration) => (
+                        <div key={duration} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`duration-${duration}`}
+                            checked={allowedDurations.includes(duration)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setAllowedDurations([...allowedDurations, duration]);
+                              } else {
+                                setAllowedDurations(allowedDurations.filter(d => d !== duration));
+                              }
+                            }}
+                            className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary"
+                          />
+                          <Label htmlFor={`duration-${duration}`} className="text-sm cursor-pointer">
+                            {duration === 60 ? '60 min (1h)' : 
+                             duration === 90 ? '90 min (1h 30min)' : 
+                             '120 min (2h)'}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {allowedDurations.length === 0 && (
+                      <p className="text-sm text-destructive">Selectează cel puțin un interval orar</p>
+                    )}
+                    
+                    <div className="text-xs text-muted-foreground">
+                      Clienții vor putea rezerva doar pentru intervalele selectate
+                    </div>
+                  </div>
                 </div>
 
                 {/* Current Images Preview */}
