@@ -675,6 +675,42 @@ export type Database = {
         }
         Relationships: []
       }
+      sports_complexes: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string | null
+          description: string | null
+          general_services: string[] | null
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          general_services?: string[] | null
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          general_services?: string[] | null
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -889,6 +925,29 @@ export type Database = {
           id: string
           images: string[]
           name: string
+          price_per_hour: number
+        }[]
+      }
+      get_sports_complex_with_facilities: {
+        Args: { owner_id_param: string }
+        Returns: {
+          capacity: number
+          capacity_max: number
+          complex_address: string
+          complex_city: string
+          complex_description: string
+          complex_id: string
+          complex_name: string
+          facility_amenities: string[]
+          facility_description: string
+          facility_id: string
+          facility_name: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          general_services: string[]
+          images: string[]
+          main_image_url: string
+          operating_hours_end: string
+          operating_hours_start: string
           price_per_hour: number
         }[]
       }

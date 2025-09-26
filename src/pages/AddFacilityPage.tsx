@@ -292,7 +292,7 @@ const AddFacilityPage = () => {
           capacity_max: isCapacityRange ? data.capacityMax : null,
           operating_hours_start: data.operatingHoursStart,
           operating_hours_end: data.operatingHoursEnd,
-          amenities: amenities
+          amenities: amenities // These are facility-specific amenities, not general services
         })
         .select()
         .single();

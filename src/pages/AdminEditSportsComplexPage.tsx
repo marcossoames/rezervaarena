@@ -103,30 +103,29 @@ const AdminEditSportsComplexPage = () => {
           }
         }
 
-        // Get facility data - use all facilities and take the first one if multiple
-        const { data: facilitiesData, error: facilitiesError } = await supabase
-          .from('facilities')
-          .select('id, address, city, description, amenities')
+        // Get sports complex data from the new sports_complexes table
+        const { data: sportsComplexData, error: sportsComplexError } = await supabase
+          .from('sports_complexes')
+          .select('*')
           .eq('owner_id', ownerId)
-          .limit(1);
+          .maybeSingle();
 
-        if (facilitiesError) {
-          console.error('Facilities error:', facilitiesError);
+        if (sportsComplexError) {
+          console.error('Sports complex error:', sportsComplexError);
         }
 
         // Set form values
-        setValue("sportsComplexName", sportsComplexName);
         setValue("phone", profile.phone || "");
         
-        // Only set facility data if it exists
-        if (facilitiesData && facilitiesData.length > 0) {
-          const facilityData = facilitiesData[0];
-          setValue("address", facilityData.address || "");
-          setValue("city", facilityData.city || "");
-          setValue("description", facilityData.description || "");
-          setValue("generalServices", facilityData.amenities || []);
+        // Use sports complex data if it exists, otherwise use extracted name
+        if (sportsComplexData) {
+          setValue("sportsComplexName", sportsComplexData.name || sportsComplexName);
+          setValue("address", sportsComplexData.address || "");
+          setValue("city", sportsComplexData.city || "");
+          setValue("description", sportsComplexData.description || "");
+          setValue("generalServices", sportsComplexData.general_services || []);
         } else {
-          // Set empty values if no facility data
+          setValue("sportsComplexName", sportsComplexName);
           setValue("address", "");
           setValue("city", "");
           setValue("description", "");
@@ -183,23 +182,27 @@ const AdminEditSportsComplexPage = () => {
         throw profileError;
       }
 
-      // Always try to update facility data
-      const updateData: any = {};
-      if (data.address) updateData.address = data.address;
-      if (data.city) updateData.city = data.city;
-      if (data.description) updateData.description = data.description;
-      if (data.generalServices?.length) updateData.amenities = data.generalServices;
+      // Update or create sports complex data
+      const sportsComplexData = {
+        name: data.sportsComplexName,
+        description: data.description,
+        address: data.address,
+        city: data.city,
+        general_services: data.generalServices || []
+      };
 
-      if (Object.keys(updateData).length > 0) {
-        const { error: facilityError } = await supabase
-          .from('facilities')
-          .update(updateData)
-          .eq('owner_id', ownerId);
+      const { error: sportsComplexError } = await supabase
+        .from('sports_complexes')
+        .upsert({
+          owner_id: ownerId,
+          ...sportsComplexData
+        }, {
+          onConflict: 'owner_id'
+        });
 
-        if (facilityError) {
-          console.error('Error updating facility:', facilityError);
-          // Don't throw here as profile update was successful
-        }
+      if (sportsComplexError) {
+        console.error('Error updating sports complex:', sportsComplexError);
+        throw sportsComplexError;
       }
 
       toast({
