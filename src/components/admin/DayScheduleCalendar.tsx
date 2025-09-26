@@ -98,25 +98,29 @@ const DayScheduleCalendar = ({
       return `${baseClasses} bg-orange-600 hover:bg-orange-700`;
     }
     
-    // Active bookings - different colors for each sport type
+    // Manual bookings are always black
+    if (isManual) {
+      return `${baseClasses} bg-gray-900 hover:bg-black`;
+    }
+    
+    // Online bookings - different colors for each sport type
     const sportColors = {
-      'football': isManual ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-emerald-500 hover:bg-emerald-600',
-      'tennis': isManual ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600', 
-      'basketball': isManual ? 'bg-orange-700 hover:bg-orange-800' : 'bg-orange-600 hover:bg-orange-700',
-      'volleyball': isManual ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-500 hover:bg-purple-600',
-      'padel': isManual ? 'bg-pink-600 hover:bg-pink-700' : 'bg-pink-500 hover:bg-pink-600',
-      'squash': isManual ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600',
-      'swimming': isManual ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-cyan-500 hover:bg-cyan-600',
-      'fotbal': isManual ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-emerald-500 hover:bg-emerald-600',
-      'tenis': isManual ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600',
-      'baschet': isManual ? 'bg-orange-700 hover:bg-orange-800' : 'bg-orange-600 hover:bg-orange-700',
-      'volei': isManual ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-500 hover:bg-purple-600',
-      'inot': isManual ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-cyan-500 hover:bg-cyan-600',
+      'football': 'bg-emerald-500 hover:bg-emerald-600',
+      'tennis': 'bg-blue-500 hover:bg-blue-600', 
+      'basketball': 'bg-orange-600 hover:bg-orange-700',
+      'volleyball': 'bg-purple-500 hover:bg-purple-600',
+      'padel': 'bg-pink-500 hover:bg-pink-600',
+      'squash': 'bg-yellow-500 hover:bg-yellow-600',
+      'swimming': 'bg-cyan-500 hover:bg-cyan-600',
+      'fotbal': 'bg-emerald-500 hover:bg-emerald-600',
+      'tenis': 'bg-blue-500 hover:bg-blue-600',
+      'baschet': 'bg-orange-600 hover:bg-orange-700',
+      'volei': 'bg-purple-500 hover:bg-purple-600',
+      'inot': 'bg-cyan-500 hover:bg-cyan-600',
     };
     
     const sportType = booking.facility_type?.toLowerCase() || 'football';
-    const colorClass = sportColors[sportType as keyof typeof sportColors] || 
-                      (isManual ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-500 hover:bg-gray-600');
+    const colorClass = sportColors[sportType as keyof typeof sportColors] || 'bg-gray-500 hover:bg-gray-600';
     
     return `${baseClasses} ${colorClass}`;
   };
