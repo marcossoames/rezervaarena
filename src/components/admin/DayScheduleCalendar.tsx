@@ -316,30 +316,32 @@ const DayScheduleCalendar = ({
                           onClick={() => handleBookingClick(booking.id)}
                           className={`w-full h-full ${getBookingColor(booking)} cursor-pointer hover:opacity-80 transition-opacity`}
                           title={`${booking.start_time.substring(0, 5)}-${booking.end_time.substring(0, 5)}`}
-                          style={{
-                            borderTop: '2px solid rgba(255,255,255,0.25)',
-                            borderBottom: '2px solid rgba(255,255,255,0.25)',
-                            borderLeft: isStart ? '2px solid rgba(255,255,255,0.35)' : '0',
-                            borderRight: isEnd ? '2px solid rgba(255,255,255,0.35)' : '0',
-                            borderRadius: isStart && isEnd
-                              ? '6px'
-                              : isStart
-                                ? '6px 0 0 6px'
-                                : isEnd
-                                  ? '0 6px 6px 0'
-                                  : '0'
-                          }}
+                           style={{
+                             position: 'relative',
+                             zIndex: 1,
+                             borderTop: '2px solid rgba(255,255,255,0.25)',
+                             borderBottom: '2px solid rgba(255,255,255,0.25)',
+                             borderLeft: isStart ? '2px solid rgba(255,255,255,0.35)' : '0',
+                             borderRight: isEnd ? '2px solid rgba(255,255,255,0.35)' : '0',
+                             marginLeft: isStart ? 0 : -1,
+                             marginRight: isEnd ? 0 : -1,
+                             borderRadius: isStart && isEnd
+                               ? '6px'
+                               : isStart
+                                 ? '6px 0 0 6px'
+                                 : isEnd
+                                   ? '0 6px 6px 0'
+                                   : '0'
+                           }}
                         />
                       );
                     })()
                   ) : blocking ? (
                     <div 
-                      className={`w-full h-full ${!blocking.start_time ? 'bg-red-600' : 'bg-yellow-500'} flex items-center justify-center border-2 border-white/20 rounded`}
+                      className="w-full h-full bg-red-500 flex items-center justify-center border-2 border-white/20 rounded"
                       title={blocking.reason || 'Interval blocat'}
                     >
-                      <span className="text-xs text-white font-medium">
-                        {!blocking.start_time ? 'BLOCAT' : 'PARȚIAL'}
-                      </span>
+                      <span className="text-xs text-white font-medium">BLOCAT</span>
                     </div>
                   ) : isClosingSlot ? (
                     <div className="w-full h-full bg-muted/50 flex items-center justify-center">
