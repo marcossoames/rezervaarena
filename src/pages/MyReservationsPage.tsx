@@ -170,7 +170,7 @@ const MyReservationsPage = () => {
           facilityIds = facilitiesData.map(f => f.id);
         }
         
-        // Get bookings for all facilities owned by this user or all if admin
+        // Get bookings for all facilities owned by this user or all if admin (including cancelled ones)
         const {
           data: userBookings,
           error: bookingsError
@@ -273,7 +273,7 @@ const MyReservationsPage = () => {
         })));
 
       } else {
-        // For regular clients, get their own bookings ordered by most recent first
+        // For regular clients, get their own bookings ordered by most recent first (including cancelled ones)
         const {
           data: userBookings,
           error: bookingsError
