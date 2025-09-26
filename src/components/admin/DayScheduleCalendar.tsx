@@ -52,48 +52,21 @@ const DayScheduleCalendar = ({
   onBookingClick 
 }: DayScheduleCalendarProps) => {
 
-  // Normalize sport types to consistent keys
-  const normalizeSport = (facilityType?: string) => {
-    if (!facilityType) return 'fotbal';
-    const type = facilityType.toLowerCase();
-    if (type.includes('fotb') || type.includes('foot')) return 'fotbal';
-    if (type.includes('ten')) return 'tenis';
-    if (type.includes('basc') || type.includes('basket')) return 'baschet';
-    if (type.includes('vol')) return 'volei';
-    if (type.includes('padel')) return 'padel';
-    if (type.includes('squash')) return 'squash';
-    if (type.includes('inot') || type.includes('swim')) return 'inot';
-    return 'fotbal';
-  };
-
-  // Get sport colors
-  const getSportColor = (facilityType?: string) => {
-    const sport = normalizeSport(facilityType);
-    const colors = {
-      'fotbal': 'bg-emerald-500',
-      'tenis': 'bg-blue-500',
-      'baschet': 'bg-orange-500',
-      'volei': 'bg-purple-500',
-      'padel': 'bg-pink-500',
-      'squash': 'bg-yellow-500',
-      'inot': 'bg-cyan-500',
-    };
-    return colors[sport] || 'bg-emerald-500';
-  };
-
-  // Get booking color based on priority: status > manual > sport
+  // Get booking color based on priority: status > booking type
   const getBookingColor = (booking: Booking) => {
-    // Priority 1: Status colors
+    // Priority 1: Status colors override everything
     if (booking.status === 'cancelled') return 'bg-red-500';
     if (booking.status === 'completed') return 'bg-green-600';
     if (booking.status === 'no_show') return 'bg-orange-600';
     
-    // Priority 2: Manual bookings (made by facility owners/admins to block time slots)
-    // Check if booking was made manually (no online payment session)
-    if (!booking.stripe_session_id && booking.payment_method === 'cash') return 'bg-black';
+    // Priority 2: Booking type - Manual vs Website
+    // Manual bookings: made by facility owners/admins to block time slots (no stripe session)
+    if (!booking.stripe_session_id && booking.payment_method === 'cash') {
+      return 'bg-gray-800'; // Dark gray for manual bookings
+    }
     
-    // Priority 3: Sport-specific colors for online bookings (regardless of payment method)
-    return getSportColor(booking.facility_type);
+    // Website bookings: all reservations made through the website
+    return 'bg-blue-600'; // Blue for website bookings
   };
 
   // Get operating hours for selected facility
@@ -206,44 +179,20 @@ const DayScheduleCalendar = ({
         
         {/* Color Legend */}
         <div className="space-y-2">
-          <div className="text-sm font-medium">Culori sporturi:</div>
+          <div className="text-sm font-medium">Tipuri rezervări:</div>
           <div className="flex flex-wrap gap-3 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-emerald-500 rounded"></div>
-              <span>Fotbal</span>
+              <div className="w-3 h-3 bg-gray-800 rounded"></div>
+              <span>Manual</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-500 rounded"></div>
-              <span>Tenis</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-orange-500 rounded"></div>
-              <span>Baschet</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-purple-500 rounded"></div>
-              <span>Volei</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-pink-500 rounded"></div>
-              <span>Padel</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-              <span>Squash</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-cyan-500 rounded"></div>
-              <span>Înot</span>
+              <div className="w-3 h-3 bg-blue-600 rounded"></div>
+              <span>Website</span>
             </div>
           </div>
           
-          <div className="text-sm font-medium mt-3">Culori status:</div>
+          <div className="text-sm font-medium mt-3">Status rezervări:</div>
           <div className="flex flex-wrap gap-3 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-black rounded"></div>
-              <span>Manual (Cash)</span>
-            </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-red-500 rounded"></div>
               <span>Anulat</span>
