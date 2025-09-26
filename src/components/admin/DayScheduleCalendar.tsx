@@ -127,6 +127,30 @@ const DayScheduleCalendar = ({
     });
   };
 
+  // Check if a time slot is occupied by any booking
+  const getSlotBooking = (timeSlot: string) => {
+    const dayBookings = getDayBookings();
+    
+    return dayBookings.find(booking => {
+      const startTime = booking.start_time.substring(0, 5);
+      const endTime = booking.end_time.substring(0, 5);
+      
+      // Convert times to minutes for easier comparison
+      const slotMinutes = timeToMinutes(timeSlot);
+      const startMinutes = timeToMinutes(startTime);
+      const endMinutes = timeToMinutes(endTime);
+      
+      // Check if slot is within booking range (inclusive start, exclusive end)
+      return slotMinutes >= startMinutes && slotMinutes < endMinutes;
+    });
+  };
+
+  // Helper function to convert HH:MM to minutes
+  const timeToMinutes = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
   // Handle booking click with scroll to reservations section
   const handleBookingClick = (bookingId: string) => {
     onBookingClick(bookingId);
@@ -162,7 +186,6 @@ const DayScheduleCalendar = ({
   }
 
   const timeSlots = generateTimeSlots();
-  const dayBookings = getDayBookings();
   const { start, end } = getOperatingHours();
   const facilityName = selectedFacility === 'all' ? 'Toate facilitățile' : facilities.find(f => f.id === selectedFacility)?.name;
 
@@ -214,9 +237,7 @@ const DayScheduleCalendar = ({
           {timeSlots.map((timeSlot) => {
             const isClosingSlot = timeSlot === end.substring(0, 5);
             // Find booking that starts at this time slot (exclude closing label)
-            const booking = !isClosingSlot
-              ? dayBookings.find(b => b.start_time.substring(0, 5) === timeSlot)
-              : undefined;
+            const booking = !isClosingSlot ? getSlotBooking(timeSlot) : undefined;
             
             return (
               <div key={timeSlot} className="relative">
@@ -251,7 +272,7 @@ const DayScheduleCalendar = ({
           })}
         </div>
         
-        {dayBookings.length === 0 && (
+        {getDayBookings().length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             Nu există rezervări pentru această dată
           </div>
