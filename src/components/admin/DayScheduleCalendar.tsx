@@ -60,13 +60,14 @@ const DayScheduleCalendar = ({
     if (booking.status === 'no_show') return 'bg-orange-600';
     
     // Priority 2: Booking type - Manual vs Website
-    // Manual bookings: made by facility owners/admins to block time slots (no stripe session)
-    if (!booking.stripe_session_id && booking.payment_method === 'cash') {
+    const notes = booking.notes?.toUpperCase() || '';
+    const isManual = notes.includes('REZERVARE MANUALĂ') || notes.includes('REZERVARE MANUALA') || notes.includes('BLOCAJ') || notes.includes('BLOCARE');
+    if (isManual) {
       return 'bg-gray-800'; // Dark gray for manual bookings
     }
     
-    // Website bookings: all reservations made through the website
-    return 'bg-blue-600'; // Blue for website bookings
+    // Website bookings: all reservations made through the website (any payment method)
+    return 'bg-blue-600';
   };
 
   // Get operating hours for selected facility
@@ -140,8 +141,8 @@ const DayScheduleCalendar = ({
       const startMinutes = timeToMinutes(startTime);
       const endMinutes = timeToMinutes(endTime);
       
-      // Check if slot is within booking range (inclusive start, exclusive end)
-      return slotMinutes >= startMinutes && slotMinutes < endMinutes;
+      // Check if slot is within booking range (inclusive of end to fill the last slot)
+      return slotMinutes >= startMinutes && slotMinutes <= endMinutes;
     });
   };
 
@@ -251,12 +252,9 @@ const DayScheduleCalendar = ({
                   {booking ? (
                     <button
                       onClick={() => handleBookingClick(booking.id)}
-                      className={`w-full h-full ${getBookingColor(booking)} text-white text-xs p-1 rounded cursor-pointer hover:opacity-80 transition-opacity flex flex-col justify-center items-center text-center leading-tight`}
-                    >
-                      <div className="font-medium truncate w-full">{booking.facility_name}</div>
-                      <div className="text-xs opacity-90 truncate w-full">{booking.client_name}</div>
-                      <div className="text-xs opacity-75">{booking.start_time.substring(0, 5)}-{booking.end_time.substring(0, 5)}</div>
-                    </button>
+                      className={`w-full h-full ${getBookingColor(booking)} rounded cursor-pointer hover:opacity-80 transition-opacity`}
+                      title={`${booking.start_time.substring(0, 5)}-${booking.end_time.substring(0, 5)}`}
+                    />
                   ) : isClosingSlot ? (
                     <div className="w-full h-full bg-muted/50 border-dashed border rounded flex items-center justify-center">
                       <span className="text-xs text-muted-foreground">Închidere</span>
