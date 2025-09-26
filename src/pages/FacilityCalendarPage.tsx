@@ -683,14 +683,36 @@ const FacilityCalendarPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
+          {/* Header */}
         <div className="mb-8">
           <Link to="/manage-facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4">
             <ArrowLeft className="h-4 w-4" />
             Înapoi la terenurile mele
           </Link>
           
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-4">
+            {/* View Mode Selector */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button 
+                  variant={viewMode === 'individual' ? 'default' : 'outline'}
+                  onClick={() => setViewMode('individual')}
+                  className="flex items-center gap-2"
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  Calendar Individual
+                </Button>
+                <Button 
+                  variant={viewMode === 'general' ? 'default' : 'outline'}
+                  onClick={() => setViewMode('general')}
+                  className="flex items-center gap-2"
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  Calendar General
+                </Button>
+              </div>
+            </div>
+            
             <div>
               <h1 className="text-3xl font-bold text-foreground">
                 {viewMode === 'individual' ? facility.name : 'Calendar General'}
@@ -715,19 +737,6 @@ const FacilityCalendarPage = () => {
                   Toate terenurile - {allFacilities.length} facilități
                 </div>
               )}
-            </div>
-            
-            {/* View Mode Selector */}
-            <div className="flex items-center gap-2">
-              <Select value={viewMode} onValueChange={(value: 'individual' | 'general') => setViewMode(value)}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="individual">Calendar Individual</SelectItem>
-                  <SelectItem value="general">Calendar General</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </div>
