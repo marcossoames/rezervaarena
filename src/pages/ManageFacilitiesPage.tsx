@@ -26,12 +26,17 @@ interface Facility {
   exact_price_per_hour: number; // Renamed to match RPC return
   exact_capacity: number; // Renamed to match RPC return
   exact_capacity_max?: number; // For capacity ranges
-  amenities: string[];
+  amenities: string[]; // Facility-specific amenities
+  general_services: string[]; // Sports complex general services
   images: string[];
   main_image_url?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  operating_hours_start?: string;
+  operating_hours_end?: string;
+  sports_complex_name?: string;
+  sports_complex_description?: string;
 }
 
 interface BookingWithDetails {
@@ -494,27 +499,50 @@ const ManageFacilitiesPage = () => {
                          )}
                        </div>
 
-                       {/* Amenities section - Fixed Height */}
-                       <div className="h-[52px] flex flex-col justify-start">
-                         {facility.amenities && facility.amenities.length > 0 ? (
-                           <div className="flex flex-wrap gap-1">
-                             {facility.amenities.slice(0, 3).map((amenity) => (
-                               <Badge key={amenity} variant="secondary" className="text-xs">
-                                 {amenity}
-                               </Badge>
-                             ))}
-                             {facility.amenities.length > 3 && (
-                               <Badge variant="secondary" className="text-xs">
-                                 +{facility.amenities.length - 3} mai multe
-                               </Badge>
-                             )}
-                           </div>
-                         ) : (
-                           <div className="text-xs text-muted-foreground italic">
-                             Fără dotări suplimentare
-                           </div>
-                         )}
-                       </div>
+                        {/* Services and Amenities section - Fixed Height */}
+                        <div className="h-[80px] flex flex-col justify-start space-y-2">
+                          {/* General Services (from sports complex) */}
+                          {facility.general_services && facility.general_services.length > 0 && (
+                            <div>
+                              <p className="text-xs text-muted-foreground font-medium mb-1">Servicii generale:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {facility.general_services.slice(0, 2).map((service) => (
+                                  <Badge key={service} variant="outline" className="text-xs">
+                                    {service}
+                                  </Badge>
+                                ))}
+                                {facility.general_services.length > 2 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{facility.general_services.length - 2}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Facility-specific amenities */}
+                          {facility.amenities && facility.amenities.length > 0 ? (
+                            <div>
+                              <p className="text-xs text-muted-foreground font-medium mb-1">Dotări teren:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {facility.amenities.slice(0, 2).map((amenity) => (
+                                  <Badge key={amenity} variant="secondary" className="text-xs">
+                                    {amenity}
+                                  </Badge>
+                                ))}
+                                {facility.amenities.length > 2 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{facility.amenities.length - 2}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-muted-foreground italic">
+                              Fără dotări suplimentare pentru teren
+                            </div>
+                          )}
+                        </div>
                      </div>
 
                      {/* Buttons - Always at bottom */}
