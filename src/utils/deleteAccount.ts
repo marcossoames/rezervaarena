@@ -206,17 +206,9 @@ export const deleteUserAccount = async () => {
       }
     }
 
-    // Important: Now that we keep the profile and auth.users, 
-    // we need to sign out the user to clear their session
-    console.log('Signing out user after account deletion process...');
-    const { error: signOutError } = await supabase.auth.signOut();
-    if (signOutError) {
-      console.error('Sign out error after deletion:', signOutError);
-      // Don't throw here since account was already processed successfully
-    }
-
-    // Force clear local session data
-    await supabase.auth.signOut({ scope: 'local' });
+    // IMPORTANT: Profiles and users are preserved to keep booking history
+    // Only facilities are deactivated and bookings cancelled - not deleted
+    console.log('Account deletion process completed - bookings preserved in history');
     
     return { success: true };
   } catch (error: any) {
