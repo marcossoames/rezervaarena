@@ -434,9 +434,9 @@ const FacilityManagement = () => {
                                    <Card key={facility.id} className="border border-border/50">
                                     <CardContent className="p-4">
                                       <div className="flex items-start justify-between">
-                                        <div className="flex-1 space-y-3">
-                                          {/* Title and Status - Fixed height */}
-                                          <div className="flex items-center gap-3 h-6">
+                                        <div className="flex-1">
+                                          {/* Title and Status - Fixed height: 32px */}
+                                          <div className="flex items-center gap-3 mb-3 h-8">
                                             <h4 className="font-semibold">{facility.name}</h4>
                                             <Badge variant={facility.is_active ? "default" : "secondary"}>
                                               {facility.is_active ? "Activă" : "Inactivă"}
@@ -446,8 +446,8 @@ const FacilityManagement = () => {
                                             </Badge>
                                           </div>
                                           
-                                          {/* Basic Info - Fixed grid layout */}
-                                          <div className="grid md:grid-cols-3 gap-2 text-sm text-muted-foreground h-4">
+                                          {/* Basic Info - Fixed height: 20px */}
+                                          <div className="grid md:grid-cols-3 gap-2 text-sm text-muted-foreground mb-3 h-5">
                                             <div className="flex items-center gap-1">
                                               <MapPin className="h-3 w-3" />
                                               {facility.address}
@@ -462,39 +462,26 @@ const FacilityManagement = () => {
                                             </div>
                                           </div>
 
-                                          {/* Description - Fixed height section */}
-                                          <div className="h-8 flex items-start">
-                                            {facility.description ? (
-                                              <p className="text-xs text-muted-foreground line-clamp-2">
-                                                {facility.description}
-                                              </p>
-                                            ) : (
-                                              <p className="text-xs text-muted-foreground italic">
-                                                Fără descriere
-                                              </p>
-                                            )}
+                                          {/* Description - Fixed height: 40px */}
+                                          <div className="mb-3 h-10">
+                                            <p className="text-xs text-muted-foreground">
+                                              {facility.description || "Fără descriere"}
+                                            </p>
                                           </div>
 
-                                          {/* Amenities - Fixed height section */}
-                                          <div className="h-6 flex items-start">
-                                            {facility.amenities && facility.amenities.length > 0 ? (
-                                              <div className="flex flex-wrap gap-1">
-                                                {facility.amenities.slice(0, 3).map((amenity, index) => (
-                                                  <Badge key={index} variant="secondary" className="text-xs">
-                                                    {amenity}
-                                                  </Badge>
-                                                ))}
-                                                {facility.amenities.length > 3 && (
-                                                  <Badge variant="secondary" className="text-xs">
-                                                    +{facility.amenities.length - 3} mai multe
-                                                  </Badge>
-                                                )}
-                                              </div>
-                                            ) : (
-                                              <p className="text-xs text-muted-foreground italic">
-                                                Fără dotări suplimentare
-                                              </p>
-                                            )}
+                                          {/* Amenities - Fixed height: 24px */}
+                                          <div className="h-6">
+                                            <div className="text-xs text-muted-foreground">
+                                              <span className="font-medium">Dotări teren: </span>
+                                              {facility.amenities && facility.amenities.length > 0 ? (
+                                                <span>
+                                                  {facility.amenities.slice(0, 3).join(', ')}
+                                                  {facility.amenities.length > 3 && ` (+${facility.amenities.length - 3} mai multe)`}
+                                                </span>
+                                              ) : (
+                                                <span className="italic">Fără dotări suplimentare</span>
+                                              )}
+                                            </div>
                                           </div>
                                         </div>
 
