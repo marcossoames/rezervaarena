@@ -267,7 +267,7 @@ const DayScheduleCalendar = ({
           <div className="text-sm font-medium mt-3">Blocări:</div>
           <div className="flex flex-wrap gap-3 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <div className="w-3 h-3 bg-yellow-500 rounded"></div>
               <span>Blocat</span>
             </div>
           </div>
@@ -297,8 +297,14 @@ const DayScheduleCalendar = ({
             const booking = !isClosingSlot ? getSlotBooking(timeSlot) : undefined;
             const blocking = !isClosingSlot && !booking ? getSlotBlocking(timeSlot) : null;
             
+            // compute boundaries for merged blocks
+            const isStartBooking = booking ? isBookingStart(timeSlot, booking) : false;
+            const isEndBooking = booking ? isBookingEnd(timeSlot, booking) : false;
+            const blockStart = blocking ? (blocking.start_time ? timeSlot === blocking.start_time.substring(0,5) : timeSlot === start.substring(0,5)) : false;
+            const blockEnd = blocking ? (() => { const endStr = blocking.end_time ? blocking.end_time.substring(0,5) : end.substring(0,5); const slotM = timeToMinutes(timeSlot); return slotM + 30 > timeToMinutes(endStr); })() : false;
+            
             return (
-              <div key={timeSlot} className="relative border-r border-muted last:border-r-0">
+              <div key={timeSlot} className={`relative border-muted ${ (booking && !isEndBooking) || (blocking && !blockEnd) ? 'border-r-0' : 'border-r' } last:border-r-0`}>
                 {/* Time slot header */}
                 <div className="text-xs font-mono text-center text-muted-foreground p-1 border-b bg-muted/20">
                   {timeSlot}
@@ -338,8 +344,25 @@ const DayScheduleCalendar = ({
                     })()
                   ) : blocking ? (
                     <div 
-                      className="w-full h-full bg-red-500 flex items-center justify-center border-2 border-white/20 rounded"
+                      className="w-full h-full bg-yellow-500 flex items-center justify-center hover:opacity-90 transition-opacity"
                       title={blocking.reason || 'Interval blocat'}
+                      style={{
+                        position: 'relative',
+                        zIndex: 1,
+                        borderTop: '2px solid rgba(255,255,255,0.25)',
+                        borderBottom: '2px solid rgba(255,255,255,0.25)',
+                        borderLeft: blockStart ? '2px solid rgba(255,255,255,0.35)' : '0',
+                        borderRight: blockEnd ? '2px solid rgba(255,255,255,0.35)' : '0',
+                        marginLeft: blockStart ? 0 : -1,
+                        marginRight: blockEnd ? 0 : -1,
+                        borderRadius: blockStart && blockEnd
+                          ? '6px'
+                          : blockStart
+                            ? '6px 0 0 6px'
+                            : blockEnd
+                              ? '0 6px 6px 0'
+                              : '0'
+                      }}
                     >
                       <span className="text-xs text-white font-medium">BLOCAT</span>
                     </div>
