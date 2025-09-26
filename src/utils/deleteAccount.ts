@@ -105,12 +105,13 @@ export const deleteUserAccount = async () => {
     // Send cancellation emails based on user role
     if (Array.isArray(bookingDetails) && bookingDetails.length > 0) {
       try {
-        console.log(`Sending ${bookingDetails.length} cancellation emails for ${userRole}`);
+        console.log(`Sending cancellation emails for ${bookingDetails.length} bookings, user role: ${userRole}`);
         
         if (userRole === 'facility_owner') {
           // For facility owners: send cancellation emails to clients
           for (const booking of bookingDetails) {
             if (booking.client_email) {
+              console.log(`Sending cancellation email to client ${booking.client_email} for booking ${booking.booking_id}`);
               const emailResult = await supabase.functions.invoke('send-booking-cancellation-email', {
                 body: {
                   clientEmails: [booking.client_email],
@@ -138,12 +139,15 @@ export const deleteUserAccount = async () => {
             .map((booking: any) => booking.facility_owner_email)
             .filter(Boolean))];
           
+          console.log(`Notifying ${facilityOwnerEmails.length} facility owners about client account deletion`);
+          
           for (const ownerEmail of facilityOwnerEmails) {
             const ownerBookings = bookingDetails.filter((booking: any) => 
               booking.facility_owner_email === ownerEmail
             );
             
             if (ownerBookings.length > 0) {
+              console.log(`Sending notification to facility owner ${ownerEmail} about ${ownerBookings.length} cancelled bookings`);
               // Send notification to facility owner about client cancellations
               const emailResult = await supabase.functions.invoke('send-facility-owner-notification', {
                 body: {
@@ -202,7 +206,17 @@ export const deleteUserAccount = async () => {
       }
     }
 
-    // NOTE: Don't sign out the user since the account wasn't actually deleted
+    // Important: Now that we keep the profile and auth.users, 
+    // we need to sign out the user to clear their session
+    console.log('Signing out user after account deletion process...');
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) {
+      console.error('Sign out error after deletion:', signOutError);
+      // Don't throw here since account was already processed successfully
+    }
+
+    // Force clear local session data
+    await supabase.auth.signOut({ scope: 'local' });
     
     return { success: true };
   } catch (error: any) {
