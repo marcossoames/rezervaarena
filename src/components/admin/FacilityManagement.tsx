@@ -430,11 +430,11 @@ const FacilityManagement = () => {
                             </TabsList>
 
                              <TabsContent value="facilities" className="mt-4">
-                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                 {complex.facilities.map((facility) => (
-                                   <Card key={facility.id} className="relative overflow-hidden hover:shadow-lg transition-shadow">
-                                     {/* Use CSS Grid for precise alignment - all cards same height */}
-                                     <div className="grid grid-rows-[224px_auto] h-full">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+                                  {complex.facilities.map((facility) => (
+                                    <Card key={facility.id} className="relative overflow-hidden hover:shadow-lg transition-shadow">
+                                      {/* Use CSS Grid for precise alignment - all cards same height */}
+                                      <div className="grid grid-rows-[280px_auto] h-full min-h-[600px]">
                                        {/* Image Section - Exactly 224px */}
                                        <div className="relative overflow-hidden">
                                          {facility.images && facility.images.length > 0 ? (
