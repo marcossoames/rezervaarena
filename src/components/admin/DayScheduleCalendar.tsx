@@ -100,7 +100,7 @@ const DayScheduleCalendar = ({
     
     // Manual bookings are always black
     if (isManual) {
-      return `${baseClasses} bg-gray-900 hover:bg-black`;
+      return `${baseClasses} bg-black hover:bg-gray-900`;
     }
     
     // Online bookings - different colors for each sport type
@@ -219,7 +219,7 @@ const DayScheduleCalendar = ({
             <span>Lipsă</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Tonuri mai închise = Manual</span>
+            <span className="text-muted-foreground">Negru = Manual</span>
           </div>
         </div>
       </CardHeader>
