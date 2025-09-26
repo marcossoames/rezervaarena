@@ -51,15 +51,13 @@ const DayScheduleCalendar = ({
   selectedFacility,
   onBookingClick 
 }: DayScheduleCalendarProps) => {
-  // Generate time slots (every 30 minutes from 6:00 to 24:00)
+  // Generate time slots (every 30 minutes from 06:00 to 24:00)
   const generateTimeSlots = () => {
-    const slots = [];
-    let currentTime = parse("06:00", "HH:mm", new Date());
-    const endTime = parse("24:00", "HH:mm", new Date());
-
-    while (currentTime < endTime) {
-      slots.push(format(currentTime, "HH:mm"));
-      currentTime = addMinutes(currentTime, 30);
+    const slots: string[] = [];
+    for (let minutes = 6 * 60; minutes < 24 * 60; minutes += 30) {
+      const h = Math.floor(minutes / 60).toString().padStart(2, '0');
+      const m = (minutes % 60).toString().padStart(2, '0');
+      slots.push(`${h}:${m}`);
     }
     return slots;
   };
