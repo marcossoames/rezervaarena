@@ -448,84 +448,94 @@ const BookingManagement = () => {
           </div>
         </CardHeader>
         
+        
         <CardContent>
-          {/* Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-muted/50 rounded-lg">
+          {/* Main Layout: Calendar on left, Visual Schedule on right */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Side - Calendar and Filters */}
+            <div className="space-y-4">
+              {/* Calendar */}
+              <div className="space-y-2">
+                <Label>Selectează Data</Label>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  locale={ro}
+                  className="rounded-md border bg-background"
+                />
+              </div>
+              
+              {/* Filters */}
+              <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                <div>
+                  <Label>Facilitate</Label>
+                  <Select value={selectedFacility} onValueChange={setSelectedFacility}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Toate facilitățile" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toate facilitățile</SelectItem>
+                      {facilities.map(facility => (
+                        <SelectItem key={facility.id} value={facility.id}>
+                          {facility.name} - {facility.city}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Status</Label>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Toate statusurile" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toate statusurile</SelectItem>
+                      <SelectItem value="confirmed">Confirmată</SelectItem>
+                      <SelectItem value="cancelled">Anulată</SelectItem>
+                      <SelectItem value="completed">Finalizată</SelectItem>
+                      <SelectItem value="no_show">Lipsă</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Tip Sport</Label>
+                  <Select value={selectedSportType} onValueChange={setSelectedSportType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Toate tipurile" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toate tipurile</SelectItem>
+                      <SelectItem value="fotbal">Fotbal</SelectItem>
+                      <SelectItem value="tenis">Tenis</SelectItem>
+                      <SelectItem value="baschet">Baschet</SelectItem>
+                      <SelectItem value="volei">Volei</SelectItem>
+                      <SelectItem value="padel">Padel</SelectItem>
+                      <SelectItem value="squash">Squash</SelectItem>
+                      <SelectItem value="inot">Înot</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side - Visual Schedule Calendar (cascade view) */}
             <div>
-              <Label>Data</Label>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                locale={ro}
-                className="rounded-md border bg-background"
+              <DayScheduleCalendar
+                selectedDate={selectedDate}
+                bookings={filteredBookings}
+                facilities={facilities}
+                selectedFacility={selectedFacility}
+                onBookingClick={(bookingId) => {
+                  setSelectedBookingId(bookingId);
+                  setIsBookingDetailsOpen(true);
+                }}
               />
             </div>
-            
-            <div>
-              <Label>Facilitate</Label>
-              <Select value={selectedFacility} onValueChange={setSelectedFacility}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Toate facilitățile" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toate facilitățile</SelectItem>
-                  {facilities.map(facility => (
-                    <SelectItem key={facility.id} value={facility.id}>
-                      {facility.name} - {facility.city}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Status</Label>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Toate statusurile" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toate statusurile</SelectItem>
-                  <SelectItem value="confirmed">Confirmată</SelectItem>
-                  <SelectItem value="cancelled">Anulată</SelectItem>
-                  <SelectItem value="completed">Finalizată</SelectItem>
-                  <SelectItem value="no_show">Lipsă</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Tip Sport</Label>
-              <Select value={selectedSportType} onValueChange={setSelectedSportType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Toate tipurile" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toate tipurile</SelectItem>
-                  <SelectItem value="fotbal">Fotbal</SelectItem>
-                  <SelectItem value="tenis">Tenis</SelectItem>
-                  <SelectItem value="baschet">Baschet</SelectItem>
-                  <SelectItem value="volei">Volei</SelectItem>
-                  <SelectItem value="padel">Padel</SelectItem>
-                  <SelectItem value="squash">Squash</SelectItem>
-                  <SelectItem value="inot">Înot</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
-
-          {/* Day Schedule Calendar */}
-          <DayScheduleCalendar
-            selectedDate={selectedDate}
-            bookings={filteredBookings}
-            facilities={facilities}
-            selectedFacility={selectedFacility}
-            onBookingClick={(bookingId) => {
-              setSelectedBookingId(bookingId);
-              setIsBookingDetailsOpen(true);
-            }}
-          />
 
           {/* Bookings List - Only show if list view is selected */}
           {viewMode === 'list' && (
