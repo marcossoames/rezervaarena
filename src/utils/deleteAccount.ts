@@ -141,8 +141,14 @@ export const deleteUserAccount = async () => {
       }
     }
 
-    // Use the secure deletion function
-    const { data, error } = await supabase.rpc('delete_current_user_account');
+    // Use the secure deletion edge function
+    const { error } = await supabase.functions.invoke('delete-user-account', {
+      body: {
+        userId: user.id,
+        userEmail: user.email || profile?.email || '',
+        userType: profile?.role === 'client' ? 'client' : 'facility_owner'
+      }
+    });
 
     if (error) {
       throw error;
