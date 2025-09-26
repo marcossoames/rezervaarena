@@ -117,14 +117,14 @@ serve(async (req) => {
         if (user) {
           const clientIP = req.headers.get('cf-connecting-ip') || 'unknown'
           const userAgent = req.headers.get('user-agent') || 'unknown'
-          await logBankingActivity(supabase, user.id, 'unknown', clientIP, userAgent, 'failed', error.message)
+          await logBankingActivity(supabase, user.id, 'unknown', clientIP, userAgent, 'failed', (error as Error).message)
         }
       }
     } catch (logError) {
       console.error('Failed to log banking error:', logError)
     }
 
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     })
@@ -177,7 +177,7 @@ async function checkSuspiciousActivity(supabase: any, userId: string, clientIP: 
     .neq('ip_address', clientIP)
 
   if (recentIPs && recentIPs.length > 2) {
-    console.warn(`Suspicious activity: User ${userId} accessed from multiple IPs: ${recentIPs.map(r => r.ip_address).join(', ')}, ${clientIP}`)
+    console.warn(`Suspicious activity: User ${userId} accessed from multiple IPs: ${recentIPs.map((r: any) => r.ip_address).join(', ')}, ${clientIP}`)
     throw new Error('Suspicious activity detected. Please contact support.')
   }
 
