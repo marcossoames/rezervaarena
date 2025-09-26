@@ -51,10 +51,20 @@ const DayScheduleCalendar = ({
   selectedFacility,
   onBookingClick 
 }: DayScheduleCalendarProps) => {
-  // Generate time slots (every 30 minutes from 06:00 to 24:00)
+  // Generate time slots based on facility operating hours
   const generateTimeSlots = () => {
     const slots: string[] = [];
-    for (let minutes = 6 * 60; minutes < 24 * 60; minutes += 30) {
+    const selectedFacilityData = facilities.find(f => f.id === selectedFacility) || facilities[0];
+    
+    // Use facility operating hours or default to 08:00-22:00
+    const startHour = selectedFacilityData?.operating_hours_start 
+      ? parseInt(selectedFacilityData.operating_hours_start.substring(0, 2)) 
+      : 8;
+    const endHour = selectedFacilityData?.operating_hours_end 
+      ? parseInt(selectedFacilityData.operating_hours_end.substring(0, 2)) 
+      : 22;
+    
+    for (let minutes = startHour * 60; minutes < endHour * 60; minutes += 30) {
       const h = Math.floor(minutes / 60).toString().padStart(2, '0');
       const m = (minutes % 60).toString().padStart(2, '0');
       slots.push(`${h}:${m}`);
@@ -117,8 +127,8 @@ const DayScheduleCalendar = ({
       'inot': 'bg-cyan-500 hover:bg-cyan-600',
     };
     
-    const sportType = booking.facility_type?.toLowerCase() || 'football';
-    const colorClass = sportColors[sportType as keyof typeof sportColors] || 'bg-gray-500 hover:bg-gray-600';
+    const sportType = booking.facility_type?.toLowerCase() || 'fotbal';
+    const colorClass = sportColors[sportType as keyof typeof sportColors] || 'bg-emerald-500 hover:bg-emerald-600';
     
     return `${baseClasses} ${colorClass}`;
   };
