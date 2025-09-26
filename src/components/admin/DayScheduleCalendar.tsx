@@ -115,27 +115,29 @@ const DayScheduleCalendar = ({
   // Generate time slots for the day (30-minute intervals)
   const generateTimeSlots = () => {
     const { start, end } = getOperatingHours();
-    const slots = [];
-    
-    // Parse start and end times
+    const slots: string[] = [];
+
+    // Parse start and end times to minutes
     const [startHour, startMin] = start.split(':').map(Number);
     const [endHour, endMin] = end.split(':').map(Number);
-    
-    let currentHour = startHour;
-    let currentMin = startMin;
-    
-    while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
-      const timeSlot = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
-      slots.push(timeSlot);
-      
-      // Add 30 minutes
-      currentMin += 30;
-      if (currentMin >= 60) {
-        currentMin = 0;
-        currentHour++;
-      }
+
+    let currentMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+
+    // Generate 30-min slots strictly before the closing time
+    while (currentMinutes < endMinutes) {
+      const h = Math.floor(currentMinutes / 60).toString().padStart(2, '0');
+      const m = (currentMinutes % 60).toString().padStart(2, '0');
+      slots.push(`${h}:${m}`);
+      currentMinutes += 30;
     }
-    
+
+    // Add the exact closing time label as a final non-bookable slot for clarity
+    const endLabel = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+    if (slots[slots.length - 1] !== endLabel) {
+      slots.push(endLabel);
+    }
+
     return slots;
   };
 
@@ -259,8 +261,11 @@ const DayScheduleCalendar = ({
       <CardContent className="p-4">
         <div className="grid grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
           {timeSlots.map((timeSlot) => {
-            // Find booking that starts at this time slot
-            const booking = dayBookings.find(b => b.start_time.substring(0, 5) === timeSlot);
+            const isClosingSlot = timeSlot === end.substring(0, 5);
+            // Find booking that starts at this time slot (exclude closing label)
+            const booking = !isClosingSlot
+              ? dayBookings.find(b => b.start_time.substring(0, 5) === timeSlot)
+              : undefined;
             
             return (
               <div key={timeSlot} className="relative">
@@ -280,6 +285,10 @@ const DayScheduleCalendar = ({
                       <div className="text-xs opacity-90 truncate w-full">{booking.client_name}</div>
                       <div className="text-xs opacity-75">{booking.start_time.substring(0, 5)}-{booking.end_time.substring(0, 5)}</div>
                     </button>
+                  ) : isClosingSlot ? (
+                    <div className="w-full h-full bg-muted/50 border-dashed border rounded flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground">Sfârșit program</span>
+                    </div>
                   ) : (
                     <div className="w-full h-full bg-muted/30 border-dashed border rounded flex items-center justify-center">
                       <span className="text-xs text-muted-foreground">Liber</span>
