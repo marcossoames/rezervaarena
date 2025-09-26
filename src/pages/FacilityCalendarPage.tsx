@@ -697,44 +697,51 @@ const FacilityCalendarPage = () => {
                                            <SelectValue placeholder="Selectează ora" />
                                          </SelectTrigger>
                                          <SelectContent className="max-h-[200px] overflow-y-auto">
-                                           {(() => {
-                                             const options = [];
-                                             const startHour = parseInt(facility?.operating_hours_start?.slice(0, 2) || '08');
-                                             const endHour = parseInt(facility?.operating_hours_end?.slice(0, 2) || '22');
-                                             
-                                             for (let hour = startHour; hour < endHour; hour++) {
-                                               for (let minute = 0; minute < 60; minute += 30) {
-                                                 const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                                                 
-                                                 // Check if this time slot has any booking conflicts
-                                                  const existingBookings = selectedDate ? getActiveBookingsForDate(selectedDate) : [];
-                                                  const hasBookingConflict = existingBookings.some(booking => {
-                                                    const bookingStart = booking.start_time.slice(0, 5);
-                                                    const bookingEnd = booking.end_time.slice(0, 5);
-                                                   return timeString >= bookingStart && timeString < bookingEnd;
-                                                 });
-                                                 
-                                                 // Check if this time slot overlaps with any blocked time
-                                                 const existingBlocks = selectedDate ? getBlockedHoursForDate(selectedDate) : [];
-                                                 const hasBlockConflict = existingBlocks.some(block => {
-                                                   if (!block.start_time || !block.end_time) return true; // Full day block
-                                                   const blockStart = block.start_time.slice(0, 5);
-                                                   const blockEnd = block.end_time.slice(0, 5);
-                                                   return timeString >= blockStart && timeString < blockEnd;
-                                                 });
-                                                 
-                                                 options.push(
-                                                   <SelectItem 
-                                                     key={timeString} 
-                                                     value={timeString}
-                                                     disabled={hasBookingConflict || hasBlockConflict}
-                                                   >
-                                                     {timeString} {hasBookingConflict ? '(rezervat)' : hasBlockConflict ? '(blocat)' : ''}
-                                                   </SelectItem>
-                                                 );
-                                               }
-                                             }
-                                             return options;
+                                            {(() => {
+                                              const options = [];
+                                              const facilityStart = facility?.operating_hours_start || '08:00';
+                                              const facilityEnd = facility?.operating_hours_end || '22:00';
+                                              
+                                              // Parse facility hours properly with minutes
+                                              const [startHour, startMin] = facilityStart.split(':').map(Number);
+                                              const [endHour, endMin] = facilityEnd.split(':').map(Number);
+                                              const facilityStartMinutes = startHour * 60 + startMin;
+                                              const facilityEndMinutes = endHour * 60 + endMin;
+                                              
+                                              // Generate time slots in 30-minute intervals within operating hours
+                                              for (let totalMinutes = facilityStartMinutes; totalMinutes < facilityEndMinutes; totalMinutes += 30) {
+                                                const hour = Math.floor(totalMinutes / 60);
+                                                const minute = totalMinutes % 60;
+                                                const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                                                
+                                                // Check if this time slot has any booking conflicts
+                                                const existingBookings = selectedDate ? getActiveBookingsForDate(selectedDate) : [];
+                                                const hasBookingConflict = existingBookings.some(booking => {
+                                                  const bookingStart = booking.start_time.slice(0, 5);
+                                                  const bookingEnd = booking.end_time.slice(0, 5);
+                                                  return timeString >= bookingStart && timeString < bookingEnd;
+                                                });
+                                                
+                                                // Check if this time slot overlaps with any blocked time
+                                                const existingBlocks = selectedDate ? getBlockedHoursForDate(selectedDate) : [];
+                                                const hasBlockConflict = existingBlocks.some(block => {
+                                                  if (!block.start_time || !block.end_time) return true; // Full day block
+                                                  const blockStart = block.start_time.slice(0, 5);
+                                                  const blockEnd = block.end_time.slice(0, 5);
+                                                  return timeString >= blockStart && timeString < blockEnd;
+                                                });
+                                                
+                                                options.push(
+                                                  <SelectItem 
+                                                    key={timeString} 
+                                                    value={timeString}
+                                                    disabled={hasBookingConflict || hasBlockConflict}
+                                                  >
+                                                    {timeString} {hasBookingConflict ? '(rezervat)' : hasBlockConflict ? '(blocat)' : ''}
+                                                  </SelectItem>
+                                                );
+                                              }
+                                              return options;
                                            })()}
                                          </SelectContent>
                                        </Select>
@@ -747,32 +754,37 @@ const FacilityCalendarPage = () => {
                                            <SelectValue placeholder="Selectează ora" />
                                          </SelectTrigger>
                                          <SelectContent className="max-h-[200px] overflow-y-auto">
-                                           {(() => {
-                                             const options = [];
-                                             const startHour = parseInt(facility?.operating_hours_start?.slice(0, 2) || '08');
-                                             const endHour = parseInt(facility?.operating_hours_end?.slice(0, 2) || '22');
-                                             
-                                             for (let hour = startHour; hour <= endHour; hour++) {
-                                               for (let minute = 0; minute < 60; minute += 30) {
-                                                 if (hour === endHour && minute > 0) break;
-                                                 
-                                                 const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                                                 
-                                                 // Only show end times that are after the selected start time
-                                                 const isAfterStartTime = !blockStartTime || timeString > blockStartTime;
-                                                 
-                                                 options.push(
-                                                   <SelectItem 
-                                                     key={timeString} 
-                                                     value={timeString}
-                                                     disabled={!isAfterStartTime}
-                                                   >
-                                                     {timeString}
-                                                   </SelectItem>
-                                                 );
-                                               }
-                                             }
-                                             return options;
+                                            {(() => {
+                                              const options = [];
+                                              const facilityStart = facility?.operating_hours_start || '08:00';
+                                              const facilityEnd = facility?.operating_hours_end || '22:00';
+                                              
+                                              // Parse facility hours properly with minutes
+                                              const [startHour, startMin] = facilityStart.split(':').map(Number);
+                                              const [endHour, endMin] = facilityEnd.split(':').map(Number);
+                                              const facilityStartMinutes = startHour * 60 + startMin;
+                                              const facilityEndMinutes = endHour * 60 + endMin;
+                                              
+                                              // Generate time slots in 30-minute intervals, including end time
+                                              for (let totalMinutes = facilityStartMinutes + 30; totalMinutes <= facilityEndMinutes; totalMinutes += 30) {
+                                                const hour = Math.floor(totalMinutes / 60);
+                                                const minute = totalMinutes % 60;
+                                                const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                                                
+                                                // Only show end times that are after the selected start time
+                                                const isAfterStartTime = !blockStartTime || timeString > blockStartTime;
+                                                
+                                                options.push(
+                                                  <SelectItem 
+                                                    key={timeString} 
+                                                    value={timeString}
+                                                    disabled={!isAfterStartTime}
+                                                  >
+                                                    {timeString}
+                                                  </SelectItem>
+                                                );
+                                              }
+                                              return options;
                                            })()}
                                          </SelectContent>
                                        </Select>
