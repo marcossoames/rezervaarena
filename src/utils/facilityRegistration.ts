@@ -28,6 +28,7 @@ export interface FacilityData {
   mainImageIndex: number;
   operatingHoursStart?: string;
   operatingHoursEnd?: string;
+  allowedDurations?: number[];
 }
 
 export const saveFacilitiesForUser = async (
@@ -62,6 +63,7 @@ export const saveFacilitiesForUser = async (
           operating_hours_start: facility.operatingHoursStart || '08:00',
           operating_hours_end: facility.operatingHoursEnd || '22:00',
           amenities: facility.amenities,
+          allowed_durations: facility.allowedDurations && facility.allowedDurations.length > 0 ? facility.allowedDurations : [60,90,120],
           is_active: true
         })
         .select()

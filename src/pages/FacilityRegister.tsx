@@ -42,6 +42,7 @@ interface FacilityInfo {
   mainImageIndex: number;
   operatingHoursStart: string;
   operatingHoursEnd: string;
+  allowedDurations: number[];
 }
 
 const FacilityRegister = () => {
@@ -179,7 +180,8 @@ const FacilityRegister = () => {
             images: [],
             mainImageIndex: 0,
             operatingHoursStart: '08:00',
-            operatingHoursEnd: '22:00'
+            operatingHoursEnd: '22:00',
+            allowedDurations: [60, 90, 120]
           });
           newInputs.push('');
         }
@@ -280,6 +282,15 @@ const FacilityRegister = () => {
         });
         return false;
       }
+
+      if (!facility.allowedDurations || facility.allowedDurations.length === 0) {
+        toast({
+          title: "Intervale orare lipsă",
+          description: `Selectează cel puțin un interval orar pentru facilitatea ${i + 1}`,
+          variant: "destructive"
+        });
+        return false;
+      }
     }
     return true;
   };
@@ -351,7 +362,8 @@ const FacilityRegister = () => {
         capacityMax: facility.capacityMax,
         amenities: facility.amenities,
         operatingHoursStart: facility.operatingHoursStart,
-        operatingHoursEnd: facility.operatingHoursEnd
+        operatingHoursEnd: facility.operatingHoursEnd,
+        allowedDurations: facility.allowedDurations
       }));
 
       // Store compressed images temporarily in localStorage for upload after email confirmation
@@ -875,6 +887,36 @@ const FacilityRegister = () => {
                   placeholder="Selectează ora de sfârșit"
                 />
               </div>
+            </div>
+
+            {/* Allowed Durations */}
+            <div className="space-y-3">
+              <Label>Intervale orare permise</Label>
+              <div className="grid grid-cols-3 gap-4">
+                {[60, 90, 120].map((d) => (
+                  <div key={d} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id={`allowed-${index}-${d}`}
+                      checked={facility.allowedDurations?.includes(d) ?? false}
+                      onChange={(e) => {
+                        const current = facility.allowedDurations || [];
+                        const next = e.target.checked
+                          ? Array.from(new Set([...current, d]))
+                          : current.filter((x) => x !== d);
+                        updateFacilityField(index, 'allowedDurations', next);
+                      }}
+                      className="h-4 w-4 rounded border-input"
+                    />
+                    <Label htmlFor={`allowed-${index}-${d}`} className="text-sm font-normal">
+                      {d === 60 ? '60 min (1h)' : d === 90 ? '90 min (1h 30m)' : '120 min (2h)'}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+              {(!facility.allowedDurations || facility.allowedDurations.length === 0) && (
+                <p className="text-xs text-destructive">Selectează cel puțin un interval</p>
+              )}
             </div>
 
             {/* Amenities */}
