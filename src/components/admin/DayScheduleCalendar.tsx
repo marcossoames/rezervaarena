@@ -265,23 +265,29 @@ const DayScheduleCalendar = ({
                 </div>
                 
                 {/* Booking slot */}
-                <div className="h-16 border border-t-0 rounded-b p-1">
+                <div className={booking ? "h-16 p-0" : "h-16 border border-t-0 rounded-b p-1"}>
                   {booking ? (
                     (() => {
                       const isStart = isBookingStart(timeSlot, booking);
                       const isEnd = isBookingEnd(timeSlot, booking);
-                      const borderClass = isStart && isEnd 
-                        ? 'border-4 border-white' // Single slot booking
-                        : isStart 
-                        ? 'border-l-4 border-t-4 border-b-4 border-white border-r-0' // Start of multi-slot
-                        : isEnd 
-                        ? 'border-r-4 border-t-4 border-b-4 border-white border-l-0' // End of multi-slot
-                        : 'border-t-4 border-b-4 border-white border-l-0 border-r-0'; // Middle of multi-slot
-                      
+                      const marginClass = isStart && isEnd
+                        ? ""
+                        : isStart
+                          ? "-mr-2"
+                          : isEnd
+                            ? "-ml-2"
+                            : "-mx-2";
+                      const radiusClass = isStart && isEnd
+                        ? "rounded-md"
+                        : isStart
+                          ? "rounded-l-md"
+                          : isEnd
+                            ? "rounded-r-md"
+                            : "rounded-none";
                       return (
                         <button
                           onClick={() => handleBookingClick(booking.id)}
-                          className={`w-full h-full ${getBookingColor(booking)} ${borderClass} cursor-pointer hover:opacity-80 transition-opacity`}
+                          className={`w-full h-full ${getBookingColor(booking)} ${radiusClass} ${marginClass} cursor-pointer hover:opacity-80 transition-opacity`}
                           title={`${booking.start_time.substring(0, 5)}-${booking.end_time.substring(0, 5)}`}
                         />
                       );
