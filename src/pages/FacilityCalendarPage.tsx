@@ -22,6 +22,7 @@ import CombinedBlockDialog from "@/components/facility/CombinedBlockDialog";
 import UnblockRecurringDialog from "@/components/facility/UnblockRecurringDialog";
 import SelectiveUnblockDialog from "@/components/facility/SelectiveUnblockDialog";
 import DayScheduleCalendar from "@/components/admin/DayScheduleCalendar";
+import GeneralScheduleCalendar from "@/components/admin/GeneralScheduleCalendar";
 
 interface Facility {
   id: string;
@@ -48,11 +49,13 @@ interface Booking {
   payment_method: string;
   notes?: string;
   client_id: string;
+  facility_id: string;
   created_at?: string;
 }
 
 interface BlockedDate {
   id: string;
+  facility_id: string;
   blocked_date: string;
   start_time?: string;
   end_time?: string;
@@ -75,7 +78,103 @@ const FacilityCalendarPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   
+  // New state for general calendar view
+  const [viewMode, setViewMode] = useState<'individual' | 'general'>('individual');
+  const [allFacilities, setAllFacilities] = useState<Facility[]>([]);
+  const [allBookings, setAllBookings] = useState<Booking[]>([]);
+  const [allBlockedDates, setAllBlockedDates] = useState<BlockedDate[]>([]);
+  
+  
   const today = startOfDay(new Date());
+
+  // Sport type color mapping
+  const sportColors: Record<string, string> = {
+    'football': 'bg-green-600',
+    'tennis': 'bg-blue-600', 
+    'basketball': 'bg-orange-600',
+    'volleyball': 'bg-purple-600',
+    'padel': 'bg-pink-600',
+    'squash': 'bg-yellow-600',
+    'swimming': 'bg-cyan-600',
+    'ping_pong': 'bg-red-600',
+    'badminton': 'bg-indigo-600',
+    'handball': 'bg-emerald-600'
+  };
+
+  // Get sport color for booking
+  const getSportColor = (facilityType: string) => {
+    return sportColors[facilityType] || 'bg-gray-600';
+  };
+
+  // Load owner facilities for general calendar
+  const loadAllFacilities = async () => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        navigate('/facility-owner-login');
+        return;
+      }
+
+      const { data: facilitiesData, error } = await supabase
+        .from('facilities')
+        .select('*')
+        .eq('owner_id', userData.user.id)
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Error loading facilities:', error);
+        toast({
+          title: 'Eroare',
+          description: 'Nu s-au putut încărca facilitățile.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      setAllFacilities(facilitiesData || []);
+      
+      // Load all bookings for all facilities
+      if (facilitiesData && facilitiesData.length > 0) {
+        const facilityIds = facilitiesData.map(f => f.id);
+        
+        const { data: bookingsData, error: bookingsError } = await supabase
+          .from('bookings')
+          .select('*')
+          .in('facility_id', facilityIds)
+          .gte('booking_date', format(new Date(), 'yyyy-MM-dd'))
+          .order('booking_date', { ascending: true })
+          .order('start_time', { ascending: true });
+
+        if (bookingsError) {
+          console.error('Error loading bookings:', bookingsError);
+        } else {
+          setAllBookings(bookingsData || []);
+        }
+
+        // Load all blocked dates
+        const { data: blockedData, error: blockedError } = await supabase
+          .from('blocked_dates')
+          .select('*')
+          .in('facility_id', facilityIds)
+          .gte('blocked_date', format(new Date(), 'yyyy-MM-dd'));
+
+        if (blockedError) {
+          console.error('Error loading blocked dates:', blockedError);
+        } else {
+          setAllBlockedDates(blockedData || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error in loadAllFacilities:', error);
+    }
+  };
+
+  // Load all facilities when switching to general view
+  useEffect(() => {
+    if (viewMode === 'general') {
+      loadAllFacilities();
+    }
+  }, [viewMode]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -219,21 +318,70 @@ const FacilityCalendarPage = () => {
     };
   }, [facilityId]);
 
+  
+  // Functions for general calendar view
   const getAllBookingsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return bookings.filter(booking => booking.booking_date === dateStr);
+    const bookingsToUse = viewMode === 'general' ? allBookings : bookings;
+    return bookingsToUse.filter(booking => booking.booking_date === dateStr);
   };
 
   const getActiveBookingsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return bookings.filter(booking => 
+    const bookingsToUse = viewMode === 'general' ? allBookings : bookings;
+    return bookingsToUse.filter(booking => 
       booking.booking_date === dateStr && (booking.status === 'confirmed' || booking.status === 'pending')
     );
   };
 
   const getBlockedHoursForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return blockedDates.filter(blocked => blocked.blocked_date === dateStr);
+    const blockedToUse = viewMode === 'general' ? allBlockedDates : blockedDates;
+    return blockedToUse.filter(block => block.blocked_date === dateStr);
+  };
+
+  // Get overlapping bookings (same time, different or same facilities)
+  const getBookingOverlaps = (date: Date) => {
+    const dayBookings = getActiveBookingsForDate(date);
+    const overlaps: Array<{timeSlot: string, bookings: typeof dayBookings, sameType: boolean}> = [];
+
+    // Group bookings by time slots
+    const timeSlotMap = new Map<string, typeof dayBookings>();
+    
+    dayBookings.forEach(booking => {
+      const startTime = booking.start_time.slice(0, 5);
+      if (!timeSlotMap.has(startTime)) {
+        timeSlotMap.set(startTime, []);
+      }
+      timeSlotMap.get(startTime)!.push(booking);
+    });
+
+    // Find overlaps
+    timeSlotMap.forEach((bookingsInSlot, timeSlot) => {
+      if (bookingsInSlot.length > 1) {
+        // Check if they're the same sport type
+        const facilityTypes = new Set();
+        bookingsInSlot.forEach(booking => {
+          const facility = allFacilities.find(f => f.id === booking.facility_id);
+          if (facility) facilityTypes.add(facility.facility_type);
+        });
+        
+        overlaps.push({
+          timeSlot,
+          bookings: bookingsInSlot,
+          sameType: facilityTypes.size === 1
+        });
+      }
+    });
+
+    return overlaps;
+  };
+
+
+  const isDateBlocked = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const blockedToUse = viewMode === 'general' ? allBlockedDates : blockedDates;
+    return blockedToUse.some(block => block.blocked_date === dateStr);
   };
 
   const getBlockedSlotsForDate = (date: Date) => {
@@ -255,9 +403,6 @@ const FacilityCalendarPage = () => {
     );
   };
 
-  const isDateBlocked = (date: Date): boolean => {
-    return isDateFullyBlocked(date) || hasPartialBlockings(date);
-  };
 
   const refreshBookings = async () => {
     if (!facilityId) return;
@@ -547,23 +692,43 @@ const FacilityCalendarPage = () => {
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">{facility.name}</h1>
-              <div className="flex items-center gap-4 text-muted-foreground mt-2">
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {facility.address}, {facility.city}
+              <h1 className="text-3xl font-bold text-foreground">
+                {viewMode === 'individual' ? facility.name : 'Calendar General'}
+              </h1>
+              {viewMode === 'individual' ? (
+                <div className="flex items-center gap-4 text-muted-foreground mt-2">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    {facility.address}, {facility.city}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    Capacitate: {facility.capacity} {facility.capacity_max ? `- ${facility.capacity_max}` : ''} persoane
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    {facility.price_per_hour} RON/oră
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  Capacitate: {facility.capacity} {facility.capacity_max ? `- ${facility.capacity_max}` : ''} persoane
+              ) : (
+                <div className="text-muted-foreground mt-2">
+                  Toate terenurile - {allFacilities.length} facilități
                 </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {facility.price_per_hour} RON/oră
-                </div>
-              </div>
+              )}
             </div>
             
+            {/* View Mode Selector */}
+            <div className="flex items-center gap-2">
+              <Select value={viewMode} onValueChange={(value: 'individual' | 'general') => setViewMode(value)}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="individual">Calendar Individual</SelectItem>
+                  <SelectItem value="general">Calendar General</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -877,48 +1042,84 @@ const FacilityCalendarPage = () => {
         {selectedDate && (
           <>
             {/* Day Schedule Calendar */}
-            <DayScheduleCalendar
-              selectedDate={selectedDate}
-              bookings={bookings.map(booking => ({
-                ...booking,
-                facility_name: facility?.name || 'Facilitate',
-                facility_type: facility?.facility_type || 'unknown',
-                facility_city: facility?.city || '',
-                client_name: 'Client',
-                client_email: '',
-                created_at: booking.created_at || new Date().toISOString(),
-                facility_id: facilityId || ''
-              }))}
-              facilities={facility ? [{
-                id: facility.id,
-                name: facility.name,
-                facility_type: facility.facility_type,
-                city: facility.city,
-                operating_hours_start: facility.operating_hours_start,
-                operating_hours_end: facility.operating_hours_end,
-                price_per_hour: facility.price_per_hour
-              }] : []}
-              selectedFacility={facility?.id || 'all'}
-              onBookingClick={(bookingId) => {
-                console.log('Clicked booking:', bookingId);
-                // Scroll to specific booking in the list
-                setTimeout(() => {
-                  const bookingElement = document.getElementById(`booking-${bookingId}`);
-                  if (bookingElement) {
-                    bookingElement.scrollIntoView({ 
-                      behavior: 'smooth',
-                      block: 'center'
-                    });
-                    // Add highlight effect
-                    bookingElement.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
-                    setTimeout(() => {
-                      bookingElement.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
-                    }, 3000);
-                  }
-                }, 100);
-              }}
-              blockedDates={blockedDates.map(b => ({ ...b, facility_id: facilityId || '' })) as any}
-            />
+            {viewMode === 'individual' ? (
+              <DayScheduleCalendar
+                selectedDate={selectedDate}
+                bookings={bookings.map(booking => ({
+                  ...booking,
+                  facility_name: facility?.name || 'Facilitate',
+                  facility_type: facility?.facility_type || 'unknown',
+                  facility_city: facility?.city || '',
+                  client_name: 'Client',
+                  client_email: '',
+                  created_at: booking.created_at || new Date().toISOString(),
+                  facility_id: facilityId || ''
+                }))}
+                facilities={facility ? [{
+                  id: facility.id,
+                  name: facility.name,
+                  facility_type: facility.facility_type,
+                  city: facility.city,
+                  operating_hours_start: facility.operating_hours_start,
+                  operating_hours_end: facility.operating_hours_end,
+                  price_per_hour: facility.price_per_hour
+                }] : []}
+                selectedFacility={facility?.id || 'all'}
+                onBookingClick={(bookingId) => {
+                  console.log('Clicked booking:', bookingId);
+                  // Scroll to specific booking in the list
+                  setTimeout(() => {
+                    const bookingElement = document.getElementById(`booking-${bookingId}`);
+                    if (bookingElement) {
+                      bookingElement.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'center'
+                      });
+                      // Add highlight effect
+                      bookingElement.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+                      setTimeout(() => {
+                        bookingElement.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+                      }, 3000);
+                    }
+                  }, 100);
+                }}
+                blockedDates={blockedDates.map(b => ({ ...b, facility_id: facilityId || '' })) as any}
+              />
+            ) : (
+              <GeneralScheduleCalendar
+                selectedDate={selectedDate}
+                bookings={allBookings.map(booking => ({
+                  ...booking,
+                  facility_name: allFacilities.find(f => f.id === booking.facility_id)?.name || 'Teren necunoscut',
+                  facility_type: allFacilities.find(f => f.id === booking.facility_id)?.facility_type || 'unknown',
+                  facility_city: allFacilities.find(f => f.id === booking.facility_id)?.city || '',
+                  client_name: 'Client',
+                  client_email: '',
+                  created_at: booking.created_at || new Date().toISOString()
+                }))}
+                facilities={allFacilities}
+                onBookingClick={(bookingId) => {
+                  console.log('Clicked booking:', bookingId);
+                  // Scroll to specific booking in the list
+                  setTimeout(() => {
+                    const bookingElement = document.getElementById(`booking-${bookingId}`);
+                    if (bookingElement) {
+                      bookingElement.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'center'
+                      });
+                      // Add highlight effect
+                      bookingElement.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+                      setTimeout(() => {
+                        bookingElement.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+                      }, 3000);
+                    }
+                  }, 100);
+                }}
+                blockedDates={allBlockedDates}
+                sportColors={sportColors}
+              />
+            )}
 
             <Card className="mt-6" id="reservations-section">
               <CardHeader>
