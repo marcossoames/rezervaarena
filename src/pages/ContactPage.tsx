@@ -53,33 +53,17 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-lg">Email</h3>
-                      <a href="mailto:rezervaarena@gmail.com" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                        rezervaarena@gmail.com
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Mail className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-lg">Email Personal</h3>
-                      <a href="mailto:soamespaul@gmail.com" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                        soamespaul@gmail.com
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Mail className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-lg">Email Personal</h3>
-                      <a href="mailto:efleihraian@gmail.com" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                        efleihraian@gmail.com
-                      </a>
+                      <div className="space-y-1">
+                        <a href="mailto:rezervaarena@gmail.com" className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                          rezervaarena@gmail.com
+                        </a>
+                        <a href="mailto:soamespaul@gmail.com" className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                          soamespaul@gmail.com
+                        </a>
+                        <a href="mailto:efleihraian@gmail.com" className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                          efleihraian@gmail.com
+                        </a>
+                      </div>
                     </div>
                   </div>
 
@@ -89,21 +73,14 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-lg">Telefon</h3>
-                      <a href="tel:+40720059535" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                        +40720059535
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Phone className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-lg">Telefon</h3>
-                      <a href="tel:+40733535450" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                        +40733535450
-                      </a>
+                      <div className="space-y-1">
+                        <a href="tel:+40720059535" className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                          +40720059535
+                        </a>
+                        <a href="tel:+40733535450" className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                          +40733535450
+                        </a>
+                      </div>
                     </div>
                   </div>
 
