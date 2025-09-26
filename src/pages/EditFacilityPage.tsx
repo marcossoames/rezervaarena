@@ -160,9 +160,14 @@ const EditFacilityPage = () => {
           setAmenities(facilityData.amenities || []);
           setExistingImages(facilityData.images || []);
           
-          // Set allowed durations (default to all if not set)
+          // Set allowed durations from database (don't default to all)
           const durations = (facilityData as any).allowed_durations;
-          setAllowedDurations(durations && durations.length > 0 ? durations : [60, 90, 120]);
+          if (durations && Array.isArray(durations) && durations.length > 0) {
+            setAllowedDurations(durations);
+          } else {
+            // Only set default if no durations are saved
+            setAllowedDurations([]);
+          }
           
           // Find main image index
           if (facilityData.main_image_url && facilityData.images) {
@@ -182,8 +187,16 @@ const EditFacilityPage = () => {
             setValue("capacityMax", facilityData.exact_capacity_max);
             setIsCapacityRange(true);
           }
-          setValue("operatingHoursStart", (facilityData as any).operating_hours_start || "08:00");
-          setValue("operatingHoursEnd", (facilityData as any).operating_hours_end || "22:00");
+          
+          // Set operating hours properly
+          const startTime = (facilityData as any).operating_hours_start;
+          const endTime = (facilityData as any).operating_hours_end;
+          if (startTime) {
+            setValue("operatingHoursStart", startTime);
+          }
+          if (endTime) {
+            setValue("operatingHoursEnd", endTime);
+          }
         }
       } catch (error) {
         console.error('Error:', error);

@@ -51,8 +51,8 @@ export const TimePicker: React.FC<TimePickerProps> = ({
         <input
           id={id}
           type="time"
-          value={value ?? ''}
-          onChange={(e) => onChange(e.currentTarget.value)}
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
           step="900"
           className={`bg-background/50 w-full h-10 rounded-md border border-input px-3 py-2 text-foreground ${className}`}
           placeholder={placeholder}
@@ -65,7 +65,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   return (
     <div className="space-y-2">
       {label && <Label htmlFor={id}>{label}</Label>}
-      <Select value={value} onValueChange={onChange}>
+      <Select value={value || ""} onValueChange={onChange}>
         <SelectTrigger id={id} className={`bg-background/50 ${className}`}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
