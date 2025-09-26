@@ -21,6 +21,7 @@ import BookingDetailsDialog from "@/components/admin/BookingDetailsDialog";
 import DayBookingsDialog from "@/components/admin/DayBookingsDialog";
 import SelectiveUnblockDialog from "@/components/facility/SelectiveUnblockDialog";
 import AddManualBookingDialog from "@/components/facility/AddManualBookingDialog";
+import DayScheduleCalendar from "@/components/admin/DayScheduleCalendar";
 
 interface Booking {
   id: string;
@@ -38,6 +39,7 @@ interface Booking {
   facility_city: string;
   client_name: string;
   client_email: string;
+  payment_method?: string;
 }
 
 interface Facility {
@@ -143,7 +145,8 @@ const BookingManagement = () => {
         facility_type: booking.facilities.facility_type,
         facility_city: booking.facilities.city,
         client_name: booking.profiles.full_name,
-        client_email: booking.profiles.email
+        client_email: booking.profiles.email,
+        payment_method: booking.payment_method || 'cash'
       }));
 
       setBookings(formattedBookings);
@@ -500,6 +503,18 @@ const BookingManagement = () => {
               </Select>
             </div>
           </div>
+
+          {/* Day Schedule Calendar */}
+          <DayScheduleCalendar
+            selectedDate={selectedDate}
+            bookings={filteredBookings}
+            facilities={facilities}
+            selectedFacility={selectedFacility}
+            onBookingClick={(bookingId) => {
+              setSelectedBookingId(bookingId);
+              setIsBookingDetailsOpen(true);
+            }}
+          />
 
           {/* Bookings List */}
           <div className="space-y-4">
