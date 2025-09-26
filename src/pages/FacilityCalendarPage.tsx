@@ -79,7 +79,7 @@ const FacilityCalendarPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   
   // New state for general calendar view
-  const [viewMode, setViewMode] = useState<'individual' | 'general'>('individual');
+  const [viewMode, setViewMode] = useState<'individual' | 'general'>('general');
   const [allFacilities, setAllFacilities] = useState<Facility[]>([]);
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [allBlockedDates, setAllBlockedDates] = useState<BlockedDate[]>([]);
