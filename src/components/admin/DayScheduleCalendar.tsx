@@ -267,12 +267,8 @@ const DayScheduleCalendar = ({
           <div className="text-sm font-medium mt-3">Blocări:</div>
           <div className="flex flex-wrap gap-3 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-              <span>Blocat parțial</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-red-600 rounded"></div>
-              <span>Blocat complet</span>
+              <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <span>Blocat</span>
             </div>
           </div>
           
@@ -318,15 +314,19 @@ const DayScheduleCalendar = ({
                       return (
                         <button
                           onClick={() => handleBookingClick(booking.id)}
-                          className={`w-full h-full ${getBookingColor(booking)} cursor-pointer hover:opacity-80 transition-opacity border-2 border-white/20`}
+                          className={`w-full h-full ${getBookingColor(booking)} cursor-pointer hover:opacity-80 transition-opacity`}
                           title={`${booking.start_time.substring(0, 5)}-${booking.end_time.substring(0, 5)}`}
                           style={{
-                            borderRadius: isStart && isEnd 
-                              ? '4px' 
-                              : isStart 
-                                ? '4px 0 0 4px' 
-                                : isEnd 
-                                  ? '0 4px 4px 0' 
+                            borderTop: '2px solid rgba(255,255,255,0.25)',
+                            borderBottom: '2px solid rgba(255,255,255,0.25)',
+                            borderLeft: isStart ? '2px solid rgba(255,255,255,0.35)' : '0',
+                            borderRight: isEnd ? '2px solid rgba(255,255,255,0.35)' : '0',
+                            borderRadius: isStart && isEnd
+                              ? '6px'
+                              : isStart
+                                ? '6px 0 0 6px'
+                                : isEnd
+                                  ? '0 6px 6px 0'
                                   : '0'
                           }}
                         />

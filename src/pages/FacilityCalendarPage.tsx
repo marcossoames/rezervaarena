@@ -872,7 +872,7 @@ const FacilityCalendarPage = () => {
                 facility_name: facility?.name || 'Facilitate',
                 facility_type: facility?.facility_type || 'unknown',
                 facility_city: facility?.city || '',
-                client_name: 'Client', // This could be enhanced with actual client data
+                client_name: 'Client',
                 client_email: '',
                 created_at: booking.created_at || new Date().toISOString(),
                 facility_id: facilityId || ''
@@ -888,9 +888,9 @@ const FacilityCalendarPage = () => {
               }] : []}
               selectedFacility={facility?.id || 'all'}
               onBookingClick={(bookingId) => {
-                // Could add booking details functionality here
                 console.log('Clicked booking:', bookingId);
               }}
+              blockedDates={blockedDates.map(b => ({ ...b, facility_id: facilityId || '' })) as any}
             />
 
             <Card className="mt-6">
