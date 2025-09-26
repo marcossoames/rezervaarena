@@ -450,7 +450,18 @@ const BookingManagement = () => {
         
         <CardContent>
           {/* Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 p-4 bg-muted/50 rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-muted/50 rounded-lg">
+            <div>
+              <Label>Data</Label>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                locale={ro}
+                className="rounded-md border bg-background"
+              />
+            </div>
+            
             <div>
               <Label>Facilitate</Label>
               <Select value={selectedFacility} onValueChange={setSelectedFacility}>

@@ -21,6 +21,7 @@ import AddManualBookingDialog from "@/components/facility/AddManualBookingDialog
 import CombinedBlockDialog from "@/components/facility/CombinedBlockDialog";
 import UnblockRecurringDialog from "@/components/facility/UnblockRecurringDialog";
 import SelectiveUnblockDialog from "@/components/facility/SelectiveUnblockDialog";
+import DayScheduleCalendar from "@/components/admin/DayScheduleCalendar";
 
 interface Facility {
   id: string;
@@ -47,6 +48,7 @@ interface Booking {
   payment_method: string;
   notes?: string;
   client_id: string;
+  created_at?: string;
 }
 
 interface BlockedDate {
@@ -858,6 +860,37 @@ const FacilityCalendarPage = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Day Schedule Calendar */}
+        {selectedDate && (
+          <DayScheduleCalendar
+            selectedDate={selectedDate}
+            bookings={bookings.map(booking => ({
+              ...booking,
+              facility_name: facility?.name || 'Facilitate',
+              facility_type: facility?.facility_type || 'unknown',
+              facility_city: facility?.city || '',
+              client_name: 'Client', // This could be enhanced with actual client data
+              client_email: '',
+              created_at: booking.created_at || new Date().toISOString(),
+              facility_id: facilityId || ''
+            }))}
+            facilities={facility ? [{
+              id: facility.id,
+              name: facility.name,
+              facility_type: facility.facility_type,
+              city: facility.city,
+              operating_hours_start: facility.operating_hours_start,
+              operating_hours_end: facility.operating_hours_end,
+              price_per_hour: facility.price_per_hour
+            }] : []}
+            selectedFacility={facility?.id || 'all'}
+            onBookingClick={(bookingId) => {
+              // Could add booking details functionality here
+              console.log('Clicked booking:', bookingId);
+            }}
+          />
+        )}
 
         {/* Day-Specific Reservations */}
         {selectedDate && (
