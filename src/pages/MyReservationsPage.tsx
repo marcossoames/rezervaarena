@@ -170,7 +170,7 @@ const MyReservationsPage = () => {
           facilityIds = facilitiesData.map(f => f.id);
         }
         
-        // Get bookings for all facilities owned by this user or all if admin (including cancelled ones)
+        // Get bookings for all facilities owned by this user or all if admin
         const {
           data: userBookings,
           error: bookingsError
@@ -242,7 +242,11 @@ const MyReservationsPage = () => {
                 full_name: clientInfo.client_name,
                 phone: clientInfo.client_phone,
                 email: clientInfo.client_email
-              } : null, // Don't show placeholder data for missing client info
+              } : {
+                full_name: 'Client neidentificat',
+                phone: 'Contact indisponibil',
+                email: 'Email nedisponibil'
+              },
               facilities: {
                 id: booking.facility_id,
                 name: facilityName,
@@ -269,7 +273,7 @@ const MyReservationsPage = () => {
         })));
 
       } else {
-        // For regular clients, get their own bookings ordered by most recent first (including cancelled ones)
+        // For regular clients, get their own bookings ordered by most recent first
         const {
           data: userBookings,
           error: bookingsError
@@ -656,36 +660,24 @@ const MyReservationsPage = () => {
 
                   {/* Client Information - only for facility owners */}
                   {booking.client_info && (
-                    <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <User className="h-5 w-5 text-blue-600" />
-                        <h4 className="font-semibold text-blue-900">Informații Client</h4>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                          <User className="h-4 w-4 text-gray-600" />
-                          <div>
-                            <span className="text-xs text-gray-500 block">Nume</span>
-                            <span className="font-medium text-gray-900">{booking.client_info.full_name}</span>
-                          </div>
+                    <div className="mb-4 p-3 bg-muted/30 rounded-lg">
+                      <h4 className="font-medium text-sm text-muted-foreground mb-2">Detalii Client:</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-primary" />
+                          <span className="font-medium">{booking.client_info.full_name}</span>
                         </div>
-                        <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                          <span className="text-green-600">📞</span>
-                          <div>
-                            <span className="text-xs text-gray-500 block">Telefon</span>
-                            <a href={`tel:${booking.client_info.phone}`} className="font-medium text-green-600 hover:underline">
-                              {booking.client_info.phone}
-                            </a>
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-primary">📞</span>
+                          <a href={`tel:${booking.client_info.phone}`} className="text-primary hover:underline font-medium">
+                            {booking.client_info.phone}
+                          </a>
                         </div>
-                        <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                          <span className="text-purple-600">📧</span>
-                          <div>
-                            <span className="text-xs text-gray-500 block">Email</span>
-                            <a href={`mailto:${booking.client_info.email}`} className="font-medium text-purple-600 hover:underline break-all">
-                              {booking.client_info.email}
-                            </a>
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-primary">📧</span>
+                          <a href={`mailto:${booking.client_info.email}`} className="text-primary hover:underline font-medium">
+                            {booking.client_info.email}
+                          </a>
                         </div>
                       </div>
                     </div>

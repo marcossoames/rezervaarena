@@ -49,11 +49,6 @@ interface Booking {
   notes?: string;
   client_id: string;
   created_at?: string;
-  client_info?: {
-    full_name: string;
-    phone: string;
-    email: string;
-  };
 }
 
 interface BlockedDate {
@@ -128,7 +123,7 @@ const FacilityCalendarPage = () => {
 
       setFacility(facilityData);
 
-      // Load bookings with client information
+      // Load bookings
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
@@ -139,40 +134,8 @@ const FacilityCalendarPage = () => {
 
       if (bookingsError) {
         console.error('Error fetching bookings:', bookingsError);
-        setBookings([]);
-      } else if (bookingsData) {
-        console.log('Raw bookings data:', bookingsData);
-        
-        // Use the RLS-safe function to get client info for facility bookings
-        const { data: clientsInfo, error: clientsError } = await supabase
-          .rpc('get_client_info_for_facility_bookings', { facility_owner_id: user.id });
-        
-        if (clientsError) {
-          console.error('Error fetching clients info:', clientsError);
-        } else {
-          console.log('Clients info from RPC:', clientsInfo);
-        }
-
-        // Map bookings with client information
-        const bookingsWithClientInfo = bookingsData.map((booking) => {
-          console.log(`Processing booking ${booking.id} with client_id: ${booking.client_id}`);
-          
-          // Find client info from the RPC result
-          const clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
-          console.log(`Client info for booking ${booking.id}:`, clientInfo);
-
-          return {
-            ...booking,
-            client_info: clientInfo ? {
-              full_name: clientInfo.client_name,
-              phone: clientInfo.client_phone,
-              email: clientInfo.client_email
-            } : null
-          };
-        });
-        
-        console.log('Bookings with client info:', bookingsWithClientInfo);
-        setBookings(bookingsWithClientInfo);
+      } else {
+        setBookings(bookingsData || []);
       }
 
       // Load blocked dates
@@ -307,43 +270,8 @@ const FacilityCalendarPage = () => {
       .order('booking_date', { ascending: true })
       .order('start_time', { ascending: true });
 
-    if (!bookingsError && bookingsData) {
-      console.log('Refreshing bookings data:', bookingsData);
-      
-      // Get current user for RLS function
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      // Use the RLS-safe function to get client info for facility bookings
-      const { data: clientsInfo, error: clientsError } = await supabase
-        .rpc('get_client_info_for_facility_bookings', { facility_owner_id: user.id });
-      
-      if (clientsError) {
-        console.error('Error fetching clients info during refresh:', clientsError);
-      } else {
-        console.log('Clients info from RPC during refresh:', clientsInfo);
-      }
-
-      // Map bookings with client information
-      const bookingsWithClientInfo = bookingsData.map((booking) => {
-        console.log(`Refreshing booking ${booking.id} with client_id: ${booking.client_id}`);
-        
-        // Find client info from the RPC result
-        const clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
-        console.log(`Client info for booking ${booking.id}:`, clientInfo);
-
-        return {
-          ...booking,
-          client_info: clientInfo ? {
-            full_name: clientInfo.client_name,
-            phone: clientInfo.client_phone,
-            email: clientInfo.client_email
-          } : null
-        };
-      });
-      
-      console.log('Refreshed bookings with client info:', bookingsWithClientInfo);
-      setBookings(bookingsWithClientInfo);
+    if (!bookingsError) {
+      setBookings(bookingsData || []);
     }
   };
 
@@ -1019,29 +947,9 @@ const FacilityCalendarPage = () => {
                         >
                           <div className="flex-1">
                             <div className="font-medium mb-1">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</div>
-                            <div className="text-muted-foreground text-sm mb-2">
+                            <div className="text-muted-foreground text-sm">
                               {booking.total_price} RON • {booking.payment_method === 'card' ? 'Plată cu cardul' : 'Plată cash'}
                             </div>
-                            {/* Client Information */}
-                            {booking.client_info && (
-                              <div className="text-sm bg-blue-50 border border-blue-200 rounded p-2 mt-2">
-                                <div className="font-medium text-blue-900 mb-1">👤 {booking.client_info.full_name}</div>
-                                <div className="flex gap-3 text-xs text-blue-700">
-                                  <a href={`tel:${booking.client_info.phone}`} className="hover:underline">
-                                    📞 {booking.client_info.phone}
-                                  </a>
-                                  <a href={`mailto:${booking.client_info.email}`} className="hover:underline">
-                                    📧 {booking.client_info.email}
-                                  </a>
-                                </div>
-                              </div>
-                            )}
-                            {!booking.client_info && (
-                              <div className="text-sm bg-red-50 border border-red-200 rounded p-2 mt-2">
-                                <div className="font-medium text-red-900">⚠️ Informații client indisponibile</div>
-                                <div className="text-xs text-red-700">Client ID: {booking.client_id}</div>
-                              </div>
-                            )}
                             {booking.notes && (
                               <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted/50 rounded">
                                 <strong>Notă:</strong> {booking.notes}
