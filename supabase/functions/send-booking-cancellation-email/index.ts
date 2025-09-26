@@ -56,16 +56,36 @@ const handler = async (req: Request): Promise<Response> => {
       } else {
         console.log("Resolving client emails from DB using bookingIds...");
         
-        // First get the bookings with client_ids and facility_ids
+        // First get the bookings with client_ids, facility_ids, and notes
         const { data: bookingsData, error: bookingsError } = await supabase
           .from('bookings')
-          .select('id, client_id, facility_id')
+          .select('id, client_id, facility_id, notes')
           .in('id', bookingIds);
 
         if (bookingsError) {
           console.error('Error fetching bookings from DB:', bookingsError);
         } else if (bookingsData && bookingsData.length > 0) {
-          // Get client emails
+          // Check if any booking is manual and cancelled by facility owner
+          const hasManualBooking = bookingsData.some(booking => {
+            const notes = booking.notes?.toUpperCase() || '';
+            return notes.includes('REZERVARE MANUALĂ') || notes.includes('REZERVARE MANUALA') || 
+                   notes.includes('BLOCAJ') || notes.includes('BLOCARE');
+          });
+
+          // If manual booking cancelled by facility, don't send emails to anyone
+          if (hasManualBooking && cancelledBy === 'facility') {
+            console.log("Manual booking cancelled by facility owner - skipping client notification");
+            return new Response(JSON.stringify({ 
+              success: true, 
+              message: "Manual booking cancellation - no client notifications sent",
+              results: []
+            }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            });
+          }
+
+          // Get client emails for non-manual bookings or if not cancelled by facility
           const clientIds = [...new Set(bookingsData.map(b => b.client_id))];
           const { data: profilesData } = await supabase
             .from('profiles')
