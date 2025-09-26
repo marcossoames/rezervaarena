@@ -267,7 +267,7 @@ const FacilityRegister = () => {
       if (!facility.name || !facility.facilityType || !facility.pricePerHour || !facility.capacity || !facility.operatingHoursStart || !facility.operatingHoursEnd) {
         toast({
           title: "Facilitate incompletă",
-          description: `Completează toate câmpurile pentru facilitatea ${i + 1}, inclusiv orele de funcționare`,
+          description: `Completează toate câmpurile pentru facilitatea ${i + 1}, inclusiv orele de funcționare și intervalele orare permise`,
           variant: "destructive"
         });
         return false;
