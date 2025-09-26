@@ -46,6 +46,19 @@ interface FacilityData {
   operating_hours_end: string;
 }
 
+// Normalize time values like "08:00:00" to "08:00"
+const formatTimeToHHMM = (timeStr?: string | null): string | undefined => {
+  if (!timeStr) return undefined;
+  // Handle inputs like "08:00", "08:00:00", or with milliseconds
+  const parts = timeStr.split(":");
+  if (parts.length >= 2) {
+    const hh = parts[0].padStart(2, "0");
+    const mm = parts[1].padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+  return timeStr;
+};
+
 const EditFacilityPage = () => {
   const { id } = useParams<{ id: string }>();
   const [facility, setFacility] = useState<FacilityData | null>(null);
@@ -152,21 +165,40 @@ const EditFacilityPage = () => {
             facilityData = data;
           }
 
+          // Normalize operating hours to HH:MM and set facility state
+          const normalizedStartTime = formatTimeToHHMM((facilityData as any).operating_hours_start) || "08:00";
+          const normalizedEndTime = formatTimeToHHMM((facilityData as any).operating_hours_end) || "22:00";
+
           setFacility({
             ...facilityData,
-            operating_hours_start: (facilityData as any).operating_hours_start || "08:00",
-            operating_hours_end: (facilityData as any).operating_hours_end || "22:00"
+            operating_hours_start: normalizedStartTime,
+            operating_hours_end: normalizedEndTime
           });
           setAmenities(facilityData.amenities || []);
           setExistingImages(facilityData.images || []);
           
           // Set allowed durations from database (don't default to all)
-          const durations = (facilityData as any).allowed_durations;
+          const durations = (facilityData as any).allowed_durations as number[] | undefined;
           if (durations && Array.isArray(durations) && durations.length > 0) {
             setAllowedDurations(durations);
           } else {
-            // Only set default if no durations are saved
-            setAllowedDurations([]);
+            // Attempt to fetch allowed_durations directly if not present in RPC response
+            const { data: durationsRow } = await supabase
+              .from('facilities')
+              .select('allowed_durations, operating_hours_start, operating_hours_end')
+              .eq('id', id)
+              .single();
+            if (durationsRow?.allowed_durations?.length) {
+              setAllowedDurations(durationsRow.allowed_durations as number[]);
+            } else {
+              setAllowedDurations([]);
+            }
+
+            // Also ensure operating hours are normalized from direct select if needed
+            const fetchedStart = formatTimeToHHMM((durationsRow as any)?.operating_hours_start);
+            const fetchedEnd = formatTimeToHHMM((durationsRow as any)?.operating_hours_end);
+            if (fetchedStart) setValue("operatingHoursStart", fetchedStart);
+            if (fetchedEnd) setValue("operatingHoursEnd", fetchedEnd);
           }
           
           // Find main image index
@@ -188,15 +220,11 @@ const EditFacilityPage = () => {
             setIsCapacityRange(true);
           }
           
-          // Set operating hours properly
-          const startTime = (facilityData as any).operating_hours_start;
-          const endTime = (facilityData as any).operating_hours_end;
-          if (startTime) {
-            setValue("operatingHoursStart", startTime);
-          }
-          if (endTime) {
-            setValue("operatingHoursEnd", endTime);
-          }
+          // Set operating hours properly (normalize to HH:MM)
+          const normalizedStartForForm = formatTimeToHHMM((facilityData as any).operating_hours_start) || "08:00";
+          const normalizedEndForForm = formatTimeToHHMM((facilityData as any).operating_hours_end) || "22:00";
+          setValue("operatingHoursStart", normalizedStartForForm);
+          setValue("operatingHoursEnd", normalizedEndForForm);
         }
       } catch (error) {
         console.error('Error:', error);
