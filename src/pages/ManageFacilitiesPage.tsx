@@ -422,24 +422,31 @@ const ManageFacilitiesPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {facilities.map((facility) => (
                 <Card key={facility.id} className="relative overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
-                  {/* Image Section */}
-                  {facility.images && facility.images.length > 0 && (
-                    <div className="relative h-48 flex-shrink-0">
+                  {/* Media Section - always reserved height */}
+                  <div className="relative h-48 flex-shrink-0 overflow-hidden bg-muted/30">
+                    {facility.images && facility.images.length > 0 ? (
                       <ImageCarousel
                         images={facility.images}
                         facilityName={facility.name}
                         className="w-full h-full"
                       />
-                      <Badge 
-                        variant={facility.is_active ? "default" : "secondary"}
-                        className="absolute top-3 right-3 z-10"
-                      >
-                        {facility.is_active ? "Activ" : "Inactiv"}
-                      </Badge>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center text-muted-foreground">
+                          <div className="text-4xl mb-2">📷</div>
+                          <p className="text-xs">Nicio imagine</p>
+                        </div>
+                      </div>
+                    )}
+                    <Badge 
+                      variant={facility.is_active ? "default" : "secondary"}
+                      className="absolute top-3 right-3 z-10"
+                    >
+                      {facility.is_active ? "Activ" : "Inactiv"}
+                    </Badge>
+                  </div>
                   
-                  <CardHeader className={`${facility.images && facility.images.length > 0 ? "pb-2" : ""} flex-shrink-0`}>
+                  <CardHeader className="pb-2 flex-shrink-0">
                     <div className="flex items-start justify-between min-h-[70px]">
                       <div className="flex-1 pr-2">
                         <CardTitle className="text-lg leading-tight line-clamp-2">{facility.name}</CardTitle>
@@ -448,11 +455,6 @@ const ManageFacilitiesPage = () => {
                           <span className="line-clamp-2 leading-tight">{facility.full_address}, {facility.city}</span>
                         </CardDescription>
                       </div>
-                      {(!facility.images || facility.images.length === 0) && (
-                        <Badge variant={facility.is_active ? "default" : "secondary"} className="flex-shrink-0">
-                          {facility.is_active ? "Activ" : "Inactiv"}
-                        </Badge>
-                      )}
                     </div>
                   </CardHeader>
                    
