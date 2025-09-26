@@ -202,8 +202,8 @@ const DayScheduleCalendar = ({
         </CardTitle>
         <div className="text-sm text-muted-foreground">
           {facilityName} • Program: {(() => {
-            const { startHour, endHour } = getOperatingHours();
-            return `${startHour.toString().padStart(2, '0')}:00 - ${endHour.toString().padStart(2, '0')}:00`;
+            const { startMinutes, endMinutes } = getOperatingHours();
+            return `${minutesToHHMM(startMinutes)} - ${minutesToHHMM(endMinutes)}`;
           })()}
         </div>
         
@@ -260,14 +260,14 @@ const DayScheduleCalendar = ({
       </CardHeader>
       
       <CardContent className="p-4 max-h-[560px] overflow-y-auto">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-1 min-h-[280px]">
+        <div className="grid grid-cols-8 gap-1 min-h-[280px]">
           {timeSlots.map((timeSlot) => {
             const booking = getBookingForTimeSlot(timeSlot);
 
             return (
               <div 
                 key={timeSlot} 
-                className={`h-24 border rounded-md p-1 ${
+                className={`h-20 border rounded-md p-1 ${
                   booking ? '' : 'bg-muted/30 border-dashed'
                 }`}
               >
