@@ -23,6 +23,7 @@ interface Booking {
   client_name: string;
   client_email: string;
   payment_method?: string;
+  stripe_session_id?: string;
 }
 
 interface Facility {
@@ -87,10 +88,11 @@ const DayScheduleCalendar = ({
     if (booking.status === 'completed') return 'bg-green-600';
     if (booking.status === 'no_show') return 'bg-orange-600';
     
-    // Priority 2: Manual bookings (cash payments)
-    if (booking.payment_method === 'cash') return 'bg-black';
+    // Priority 2: Manual bookings (made by facility owners/admins to block time slots)
+    // Check if booking was made manually (no online payment session)
+    if (!booking.stripe_session_id && booking.payment_method === 'cash') return 'bg-black';
     
-    // Priority 3: Sport-specific colors for online bookings
+    // Priority 3: Sport-specific colors for online bookings (regardless of payment method)
     return getSportColor(booking.facility_type);
   };
 
