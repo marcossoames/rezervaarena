@@ -429,113 +429,156 @@ const FacilityManagement = () => {
                               </TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="facilities" className="mt-4">
-                              <div className="space-y-3">
-                                {complex.facilities.map((facility) => (
-                                   <Card key={facility.id} className="border border-border/50">
-                                    <CardContent className="p-4">
-                                      <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                          {/* Title and Status - Fixed height: 32px */}
-                                          <div className="flex items-center gap-3 mb-3 h-8">
-                                            <h4 className="font-semibold">{facility.name}</h4>
-                                            <Badge variant={facility.is_active ? "default" : "secondary"}>
-                                              {facility.is_active ? "Activă" : "Inactivă"}
-                                            </Badge>
-                                            <Badge variant="outline">
-                                              {getFacilityTypeLabel(facility.facility_type)}
-                                            </Badge>
-                                          </div>
-                                          
-                                          {/* Basic Info - Fixed height: 20px */}
-                                          <div className="grid md:grid-cols-3 gap-2 text-sm text-muted-foreground mb-3 h-5">
-                                            <div className="flex items-center gap-1">
-                                              <MapPin className="h-3 w-3" />
-                                              {facility.address}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                              <DollarSign className="h-3 w-3" />
-                                              {facility.price_per_hour} RON/oră
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                              <Users className="h-3 w-3" />
-                                              {facility.capacity} persoane
-                                            </div>
-                                          </div>
-
-                                          {/* Description - Fixed height: 40px */}
-                                          <div className="mb-3 h-10">
-                                            <p className="text-xs text-muted-foreground">
-                                              {facility.description || "Fără descriere"}
-                                            </p>
-                                          </div>
-
-                                           {/* Services and Amenities - Fixed height: 48px total */}
-                                           <div className="h-12 space-y-1">
-                                             {/* General Services */}
-                                             <div className="h-5">
-                                               <div className="text-xs text-muted-foreground">
-                                                 <span className="font-medium">Servicii generale: </span>
-                                                 {facility.general_services && facility.general_services.length > 0 ? (
-                                                   <span>
-                                                     {facility.general_services.slice(0, 2).join(', ')}
-                                                     {facility.general_services.length > 2 && ` (+${facility.general_services.length - 2} mai multe)`}
-                                                   </span>
-                                                 ) : (
-                                                   <span className="italic">Fără servicii generale</span>
-                                                 )}
-                                               </div>
-                                             </div>
-                                             
-                                             {/* Facility Amenities */}
-                                             <div className="h-5">
-                                               <div className="text-xs text-muted-foreground">
-                                                 <span className="font-medium">Dotări teren: </span>
-                                                 {facility.amenities && facility.amenities.length > 0 ? (
-                                                   <span>
-                                                     {facility.amenities.slice(0, 2).join(', ')}
-                                                     {facility.amenities.length > 2 && ` (+${facility.amenities.length - 2} mai multe)`}
-                                                   </span>
-                                                 ) : (
-                                                   <span className="italic">Fără dotări suplimentare pentru teren</span>
-                                                 )}
-                                               </div>
-                                             </div>
+                             <TabsContent value="facilities" className="mt-4">
+                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                 {complex.facilities.map((facility) => (
+                                   <Card key={facility.id} className="relative overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
+                                     {/* Image Section - Fixed Height */}
+                                     <div className="h-56 bg-muted rounded-lg overflow-hidden relative flex-shrink-0">
+                                       {facility.images && facility.images.length > 0 ? (
+                                         <img
+                                           src={facility.images[0]}
+                                           alt={facility.name}
+                                           className="w-full h-full object-cover"
+                                         />
+                                       ) : (
+                                         <div className="w-full h-full bg-muted/50 flex items-center justify-center">
+                                           <div className="text-center text-muted-foreground">
+                                             <div className="text-4xl mb-2">📷</div>
+                                             <p className="text-sm">Nicio imagine</p>
                                            </div>
-                                        </div>
+                                         </div>
+                                       )}
+                                       <Badge 
+                                         variant={facility.is_active ? "default" : "secondary"}
+                                         className="absolute top-3 right-3 z-10"
+                                       >
+                                         {facility.is_active ? "Activ" : "Inactiv"}
+                                       </Badge>
+                                     </div>
+                                     
+                                     {/* Content Section - Fixed Structure for Perfect Alignment */}
+                                     <CardContent className="p-4 flex flex-col flex-1">
+                                       {/* Header Section - Fixed Height: 80px */}
+                                       <div className="h-20 flex items-start justify-between mb-4">
+                                         <div className="flex-1 pr-2">
+                                           <h3 className="text-lg font-bold line-clamp-2 leading-tight mb-1">{facility.name}</h3>
+                                           <p className="text-sm text-muted-foreground line-clamp-1">
+                                             {getFacilityTypeLabel(facility.facility_type)}
+                                           </p>
+                                         </div>
+                                       </div>
 
-                                        <div className="flex flex-col gap-1 ml-4 min-w-[120px]">
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => navigate(`/edit-facility/${facility.id}`)}
-                                          >
-                                            <Edit className="h-3 w-3 mr-1" />
-                                            Editează
-                                          </Button>
-                                          
-                                          <Button
-                                            variant={facility.is_active ? "secondary" : "default"}
-                                            size="sm"
-                                            onClick={() => toggleFacilityStatus(facility.id, facility.is_active)}
-                                          >
-                                            {facility.is_active ? "Dezactivează" : "Activează"}
-                                          </Button>
-                                          
-                                          <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={() => deleteFacility(facility.id, facility.name)}
-                                          >
-                                            <Trash2 className="h-3 w-3 mr-1" />
-                                            Șterge
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-                                ))}
-                              </div>
+                                       {/* Description Section - Fixed Height: 48px */}
+                                       <div className="h-12 mb-4">
+                                         {facility.description ? (
+                                           <p className="text-sm text-muted-foreground line-clamp-2 leading-tight">
+                                             {facility.description}
+                                           </p>
+                                         ) : (
+                                           <p className="text-sm text-muted-foreground italic">
+                                             Fără descriere
+                                           </p>
+                                         )}
+                                       </div>
+
+                                       {/* Details Grid - Fixed Height: 64px */}
+                                       <div className="h-16 grid grid-cols-2 gap-4 text-sm mb-4">
+                                         <div className="flex items-center gap-1">
+                                           <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                           <span className="text-xs">
+                                             {facility.capacity} pers.
+                                           </span>
+                                         </div>
+                                         <div className="flex items-center gap-1">
+                                           <span className="text-xs font-medium text-primary">
+                                             {facility.price_per_hour} RON/oră
+                                           </span>
+                                         </div>
+                                       </div>
+
+                                       {/* Services and Amenities section - Fixed Height: 96px */}
+                                       <div className="h-24 flex flex-col justify-start space-y-2 mb-4">
+                                         {/* General Services (from sports complex) - Fixed Height: 40px */}
+                                         <div className="h-10">
+                                           <p className="text-xs text-muted-foreground font-medium mb-1">Servicii generale:</p>
+                                           {facility.general_services && facility.general_services.length > 0 ? (
+                                             <div className="flex flex-wrap gap-1">
+                                               {facility.general_services.slice(0, 2).map((service) => (
+                                                 <Badge key={service} variant="outline" className="text-xs">
+                                                   {service}
+                                                 </Badge>
+                                               ))}
+                                               {facility.general_services.length > 2 && (
+                                                 <Badge variant="outline" className="text-xs">
+                                                   +{facility.general_services.length - 2}
+                                                 </Badge>
+                                               )}
+                                             </div>
+                                           ) : (
+                                             <p className="text-xs text-muted-foreground italic">Fără servicii generale</p>
+                                           )}
+                                         </div>
+                                         
+                                         {/* Facility-specific amenities - Fixed Height: 40px */}
+                                         <div className="h-10">
+                                           <p className="text-xs text-muted-foreground font-medium mb-1">Dotări teren:</p>
+                                           {facility.amenities && facility.amenities.length > 0 ? (
+                                             <div className="flex flex-wrap gap-1">
+                                               {facility.amenities.slice(0, 2).map((amenity) => (
+                                                 <Badge key={amenity} variant="secondary" className="text-xs">
+                                                   {amenity}
+                                                 </Badge>
+                                               ))}
+                                               {facility.amenities.length > 2 && (
+                                                 <Badge variant="secondary" className="text-xs">
+                                                   +{facility.amenities.length - 2}
+                                                 </Badge>
+                                               )}
+                                             </div>
+                                           ) : (
+                                             <p className="text-xs text-muted-foreground italic">Fără dotări suplimentare pentru teren</p>
+                                           )}
+                                         </div>
+                                       </div>
+
+                                       {/* Actions Section - Fixed at bottom */}
+                                       <div className="mt-auto space-y-2">
+                                         <div className="grid grid-cols-2 gap-2">
+                                           <Button
+                                             variant="outline"
+                                             size="sm"
+                                             onClick={() => navigate(`/edit-facility/${facility.id}`)}
+                                             className="text-xs"
+                                           >
+                                             <Edit className="h-3 w-3 mr-1" />
+                                             Editează
+                                           </Button>
+                                           
+                                           <Button
+                                             variant={facility.is_active ? "secondary" : "default"}
+                                             size="sm"
+                                             onClick={() => toggleFacilityStatus(facility.id, facility.is_active)}
+                                             className="text-xs"
+                                           >
+                                             {facility.is_active ? "Dezactivează" : "Activează"}
+                                           </Button>
+                                         </div>
+                                         
+                                         <Button
+                                           variant="destructive"
+                                           size="sm"
+                                           onClick={() => deleteFacility(facility.id, facility.name)}
+                                           className="w-full text-xs"
+                                         >
+                                           <Trash2 className="h-3 w-3 mr-1" />
+                                           Șterge
+                                         </Button>
+                                       </div>
+                                     </CardContent>
+                                   </Card>
+                                 ))}
+                               </div>
                             </TabsContent>
 
                             <TabsContent value="contact" className="mt-4">
