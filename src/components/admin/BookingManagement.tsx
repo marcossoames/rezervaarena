@@ -527,55 +527,57 @@ const BookingManagement = () => {
             }}
           />
 
-          {/* Bookings List */}
-          <div className="space-y-4">
-            {filteredBookings.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Nu au fost găsite rezervări pentru criteriile selectate.</p>
-              </div>
-            ) : (
-              filteredBookings.map((booking) => (
-                <Card key={booking.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="text-sm">
-                        <div className="font-medium">{booking.facility_name}</div>
-                        <div className="text-muted-foreground">{booking.facility_city}</div>
+          {/* Bookings List - Only show if list view is selected */}
+          {viewMode === 'list' && (
+            <div className="space-y-4">
+              {filteredBookings.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Nu au fost găsite rezervări pentru criteriile selectate.</p>
+                </div>
+              ) : (
+                filteredBookings.map((booking) => (
+                  <Card key={booking.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="text-sm">
+                          <div className="font-medium">{booking.facility_name}</div>
+                          <div className="text-muted-foreground">{booking.facility_city}</div>
+                        </div>
+                        <div className="text-sm">
+                          <div className="font-medium">{format(new Date(booking.booking_date), 'dd MMM yyyy', { locale: ro })}</div>
+                          <div className="text-muted-foreground">{booking.start_time} - {booking.end_time}</div>
+                        </div>
+                        <div className="text-sm">
+                          <div className="font-medium">{booking.client_name}</div>
+                          <div className="text-muted-foreground">{booking.client_email}</div>
+                        </div>
+                        <div className="text-sm">
+                          <div className="font-medium">{booking.total_price} RON</div>
+                        </div>
                       </div>
-                      <div className="text-sm">
-                        <div className="font-medium">{format(new Date(booking.booking_date), 'dd MMM yyyy', { locale: ro })}</div>
-                        <div className="text-muted-foreground">{booking.start_time} - {booking.end_time}</div>
-                      </div>
-                      <div className="text-sm">
-                        <div className="font-medium">{booking.client_name}</div>
-                        <div className="text-muted-foreground">{booking.client_email}</div>
-                      </div>
-                      <div className="text-sm">
-                        <div className="font-medium">{booking.total_price} RON</div>
+                      
+                      <div className="flex items-center gap-2">
+                        <BookingStatusManager
+                          booking={{
+                            id: booking.id,
+                            booking_date: booking.booking_date,
+                            start_time: booking.start_time,
+                            end_time: booking.end_time,
+                            status: booking.status,
+                            total_price: booking.total_price,
+                            payment_method: 'cash',
+                            notes: booking.notes,
+                            client_id: booking.client_id
+                          }}
+                          onStatusUpdate={loadData}
+                        />
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <BookingStatusManager
-                        booking={{
-                          id: booking.id,
-                          booking_date: booking.booking_date,
-                          start_time: booking.start_time,
-                          end_time: booking.end_time,
-                          status: booking.status,
-                          total_price: booking.total_price,
-                          payment_method: 'cash',
-                          notes: booking.notes,
-                          client_id: booking.client_id
-                        }}
-                        onStatusUpdate={loadData}
-                      />
-                    </div>
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

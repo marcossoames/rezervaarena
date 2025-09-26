@@ -83,7 +83,7 @@ const DayScheduleCalendar = ({
     });
   };
 
-  // Get booking type color
+  // Get booking type color based on sport and status
   const getBookingColor = (booking: Booking) => {
     const isManual = booking.payment_method === 'cash';
     const baseClasses = "text-white text-xs font-medium p-2 rounded-md cursor-pointer transition-all hover:shadow-lg";
@@ -98,12 +98,27 @@ const DayScheduleCalendar = ({
       return `${baseClasses} bg-orange-600 hover:bg-orange-700`;
     }
     
-    // Active bookings - different colors for manual vs online
-    if (isManual) {
-      return `${baseClasses} bg-blue-600 hover:bg-blue-700`; // Manual bookings - blue
-    } else {
-      return `${baseClasses} bg-purple-600 hover:bg-purple-700`; // Online bookings - purple
-    }
+    // Active bookings - different colors for each sport type
+    const sportColors = {
+      'football': isManual ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-emerald-500 hover:bg-emerald-600',
+      'tennis': isManual ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600', 
+      'basketball': isManual ? 'bg-orange-700 hover:bg-orange-800' : 'bg-orange-600 hover:bg-orange-700',
+      'volleyball': isManual ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-500 hover:bg-purple-600',
+      'padel': isManual ? 'bg-pink-600 hover:bg-pink-700' : 'bg-pink-500 hover:bg-pink-600',
+      'squash': isManual ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600',
+      'swimming': isManual ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-cyan-500 hover:bg-cyan-600',
+      'fotbal': isManual ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-emerald-500 hover:bg-emerald-600',
+      'tenis': isManual ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600',
+      'baschet': isManual ? 'bg-orange-700 hover:bg-orange-800' : 'bg-orange-600 hover:bg-orange-700',
+      'volei': isManual ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-500 hover:bg-purple-600',
+      'inot': isManual ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-cyan-500 hover:bg-cyan-600',
+    };
+    
+    const sportType = booking.facility_type?.toLowerCase() || 'football';
+    const colorClass = sportColors[sportType as keyof typeof sportColors] || 
+                      (isManual ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-500 hover:bg-gray-600');
+    
+    return `${baseClasses} ${colorClass}`;
   };
 
   // Check if a time slot spans multiple slots for a booking
@@ -156,13 +171,37 @@ const DayScheduleCalendar = ({
         {/* Legend */}
         <div className="flex flex-wrap gap-4 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-purple-600 rounded"></div>
-            <span>Rezervări Online</span>
+            <div className="w-4 h-4 bg-emerald-500 rounded"></div>
+            <span>Fotbal</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-600 rounded"></div>
-            <span>Rezervări Manuale</span>
+            <div className="w-4 h-4 bg-blue-500 rounded"></div>
+            <span>Tenis</span>
           </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-orange-600 rounded"></div>
+            <span>Baschet</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-purple-500 rounded"></div>
+            <span>Volei</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-pink-500 rounded"></div>
+            <span>Padel</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+            <span>Squash</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-cyan-500 rounded"></div>
+            <span>Înot</span>
+          </div>
+        </div>
+        
+        {/* Status Legend */}
+        <div className="flex flex-wrap gap-4 text-xs mt-2 pt-2 border-t">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-green-600 rounded"></div>
             <span>Finalizate</span>
@@ -174,6 +213,9 @@ const DayScheduleCalendar = ({
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-orange-600 rounded"></div>
             <span>Lipsă</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Tonuri mai închise = Manual</span>
           </div>
         </div>
       </CardHeader>
