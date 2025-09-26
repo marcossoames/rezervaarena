@@ -61,7 +61,7 @@ const ManageFacilitiesPage = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [sortedBookings, setSortedBookings] = useState<BookingWithDetails[]>([]);
-  const [sortBy, setSortBy] = useState<string>('booking_date_asc'); // booking_date_asc, booking_date_desc, created_at_asc, created_at_desc, facility_name_asc, facility_name_desc
+  const [sortBy, setSortBy] = useState<string>('booking_date_desc'); // booking_date_asc, booking_date_desc, created_at_asc, created_at_desc, facility_name_asc, facility_name_desc
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'facilities' | 'bookings'>('facilities');
@@ -203,12 +203,19 @@ const ManageFacilitiesPage = () => {
 
   // Sorting function
   const applySorting = (bookingsToSort: BookingWithDetails[], sortType: string) => {
+    console.log('Applying sorting:', sortType, 'to', bookingsToSort.length, 'bookings');
     const sorted = [...bookingsToSort].sort((a, b) => {
       switch (sortType) {
         case 'booking_date_asc':
-          return new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime();
+          // Cronologic: most recent dates first (earlier dates come first)
+          const dateA = new Date(a.booking_date + 'T' + a.start_time).getTime();
+          const dateB = new Date(b.booking_date + 'T' + b.start_time).getTime();
+          return dateA - dateB;
         case 'booking_date_desc':
-          return new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime();
+          // Cronologic invers: most recent dates last (later dates come first)
+          const dateDescA = new Date(a.booking_date + 'T' + a.start_time).getTime();
+          const dateDescB = new Date(b.booking_date + 'T' + b.start_time).getTime();
+          return dateDescB - dateDescA;
         case 'created_at_asc':
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'created_at_desc':
@@ -218,9 +225,11 @@ const ManageFacilitiesPage = () => {
         case 'facility_name_desc':
           return (b.facility_name || '').localeCompare(a.facility_name || '');
         default:
+          console.log('Unknown sort type:', sortType);
           return 0;
       }
     });
+    console.log('Sorted bookings:', sorted.map(b => ({ date: b.booking_date, time: b.start_time, facility: b.facility_name })));
     setSortedBookings(sorted);
   };
 
