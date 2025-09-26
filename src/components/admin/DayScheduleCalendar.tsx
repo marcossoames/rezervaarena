@@ -124,15 +124,21 @@ const DayScheduleCalendar = ({
     let currentMinutes = startHour * 60 + startMin;
     const endMinutes = endHour * 60 + endMin;
 
-    // Generate 30-min slots strictly before the closing time (end is exclusive)
-    while (currentMinutes < endMinutes) {
-      const h = Math.floor(currentMinutes / 60).toString().padStart(2, '0');
-      const m = (currentMinutes % 60).toString().padStart(2, '0');
-      slots.push(`${h}:${m}`);
-      currentMinutes += 30;
-    }
+  // Generate 30-min slots strictly before the closing time (end is exclusive)
+  while (currentMinutes < endMinutes) {
+    const h = Math.floor(currentMinutes / 60).toString().padStart(2, '0');
+    const m = (currentMinutes % 60).toString().padStart(2, '0');
+    slots.push(`${h}:${m}`);
+    currentMinutes += 30;
+  }
 
-    return slots;
+  // Add a final non-bookable closing time label for clarity (e.g., 22:00)
+  const endLabel = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+  if (slots[slots.length - 1] !== endLabel) {
+    slots.push(endLabel);
+  }
+
+  return slots;
   };
 
   // Filter bookings for selected date and facility
@@ -255,8 +261,11 @@ const DayScheduleCalendar = ({
       <CardContent className="p-4">
         <div className="grid grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
           {timeSlots.map((timeSlot) => {
-            // Find booking that starts at this time slot
-            const booking = dayBookings.find(b => b.start_time.substring(0, 5) === timeSlot);
+            const isClosingSlot = timeSlot === end.substring(0, 5);
+            // Find booking that starts at this time slot (exclude closing label)
+            const booking = !isClosingSlot
+              ? dayBookings.find(b => b.start_time.substring(0, 5) === timeSlot)
+              : undefined;
             
             return (
               <div key={timeSlot} className="relative">
@@ -276,6 +285,10 @@ const DayScheduleCalendar = ({
                       <div className="text-xs opacity-90 truncate w-full">{booking.client_name}</div>
                       <div className="text-xs opacity-75">{booking.start_time.substring(0, 5)}-{booking.end_time.substring(0, 5)}</div>
                     </button>
+                  ) : isClosingSlot ? (
+                    <div className="w-full h-full bg-muted/50 border-dashed border rounded flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground">Închidere</span>
+                    </div>
                   ) : (
                     <div className="w-full h-full bg-muted/30 border-dashed border rounded flex items-center justify-center">
                       <span className="text-xs text-muted-foreground">Liber</span>
