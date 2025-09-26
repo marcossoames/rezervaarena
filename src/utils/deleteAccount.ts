@@ -85,91 +85,87 @@ export const deleteUserAccount = async () => {
       throw new Error("Nu există utilizator autentificat");
     }
 
-    // Get user profile before deletion
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, email, role')
-      .eq('user_id', user.id)
-      .single();
-
-    // Check active bookings and facilities before deletion
-    const activeBookingsData = await checkActiveBookings();
-    const ownerFacilitiesData = await checkOwnerActiveFacilityBookings();
-
-    // If this is a facility owner with bookings, collect cancellation email data
-    let cancellationData = null;
-    if (profile?.role === 'facility_owner' && ownerFacilitiesData.activeBookings > 0) {
-      try {
-        // Get booking details with client information for cancellation emails
-        const { data: bookingData } = await supabase
-          .from('bookings')
-          .select(`
-            id, 
-            client_id, 
-            facility_id, 
-            booking_date, 
-            start_time,
-            end_time,
-            total_price,
-            profiles:client_id (email, full_name),
-            facilities:facility_id (name)
-          `)
-          .in('facility_id', ownerFacilitiesData.facilities?.map((f: any) => f.id) || [])
-          .gte('booking_date', new Date().toISOString().split('T')[0])
-          .in('status', ['confirmed', 'pending']);
-
-        if (bookingData && bookingData.length > 0) {
-          // Get complete client and facility information for each booking
-          const bookingDetails = bookingData.map((booking: any) => ({
-            bookingId: booking.id,
-            clientEmail: booking.profiles?.email,
-            clientName: booking.profiles?.full_name,
-            facilityName: booking.facilities?.name,
-            bookingDate: new Date(booking.booking_date).toLocaleDateString("ro-RO"),
-            bookingTime: `${booking.start_time?.slice(0, 5)} - ${booking.end_time?.slice(0, 5)}`,
-            totalPrice: booking.total_price
-          })).filter(booking => booking.clientEmail); // Only include bookings with valid client emails
-
-          cancellationData = {
-            bookings: bookingDetails,
-            reason: 'Proprietarul bazei sportive și-a șters contul'
-          };
-        }
-      } catch (emailError) {
-        console.error('Error collecting cancellation data:', emailError);
-        // Don't fail deletion if email collection fails
-      }
-    }
-
-    // Use the secure deletion function
+    // Use the secure deletion function that handles booking cancellation
     const { data, error } = await supabase.rpc('delete_current_user_account');
 
     if (error) {
       throw error;
     }
 
-    // Send cancellation emails AFTER successful deletion if needed
-    if (cancellationData && cancellationData.bookings && cancellationData.bookings.length > 0) {
+    console.log('Account deletion response:', data);
+
+    // Extract information from the response
+    const deletionResult = data as any;
+    const userRole = deletionResult?.user_role;
+    const userEmail = deletionResult?.user_email;
+    const userName = deletionResult?.user_name;
+    const cancelledBookings = deletionResult?.cancelled_bookings || 0;
+    const bookingDetails = deletionResult?.booking_details || [];
+
+    // Send cancellation emails based on user role
+    if (Array.isArray(bookingDetails) && bookingDetails.length > 0) {
       try {
-        // Send individual cancellation emails for each booking
-        for (const booking of cancellationData.bookings) {
-          const emailResult = await supabase.functions.invoke('send-booking-cancellation-email', {
-            body: {
-              clientEmails: [booking.clientEmail],
-              facilityName: booking.facilityName,
-              reason: cancellationData.reason,
-              bookingDetails: {
-                date: booking.bookingDate,
-                time: booking.bookingTime,
-                price: booking.totalPrice
+        console.log(`Sending ${bookingDetails.length} cancellation emails for ${userRole}`);
+        
+        if (userRole === 'facility_owner') {
+          // For facility owners: send cancellation emails to clients
+          for (const booking of bookingDetails) {
+            if (booking.client_email) {
+              const emailResult = await supabase.functions.invoke('send-booking-cancellation-email', {
+                body: {
+                  clientEmails: [booking.client_email],
+                  facilityName: booking.facility_name,
+                  reason: 'Proprietarul bazei sportive și-a șters contul',
+                  cancelledBy: 'facility',
+                  bookingDetails: {
+                    date: new Date(booking.booking_date).toLocaleDateString("ro-RO"),
+                    time: `${booking.start_time?.slice(0, 5)} - ${booking.end_time?.slice(0, 5)}`,
+                    price: booking.total_price
+                  }
+                }
+              });
+              
+              if (emailResult.error) {
+                console.error(`Cancellation email error for client ${booking.client_email}:`, emailResult.error);
+              } else {
+                console.log(`Cancellation email sent successfully to client ${booking.client_email}`);
               }
             }
-          });
+          }
+        } else if (userRole === 'client') {
+          // For clients: send cancellation notifications to facility owners
+          const facilityOwnerEmails = [...new Set(bookingDetails
+            .map((booking: any) => booking.facility_owner_email)
+            .filter(Boolean))];
           
-          if (emailResult.error) {
-            console.error(`Cancellation email error for ${booking.clientEmail}:`, emailResult.error);
-          } else {
-            console.log(`Cancellation email sent successfully to ${booking.clientEmail}`);
+          for (const ownerEmail of facilityOwnerEmails) {
+            const ownerBookings = bookingDetails.filter((booking: any) => 
+              booking.facility_owner_email === ownerEmail
+            );
+            
+            if (ownerBookings.length > 0) {
+              // Send notification to facility owner about client cancellations
+              const emailResult = await supabase.functions.invoke('send-facility-owner-notification', {
+                body: {
+                  facilityOwnerEmail: ownerEmail,
+                  subject: 'Rezervări anulate - Client a șters contul',
+                  message: `Un client și-a șters contul și a anulat ${ownerBookings.length} rezervare(i).`,
+                  bookings: ownerBookings.map((booking: any) => ({
+                    facility_name: booking.facility_name,
+                    booking_date: new Date(booking.booking_date).toLocaleDateString("ro-RO"),
+                    start_time: booking.start_time?.slice(0, 5),
+                    end_time: booking.end_time?.slice(0, 5),
+                    total_price: booking.total_price
+                  }))
+                }
+              });
+              
+              if (emailResult.error) {
+                console.error(`Facility owner notification error for ${ownerEmail}:`, emailResult.error);
+              } else {
+                console.log(`Facility owner notification sent successfully to ${ownerEmail}`);
+              }
+            }
           }
         }
       } catch (emailError) {
@@ -178,18 +174,18 @@ export const deleteUserAccount = async () => {
       }
     }
 
-    // Send deletion confirmation email AFTER successful deletion
-    if (profile?.email && profile?.full_name) {
+    // Send deletion confirmation email 
+    if (userEmail && userName) {
       try {
-        console.log('Attempting to send deletion confirmation email to:', profile.email);
+        console.log('Attempting to send deletion confirmation email to:', userEmail);
         const emailResult = await supabase.functions.invoke('send-account-deletion-email', {
           body: {
             userId: user.id,
-            userEmail: profile.email,
-            userName: profile.full_name,
-            userType: profile.role === 'client' ? 'client' : 'facility_owner',
-            cancelledBookings: activeBookingsData.activeBookings + (ownerFacilitiesData.activeBookings || 0),
-            deactivatedFacilities: ownerFacilitiesData.facilities?.length || 0
+            userEmail: userEmail,
+            userName: userName,
+            userType: userRole === 'client' ? 'client' : 'facility_owner',
+            cancelledBookings: cancelledBookings,
+            deactivatedFacilities: userRole === 'facility_owner' ? 1 : 0
           }
         });
         
@@ -198,17 +194,12 @@ export const deleteUserAccount = async () => {
         if (emailResult.error) {
           console.error('Email function error:', emailResult.error);
         } else {
-          console.log('Deletion confirmation email sent successfully to:', profile.email);
+          console.log('Deletion confirmation email sent successfully to:', userEmail);
         }
       } catch (emailError) {
         console.error('Error sending deletion email:', emailError);
         // Don't fail the deletion if email fails
       }
-    } else {
-      console.log('Skipping deletion email - missing profile data:', { 
-        email: profile?.email, 
-        name: profile?.full_name 
-      });
     }
 
     // Sign out the user after successful deletion
@@ -216,7 +207,6 @@ export const deleteUserAccount = async () => {
     if (signOutError) {
       console.error('Sign out error after deletion:', signOutError);
       // Don't throw here since account was already deleted successfully
-      // User will still be redirected but might need manual refresh
     }
 
     // Force clear local session data
