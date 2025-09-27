@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Calendar as CalendarIcon, Edit, Clock, Ban, Plus } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Edit, Clock, Ban, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay } from "date-fns";
@@ -449,6 +449,31 @@ const GeneralCalendarPage = () => {
     return bookings && blocked;
   };
 
+  const handleUnblockDate = async (blockedDateId: string) => {
+    try {
+      const { error } = await supabase
+        .from('blocked_dates')
+        .delete()
+        .eq('id', blockedDateId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succes",
+        description: "Blocarea a fost eliminată cu succes"
+      });
+
+      checkAuthAndLoadData();
+    } catch (error) {
+      console.error('Error unblocking date:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut elimina blocarea",
+        variant: "destructive"
+      });
+    }
+  };
+
   const generateTimeSlots = () => {
     const slots = [];
     // Extended hours from 7:30 to 22:15 to cover all facility operating hours
@@ -623,30 +648,40 @@ const GeneralCalendarPage = () => {
               {selectedBlocked.map((blocked) => (
                 <Card key={blocked.id} className="border-yellow-200 bg-yellow-50">
                   <CardContent className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 rounded bg-yellow-500"></div>
-                        <div>
-                          <div className="font-medium text-sm">
-                            {blocked.facility.name}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-4 h-4 rounded bg-yellow-500"></div>
+                          <div>
+                            <div className="font-medium text-sm">
+                              {blocked.facility.name}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {getFacilityTypeLabel(blocked.facility.facility_type)}
+                            </div>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {getFacilityTypeLabel(blocked.facility.facility_type)}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <div className="font-medium text-sm">
+                              {blocked.start_time && blocked.end_time 
+                                ? `${blocked.start_time.slice(0, 5)} - ${blocked.end_time.slice(0, 5)}`
+                                : 'Toată ziua'
+                              }
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Blocat
+                            </div>
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUnblockDate(blocked.id)}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium text-sm">
-                          {blocked.start_time && blocked.end_time 
-                            ? `${blocked.start_time.slice(0, 5)} - ${blocked.end_time.slice(0, 5)}`
-                            : 'Toată ziua'
-                          }
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Blocat
-                        </div>
-                      </div>
-                    </div>
                     {blocked.reason && (
                       <div className="mt-2 text-xs text-muted-foreground">
                         Motiv: {blocked.reason}
