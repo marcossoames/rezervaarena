@@ -40,6 +40,7 @@ const ArticlesPage = lazy(() => import("./pages/ArticlesPage"));
 const PaymentSuccessPage = lazy(() => import("./pages/PaymentSuccessPage"));
 const PlatformPaymentsPage = lazy(() => import("./pages/PlatformPaymentsPage"));
 const FacilityOwnerIncomePage = lazy(() => import("./pages/FacilityOwnerIncomePage"));
+const GeneralCalendarPage = lazy(() => import("./pages/GeneralCalendarPage"));
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,7 @@ const App = () => (
             <Route path="/edit-sports-complex-settings" element={<EditSportsComplexSettingsPage />} />
             <Route path="/manage-facilities" element={<ManageFacilitiesPage />} />
             <Route path="/facility-calendar" element={<FacilityCalendarSelectPage />} />
+            <Route path="/general-calendar" element={<GeneralCalendarPage />} />
             <Route path="/facility-calendar/:facilityId" element={<FacilityCalendarPage />} />
             <Route path="/facility-owner-profile" element={<FacilityOwnerProfilePage />} />
             <Route path="/client-profile" element={<ClientProfilePage />} />

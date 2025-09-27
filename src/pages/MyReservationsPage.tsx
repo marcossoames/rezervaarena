@@ -559,7 +559,7 @@ const MyReservationsPage = () => {
                 {/* General Calendar Button */}
                 <Button
                   variant="outline"
-                  onClick={() => {/* TODO: Add general calendar functionality */}}
+                  onClick={() => navigate('/general-calendar')}
                   className="flex items-center gap-2"
                 >
                   <Calendar className="h-4 w-4" />
