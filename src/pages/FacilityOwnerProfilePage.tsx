@@ -138,13 +138,17 @@ const FacilityOwnerProfilePage = () => {
         .eq('booking_date', todayStr)
         .in('status', ['confirmed', 'pending']);
 
-      // Get monthly bookings (all statuses for accurate count)
+      // Get monthly bookings (confirmed and pending for accurate count)
       const { data: monthlyBookings, error: monthlyError } = await supabase
         .from('bookings')
         .select('*')
         .in('facility_id', facilityIds)
         .gte('booking_date', monthStart)
-        .lte('booking_date', monthEnd);
+        .lte('booking_date', monthEnd)
+        .in('status', ['confirmed', 'pending']);
+
+      console.log('Today bookings query result:', { todayBookings, todayError });
+      console.log('Monthly bookings query result:', { monthlyBookings, monthlyError });
 
       if (todayError) throw todayError;
       if (monthlyError) throw monthlyError;
