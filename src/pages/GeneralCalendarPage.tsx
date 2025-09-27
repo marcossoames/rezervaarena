@@ -501,6 +501,27 @@ const GeneralCalendarPage = () => {
             <div className="w-3 h-3 bg-blue-500 rounded"></div>
             <span className="text-xs">Website</span>
           </div>
+          
+          <div className="text-sm font-medium text-muted-foreground mb-2 w-full mt-2">Blocări:</div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+            <span className="text-xs">Blocat</span>
+          </div>
+          
+          <div className="text-sm font-medium text-muted-foreground mb-2 w-full mt-2">Status rezervări:</div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-500 rounded"></div>
+            <span className="text-xs">Anulat</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded"></div>
+            <span className="text-xs">Finalizat</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-orange-500 rounded"></div>
+            <span className="text-xs">Nu s-a prezentat</span>
+          </div>
+          
           <div className="text-sm font-medium text-muted-foreground mb-2 w-full mt-2">Sporturi:</div>
           {facilities.map(facility => {
             const colors = getSportColor(facility.facility_type);
@@ -523,24 +544,53 @@ const GeneralCalendarPage = () => {
               return timeSlot >= startTime && timeSlot < endTime;
             });
 
+            // Check for blocked intervals
+            const slotBlocked = selectedBlocked.filter(blocked => {
+              // If no specific time range, it's blocked all day
+              if (!blocked.start_time || !blocked.end_time) {
+                return true;
+              }
+              const startTime = blocked.start_time.slice(0, 5);
+              const endTime = blocked.end_time.slice(0, 5);
+              return timeSlot >= startTime && timeSlot < endTime;
+            });
+
+            const isBlocked = slotBlocked.length > 0;
+            const hasBookings = slotBookings.length > 0;
+
             return (
               <div key={timeSlot} className="relative">
                 <div className="text-center font-medium text-muted-foreground mb-1">
                   {timeSlot}
                 </div>
                 <div className="h-16 border rounded overflow-hidden">
-                  {slotBookings.length > 0 ? (
+                  {isBlocked ? (
+                    <div className="h-full bg-yellow-500 flex items-center justify-center text-white text-xs font-medium">
+                      BLOCAT
+                    </div>
+                  ) : hasBookings ? (
                     <div className="h-full overflow-y-auto">
                       {slotBookings.map((booking, index) => {
                         const colors = getSportColor(booking.facility.facility_type);
+                        let statusColor = colors.accent;
+                        
+                        // Override color based on status
+                        if (booking.status === 'cancelled') {
+                          statusColor = 'bg-red-500';
+                        } else if (booking.status === 'completed') {
+                          statusColor = 'bg-green-500';
+                        } else if (booking.status === 'no_show') {
+                          statusColor = 'bg-orange-500';
+                        }
+                        
                         return (
                           <div
                             key={`${booking.id}-${index}`}
                             className={`${colors.bg} ${colors.border} border-l-4 px-1 py-1 mb-px cursor-pointer hover:opacity-80 transition-opacity`}
                             onClick={() => scrollToBooking(booking.id)}
-                            title={`${booking.facility.name} - ${booking.client_info?.full_name}`}
+                            title={`${booking.facility.name} - ${booking.client_info?.full_name} - ${booking.status}`}
                           >
-                            <div className={`w-full h-3 ${colors.accent} rounded-sm`}></div>
+                            <div className={`w-full h-3 ${statusColor} rounded-sm`}></div>
                           </div>
                         );
                       })}
@@ -558,7 +608,50 @@ const GeneralCalendarPage = () => {
 
         {/* Booking List */}
         <div className="space-y-4">
-          <h4 className="text-lg font-semibold">Rezervări pentru {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}</h4>
+          <h4 className="text-lg font-semibold">Rezervări și blocări pentru {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}</h4>
+          
+          {/* Show blocked intervals first */}
+          {selectedBlocked.length > 0 && (
+            <div className="space-y-2">
+              <h5 className="font-medium text-sm text-muted-foreground">Intervale blocate:</h5>
+              {selectedBlocked.map((blocked) => (
+                <Card key={blocked.id} className="border-yellow-200 bg-yellow-50">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 rounded bg-yellow-500"></div>
+                        <div>
+                          <div className="font-medium text-sm">
+                            {blocked.facility.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {getFacilityTypeLabel(blocked.facility.facility_type)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium text-sm">
+                          {blocked.start_time && blocked.end_time 
+                            ? `${blocked.start_time.slice(0, 5)} - ${blocked.end_time.slice(0, 5)}`
+                            : 'Toată ziua'
+                          }
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Blocat
+                        </div>
+                      </div>
+                    </div>
+                    {blocked.reason && (
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        Motiv: {blocked.reason}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
           {selectedBookings.length > 0 ? (
             <div className="space-y-3">
               {selectedBookings
@@ -633,12 +726,14 @@ const GeneralCalendarPage = () => {
                 })}
             </div>
           ) : (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Nu există rezervări pentru această dată</p>
-              </CardContent>
-            </Card>
+            selectedBlocked.length === 0 && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Nu există rezervări sau blocări pentru această dată</p>
+                </CardContent>
+              </Card>
+            )
           )}
         </div>
       </div>
