@@ -274,8 +274,19 @@ const GeneralCalendarPage = () => {
     const selectedBlocked = getBlockedDatesForDate(selectedDate);
     const timeSlots = generateTimeSlots();
 
+    const scrollToBooking = (bookingId: string) => {
+      const element = document.getElementById(`booking-${bookingId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('ring-2', 'ring-primary');
+        setTimeout(() => {
+          element.classList.remove('ring-2', 'ring-primary');
+        }, 2000);
+      }
+    };
+
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <h3 className="text-lg font-semibold">
           Calendar Vizual - {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
         </h3>
@@ -303,47 +314,6 @@ const GeneralCalendarPage = () => {
           })}
         </div>
 
-        {/* Blocked status */}
-        <div className="space-y-2">
-          <div className="text-sm font-medium text-muted-foreground">Blocări:</div>
-          {selectedBlocked.length > 0 ? (
-            selectedBlocked.map(blocked => (
-              <div key={blocked.id} className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span>
-                  {blocked.facility.name}: {blocked.start_time && blocked.end_time 
-                    ? `${blocked.start_time.slice(0, 5)} - ${blocked.end_time.slice(0, 5)}` 
-                    : 'Toată ziua'}
-                </span>
-              </div>
-            ))
-          ) : (
-            <div className="flex items-center gap-2 text-sm text-green-600">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>Nu se poate bloca ziua - există rezervări active</span>
-            </div>
-          )}
-        </div>
-
-        {/* Status rezervări */}
-        <div className="space-y-2">
-          <div className="text-sm font-medium text-muted-foreground">Status rezervări:</div>
-          <div className="flex flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              <span className="text-xs">Anulat</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-xs">Finalizat</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-              <span className="text-xs">Lipsă</span>
-            </div>
-          </div>
-        </div>
-
         {/* Time grid */}
         <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 text-xs">
           {timeSlots.map(timeSlot => {
@@ -359,27 +329,19 @@ const GeneralCalendarPage = () => {
                 <div className="text-center font-medium text-muted-foreground mb-1">
                   {timeSlot}
                 </div>
-                <div className="h-16 border rounded">
+                <div className="h-16 border rounded overflow-hidden">
                   {slotBookings.length > 0 ? (
-                    <div className="space-y-px h-full overflow-hidden">
+                    <div className="h-full overflow-y-auto">
                       {slotBookings.map((booking, index) => {
                         const colors = getSportColor(booking.facility.facility_type);
-                        const isManual = booking.notes && booking.notes.includes('REZERVARE MANUALĂ');
                         return (
                           <div
                             key={`${booking.id}-${index}`}
-                            className={`${colors.bg} ${colors.border} border-l-4 px-1 py-0.5 text-xs ${colors.text} relative`}
-                            style={{ minHeight: `${Math.max(100 / slotBookings.length, 12)}%` }}
+                            className={`${colors.bg} ${colors.border} border-l-4 px-1 py-1 mb-px cursor-pointer hover:opacity-80 transition-opacity`}
+                            onClick={() => scrollToBooking(booking.id)}
+                            title={`${booking.facility.name} - ${booking.client_info?.full_name}`}
                           >
-                            <div className="truncate font-medium">
-                              {booking.facility.name}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <div className={`w-2 h-2 rounded-full ${isManual ? 'bg-black' : 'bg-blue-500'}`}></div>
-                              <span className="truncate text-xs">
-                                {booking.client_info?.full_name || 'Client necunoscut'}
-                              </span>
-                            </div>
+                            <div className={`w-full h-3 ${colors.accent} rounded-sm`}></div>
                           </div>
                         );
                       })}
@@ -393,6 +355,72 @@ const GeneralCalendarPage = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Booking List */}
+        <div className="space-y-4">
+          <h4 className="text-lg font-semibold">Rezervări pentru {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}</h4>
+          {selectedBookings.length > 0 ? (
+            <div className="space-y-3">
+              {selectedBookings
+                .sort((a, b) => a.start_time.localeCompare(b.start_time))
+                .map((booking) => {
+                  const colors = getSportColor(booking.facility.facility_type);
+                  const isManual = booking.notes && booking.notes.includes('REZERVARE MANUALĂ');
+                  return (
+                    <Card key={booking.id} id={`booking-${booking.id}`} className="transition-all duration-200">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-4 h-4 rounded ${colors.accent}`}></div>
+                            <div>
+                              <div className="font-medium text-sm">
+                                {booking.facility.name}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {getFacilityTypeLabel(booking.facility.facility_type)}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-medium text-sm">
+                              {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {booking.total_price} LEI
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${isManual ? 'bg-black' : 'bg-blue-500'}`}></div>
+                            <span className="text-sm text-muted-foreground">
+                              {booking.client_info?.full_name || 'Client necunoscut'}
+                            </span>
+                            {booking.client_info?.phone && (
+                              <span className="text-xs text-muted-foreground">
+                                • {booking.client_info.phone}
+                              </span>
+                            )}
+                          </div>
+                          <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'}>
+                            {booking.status === 'confirmed' ? 'Confirmată' : 
+                             booking.status === 'pending' ? 'În așteptare' : booking.status}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Nu există rezervări pentru această dată</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     );
