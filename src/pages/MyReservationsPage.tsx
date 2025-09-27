@@ -553,16 +553,47 @@ const MyReservationsPage = () => {
               {cameFromManageFacilities ? 'Înapoi la Facilități' : 'Înapoi la Profil'}
             </Button>
             
-            {/* Calendar button for facility owners and admins */}
+            {/* Buttons for facility owners and admins */}
             {(userProfile?.role === 'facility_owner' || userProfile?.user_type_comment?.includes('Proprietar bază sportivă') || userProfile?.role === 'admin') && (
-              <Button
-                variant="outline"
-                onClick={() => navigate('/facility-calendar')}
-                className="flex items-center gap-2"
-              >
-                <Calendar className="h-4 w-4" />
-                Calendar Facilități
-              </Button>
+              <div className="flex items-center gap-2">
+                {/* General Calendar Button */}
+                <Button
+                  variant="outline"
+                  onClick={() => {/* TODO: Add general calendar functionality */}}
+                  className="flex items-center gap-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Calendar General
+                </Button>
+
+                {/* Existing Calendar Facilități Button */}
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/facility-calendar')}
+                  className="flex items-center gap-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Calendar Facilități
+                </Button>
+
+                {/* Sorting Button */}
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-48">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="h-4 w-4" />
+                      <SelectValue placeholder="Sortează rezervările" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="upcoming">Cronologic (data urmează)</SelectItem>
+                    <SelectItem value="recent">Data creării (recent)</SelectItem>
+                    <SelectItem value="date_desc">Data rezervării (recent → vechi)</SelectItem>
+                    <SelectItem value="date_asc">Data rezervării (vechi → recent)</SelectItem>
+                    <SelectItem value="price_desc">Preț (mare → mic)</SelectItem>
+                    <SelectItem value="price_asc">Preț (mic → mare)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             )}
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
