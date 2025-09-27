@@ -15,7 +15,7 @@ import Footer from "@/components/Footer";
 import { deleteUserAccount, checkOwnerActiveFacilityBookings } from "@/utils/deleteAccount";
 import { validateIbanFormat, sanitizeInput, validateAccountHolderName, validateBankName } from "@/utils/bankSecurity";
 import { checkClientRateLimit } from "@/utils/securityHeaders";
-
+import { format } from "date-fns";
 interface BankDetails {
   id: string;
   account_holder_name: string;
@@ -118,15 +118,15 @@ const FacilityOwnerProfilePage = () => {
         return;
       }
 
-      // Get today's date in local timezone
+      // Get today's date in local timezone (avoid UTC shift)
       const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
+      const todayStr = format(today, 'yyyy-MM-dd');
       
-      // Get this month's start and end dates correctly
+      // Get this month's start and end dates without timezone issues
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth(); // 0-based month
-      const monthStart = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
-      const monthEnd = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0]; // Last day of current month
+      const monthStart = format(new Date(currentYear, currentMonth, 1), 'yyyy-MM-dd');
+      const monthEnd = format(new Date(currentYear, currentMonth + 1, 0), 'yyyy-MM-dd'); // Last day of current month
 
       console.log('Date range for stats:', { todayStr, monthStart, monthEnd, facilityIds });
 
@@ -156,7 +156,8 @@ const FacilityOwnerProfilePage = () => {
       console.log('Booking stats loaded:', { 
         todayCount: todayBookings?.length || 0, 
         monthlyCount: monthlyBookings?.length || 0,
-        activeFacilitiesCount: facilities.length 
+        activeFacilitiesCount: facilities.length,
+        debug: { todayStr, monthStart, monthEnd }
       });
 
       setStats({
