@@ -5,7 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Calendar as CalendarIcon, Edit } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowLeft, Calendar as CalendarIcon, Edit, Clock, Ban, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay } from "date-fns";
@@ -82,12 +86,46 @@ const GeneralCalendarPage = () => {
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [showManualBookingDialog, setShowManualBookingDialog] = useState(false);
+  const [blockType, setBlockType] = useState<'full_day' | 'time_range'>('full_day');
+  const [blockStartTime, setBlockStartTime] = useState('08:00');
+  const [blockEndTime, setBlockEndTime] = useState('09:00');
+  const [blockReason, setBlockReason] = useState('');
+  const [selectedFacilityId, setSelectedFacilityId] = useState<string>('');
+  const [manualBookingData, setManualBookingData] = useState({
+    clientName: '',
+    clientPhone: '',
+    startTime: '08:00',
+    endTime: '09:00',
+    facilityId: '',
+    notes: ''
+  });
   
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const updateBookingStatus = async (bookingId: string, newStatus: 'confirmed' | 'cancelled' | 'completed' | 'no_show' | 'pending') => {
     try {
+      // Get booking details for time validation
+      const booking = bookings.find(b => b.id === bookingId);
+      if (!booking) return;
+
+      // Check if trying to set completed/no_show before booking time has passed
+      if ((newStatus === 'completed' || newStatus === 'no_show')) {
+        const bookingDateTime = new Date(`${booking.booking_date}T${booking.end_time}`);
+        const now = new Date();
+        
+        if (bookingDateTime > now) {
+          toast({
+            title: "Eroare",
+            description: "Nu poți marca rezervarea ca finalizată înainte ca timpul rezervării să fi trecut",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from('bookings')
         .update({ status: newStatus })
@@ -134,6 +172,120 @@ const GeneralCalendarPage = () => {
     } catch (error) {
       console.error('Auth check error:', error);
       navigate('/facility/login');
+    }
+  };
+
+  const createBlockedDate = async () => {
+    if (!selectedFacilityId) {
+      toast({
+        title: "Eroare",
+        description: "Te rog selectează o facilitate",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('blocked_dates')
+        .insert({
+          facility_id: selectedFacilityId,
+          blocked_date: format(selectedDate, 'yyyy-MM-dd'),
+          start_time: blockType === 'time_range' ? blockStartTime : null,
+          end_time: blockType === 'time_range' ? blockEndTime : null,
+          reason: blockReason || 'Blocked by admin',
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Succes",
+        description: "Intervalul a fost blocat cu succes"
+      });
+
+      setShowBlockDialog(false);
+      setBlockReason('');
+      setSelectedFacilityId('');
+      
+      // Reload data
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await loadAllData(user.id);
+      }
+    } catch (error) {
+      console.error('Error creating blocked date:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut crea blocarea",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const createManualBooking = async () => {
+    if (!manualBookingData.facilityId || !manualBookingData.clientName) {
+      toast({
+        title: "Eroare",
+        description: "Te rog completează toate câmpurile obligatorii",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const facility = facilities.find(f => f.id === manualBookingData.facilityId);
+      if (!facility) throw new Error('Facility not found');
+
+      // Calculate duration and price
+      const start = new Date(`2000-01-01T${manualBookingData.startTime}`);
+      const end = new Date(`2000-01-01T${manualBookingData.endTime}`);
+      const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+      const totalPrice = durationHours * facility.price_per_hour;
+
+      const { error } = await supabase
+        .from('bookings')
+        .insert({
+          client_id: (await supabase.auth.getUser()).data.user?.id,
+          facility_id: manualBookingData.facilityId,
+          booking_date: format(selectedDate, 'yyyy-MM-dd'),
+          start_time: manualBookingData.startTime,
+          end_time: manualBookingData.endTime,
+          total_price: totalPrice,
+          status: 'confirmed',
+          payment_method: 'cash',
+          notes: `REZERVARE MANUALĂ - Client: ${manualBookingData.clientName} (Tel: ${manualBookingData.clientPhone}). ${manualBookingData.notes}`
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Succes",
+        description: "Rezervarea manuală a fost creată cu succes"
+      });
+
+      setShowManualBookingDialog(false);
+      setManualBookingData({
+        clientName: '',
+        clientPhone: '',
+        startTime: '08:00',
+        endTime: '09:00',
+        facilityId: '',
+        notes: ''
+      });
+
+      // Reload data
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await loadAllData(user.id);
+      }
+    } catch (error) {
+      console.error('Error creating manual booking:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut crea rezervarea manuală",
+        variant: "destructive"
+      });
     }
   };
 
@@ -598,6 +750,193 @@ const GeneralCalendarPage = () => {
                       <div className="w-3 h-3 bg-red-500 rounded"></div>
                       <span>Zile complet blocate</span>
                     </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-6 space-y-2">
+                    <Dialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                          <Ban className="h-4 w-4 mr-2" />
+                          Blochează Interval
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Blochează Interval</DialogTitle>
+                          <DialogDescription>
+                            Blochează un interval pentru {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="facility-select">Facilitate</Label>
+                            <Select value={selectedFacilityId} onValueChange={setSelectedFacilityId}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selectează facilitatea" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {facilities.map(facility => (
+                                  <SelectItem key={facility.id} value={facility.id}>
+                                    {facility.name} - {getFacilityTypeLabel(facility.facility_type)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label>Tip blocare</Label>
+                            <Select value={blockType} onValueChange={(value: 'full_day' | 'time_range') => setBlockType(value)}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="full_day">Toată ziua</SelectItem>
+                                <SelectItem value="time_range">Interval orar</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {blockType === 'time_range' && (
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="start-time">Ora start</Label>
+                                <Input
+                                  id="start-time"
+                                  type="time"
+                                  value={blockStartTime}
+                                  onChange={(e) => setBlockStartTime(e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="end-time">Ora sfârșit</Label>
+                                <Input
+                                  id="end-time"
+                                  type="time"
+                                  value={blockEndTime}
+                                  onChange={(e) => setBlockEndTime(e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          <div>
+                            <Label htmlFor="block-reason">Motiv (opțional)</Label>
+                            <Textarea
+                              id="block-reason"
+                              value={blockReason}
+                              onChange={(e) => setBlockReason(e.target.value)}
+                              placeholder="Motivul blocării..."
+                            />
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button onClick={createBlockedDate} className="flex-1">
+                              Blochează
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowBlockDialog(false)} className="flex-1">
+                              Anulează
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={showManualBookingDialog} onOpenChange={setShowManualBookingDialog}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Rezervare Manuală
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Creează Rezervare Manuală</DialogTitle>
+                          <DialogDescription>
+                            Creează o rezervare manuală pentru {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="facility-booking">Facilitate</Label>
+                            <Select value={manualBookingData.facilityId} onValueChange={(value) => setManualBookingData(prev => ({...prev, facilityId: value}))}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selectează facilitatea" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {facilities.map(facility => (
+                                  <SelectItem key={facility.id} value={facility.id}>
+                                    {facility.name} - {getFacilityTypeLabel(facility.facility_type)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="client-name">Nume Client *</Label>
+                              <Input
+                                id="client-name"
+                                value={manualBookingData.clientName}
+                                onChange={(e) => setManualBookingData(prev => ({...prev, clientName: e.target.value}))}
+                                placeholder="Numele clientului"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="client-phone">Telefon</Label>
+                              <Input
+                                id="client-phone"
+                                value={manualBookingData.clientPhone}
+                                onChange={(e) => setManualBookingData(prev => ({...prev, clientPhone: e.target.value}))}
+                                placeholder="Numărul de telefon"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="booking-start-time">Ora start</Label>
+                              <Input
+                                id="booking-start-time"
+                                type="time"
+                                value={manualBookingData.startTime}
+                                onChange={(e) => setManualBookingData(prev => ({...prev, startTime: e.target.value}))}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="booking-end-time">Ora sfârșit</Label>
+                              <Input
+                                id="booking-end-time"
+                                type="time"
+                                value={manualBookingData.endTime}
+                                onChange={(e) => setManualBookingData(prev => ({...prev, endTime: e.target.value}))}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="booking-notes">Notițe (opțional)</Label>
+                            <Textarea
+                              id="booking-notes"
+                              value={manualBookingData.notes}
+                              onChange={(e) => setManualBookingData(prev => ({...prev, notes: e.target.value}))}
+                              placeholder="Notițe suplimentare..."
+                            />
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button onClick={createManualBooking} className="flex-1">
+                              Creează Rezervarea
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowManualBookingDialog(false)} className="flex-1">
+                              Anulează
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </CardContent>
               </Card>
