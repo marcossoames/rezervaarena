@@ -443,6 +443,12 @@ const GeneralCalendarPage = () => {
     return getBlockedDatesForDate(date).length > 0;
   };
 
+  const hasPartialBlockOnDate = (date: Date) => {
+    const bookings = getBookingsForDate(date).length > 0;
+    const blocked = getBlockedDatesForDate(date).length > 0;
+    return bookings && blocked;
+  };
+
   const generateTimeSlots = () => {
     const slots = [];
     // Extended hours from 7:30 to 22:15 to cover all facility operating hours
@@ -813,8 +819,9 @@ const GeneralCalendarPage = () => {
                     selected={selectedDate}
                     onSelect={(date) => date && setSelectedDate(date)}
                     modifiers={{
-                      hasBookings: (date) => hasBookingsOnDate(date),
-                      hasBlocked: (date) => hasBlockedDatesOnDate(date)
+                      hasBookings: (date) => hasBookingsOnDate(date) && !hasBlockedDatesOnDate(date),
+                      hasBlocked: (date) => hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date),
+                      hasPartialBlock: (date) => hasPartialBlockOnDate(date)
                     }}
                     modifiersStyles={{
                       hasBookings: { 
@@ -825,6 +832,13 @@ const GeneralCalendarPage = () => {
                       hasBlocked: { 
                         backgroundColor: 'hsl(var(--destructive))', 
                         color: 'white' 
+                      },
+                      hasPartialBlock: {
+                        backgroundColor: 'hsl(var(--primary))',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        border: '2px solid #eab308',
+                        borderRadius: '6px'
                       }
                     }}
                     locale={ro}
@@ -838,7 +852,7 @@ const GeneralCalendarPage = () => {
                       <span>Zile cu rezervări</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+                      <div className="w-3 h-3 bg-primary rounded border-2 border-yellow-500"></div>
                       <span>Zile parțial blocate</span>
                     </div>
                     <div className="flex items-center gap-2">
