@@ -127,20 +127,23 @@ const GeneralCalendarPage = () => {
       // Load all bookings for all facilities
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          facilities!inner (*)
-        `)
+        .select('*')
         .in('facility_id', facilityIds)
         .in('status', ['confirmed', 'pending']);
 
       if (bookingsError) throw bookingsError;
 
-      // Load client information for bookings
+      // Load client information for bookings and facility data
       let completeBookings = [];
       if (bookingsData && bookingsData.length > 0) {
         const { data: clientsInfo } = await supabase
           .rpc('get_client_info_for_facility_bookings', { facility_owner_id: userId });
+
+        // Get facility data for each booking
+        const facilitiesMap = facilitiesData.reduce((map, facility) => {
+          map[facility.id] = facility;
+          return map;
+        }, {} as Record<string, Facility>);
 
         completeBookings = bookingsData.map((booking: any) => {
           // Check if this is a manual booking
@@ -169,9 +172,22 @@ const GeneralCalendarPage = () => {
             }
           }
 
+          // Get facility info from our loaded facilities
+          const facility = facilitiesMap[booking.facility_id];
+
           return {
             ...booking,
-            facility: booking.facilities,
+            facility: facility || {
+              id: booking.facility_id,
+              name: booking.facility_name || 'Facility Unknown',
+              facility_type: 'default',
+              description: '',
+              price_per_hour: 0,
+              capacity: 1,
+              images: [],
+              address: booking.facility_address || '',
+              city: 'Unknown'
+            },
             client_info: clientInfo || {
               full_name: 'Client neidentificat',
               phone: 'Contact indisponibil',
@@ -186,17 +202,31 @@ const GeneralCalendarPage = () => {
       // Load blocked dates for all facilities
       const { data: blockedData, error: blockedError } = await supabase
         .from('blocked_dates')
-        .select(`
-          *,
-          facilities!inner (*)
-        `)
+        .select('*')
         .in('facility_id', facilityIds);
 
       if (blockedError) throw blockedError;
-      setBlockedDates(blockedData?.map((blocked: any) => ({
-        ...blocked,
-        facility: blocked.facilities
-      })) || []);
+      
+      // Get facility data for blocked dates
+      const blockedWithFacilities = blockedData?.map((blocked: any) => {
+        const facility = facilitiesData.find(f => f.id === blocked.facility_id);
+        return {
+          ...blocked,
+          facility: facility || {
+            id: blocked.facility_id,
+            name: 'Unknown Facility',
+            facility_type: 'default',
+            description: '',
+            price_per_hour: 0,
+            capacity: 1,
+            images: [],
+            address: '',
+            city: 'Unknown'
+          }
+        };
+      }) || [];
+      
+      setBlockedDates(blockedWithFacilities);
 
     } catch (error) {
       console.error('Error loading data:', error);
