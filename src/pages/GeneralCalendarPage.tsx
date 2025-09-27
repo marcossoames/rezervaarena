@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Calendar as CalendarIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Calendar as CalendarIcon, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay } from "date-fns";
@@ -84,6 +85,38 @@ const GeneralCalendarPage = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const updateBookingStatus = async (bookingId: string, newStatus: 'confirmed' | 'cancelled' | 'completed' | 'no_show' | 'pending') => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: newStatus })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      // Update local state
+      setBookings(prev => prev.map(booking => 
+        booking.id === bookingId ? { ...booking, status: newStatus } : booking
+      ));
+
+      toast({
+        title: "Succes",
+        description: `Statusul rezervării a fost actualizat la: ${newStatus === 'confirmed' ? 'Confirmată' : 
+          newStatus === 'pending' ? 'În așteptare' :
+          newStatus === 'cancelled' ? 'Anulată' :
+          newStatus === 'completed' ? 'Completată' :
+          newStatus === 'no_show' ? 'Nu s-a prezentat' : newStatus}`,
+      });
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut actualiza statusul rezervării",
+        variant: "destructive"
+      });
+    }
+  };
 
   useEffect(() => {
     checkAuthAndLoadData();
@@ -260,12 +293,26 @@ const GeneralCalendarPage = () => {
 
   const generateTimeSlots = () => {
     const slots = [];
-    for (let hour = 8; hour <= 22; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        slots.push(timeStr);
+    // Extended hours from 7:30 to 22:15 to cover all facility operating hours
+    const startHour = 7;
+    const startMinute = 30;
+    const endHour = 22;
+    const endMinute = 15;
+    
+    let currentHour = startHour;
+    let currentMinute = startMinute;
+    
+    while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
+      const timeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+      slots.push(timeStr);
+      
+      currentMinute += 30;
+      if (currentMinute >= 60) {
+        currentMinute = 0;
+        currentHour++;
       }
     }
+    
     return slots;
   };
 
@@ -403,10 +450,30 @@ const GeneralCalendarPage = () => {
                               </span>
                             )}
                           </div>
-                          <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'}>
-                            {booking.status === 'confirmed' ? 'Confirmată' : 
-                             booking.status === 'pending' ? 'În așteptare' : booking.status}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'}>
+                              {booking.status === 'confirmed' ? 'Confirmată' : 
+                               booking.status === 'pending' ? 'În așteptare' : 
+                               booking.status === 'cancelled' ? 'Anulată' :
+                               booking.status === 'completed' ? 'Completată' :
+                               booking.status === 'no_show' ? 'Nu s-a prezentat' : booking.status}
+                            </Badge>
+                            <Select
+                              value={booking.status}
+                              onValueChange={(newStatus) => updateBookingStatus(booking.id, newStatus as 'confirmed' | 'cancelled' | 'completed' | 'no_show' | 'pending')}
+                            >
+                              <SelectTrigger className="w-8 h-8 p-0">
+                                <Edit className="h-3 w-3" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">În așteptare</SelectItem>
+                                <SelectItem value="confirmed">Confirmată</SelectItem>
+                                <SelectItem value="completed">Completată</SelectItem>
+                                <SelectItem value="cancelled">Anulată</SelectItem>
+                                <SelectItem value="no_show">Nu s-a prezentat</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
