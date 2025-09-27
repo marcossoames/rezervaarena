@@ -227,9 +227,26 @@ const MyReservationsPage = () => {
               .eq('id', booking.facility_id)
               .single();
 
-            // Find client info from the RPC result
-            const clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
-            console.log('Client info for booking:', booking.id, clientInfo);
+            // Check if this is a manual booking by examining the notes field
+            const isManualBooking = booking.notes && booking.notes.includes('REZERVARE MANUALĂ');
+            let clientInfo = null;
+            
+            if (isManualBooking) {
+              // Parse client info from notes for manual bookings
+              const notesMatch = booking.notes.match(/Client: ([^(|]+)(?:\s*\(Tel: ([^)]+)\))?/);
+              if (notesMatch) {
+                clientInfo = {
+                  client_name: notesMatch[1].trim(),
+                  client_phone: notesMatch[2] || 'Nr de tel necunoscut',
+                  client_email: (profile as any)?.email || 'Email nedisponibil' // Use facility owner's email for manual bookings
+                };
+              }
+            } else {
+              // For regular bookings, find client info from the RPC result
+              clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
+            }
+            
+            console.log('Client info for booking:', booking.id, clientInfo, 'isManual:', isManualBooking);
 
             // Use preserved facility data if facility no longer exists (deleted)
             const facilityName = facilityDetail?.name || booking.facility_name || 'Teren nedefinit';
