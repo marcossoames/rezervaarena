@@ -759,21 +759,6 @@ const FacilityCalendarPage = () => {
                      selectedDate={selectedDate}
                    />
 
-                   {/* Calendar General Button */}
-                   <Button 
-                     variant="outline"
-                     onClick={() => navigate('/general-calendar', { 
-                       state: { 
-                         from: 'facility-calendar',
-                         facilityId: facilityId
-                       }
-                     })}
-                     className="w-full flex items-center gap-2"
-                   >
-                     <CalendarDays className="h-4 w-4" />
-                     Calendar General
-                   </Button>
-
                    {/* Blocking Options */}
                   {!isBefore(selectedDate, today) ? (
                     <div className="space-y-3">
