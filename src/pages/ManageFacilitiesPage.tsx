@@ -377,7 +377,7 @@ const ManageFacilitiesPage = () => {
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-6">
-          <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm mb-4">
+          <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground hover:border-primary border border-transparent rounded-md px-2 py-1 transition-colors text-sm mb-4">
             <ArrowLeft className="h-4 w-4" />
             Înapoi la profil
           </Link>

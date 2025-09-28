@@ -366,7 +366,7 @@ const AddFacilityPage = () => {
       <div className="container mx-auto max-w-2xl mb-4 flex justify-center">
         <Link 
           to={userProfile?.role === 'admin' ? '/admin/dashboard' : '/manage-facilities'} 
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground hover:border-primary border border-transparent rounded-md px-2 py-1 transition-colors text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
           {userProfile?.role === 'admin' ? 'Înapoi la dashboard' : 'Înapoi la facilități'}

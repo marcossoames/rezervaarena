@@ -871,7 +871,7 @@ const GeneralCalendarPage = () => {
           <Button 
             variant="ghost" 
             onClick={() => navigate('/my-reservations')}
-            className="mb-4"
+            className="mb-4 hover:border-primary border border-transparent"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Înapoi la Rezervări

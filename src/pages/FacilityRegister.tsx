@@ -734,6 +734,7 @@ const FacilityRegister = () => {
           }} 
           variant="outline" 
           size="sm"
+          className="hover:border-primary border border-transparent"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Înapoi
@@ -1075,7 +1076,7 @@ const FacilityRegister = () => {
       />
       {/* Back Button */}
       <div className="container mx-auto max-w-2xl mb-4">
-        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
+        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground hover:border-primary border border-transparent rounded-md px-2 py-1 transition-colors text-sm">
           <ArrowLeft className="h-4 w-4" />
           Înapoi la pagina principală
         </Link>

@@ -80,7 +80,7 @@ const AdminLogin = () => {
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth">
+          <Link to="/" className="inline-flex items-center text-primary-foreground hover:text-primary-foreground/80 hover:border-primary-foreground border border-transparent rounded-md px-2 py-1 transition-smooth">
             <ArrowLeft className="h-5 w-5 mr-2" />
             Înapoi la RezervaArena
           </Link>

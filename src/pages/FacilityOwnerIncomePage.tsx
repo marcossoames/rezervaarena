@@ -24,7 +24,7 @@ const FacilityOwnerIncomePage = () => {
           <Button 
             variant="ghost" 
             onClick={() => navigate('/facility-owner-profile')}
-            className="mb-4"
+            className="mb-4 hover:border-primary border border-transparent"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Înapoi la profil

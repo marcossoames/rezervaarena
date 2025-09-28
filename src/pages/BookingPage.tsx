@@ -405,7 +405,7 @@ const BookingPage = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <Link to="/facilities" className="text-primary hover:underline flex items-center mb-4">
+          <Link to="/facilities" className="text-primary hover:underline hover:border-primary border border-transparent rounded-md px-2 py-1 transition-colors flex items-center mb-4">
             <ChevronLeft className="h-4 w-4 mr-1" />
             Înapoi la facilități
           </Link>

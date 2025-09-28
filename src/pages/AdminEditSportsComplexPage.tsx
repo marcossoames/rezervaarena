@@ -241,6 +241,7 @@ const AdminEditSportsComplexPage = () => {
             <Button
               variant="ghost"
               onClick={() => navigate("/admin/dashboard")}
+              className="hover:border-primary border border-transparent"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Înapoi la Dashboard
