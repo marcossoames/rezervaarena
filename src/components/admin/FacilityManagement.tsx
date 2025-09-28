@@ -74,6 +74,12 @@ const FacilityManagement = () => {
         .select('user_id, full_name, email, phone, user_type_comment')
         .in('user_id', ownerIds);
 
+      // Get sports complexes data for general services
+      const { data: sportsComplexesData } = await supabase
+        .from('sports_complexes')
+        .select('owner_id, name, general_services')
+        .in('owner_id', ownerIds);
+
       // Get bank details for each owner
       const { data: bankData } = await supabase
         .from('bank_details')
@@ -83,22 +89,23 @@ const FacilityManagement = () => {
       // Create lookup maps
       const ownerMap = new Map(ownersData?.map(o => [o.user_id, o]) || []);
       const bankMap = new Map(bankData?.map(b => [b.user_id, b]) || []);
+      const complexMap = new Map(sportsComplexesData?.map(c => [c.owner_id, c]) || []);
 
       // Group facilities by owner (sports complex)
-      const complexMap = new Map<string, SportsComplex>();
+      const complexGroupMap = new Map<string, SportsComplex>();
       
       facilitiesData?.forEach(facility => {
-        const owner = ownerMap.get(facility.owner_id);
         const ownerId = facility.owner_id;
         
-        if (!complexMap.has(ownerId)) {
+        if (!complexGroupMap.has(ownerId)) {
           const owner = ownerMap.get(ownerId);
           const bankDetails = bankMap.get(ownerId);
+          const sportsComplexData = complexMap.get(ownerId);
           
-          // Extract business name from user_type_comment
-          let complexName = 'Baza Sportivă';
+          // Extract business name from sports_complexes table first, then fallback to user_type_comment
+          let complexName = sportsComplexData?.name || 'Baza Sportivă';
           
-          if (owner?.user_type_comment) {
+          if (complexName === 'Baza Sportivă' && owner?.user_type_comment) {
             // Check if the comment contains business name (format: "Business Name - Proprietar bază sportivă")
             const commentParts = owner.user_type_comment.split(' - ');
             if (commentParts.length > 1 && commentParts[1].includes('Proprietar bază sportivă')) {
@@ -112,7 +119,7 @@ const FacilityManagement = () => {
             complexName = `Baza Sportivă ${ownerFirstName} - ${facility.city}`;
           }
           
-          complexMap.set(ownerId, {
+          complexGroupMap.set(ownerId, {
             owner_id: ownerId,
             owner_name: owner?.full_name || 'Unknown',
             owner_email: owner?.email || 'Unknown',
@@ -130,15 +137,23 @@ const FacilityManagement = () => {
           });
         }
         
-        const complex = complexMap.get(ownerId)!;
-        complex.facilities.push(facility);
+        const complex = complexGroupMap.get(ownerId)!;
+        
+        // Add general_services from sports_complexes table to each facility
+        const sportsComplexData = complexMap.get(ownerId);
+        const facilityWithServices = {
+          ...facility,
+          general_services: sportsComplexData?.general_services || []
+        };
+        
+        complex.facilities.push(facilityWithServices);
         complex.total_facilities++;
         if (facility.is_active) {
           complex.active_facilities++;
         }
       });
 
-      setSportsComplexes(Array.from(complexMap.values()));
+      setSportsComplexes(Array.from(complexGroupMap.values()));
     } catch (error) {
       console.error('Error loading sports complexes:', error);
       toast({
