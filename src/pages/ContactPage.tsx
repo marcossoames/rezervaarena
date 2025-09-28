@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Clock, Instagram, Youtube } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { openExternal } from "@/utils/openExternal";
 const ContactPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const {
@@ -97,7 +98,7 @@ const ContactPage = () => {
                         className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                         onClick={(e) => {
                           e.preventDefault();
-                          window.open('https://www.instagram.com/rezervaarena/', '_blank', 'noopener,noreferrer');
+                          openExternal('https://www.instagram.com/rezervaarena/');
                         }}
                       >
                         @rezervaarena
@@ -118,7 +119,7 @@ const ContactPage = () => {
                         className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                         onClick={(e) => {
                           e.preventDefault();
-                          window.open('https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew', '_blank', 'noopener,noreferrer');
+                          openExternal('https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew');
                         }}
                       >
                         RezervaArena

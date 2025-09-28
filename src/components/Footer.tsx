@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
+import { openExternal } from "@/utils/openExternal";
 const Footer = () => {
   return <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-12">
@@ -49,7 +50,7 @@ const Footer = () => {
                   className="text-muted-foreground hover:text-primary transition-smooth"
                   onClick={(e) => {
                     e.preventDefault();
-                    window.open('https://www.instagram.com/rezervaarena/', '_blank', 'noopener,noreferrer');
+                    openExternal('https://www.instagram.com/rezervaarena/');
                   }}
                 >
                   @rezervaarena
@@ -64,7 +65,7 @@ const Footer = () => {
                   className="text-muted-foreground hover:text-primary transition-smooth"
                   onClick={(e) => {
                     e.preventDefault();
-                    window.open('https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew', '_blank', 'noopener,noreferrer');
+                    openExternal('https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew');
                   }}
                 >
                   RezervaArena
