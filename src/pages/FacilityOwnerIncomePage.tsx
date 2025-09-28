@@ -68,8 +68,11 @@ const FacilityOwnerIncomePage = () => {
                   <Percent className="h-5 w-5 text-amber-600 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-amber-900 mb-2">Comision viitor</h3>
-                    <p className="text-amber-800 text-sm">
+                    <p className="text-amber-800 text-sm mb-2">
                       Va fi implementat un comision de <span className="font-bold">10%</span> pentru toate tipurile de plăți (cash și online), la o dată ulterioară. Veți fi informați în avans despre această modificare.
+                    </p>
+                    <p className="text-amber-700 text-xs">
+                      <strong>Notă:</strong> Calculele din secțiunea de venituri iau în considerare acest comision de 10%, deși acesta nu se aplică încă.
                     </p>
                   </div>
                 </div>
