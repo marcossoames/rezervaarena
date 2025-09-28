@@ -42,13 +42,31 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Instagram className="h-5 w-5 text-primary" />
-                <a href="https://www.instagram.com/rezervaarena/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-smooth">
+                <a 
+                  href="https://www.instagram.com/rezervaarena/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-muted-foreground hover:text-primary transition-smooth"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.open('https://www.instagram.com/rezervaarena/', '_blank', 'noopener,noreferrer');
+                  }}
+                >
                   @rezervaarena
                 </a>
               </div>
               <div className="flex items-center space-x-3">
                 <Youtube className="h-5 w-5 text-primary" />
-                <a href="https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-smooth">
+                <a 
+                  href="https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-muted-foreground hover:text-primary transition-smooth"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.open('https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew', '_blank', 'noopener,noreferrer');
+                  }}
+                >
                   RezervaArena
                 </a>
               </div>

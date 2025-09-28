@@ -90,7 +90,16 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-lg">Instagram</h3>
-                      <a href="https://www.instagram.com/rezervaarena/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                      <a 
+                        href="https://www.instagram.com/rezervaarena/" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open('https://www.instagram.com/rezervaarena/', '_blank', 'noopener,noreferrer');
+                        }}
+                      >
                         @rezervaarena
                       </a>
                     </div>
@@ -102,7 +111,16 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-lg">YouTube</h3>
-                      <a href="https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                      <a 
+                        href="https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open('https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew', '_blank', 'noopener,noreferrer');
+                        }}
+                      >
                         RezervaArena
                       </a>
                     </div>
