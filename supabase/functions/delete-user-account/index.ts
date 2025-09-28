@@ -33,138 +33,82 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+          storage: {
+            getItem: () => null,
+            setItem: () => {},
+            removeItem: () => {}
+          }
+        }
+      }
     );
 
-    // Delete user-related data in the correct order to avoid foreign key conflicts
+    // Execute deletion using SQL to bypass RLS policies
+    console.log('Starting account deletion with SQL commands...');
     
-    // 1. Delete bookings (both as client and for owned facilities)
-    console.log('Deleting bookings...');
-    const { error: bookingsError } = await supabaseAdmin
-      .from('bookings')
-      .delete()
-      .eq('client_id', userId);
-    
-    if (bookingsError) {
-      console.error('Error deleting bookings:', bookingsError);
-    }
-    
-    // Get facility IDs owned by this user
-    const { data: facilityIds } = await supabaseAdmin
-      .from('facilities')
-      .select('id')
-      .eq('owner_id', userId);
-    
-    if (facilityIds && facilityIds.length > 0) {
-      const facilityIdList = facilityIds.map(f => f.id);
+    const deleteAccountSQL = `
+      DO $$
+      DECLARE
+        facility_ids_array UUID[];
+      BEGIN
+        -- Get facility IDs owned by this user
+        SELECT ARRAY(SELECT id FROM public.facilities WHERE owner_id = $1) INTO facility_ids_array;
+        
+        -- Delete all bookings by this user
+        DELETE FROM public.bookings WHERE client_id = $1;
+        
+        -- Delete all bookings for facilities owned by this user
+        IF array_length(facility_ids_array, 1) > 0 THEN
+          DELETE FROM public.bookings WHERE facility_id = ANY(facility_ids_array);
+        END IF;
+        
+        -- Delete platform payments
+        DELETE FROM public.platform_payments WHERE client_id = $1 OR facility_owner_id = $1;
+        
+        -- Delete facility-related data if user is facility owner
+        IF array_length(facility_ids_array, 1) > 0 THEN
+          DELETE FROM public.facility_services WHERE facility_id = ANY(facility_ids_array);
+          DELETE FROM public.facility_images WHERE facility_id = ANY(facility_ids_array);
+          DELETE FROM public.blocked_dates WHERE facility_id = ANY(facility_ids_array);
+          DELETE FROM public.recurring_blocked_dates WHERE facility_id = ANY(facility_ids_array);
+          DELETE FROM public.facilities WHERE owner_id = $1;
+          DELETE FROM public.sports_complexes WHERE owner_id = $1;
+        END IF;
+        
+        -- Delete bank details
+        DELETE FROM public.bank_details WHERE user_id = $1;
+        
+        -- Delete profile
+        DELETE FROM public.profiles WHERE user_id = $1;
+        
+      EXCEPTION WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error during account deletion: %', SQLERRM;
+      END $$;
+    `;
+
+    const { error: sqlError } = await supabaseAdmin.rpc('exec', {
+      sql: deleteAccountSQL,
+      args: [userId]
+    });
+
+    if (sqlError) {
+      console.error('Error executing deletion SQL:', sqlError);
+      // Fallback to individual deletions if SQL fails
+      console.log('Attempting fallback deletion...');
       
-      // Delete bookings for facilities owned by this user
-      const { error: facilityBookingsError } = await supabaseAdmin
-        .from('bookings')
-        .delete()
-        .in('facility_id', facilityIdList);
+      // Try to delete with individual operations
+      await supabaseAdmin.from('bookings').delete().eq('client_id', userId);
+      await supabaseAdmin.from('platform_payments').delete().or(`client_id.eq.${userId},facility_owner_id.eq.${userId}`);
+      await supabaseAdmin.from('bank_details').delete().eq('user_id', userId);
+      await supabaseAdmin.from('profiles').delete().eq('user_id', userId);
       
-      if (facilityBookingsError) {
-        console.error('Error deleting facility bookings:', facilityBookingsError);
+      if (userType === 'facility_owner') {
+        await supabaseAdmin.from('facilities').delete().eq('owner_id', userId);
+        await supabaseAdmin.from('sports_complexes').delete().eq('owner_id', userId);
       }
-    }
-
-    // 2. Delete platform payments
-    console.log('Deleting platform payments...');
-    const { error: paymentsError } = await supabaseAdmin
-      .from('platform_payments')
-      .delete()
-      .or(`client_id.eq.${userId},facility_owner_id.eq.${userId}`);
-    
-    if (paymentsError) {
-      console.error('Error deleting payments:', paymentsError);
-    }
-
-    // 3. Delete facility-related data
-    if (userType === 'facility_owner' && facilityIds && facilityIds.length > 0) {
-      console.log('Deleting facility data...');
-      const facilityIdList = facilityIds.map(f => f.id);
-      
-      // Delete facility services
-      const { error: servicesError } = await supabaseAdmin
-        .from('facility_services')
-        .delete()
-        .in('facility_id', facilityIdList);
-      
-      if (servicesError) {
-        console.error('Error deleting facility services:', servicesError);
-      }
-
-      // Delete facility images
-      const { error: imagesError } = await supabaseAdmin
-        .from('facility_images')
-        .delete()
-        .in('facility_id', facilityIdList);
-      
-      if (imagesError) {
-        console.error('Error deleting facility images:', imagesError);
-      }
-
-      // Delete blocked dates
-      const { error: blockedDatesError } = await supabaseAdmin
-        .from('blocked_dates')
-        .delete()
-        .in('facility_id', facilityIdList);
-      
-      if (blockedDatesError) {
-        console.error('Error deleting blocked dates:', blockedDatesError);
-      }
-
-      // Delete recurring blocked dates
-      const { error: recurringBlockedError } = await supabaseAdmin
-        .from('recurring_blocked_dates')
-        .delete()
-        .in('facility_id', facilityIdList);
-      
-      if (recurringBlockedError) {
-        console.error('Error deleting recurring blocked dates:', recurringBlockedError);
-      }
-
-      // Delete facilities
-      const { error: facilitiesError } = await supabaseAdmin
-        .from('facilities')
-        .delete()
-        .eq('owner_id', userId);
-      
-      if (facilitiesError) {
-        console.error('Error deleting facilities:', facilitiesError);
-      }
-
-      // Delete sports complexes
-      const { error: complexError } = await supabaseAdmin
-        .from('sports_complexes')
-        .delete()
-        .eq('owner_id', userId);
-      
-      if (complexError) {
-        console.error('Error deleting sports complex:', complexError);
-      }
-    }
-
-    // 4. Delete bank details
-    console.log('Deleting bank details...');
-    const { error: bankError } = await supabaseAdmin
-      .from('bank_details')
-      .delete()
-      .eq('user_id', userId);
-    
-    if (bankError) {
-      console.error('Error deleting bank details:', bankError);
-    }
-
-    // 5. Delete profile
-    console.log('Deleting profile...');
-    const { error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .delete()
-      .eq('user_id', userId);
-    
-    if (profileError) {
-      console.error('Error deleting profile:', profileError);
     }
 
     // 6. Finally, delete the user from auth
