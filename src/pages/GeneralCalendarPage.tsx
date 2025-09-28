@@ -583,7 +583,8 @@ const GeneralCalendarPage = () => {
               }
               const startTime = blocked.start_time.slice(0, 5);
               const endTime = blocked.end_time.slice(0, 5);
-              return timeSlot >= startTime && timeSlot < endTime;
+              // Include end boundary to mark the ending slot as blocked as well
+              return (timeSlot >= startTime && timeSlot < endTime) || timeSlot === endTime;
             });
 
             const isBlocked = slotBlocked.length > 0;
@@ -595,42 +596,45 @@ const GeneralCalendarPage = () => {
                   {timeSlot}
                 </div>
                 <div className="h-16 border rounded overflow-hidden">
-                  {isBlocked ? (
-                    <div className="h-full bg-yellow-500 flex items-center justify-center text-white text-xs font-medium">
-                      BLOCAT
-                    </div>
-                  ) : hasBookings ? (
-                    <div className="h-full overflow-y-auto">
-                      {slotBookings.map((booking, index) => {
-                        const colors = getSportColor(booking.facility.facility_type);
-                        let statusColor = colors.accent;
-                        
-                        // Override color based on status
-                        if (booking.status === 'cancelled') {
-                          statusColor = 'bg-red-500';
-                        } else if (booking.status === 'completed') {
-                          statusColor = 'bg-green-500';
-                        } else if (booking.status === 'no_show') {
-                          statusColor = 'bg-orange-500';
-                        }
-                        
-                        return (
-                          <div
-                            key={`${booking.id}-${index}`}
-                            className={`${colors.bg} ${colors.border} border-l-4 px-1 py-1 mb-px cursor-pointer hover:opacity-80 transition-opacity`}
-                            onClick={() => scrollToBooking(booking.id)}
-                            title={`${booking.facility.name} - ${booking.client_info?.full_name} - ${booking.status}`}
-                          >
-                            <div className={`w-full h-3 ${statusColor} rounded-sm`}></div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-muted-foreground">
-                      Liber
-                    </div>
-                  )}
+                  <div className="flex flex-col h-full">
+                    {isBlocked && (
+                      <div className="shrink-0 bg-yellow-500 text-white text-[10px] font-semibold px-1 py-0.5 text-center">
+                        BLOCAT
+                      </div>
+                    )}
+                    {hasBookings ? (
+                      <div className="flex-1 overflow-y-auto px-1 py-1">
+                        {slotBookings.map((booking, index) => {
+                          const colors = getSportColor(booking.facility.facility_type);
+                          let statusColor = colors.accent;
+                          
+                          // Override color based on status
+                          if (booking.status === 'cancelled') {
+                            statusColor = 'bg-red-500';
+                          } else if (booking.status === 'completed') {
+                            statusColor = 'bg-green-500';
+                          } else if (booking.status === 'no_show') {
+                            statusColor = 'bg-orange-500';
+                          }
+                          
+                          return (
+                            <div
+                              key={`${booking.id}-${index}`}
+                              className={`${colors.bg} ${colors.border} border-l-4 px-1 py-1 mb-px cursor-pointer hover:opacity-80 transition-opacity`}
+                              onClick={() => scrollToBooking(booking.id)}
+                              title={`${booking.facility.name} - ${booking.client_info?.full_name} - ${booking.status}`}
+                            >
+                              <div className={`w-full h-3 ${statusColor} rounded-sm`}></div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : !isBlocked ? (
+                      <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                        Liber
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             );
