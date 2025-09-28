@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Calendar as CalendarIcon, Edit, Clock, Ban, Plus, X } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Edit, Clock, Ban, Plus, X, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay } from "date-fns";
@@ -474,6 +475,41 @@ const GeneralCalendarPage = () => {
     }
   };
 
+  const generateFacilityTimeSlots = (facilityId: string) => {
+    const facility = facilities.find(f => f.id === facilityId);
+    if (!facility) return [];
+    
+    const slots = [];
+    let startHour = 8;
+    let endHour = 22;
+    
+    if (facility.operating_hours_start) {
+      const [hour] = facility.operating_hours_start.split(':').map(Number);
+      startHour = hour;
+    }
+    
+    if (facility.operating_hours_end) {
+      const [hour] = facility.operating_hours_end.split(':').map(Number);
+      endHour = hour;
+    }
+    
+    let currentHour = startHour;
+    let currentMinute = 0;
+    
+    while (currentHour < endHour || (currentHour === endHour && currentMinute === 0)) {
+      const timeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+      slots.push(timeStr);
+      
+      currentMinute += 30;
+      if (currentMinute >= 60) {
+        currentMinute = 0;
+        currentHour++;
+      }
+    }
+    
+    return slots;
+  };
+
   const generateTimeSlots = () => {
     const slots = [];
     // Extended hours from 7:30 to 22:15 to cover all facility operating hours
@@ -900,13 +936,111 @@ const GeneralCalendarPage = () => {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Action Buttons - Reordered to match individual facility calendar */}
                   <div className="mt-6 space-y-2">
+                    <Dialog open={showManualBookingDialog} onOpenChange={setShowManualBookingDialog}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                          <Users className="h-4 w-4 mr-2" />
+                          Adaugă Rezervare Manuală
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Creează Rezervare Manuală</DialogTitle>
+                          <DialogDescription>
+                            Creează o rezervare manuală pentru {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="facility-booking">Facilitate</Label>
+                            <Select value={manualBookingData.facilityId} onValueChange={(value) => setManualBookingData(prev => ({...prev, facilityId: value}))}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selectează facilitatea" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {facilities.map(facility => (
+                                  <SelectItem key={facility.id} value={facility.id}>
+                                    {facility.name} - {getFacilityTypeLabel(facility.facility_type)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="client-name">Nume Client *</Label>
+                              <Input
+                                id="client-name"
+                                value={manualBookingData.clientName}
+                                onChange={(e) => setManualBookingData(prev => ({...prev, clientName: e.target.value}))}
+                                placeholder="Numele clientului"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="client-phone">Telefon</Label>
+                              <Input
+                                id="client-phone"
+                                value={manualBookingData.clientPhone}
+                                onChange={(e) => setManualBookingData(prev => ({...prev, clientPhone: e.target.value}))}
+                                placeholder="Numărul de telefon"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <TimePicker
+                                label="Ora start"
+                                value={manualBookingData.startTime}
+                                onChange={(value) => setManualBookingData(prev => ({...prev, startTime: value}))}
+                                placeholder="Selectează ora de start"
+                              />
+                            </div>
+                            <div>
+                              <TimePicker
+                                label="Ora sfârșit"
+                                value={manualBookingData.endTime}
+                                onChange={(value) => setManualBookingData(prev => ({...prev, endTime: value}))}
+                                placeholder="Selectează ora de sfârșit"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="booking-notes">Notițe (opțional)</Label>
+                            <Textarea
+                              id="booking-notes"
+                              value={manualBookingData.notes}
+                              onChange={(e) => setManualBookingData(prev => ({...prev, notes: e.target.value}))}
+                              placeholder="Notițe suplimentare..."
+                            />
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button onClick={createManualBooking} className="flex-1">
+                              Creează Rezervarea
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowManualBookingDialog(false)} className="flex-1">
+                              Anulează
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Button variant="outline" className="w-full" disabled>
+                      <Ban className="h-4 w-4 mr-2" />
+                      Blochează Ziua
+                    </Button>
+
                     <Dialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
                       <DialogTrigger asChild>
                         <Button variant="outline" className="w-full">
-                          <Ban className="h-4 w-4 mr-2" />
-                          Blochează Interval
+                          <Clock className="h-4 w-4 mr-2" />
+                          Blochează Anumite Ore
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
@@ -946,24 +1080,22 @@ const GeneralCalendarPage = () => {
                             </Select>
                           </div>
 
-                          {blockType === 'time_range' && (
+                          {blockType === 'time_range' && selectedFacilityId && (
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <Label htmlFor="start-time">Ora start</Label>
-                                <Input
-                                  id="start-time"
-                                  type="time"
+                                <TimePicker
+                                  label="Ora start"
                                   value={blockStartTime}
-                                  onChange={(e) => setBlockStartTime(e.target.value)}
+                                  onChange={setBlockStartTime}
+                                  placeholder="Selectează ora de start"
                                 />
                               </div>
                               <div>
-                                <Label htmlFor="end-time">Ora sfârșit</Label>
-                                <Input
-                                  id="end-time"
-                                  type="time"
+                                <TimePicker
+                                  label="Ora sfârșit"
                                   value={blockEndTime}
-                                  onChange={(e) => setBlockEndTime(e.target.value)}
+                                  onChange={setBlockEndTime}
+                                  placeholder="Selectează ora de sfârșit"
                                 />
                               </div>
                             </div>
@@ -993,7 +1125,7 @@ const GeneralCalendarPage = () => {
 
                     <Dialog open={showManualBookingDialog} onOpenChange={setShowManualBookingDialog}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full">
+                        <Button variant="outline" className="w-full" style={{ display: 'none' }}>
                           <Plus className="h-4 w-4 mr-2" />
                           Rezervare Manuală
                         </Button>
@@ -1045,21 +1177,19 @@ const GeneralCalendarPage = () => {
 
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="booking-start-time">Ora start</Label>
-                              <Input
-                                id="booking-start-time"
-                                type="time"
+                              <TimePicker
+                                label="Ora start"
                                 value={manualBookingData.startTime}
-                                onChange={(e) => setManualBookingData(prev => ({...prev, startTime: e.target.value}))}
+                                onChange={(value) => setManualBookingData(prev => ({...prev, startTime: value}))}
+                                placeholder="Selectează ora de start"
                               />
                             </div>
                             <div>
-                              <Label htmlFor="booking-end-time">Ora sfârșit</Label>
-                              <Input
-                                id="booking-end-time"
-                                type="time"
+                              <TimePicker
+                                label="Ora sfârșit"
                                 value={manualBookingData.endTime}
-                                onChange={(e) => setManualBookingData(prev => ({...prev, endTime: e.target.value}))}
+                                onChange={(value) => setManualBookingData(prev => ({...prev, endTime: value}))}
+                                placeholder="Selectează ora de sfârșit"
                               />
                             </div>
                           </div>
