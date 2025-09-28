@@ -49,6 +49,11 @@ interface Booking {
   notes?: string;
   client_id: string;
   created_at?: string;
+  client_info?: {
+    full_name: string;
+    phone: string;
+    email: string;
+  };
 }
 
 interface BlockedDate {
@@ -123,7 +128,7 @@ const FacilityCalendarPage = () => {
 
       setFacility(facilityData);
 
-      // Load bookings
+      // Load bookings with client information
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
@@ -135,7 +140,50 @@ const FacilityCalendarPage = () => {
       if (bookingsError) {
         console.error('Error fetching bookings:', bookingsError);
       } else {
-        setBookings(bookingsData || []);
+        // Load client information for bookings
+        let completeBookings = [];
+        if (bookingsData && bookingsData.length > 0) {
+          const { data: clientsInfo } = await supabase
+            .rpc('get_client_info_for_facility_bookings', { facility_owner_id: user.id });
+
+          completeBookings = bookingsData.map((booking: any) => {
+            // Check if this is a manual booking
+            const isManualBooking = booking.notes && booking.notes.includes('REZERVARE MANUALĂ');
+            let clientInfo = null;
+            
+            if (isManualBooking) {
+              // Parse client info from notes for manual bookings
+              const notesMatch = booking.notes.match(/Client: ([^(|]+)(?:\s*\(Tel: ([^)]+)\))?/);
+              if (notesMatch) {
+                clientInfo = {
+                  full_name: notesMatch[1].trim(),
+                  phone: notesMatch[2] || 'Nr de tel necunoscut',
+                  email: 'Manual booking'
+                };
+              }
+            } else {
+              // For regular bookings, find client info
+              clientInfo = clientsInfo?.find((c: any) => c.client_id === booking.client_id);
+              if (clientInfo) {
+                clientInfo = {
+                  full_name: clientInfo.client_name,
+                  phone: clientInfo.client_phone,
+                  email: clientInfo.client_email
+                };
+              }
+            }
+
+            return {
+              ...booking,
+              client_info: clientInfo || {
+                full_name: 'Client neidentificat',
+                phone: 'Contact indisponibil',
+                email: 'Email nedisponibil'
+              }
+            };
+          });
+        }
+        setBookings(completeBookings);
       }
 
       // Load blocked dates
@@ -262,6 +310,9 @@ const FacilityCalendarPage = () => {
   const refreshBookings = async () => {
     if (!facilityId) return;
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const { data: bookingsData, error: bookingsError } = await supabase
       .from('bookings')
       .select('*')
@@ -270,8 +321,49 @@ const FacilityCalendarPage = () => {
       .order('booking_date', { ascending: true })
       .order('start_time', { ascending: true });
 
-    if (!bookingsError) {
-      setBookings(bookingsData || []);
+    if (!bookingsError && bookingsData) {
+      // Load client information for bookings
+      const { data: clientsInfo } = await supabase
+        .rpc('get_client_info_for_facility_bookings', { facility_owner_id: user.id });
+
+      const completeBookings = bookingsData.map((booking: any) => {
+        // Check if this is a manual booking
+        const isManualBooking = booking.notes && booking.notes.includes('REZERVARE MANUALĂ');
+        let clientInfo = null;
+        
+        if (isManualBooking) {
+          // Parse client info from notes for manual bookings
+          const notesMatch = booking.notes.match(/Client: ([^(|]+)(?:\s*\(Tel: ([^)]+)\))?/);
+          if (notesMatch) {
+            clientInfo = {
+              full_name: notesMatch[1].trim(),
+              phone: notesMatch[2] || 'Nr de tel necunoscut',
+              email: 'Manual booking'
+            };
+          }
+        } else {
+          // For regular bookings, find client info
+          clientInfo = clientsInfo?.find((c: any) => c.client_id === booking.client_id);
+          if (clientInfo) {
+            clientInfo = {
+              full_name: clientInfo.client_name,
+              phone: clientInfo.client_phone,
+              email: clientInfo.client_email
+            };
+          }
+        }
+
+        return {
+          ...booking,
+          client_info: clientInfo || {
+            full_name: 'Client neidentificat',
+            phone: 'Contact indisponibil',
+            email: 'Email nedisponibil'
+          }
+        };
+      });
+
+      setBookings(completeBookings);
     }
   };
 
@@ -947,9 +1039,19 @@ const FacilityCalendarPage = () => {
                         >
                           <div className="flex-1">
                             <div className="font-medium mb-1">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</div>
-                            <div className="text-muted-foreground text-sm">
+                            <div className="text-muted-foreground text-sm mb-2">
                               {booking.total_price} RON • {booking.payment_method === 'card' ? 'Plată cu cardul' : 'Plată cash'}
                             </div>
+                            
+                            {/* Client Information */}
+                            <div className="text-sm text-muted-foreground mb-2">
+                              <div className="font-medium text-foreground">{booking.client_info?.full_name || 'Client neidentificat'}</div>
+                              <div className="flex gap-4 text-xs mt-1">
+                                <span>📞 {booking.client_info?.phone || 'Telefon nedisponibil'}</span>
+                                <span>✉️ {booking.client_info?.email || 'Email nedisponibil'}</span>
+                              </div>
+                            </div>
+                            
                             {booking.notes && (
                               <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted/50 rounded">
                                 <strong>Notă:</strong> {booking.notes}
