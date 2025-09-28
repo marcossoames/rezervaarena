@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 const Footer = () => {
   return <footer className="bg-card border-t border-border">
@@ -44,6 +44,12 @@ const Footer = () => {
                 <Instagram className="h-5 w-5 text-primary" />
                 <a href="https://www.instagram.com/rezervaarena/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-smooth">
                   @rezervaarena
+                </a>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Youtube className="h-5 w-5 text-primary" />
+                <a href="https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-smooth">
+                  RezervaArena
                 </a>
               </div>
             </div>

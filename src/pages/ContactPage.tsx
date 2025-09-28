@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone, MapPin, Clock, Instagram } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Instagram, Youtube } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 const ContactPage = () => {
@@ -92,6 +92,18 @@ const ContactPage = () => {
                       <h3 className="font-medium text-lg">Instagram</h3>
                       <a href="https://www.instagram.com/rezervaarena/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
                         @rezervaarena
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <Youtube className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-lg">YouTube</h3>
+                      <a href="https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                        RezervaArena
                       </a>
                     </div>
                   </div>
