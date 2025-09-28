@@ -719,6 +719,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_user_bookings_on_deletion: {
+        Args: { user_id_param: string; user_role: string }
+        Returns: {
+          booking_details: Json
+          cancelled_bookings_count: number
+        }[]
+      }
       check_rate_limit: {
         Args: {
           max_attempts?: number
@@ -738,6 +745,10 @@ export type Database = {
       }
       delete_current_user_account: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      delete_user_account_admin: {
+        Args: { user_id_param: string }
         Returns: boolean
       }
       delete_user_account_secure: {
