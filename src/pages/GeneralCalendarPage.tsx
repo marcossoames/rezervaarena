@@ -186,6 +186,44 @@ const GeneralCalendarPage = () => {
       return;
     }
 
+    // Check if there are existing bookings for this facility on this date
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const existingBookings = bookings.filter(
+      booking => booking.facility_id === selectedFacilityId && 
+                booking.booking_date === dateStr &&
+                booking.status !== 'cancelled'
+    );
+
+    // If blocking full day and there are existing bookings, prevent blocking
+    if (blockType === 'full_day' && existingBookings.length > 0) {
+      toast({
+        title: "Eroare",
+        description: "Nu poți bloca toată ziua pentru acest teren deoarece există deja rezervări active. Te rog selectează 'Interval orar' și blochează doar intervalele libere.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // If blocking time range, check for overlaps with existing bookings
+    if (blockType === 'time_range' && existingBookings.length > 0) {
+      const hasOverlap = existingBookings.some(booking => {
+        const bookingStart = booking.start_time.slice(0, 5);
+        const bookingEnd = booking.end_time.slice(0, 5);
+        
+        // Check if the blocking time overlaps with any booking
+        return (blockStartTime < bookingEnd && blockEndTime > bookingStart);
+      });
+
+      if (hasOverlap) {
+        toast({
+          title: "Eroare", 
+          description: "Intervalul selectat se suprapune cu rezervări existente. Te rog selectează un interval liber.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     try {
       const { error } = await supabase
         .from('blocked_dates')
