@@ -306,7 +306,7 @@ const DayScheduleCalendar = ({
             return (
               <div key={timeSlot} className={`relative border-muted ${ (booking && !isEndBooking) || (blocking && !blockEnd) ? 'border-r-0' : 'border-r' } last:border-r-0`}>
                 {/* Time slot header */}
-                <div className="text-xs font-mono text-left text-muted-foreground p-1 pl-2 border-b bg-muted/20">
+                <div className="text-xs font-medium text-left text-muted-foreground p-1 pl-2 border-b bg-muted/20">
                   {timeSlot}
                 </div>
                 
