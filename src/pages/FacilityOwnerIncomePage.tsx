@@ -9,19 +9,10 @@ import FacilityIncomeManagement from "@/components/facility/FacilityIncomeManage
 
 const FacilityOwnerIncomePage = () => {
   const navigate = useNavigate();
-  const [showPricingInfo, setShowPricingInfo] = useState(false);
-
-  useEffect(() => {
-    // Check if user has already seen the pricing info popup
-    const hasSeenPricingInfo = localStorage.getItem('facility-pricing-info-seen');
-    if (!hasSeenPricingInfo) {
-      setShowPricingInfo(true);
-    }
-  }, []);
+  const [showPricingInfo, setShowPricingInfo] = useState(true);
 
   const handleClosePricingInfo = () => {
     setShowPricingInfo(false);
-    localStorage.setItem('facility-pricing-info-seen', 'true');
   };
 
   return (
