@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Building2 } from "lucide-react";
+import { ArrowLeft, Calendar, Building2, CalendarDays } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
@@ -125,10 +125,24 @@ const FacilityCalendarSelectPage = () => {
             Înapoi
           </Button>
           
-          <h1 className="text-3xl font-bold text-foreground mb-2">Calendar Facilități</h1>
-          <p className="text-muted-foreground">
-            Selectează facilitatea pentru a vedea calendarul și a gestiona rezervările
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Calendar Facilități</h1>
+              <p className="text-muted-foreground">
+                Selectează facilitatea pentru a vedea calendarul și a gestiona rezervările
+              </p>
+            </div>
+            
+            {/* Calendar General Button */}
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/general-calendar')}
+              className="flex items-center gap-2 sm:flex-shrink-0"
+            >
+              <CalendarDays className="h-4 w-4" />
+              Calendar General
+            </Button>
+          </div>
         </div>
 
         {facilities.length === 0 ? (
@@ -139,9 +153,20 @@ const FacilityCalendarSelectPage = () => {
               <p className="text-muted-foreground mb-6">
                 Pentru a accesa calendarul, trebuie să ai cel puțin o facilitate activă.
               </p>
-              <Button asChild>
-                <a href="/manage-facilities">Gestionează Facilități</a>
-              </Button>
+              <div className="space-y-4">
+                <Button asChild>
+                  <a href="/manage-facilities">Gestionează Facilități</a>
+                </Button>
+                <div className="text-sm text-muted-foreground">sau</div>
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/general-calendar')}
+                  className="flex items-center gap-2"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  Accesează Calendar General
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (
