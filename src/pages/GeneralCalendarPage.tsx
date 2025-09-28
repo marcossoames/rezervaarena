@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay } from "date-fns";
 import { ro } from "date-fns/locale";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
+import BookingStatusManager from "@/components/booking/BookingStatusManager";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -814,30 +815,17 @@ const GeneralCalendarPage = () => {
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'}>
-                              {booking.status === 'confirmed' ? 'Confirmată' : 
-                               booking.status === 'pending' ? 'În așteptare' : 
-                               booking.status === 'cancelled' ? 'Anulată' :
-                               booking.status === 'completed' ? 'Completată' :
-                               booking.status === 'no_show' ? 'Nu s-a prezentat' : booking.status}
-                            </Badge>
-                            <Select
-                              value={booking.status}
-                              onValueChange={(newStatus) => updateBookingStatus(booking.id, newStatus as 'confirmed' | 'cancelled' | 'completed' | 'no_show' | 'pending')}
-                            >
-                              <SelectTrigger className="w-8 h-8 p-0">
-                                <Edit className="h-3 w-3" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">În așteptare</SelectItem>
-                                <SelectItem value="confirmed">Confirmată</SelectItem>
-                                <SelectItem value="completed">Completată</SelectItem>
-                                <SelectItem value="cancelled">Anulată</SelectItem>
-                                <SelectItem value="no_show">Nu s-a prezentat</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                          <BookingStatusManager
+                            booking={booking}
+                            onStatusUpdate={async () => {
+                              // Reload data to get updated booking
+                              const { data: { user } } = await supabase.auth.getUser();
+                              if (user) {
+                                await loadAllData(user.id);
+                              }
+                            }}
+                            showStatusUpdate={true}
+                          />
                         </div>
                       </CardContent>
                     </Card>
