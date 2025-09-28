@@ -632,7 +632,7 @@ const GeneralCalendarPage = () => {
           
           <div className="text-sm font-medium text-muted-foreground mb-2 w-full mt-2">Blocări:</div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+            <div className="w-3 h-3 bg-amber-600 rounded"></div>
             <span className="text-xs">Blocat</span>
           </div>
           
@@ -642,11 +642,11 @@ const GeneralCalendarPage = () => {
             <span className="text-xs">Anulat</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded"></div>
+            <div className="w-3 h-3 bg-emerald-600 rounded"></div>
             <span className="text-xs">Finalizat</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-orange-500 rounded"></div>
+            <div className="w-3 h-3 bg-rose-600 rounded"></div>
             <span className="text-xs">Nu s-a prezentat</span>
           </div>
           
@@ -695,7 +695,7 @@ const GeneralCalendarPage = () => {
                 <div className="h-16 border rounded overflow-hidden">
                   <div className="flex flex-col h-full">
                     {isBlocked && (
-                      <div className="shrink-0 bg-yellow-500 text-white text-[10px] font-semibold px-1 py-0.5 text-center">
+                      <div className="shrink-0 bg-amber-600 text-white text-[10px] font-semibold px-1 py-0.5 text-center">
                         BLOCAT
                       </div>
                     )}
@@ -709,9 +709,9 @@ const GeneralCalendarPage = () => {
                           if (booking.status === 'cancelled') {
                             statusColor = 'bg-red-500';
                           } else if (booking.status === 'completed') {
-                            statusColor = 'bg-green-500';
+                            statusColor = 'bg-emerald-600';
                           } else if (booking.status === 'no_show') {
-                            statusColor = 'bg-orange-500';
+                            statusColor = 'bg-rose-600';
                           }
                           
                           return (
@@ -747,11 +747,11 @@ const GeneralCalendarPage = () => {
             <div className="space-y-2">
               <h5 className="font-medium text-sm text-muted-foreground">Intervale blocate:</h5>
               {selectedBlocked.map((blocked) => (
-                <Card key={blocked.id} className="border-yellow-200 bg-yellow-50">
+                <Card key={blocked.id} className="border-amber-200 bg-amber-50">
                   <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-4 h-4 rounded bg-yellow-500"></div>
+                          <div className="w-4 h-4 rounded bg-amber-600"></div>
                           <div>
                             <div className="font-medium text-sm">
                               {blocked.facility.name}
