@@ -573,11 +573,38 @@ const GeneralCalendarPage = () => {
 
   const generateTimeSlots = () => {
     const slots = [];
-    // Extended hours from 7:30 to 22:15 to cover all facility operating hours
-    const startHour = 7;
-    const startMinute = 30;
-    const endHour = 22;
-    const endMinute = 15;
+    
+    // Calculate dynamic time range based on facility operating hours
+    let earliestStart = '08:00'; // Default fallback
+    let latestEnd = '22:00'; // Default fallback
+    
+    if (facilities.length > 0) {
+      const operatingHours = facilities
+        .filter(f => f.operating_hours_start && f.operating_hours_end)
+        .map(f => ({
+          start: f.operating_hours_start!,
+          end: f.operating_hours_end!
+        }));
+      
+      if (operatingHours.length > 0) {
+        // Find earliest opening time
+        earliestStart = operatingHours.reduce((earliest, hours) => 
+          hours.start < earliest ? hours.start : earliest, 
+          operatingHours[0].start
+        );
+        
+        // Find latest closing time
+        latestEnd = operatingHours.reduce((latest, hours) => 
+          hours.end > latest ? hours.end : latest, 
+          operatingHours[0].end
+        );
+      }
+    }
+    
+    // Parse start time
+    const [startHour, startMinute] = earliestStart.split(':').map(Number);
+    // Parse end time
+    const [endHour, endMinute] = latestEnd.split(':').map(Number);
     
     let currentHour = startHour;
     let currentMinute = startMinute;
