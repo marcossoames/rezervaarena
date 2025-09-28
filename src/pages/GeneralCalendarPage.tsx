@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +105,29 @@ const GeneralCalendarPage = () => {
   });
   
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Detect where the user came from
+  const cameFromFacilityCalendar = location.state?.from === 'facility-calendar';
+  const cameFromFacilityCalendarSelect = location.state?.from === 'facility-calendar-select';
+  const facilityId = location.state?.facilityId;
+
+  const getBackButtonText = () => {
+    if (cameFromFacilityCalendar) return 'Înapoi la Calendar Facilitate';
+    if (cameFromFacilityCalendarSelect) return 'Înapoi la Calendar Facilități';
+    return 'Înapoi la Rezervări';
+  };
+
+  const getBackButtonAction = () => {
+    if (cameFromFacilityCalendar && facilityId) {
+      return () => navigate(`/facility-calendar/${facilityId}`);
+    }
+    if (cameFromFacilityCalendarSelect) {
+      return () => navigate('/facility-calendar');
+    }
+    return () => navigate('/my-reservations');
+  };
 
   const updateBookingStatus = async (bookingId: string, newStatus: 'confirmed' | 'cancelled' | 'completed' | 'no_show' | 'pending') => {
     try {
@@ -870,11 +892,11 @@ const GeneralCalendarPage = () => {
         <div className="mb-6">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/my-reservations')}
+            onClick={getBackButtonAction()}
             className="mb-4 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Înapoi la Rezervări
+            {getBackButtonText()}
           </Button>
           
           <div>

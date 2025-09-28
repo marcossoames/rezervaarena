@@ -136,7 +136,11 @@ const FacilityCalendarSelectPage = () => {
             {/* Calendar General Button */}
             <Button 
               variant="outline"
-              onClick={() => navigate('/general-calendar')}
+              onClick={() => navigate('/general-calendar', { 
+                state: { 
+                  from: 'facility-calendar-select'
+                }
+              })}
               className="flex items-center gap-2 sm:flex-shrink-0"
             >
               <CalendarDays className="h-4 w-4" />
@@ -160,7 +164,11 @@ const FacilityCalendarSelectPage = () => {
                 <div className="text-sm text-muted-foreground">sau</div>
                 <Button 
                   variant="outline"
-                  onClick={() => navigate('/general-calendar')}
+                  onClick={() => navigate('/general-calendar', { 
+                    state: { 
+                      from: 'facility-calendar-select'
+                    }
+                  })}
                   className="flex items-center gap-2"
                 >
                   <CalendarDays className="h-4 w-4" />

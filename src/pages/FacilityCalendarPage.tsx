@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Calendar as CalendarIcon, Ban, Edit, Eye, Clock, Users, MapPin, Repeat, CalendarOff, X } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Ban, Edit, Eye, Clock, Users, MapPin, Repeat, CalendarOff, X, CalendarDays } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, addWeeks, addMonths, startOfDay, endOfDay, isAfter, isBefore, isSameDay, getDay } from "date-fns";
@@ -752,14 +752,29 @@ const FacilityCalendarPage = () => {
               {selectedDate ? (
                 <div className="space-y-4">
                   {/* Add Manual Booking Button */}
-                  <AddManualBookingDialog 
-                    facilityId={facilityId!}
-                    onBookingAdded={refreshBookings}
-                    facility={facility}
-                    selectedDate={selectedDate}
-                  />
+                   <AddManualBookingDialog 
+                     facilityId={facilityId!}
+                     onBookingAdded={refreshBookings}
+                     facility={facility}
+                     selectedDate={selectedDate}
+                   />
 
-                  {/* Blocking Options */}
+                   {/* Calendar General Button */}
+                   <Button 
+                     variant="outline"
+                     onClick={() => navigate('/general-calendar', { 
+                       state: { 
+                         from: 'facility-calendar',
+                         facilityId: facilityId
+                       }
+                     })}
+                     className="w-full flex items-center gap-2"
+                   >
+                     <CalendarDays className="h-4 w-4" />
+                     Calendar General
+                   </Button>
+
+                   {/* Blocking Options */}
                   {!isBefore(selectedDate, today) ? (
                     <div className="space-y-3">
                        {(() => {
