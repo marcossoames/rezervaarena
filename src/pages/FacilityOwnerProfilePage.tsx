@@ -420,7 +420,7 @@ const FacilityOwnerProfilePage = () => {
           <Button 
             variant="ghost" 
             onClick={() => navigate('/')}
-            className="mb-4 hover:border-primary border border-transparent"
+            className="mb-4 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Înapoi la pagina principală

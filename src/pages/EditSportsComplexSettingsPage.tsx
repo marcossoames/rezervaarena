@@ -247,7 +247,7 @@ const EditSportsComplexSettingsPage = () => {
             <Button
               variant="ghost"
               onClick={() => navigate("/facility-owner-profile")}
-              className="hover:border-primary border border-transparent"
+              className="hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Înapoi la Profil

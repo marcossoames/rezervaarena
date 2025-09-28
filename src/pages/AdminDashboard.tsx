@@ -140,7 +140,7 @@ const AdminDashboard = () => {
                 onClick={() => navigate("/")} 
                 variant="outline" 
                 size="sm"
-                className="flex items-center gap-2 hover:border-primary border border-transparent"
+                className="flex items-center gap-2 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Înapoi la Home

@@ -547,7 +547,7 @@ const MyReservationsPage = () => {
                   navigate('/client-profile');
                 }
               }}
-              className="flex items-center gap-2 hover:border-primary border border-transparent rounded-md px-3 py-2 transition-colors"
+              className="flex items-center gap-2 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary rounded-md px-3 py-2 transition-all duration-200"
             >
               <ArrowLeft className="h-4 w-4" />
               {cameFromManageFacilities ? 'Înapoi la Facilități' : 'Înapoi la Profil'}
