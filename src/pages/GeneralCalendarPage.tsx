@@ -689,7 +689,7 @@ const GeneralCalendarPage = () => {
 
             return (
               <div key={timeSlot} className="relative">
-                <div className="text-center font-medium text-muted-foreground mb-1">
+                <div className="text-left font-medium text-muted-foreground mb-1 pl-2">
                   {timeSlot}
                 </div>
                 <div className="h-16 border rounded overflow-hidden">
