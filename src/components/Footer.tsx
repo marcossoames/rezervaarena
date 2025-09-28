@@ -43,33 +43,21 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Instagram className="h-5 w-5 text-primary" />
-                <a 
-                  href="https://www.instagram.com/rezervaarena/" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-muted-foreground hover:text-primary transition-smooth"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    openExternal('https://www.instagram.com/rezervaarena/');
-                  }}
+                <button 
+                  className="text-muted-foreground hover:text-primary transition-smooth bg-transparent border-none underline"
+                  onClick={() => openExternal('https://www.instagram.com/rezervaarena/')}
                 >
                   @rezervaarena
-                </a>
+                </button>
               </div>
               <div className="flex items-center space-x-3">
                 <Youtube className="h-5 w-5 text-primary" />
-                <a 
-                  href="https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-muted-foreground hover:text-primary transition-smooth"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    openExternal('https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew');
-                  }}
+                <button 
+                  className="text-muted-foreground hover:text-primary transition-smooth bg-transparent border-none underline"
+                  onClick={() => openExternal('https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew')}
                 >
                   RezervaArena
-                </a>
+                </button>
               </div>
             </div>
           </div>
