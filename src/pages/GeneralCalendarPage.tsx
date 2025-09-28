@@ -933,21 +933,28 @@ const GeneralCalendarPage = () => {
                     onSelect={(date) => date && setSelectedDate(date)}
                     modifiers={{
                       hasBookings: (date) => hasBookingsOnDate(date) && !hasBlockedDatesOnDate(date),
-                      hasBlocked: (date) => hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date),
+                      hasBlocked: (date) => hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date) && getBlockedDatesForDate(date).some(blocked => !blocked.start_time && !blocked.end_time),
+                      hasOnlyPartialBlocks: (date) => hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date) && !getBlockedDatesForDate(date).some(blocked => !blocked.start_time && !blocked.end_time),
                       hasPartialBlock: (date) => hasPartialBlockOnDate(date)
                     }}
                     modifiersStyles={{
                       hasBookings: { 
-                        backgroundColor: 'hsl(var(--primary))', 
+                        backgroundColor: '#3b82f6', 
                         color: 'white',
                         fontWeight: 'bold'
                       },
                       hasBlocked: { 
-                        backgroundColor: 'hsl(var(--destructive))', 
-                        color: 'white' 
+                        backgroundColor: '#ef4444', 
+                        color: 'white',
+                        fontWeight: 'bold'
+                      },
+                      hasOnlyPartialBlocks: {
+                        backgroundColor: '#eab308',
+                        color: 'white',
+                        fontWeight: 'bold'
                       },
                       hasPartialBlock: {
-                        backgroundColor: 'hsl(var(--primary))',
+                        backgroundColor: '#3b82f6',
                         color: 'white',
                         fontWeight: 'bold',
                         border: '2px solid #eab308',
@@ -961,15 +968,19 @@ const GeneralCalendarPage = () => {
                   {/* Legend */}
                   <div className="mt-4 space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-primary rounded"></div>
+                      <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3b82f6' }}></div>
                       <span>Zile cu rezervări</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-primary rounded border-2 border-yellow-500"></div>
+                      <div className="w-3 h-3 rounded" style={{ backgroundColor: '#eab308' }}></div>
                       <span>Zile parțial blocate</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-red-500 rounded"></div>
+                      <div className="w-3 h-3 rounded border-2" style={{ backgroundColor: '#3b82f6', borderColor: '#eab308' }}></div>
+                      <span>Zile cu rezervări și blocări parțiale</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded" style={{ backgroundColor: '#ef4444' }}></div>
                       <span>Zile complet blocate</span>
                     </div>
                   </div>

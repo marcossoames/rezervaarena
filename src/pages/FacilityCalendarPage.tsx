@@ -680,28 +680,52 @@ const FacilityCalendarPage = () => {
                 locale={ro}
                 className="rounded-md border"
                 modifiers={{
-                  hasBookings: (date) => getActiveBookingsForDate(date).length > 0,
-                  partiallyBlocked: (date) => hasPartialBlockings(date),
-                  fullyBlocked: (date) => isDateFullyBlocked(date)
+                  hasBookings: (date) => getActiveBookingsForDate(date).length > 0 && !hasPartialBlockings(date) && !isDateFullyBlocked(date),
+                  partiallyBlocked: (date) => hasPartialBlockings(date) && getActiveBookingsForDate(date).length === 0,
+                  fullyBlocked: (date) => isDateFullyBlocked(date),
+                  hasBookingsAndPartialBlocks: (date) => getActiveBookingsForDate(date).length > 0 && hasPartialBlockings(date)
                 }}
-                modifiersClassNames={{
-                  hasBookings: "bg-blue-100 text-blue-900",
-                  partiallyBlocked: "bg-yellow-100 text-yellow-900",
-                  fullyBlocked: "bg-red-100 text-red-900 line-through"
+                modifiersStyles={{
+                  hasBookings: { 
+                    backgroundColor: '#3b82f6', 
+                    color: 'white',
+                    fontWeight: 'bold'
+                  },
+                  partiallyBlocked: { 
+                    backgroundColor: '#eab308', 
+                    color: 'white',
+                    fontWeight: 'bold'
+                  },
+                  fullyBlocked: { 
+                    backgroundColor: '#ef4444', 
+                    color: 'white',
+                    fontWeight: 'bold'
+                  },
+                  hasBookingsAndPartialBlocks: {
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    border: '2px solid #eab308',
+                    borderRadius: '6px'
+                  }
                 }}
                 disabled={(date) => isBefore(date, startOfDay(new Date()))}
               />
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-blue-100 rounded border"></div>
+                  <div className="w-4 h-4 rounded border" style={{ backgroundColor: '#3b82f6' }}></div>
                   <span>Zile cu rezervări</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-yellow-100 rounded border"></div>
+                  <div className="w-4 h-4 rounded border" style={{ backgroundColor: '#eab308' }}></div>
                   <span>Zile parțial blocate</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-red-100 rounded border"></div>
+                  <div className="w-4 h-4 rounded border-2" style={{ backgroundColor: '#3b82f6', borderColor: '#eab308' }}></div>
+                  <span>Zile cu rezervări și blocări parțiale</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded border" style={{ backgroundColor: '#ef4444' }}></div>
                   <span>Zile complet blocate</span>
                 </div>
               </div>
