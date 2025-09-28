@@ -58,14 +58,12 @@ const BankDetailsManagement = () => {
       if (bankError) throw bankError;
 
       if (bankData && bankData.length > 0) {
-        // Get facility owner info
-        const ownerIds = bankData.map(b => b.user_id);
-        const { data: profilesData } = await supabase
+        // Get ALL profiles that could be facility owners
+        const { data: allProfilesData } = await supabase
           .from('profiles')
-          .select('user_id, full_name, email, user_type_comment')
-          .in('user_id', ownerIds);
+          .select('user_id, full_name, email, user_type_comment');
 
-        const profileMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+        const profileMap = new Map(allProfilesData?.map(p => [p.user_id, p]) || []);
 
         const enrichedBankDetails = bankData.map(bank => {
           const profile = profileMap.get(bank.user_id);
@@ -80,8 +78,8 @@ const BankDetailsManagement = () => {
           
           return {
             ...bank,
-            owner_name: profile?.full_name || 'Unknown',
-            owner_email: profile?.email || 'Unknown',
+            owner_name: profile?.full_name || 'Necunoscut',
+            owner_email: profile?.email || 'Necunoscut',
             complex_name: complexName
           };
         });
