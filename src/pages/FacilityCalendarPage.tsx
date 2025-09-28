@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Calendar as CalendarIcon, Ban, Edit, Eye, Clock, Users, MapPin, Repeat, CalendarOff } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Ban, Edit, Eye, Clock, Users, MapPin, Repeat, CalendarOff, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, addWeeks, addMonths, startOfDay, endOfDay, isAfter, isBefore, isSameDay, getDay } from "date-fns";
@@ -1106,16 +1106,50 @@ const FacilityCalendarPage = () => {
                   ) : (
                     <div className="space-y-2">
                       {getBlockedHoursForDate(selectedDate).map((block) => (
-                        <div key={block.id} className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div key={block.id} className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                           <div>
-                            <div className="font-medium text-red-800">
+                            <div className="font-medium text-yellow-800">
                               {block.start_time ? `${block.start_time.slice(0, 5)} - ${block.end_time?.slice(0, 5)}` : 'Toată ziua'}
                             </div>
                             {block.reason && (
-                              <div className="text-sm text-red-600">{block.reason}</div>
+                              <div className="text-sm text-yellow-600">Motiv: {block.reason}</div>
                             )}
                           </div>
-                          <Badge variant="destructive" className="text-xs">Blocat</Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">Blocat</Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  const { error } = await supabase
+                                    .from('blocked_dates')
+                                    .delete()
+                                    .eq('id', block.id);
+
+                                  if (error) throw error;
+
+                                  toast({
+                                    title: "Succes",
+                                    description: "Intervalul a fost deblocat cu succes"
+                                  });
+
+                                  // Refresh blocked dates
+                                  await refreshBlockedDates();
+                                } catch (error) {
+                                  console.error('Error unblocking date:', error);
+                                  toast({
+                                    title: "Eroare",
+                                    description: "Nu s-a putut debloca intervalul",
+                                    variant: "destructive"
+                                  });
+                                }
+                              }}
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
