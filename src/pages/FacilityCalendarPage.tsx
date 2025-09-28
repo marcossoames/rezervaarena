@@ -632,7 +632,7 @@ const FacilityCalendarPage = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/manage-facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground hover:border-primary border border-transparent rounded-md px-2 py-1 transition-colors mb-4">
+          <Link to="/manage-facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:border-primary border-2 border-transparent rounded-md px-3 py-2 transition-all duration-200 mb-4">
             <ArrowLeft className="h-4 w-4" />
             Înapoi la terenurile mele
           </Link>
