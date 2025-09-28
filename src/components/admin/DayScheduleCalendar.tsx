@@ -152,8 +152,8 @@ const DayScheduleCalendar = ({
       const startMinutes = timeToMinutes(startTime);
       const endMinutes = timeToMinutes(endTime);
       
-      // Check if slot is within booking range (inclusive of end to fill the last slot)
-      return slotMinutes >= startMinutes && slotMinutes <= endMinutes;
+      // Check if slot is within booking range (exclusive of end time)
+      return slotMinutes >= startMinutes && slotMinutes < endMinutes;
     });
   };
 
