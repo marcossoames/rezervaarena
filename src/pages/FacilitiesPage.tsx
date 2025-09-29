@@ -69,6 +69,89 @@ const FacilitiesPage = () => {
   const [partiallyBlockedDates, setPartiallyBlockedDates] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<string>('newest');
   const navigate = useNavigate();
+  const calculateBlockedDatesForVisibleFacilities = async () => {
+    if (!allFacilities.length) return { fullyBlocked: new Set(), partiallyBlocked: new Set() };
+    
+    // Get currently filtered facilities (before date filtering)
+    let visibleFacilities = [...allFacilities];
+    
+    // Apply type filter
+    if (selectedType) {
+      visibleFacilities = visibleFacilities.filter(f => f.facility_type === selectedType);
+    }
+    
+    // Apply location filter
+    if (locationFilter) {
+      visibleFacilities = visibleFacilities.filter(f => 
+        f.city.toLowerCase().includes(locationFilter.toLowerCase()) || 
+        (f.address && f.address.toLowerCase().includes(locationFilter.toLowerCase()))
+      );
+    }
+    
+    // Apply search term filter
+    if (searchTerm) {
+      visibleFacilities = visibleFacilities.filter(f => 
+        f.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (f.description && f.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (f.sports_complex_name && f.sports_complex_name.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+    
+    if (!visibleFacilities.length) return { fullyBlocked: new Set(), partiallyBlocked: new Set() };
+    
+    try {
+      const facilityIds = visibleFacilities.map(f => f.id);
+      const { data: blockedDatesData } = await supabase
+        .from('blocked_dates')
+        .select('facility_id, blocked_date, start_time, end_time')
+        .in('facility_id', facilityIds);
+      
+      if (!blockedDatesData) return { fullyBlocked: new Set(), partiallyBlocked: new Set() };
+      
+      // Group blocks by date
+      const blocksByDate = new Map<string, {fullDay: Set<string>, partial: Set<string>}>();
+      
+      blockedDatesData.forEach(item => {
+        if (!blocksByDate.has(item.blocked_date)) {
+          blocksByDate.set(item.blocked_date, { fullDay: new Set(), partial: new Set() });
+        }
+        
+        const blocks = blocksByDate.get(item.blocked_date)!;
+        
+        // If no start_time and end_time, it's a full day block for this facility
+        if (!item.start_time && !item.end_time) {
+          blocks.fullDay.add(item.facility_id);
+        } else {
+          // If has specific times, it's a partial block for this facility
+          blocks.partial.add(item.facility_id);
+        }
+      });
+      
+      const fullyBlocked = new Set<string>();
+      const partiallyBlocked = new Set<string>();
+      
+      // A date is fully blocked only if ALL visible facilities are fully blocked on that date
+      // A date is partially blocked if some (but not all) facilities have blocks
+      blocksByDate.forEach((blocks, date) => {
+        const totalVisibleFacilities = facilityIds.length;
+        const fullyBlockedFacilities = blocks.fullDay.size;
+        const hasPartialBlocks = blocks.partial.size > 0;
+        
+        if (fullyBlockedFacilities === totalVisibleFacilities) {
+          // All visible facilities are fully blocked
+          fullyBlocked.add(date);
+        } else if (fullyBlockedFacilities > 0 || hasPartialBlocks) {
+          // Some facilities have blocks (full or partial)
+          partiallyBlocked.add(date);
+        }
+      });
+      
+      return { fullyBlocked, partiallyBlocked };
+    } catch (error) {
+      console.error('Error calculating blocked dates:', error);
+      return { fullyBlocked: new Set(), partiallyBlocked: new Set() };
+    }
+  };
   
   // Check if user came from homepage
   const fromHome = searchParams.get('from') === 'home';
@@ -201,36 +284,9 @@ const FacilitiesPage = () => {
     };
     fetchFacilities();
 
-    // Load blocked dates for general calendar display
-    const loadBlockedDates = async () => {
-      try {
-        const { data: blockedDatesData } = await supabase
-          .from('blocked_dates')
-          .select('blocked_date, start_time, end_time');
-
-        if (blockedDatesData) {
-          const fullyBlocked = new Set<string>();
-          const partiallyBlocked = new Set<string>();
-          
-          blockedDatesData.forEach(item => {
-            // If no start_time and end_time, it's a full day block
-            if (!item.start_time && !item.end_time) {
-              fullyBlocked.add(item.blocked_date);
-            } else {
-              // If has specific times, it's a partial block
-              partiallyBlocked.add(item.blocked_date);
-            }
-          });
-          
-          setBlockedDates(fullyBlocked);
-          setPartiallyBlockedDates(partiallyBlocked);
-        }
-      } catch (error) {
-        console.error('Error loading blocked dates:', error);
-      }
-    };
-
-    loadBlockedDates();
+    // Initialize empty blocked dates - will be calculated dynamically based on visible facilities
+    setBlockedDates(new Set());
+    setPartiallyBlockedDates(new Set());
   }, [session, authChecked, userProfile, navigate]);
 
   // Apply filters whenever filters change
@@ -251,6 +307,56 @@ const FacilitiesPage = () => {
       // Apply search term filter
       if (searchTerm) {
         filteredFacilities = filteredFacilities.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()) || f.description && f.description.toLowerCase().includes(searchTerm.toLowerCase()) || f.sports_complex_name && f.sports_complex_name.toLowerCase().includes(searchTerm.toLowerCase()));
+      }
+
+      // Update blocked dates for calendar based on currently visible facilities
+      if (filteredFacilities.length > 0) {
+        try {
+          const facilityIds = filteredFacilities.map(f => f.id);
+          const { data: blockedDatesData } = await supabase
+            .from('blocked_dates')
+            .select('facility_id, blocked_date, start_time, end_time')
+            .in('facility_id', facilityIds);
+
+          if (blockedDatesData) {
+            const blocksByDate = new Map();
+            
+            blockedDatesData.forEach(item => {
+              if (!blocksByDate.has(item.blocked_date)) {
+                blocksByDate.set(item.blocked_date, { fullDay: new Set(), partial: new Set() });
+              }
+              
+              const blocks = blocksByDate.get(item.blocked_date);
+              if (!item.start_time && !item.end_time) {
+                blocks.fullDay.add(item.facility_id);
+              } else {
+                blocks.partial.add(item.facility_id);
+              }
+            });
+            
+            const fullyBlocked = new Set<string>();
+            const partiallyBlocked = new Set<string>();
+            
+            blocksByDate.forEach((blocks, date) => {
+              const totalFacilities = facilityIds.length;
+              const fullyBlockedCount = blocks.fullDay.size;
+              
+              if (fullyBlockedCount === totalFacilities) {
+                fullyBlocked.add(date);
+              } else if (fullyBlockedCount > 0 || blocks.partial.size > 0) {
+                partiallyBlocked.add(date);
+              }
+            });
+            
+            setBlockedDates(fullyBlocked);
+            setPartiallyBlockedDates(partiallyBlocked);
+          }
+        } catch (error) {
+          console.error('Error updating blocked dates:', error);
+        }
+      } else {
+        setBlockedDates(new Set());
+        setPartiallyBlockedDates(new Set());
       }
 
       // Apply date and time slot filter - check availability
