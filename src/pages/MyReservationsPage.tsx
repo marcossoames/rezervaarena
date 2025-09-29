@@ -542,7 +542,7 @@ const MyReservationsPage = () => {
                 } else if (userProfile?.role === 'facility_owner' || userProfile?.user_type_comment?.includes('Proprietar bază sportivă')) {
                   navigate('/facility-owner-profile');
                 } else if (userProfile?.role === 'admin') {
-                  navigate('/admin-dashboard');
+                  navigate('/admin/dashboard');
                 } else {
                   navigate('/client-profile');
                 }
