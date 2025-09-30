@@ -24,15 +24,24 @@ export const FacilitySportsComplexHoverCard = ({
   allSportsTypes,
   city,
 }: FacilitySportsComplexHoverCardProps) => {
-  // Generate Google Maps embed URL with city for better accuracy
-  const getMapEmbedUrl = () => {
-    const searchQuery = sportsComplexAddress 
-      ? encodeURIComponent(`${sportsComplexAddress}, ${city}`)
-      : encodeURIComponent(`${sportsComplexName}, ${city}`);
-    
-    return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${searchQuery}&zoom=15`;
+  // Build location query and URLs (no API key needed for embed)
+  const buildLocationQuery = () => {
+    const raw = sportsComplexAddress
+      ? `${sportsComplexAddress}, ${city}`
+      : `${sportsComplexName}, ${city}`;
+    return encodeURIComponent(raw);
   };
 
+  const getMapEmbedUrl = () => {
+    const q = buildLocationQuery();
+    // Use output=embed to avoid API key restrictions
+    return `https://www.google.com/maps?q=${q}&z=15&output=embed`;
+  };
+
+  const getMapsOpenUrl = () => {
+    const q = buildLocationQuery();
+    return `https://www.google.com/maps/search/?api=1&query=${q}`;
+  };
   return (
     <HoverCard openDelay={100} closeDelay={1500}>
       <HoverCardTrigger asChild>
@@ -120,22 +129,23 @@ export const FacilitySportsComplexHoverCard = ({
               <iframe
                 title={`Harta pentru ${sportsComplexName}`}
                 src={getMapEmbedUrl()}
-                className="w-full h-full"
+                className="w-full h-full pointer-events-auto"
                 style={{ border: 0 }}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
               />
             </div>
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${
-                sportsComplexAddress 
-                  ? encodeURIComponent(`${sportsComplexAddress}, ${city}`)
-                  : encodeURIComponent(`${sportsComplexName}, ${city}`)
-              }`}
+              href={getMapsOpenUrl()}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-primary hover:underline mt-2 inline-block pointer-events-auto"
-              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                const url = getMapsOpenUrl();
+                window.open(url, "_blank", "noopener,noreferrer");
+              }}
             >
               Deschide în Google Maps →
             </a>
