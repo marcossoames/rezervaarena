@@ -6,8 +6,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Building2, Dumbbell } from "lucide-react";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
-
-
+import { openExternal } from "@/utils/openExternal";
 
 interface FacilitySportsComplexHoverCardProps {
   children: React.ReactNode;
@@ -36,11 +35,11 @@ export const FacilitySportsComplexHoverCard = ({
       ? base.toLowerCase().includes(cityTrim.toLowerCase())
       : true;
     const raw = hasCityAlready ? base : `${base}, ${cityTrim}`;
-    return raw.replace(/\s+/g, "+").trim();
+    return encodeURIComponent(raw);
   };
   const getMapsOpenUrl = () => {
     const q = buildLocationQuery();
-    return `https://www.google.ro/search?q=${q}`;
+    return `https://www.google.com/maps/search/?api=1&query=${q}`;
   };
   return (
     <HoverCard openDelay={100} closeDelay={1500}>
@@ -72,7 +71,11 @@ export const FacilitySportsComplexHoverCard = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-start gap-1 mt-2 text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openExternal(getMapsOpenUrl());
+                    }}
                   >
                     <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <span className="text-left hover:underline">{sportsComplexAddress}</span>
