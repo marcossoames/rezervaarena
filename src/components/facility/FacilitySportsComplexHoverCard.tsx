@@ -27,14 +27,16 @@ export const FacilitySportsComplexHoverCard = ({
   allSportsTypes,
   city,
 }: FacilitySportsComplexHoverCardProps) => {
-  // Build location query and URL
+  // Build location query and URL (avoid duplicating city)
   const buildLocationQuery = () => {
-    const raw = sportsComplexAddress
-      ? `${sportsComplexAddress}, ${city}`
-      : `${sportsComplexName}, ${city}`;
-    return encodeURIComponent(raw);
+    const cityTrim = (city || "").trim();
+    const base = (sportsComplexAddress?.trim() || sportsComplexName.trim());
+    const hasCityAlready = cityTrim
+      ? base.toLowerCase().includes(cityTrim.toLowerCase())
+      : true;
+    const raw = hasCityAlready ? base : `${base}, ${cityTrim}`;
+    return encodeURIComponent(raw.replace(/\s+/g, " ").trim());
   };
-
   const getMapsOpenUrl = () => {
     const q = buildLocationQuery();
     return `https://www.google.com/maps/search/?api=1&query=${q}`;
