@@ -1,32 +1,41 @@
 export const openExternal = (url: string) => {
   try {
-    const tryOpen = (win: Window) => {
-      // Strategy 1: open blank tab, then assign location (bypasses some sandbox blocks)
+    const tryAnchorClick = () => {
       try {
-        const w = win.open('', '_blank');
-        if (w) {
-          try { (w as any).opener = null; } catch {}
-          w.location.href = url;
-          return true;
-        }
-      } catch (_) {}
-
-      // Strategy 2: direct open
-      try {
-        const w2 = win.open(url, '_blank', 'noopener');
-        if (w2) return true;
-      } catch (_) {}
-
-      return false;
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.style.display = 'none';
+        // Some browsers honor this even with rel set
+        // @ts-ignore
+        a.referrerPolicy = 'no-referrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return true;
+      } catch (_) {
+        return false;
+      }
     };
 
+    // Try programmatic anchor click first (best for sandboxed iframes)
+    if (tryAnchorClick()) return true;
+
+    // Fallback 1: Direct open from top if possible
     if (window.top && window.top !== window) {
-      if (tryOpen(window.top)) return true;
+      try {
+        const w = window.top.open(url, '_blank', 'noopener');
+        if (w) return true;
+      } catch (_) {}
     }
 
-    if (tryOpen(window)) return true;
+    // Fallback 2: Direct open from current window
+    try {
+      const w2 = window.open(url, '_blank', 'noopener');
+      if (w2) return true;
+    } catch (_) {}
 
-    // If popup was blocked or disallowed
     return false;
   } catch (_) {
     return false;
