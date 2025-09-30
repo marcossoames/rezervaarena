@@ -40,7 +40,7 @@ export const FacilitySportsComplexHoverCard = ({
   };
   const getMapsOpenUrl = () => {
     const q = buildLocationQuery();
-    return `https://www.google.com/maps/search/?api=1&query=${q}`;
+    return `https://www.google.com/search?q=${q}`;
   };
   return (
     <HoverCard openDelay={100} closeDelay={1500}>
