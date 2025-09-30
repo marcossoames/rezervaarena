@@ -11,6 +11,7 @@ interface FacilitySportsComplexHoverCardProps {
   children: React.ReactNode;
   sportsComplexName: string;
   sportsComplexAddress?: string;
+  sportsComplexDescription?: string;
   generalServices?: string[];
   allSportsTypes: string[]; // All facility types in this complex
   city: string;
@@ -20,6 +21,7 @@ export const FacilitySportsComplexHoverCard = ({
   children,
   sportsComplexName,
   sportsComplexAddress,
+  sportsComplexDescription,
   generalServices,
   allSportsTypes,
   city,
@@ -57,10 +59,15 @@ export const FacilitySportsComplexHoverCard = ({
           <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-t-lg border-b">
             <div className="flex items-start gap-2">
               <Building2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-              <div>
+              <div className="flex-1">
                 <h3 className="font-bold text-lg text-foreground leading-tight">
                   {sportsComplexName}
                 </h3>
+                {sportsComplexDescription && (
+                  <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                    {sportsComplexDescription}
+                  </p>
+                )}
                 {sportsComplexAddress && (
                   <div className="flex items-start gap-1 mt-2 text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />

@@ -45,6 +45,7 @@ interface Facility {
   created_at?: string;
   sports_complex_name?: string;
   sports_complex_address?: string;
+  sports_complex_description?: string; // Description of the sports complex
   phone_number?: string;
   operating_hours_start?: string;
   operating_hours_end?: string;
@@ -934,6 +935,7 @@ applyFilters();
                             <FacilitySportsComplexHoverCard
                               sportsComplexName={facility.sports_complex_name}
                               sportsComplexAddress={facility.sports_complex_address}
+                              sportsComplexDescription={facility.sports_complex_description}
                               generalServices={facility.general_services}
                               allSportsTypes={
                                 // Get all unique sports types from facilities with the same sports complex name
