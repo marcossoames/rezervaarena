@@ -59,7 +59,7 @@ const FacilitiesPage = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [locationFilter, setLocationFilter] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Set today as default
   const [startTime, setStartTime] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
   const [allFacilities, setAllFacilities] = useState<Facility[]>([]);
@@ -214,12 +214,16 @@ const FacilitiesPage = () => {
     setSearchTerm(searchParam || '');
     setStartTime(startTimeParam || '');
     setDuration(durationParam || '');
-    // Handle date parameter
+    // Handle date parameter - only override default if provided in URL
     if (dateParam) {
       const date = new Date(dateParam);
       if (!isNaN(date.getTime())) {
         setSelectedDate(date);
       }
+    }
+    // If no date param and selectedDate is not set, ensure it's today
+    else if (!selectedDate) {
+      setSelectedDate(new Date());
     }
   }, [searchParams]);
   useEffect(() => {
