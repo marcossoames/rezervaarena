@@ -34,14 +34,14 @@ export const FacilitySportsComplexHoverCard = ({
   };
 
   return (
-    <HoverCard openDelay={200} closeDelay={300}>
+    <HoverCard openDelay={100} closeDelay={700}>
       <HoverCardTrigger asChild>
         {children}
       </HoverCardTrigger>
       <HoverCardContent 
         className="w-96 p-0 z-[1000]" 
         align="start"
-        sideOffset={8}
+        sideOffset={2}
       >
         <div className="space-y-4">
           {/* Header */}
