@@ -6,7 +6,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Building2, Dumbbell } from "lucide-react";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
-import { openExternal } from "@/utils/openExternal";
+
 
 interface FacilitySportsComplexHoverCardProps {
   children: React.ReactNode;
@@ -39,7 +39,7 @@ export const FacilitySportsComplexHoverCard = ({
   };
   const getMapsOpenUrl = () => {
     const q = buildLocationQuery();
-    return `https://www.google.com/maps/search/?api=1&query=${q}`;
+    return `https://www.google.com/maps?q=${q}&hl=ro&z=16`;
   };
   return (
     <HoverCard openDelay={100} closeDelay={1500}>
@@ -131,14 +131,6 @@ export const FacilitySportsComplexHoverCard = ({
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-primary hover:underline pointer-events-auto"
-              onClick={(e) => {
-                e.stopPropagation();
-                const url = getMapsOpenUrl();
-                const ok = openExternal(url);
-                if (ok) {
-                  e.preventDefault();
-                }
-              }}
             >
               <MapPin className="h-4 w-4" />
               <span>Deschide locația în Google Maps →</span>
