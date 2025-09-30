@@ -27,7 +27,7 @@ export const FacilitySportsComplexHoverCard = ({
   allSportsTypes,
   city,
 }: FacilitySportsComplexHoverCardProps) => {
-  // Build location query and URLs (no API key needed for embed)
+  // Build location query and URL
   const buildLocationQuery = () => {
     const raw = sportsComplexAddress
       ? `${sportsComplexAddress}, ${city}`
@@ -35,16 +35,9 @@ export const FacilitySportsComplexHoverCard = ({
     return encodeURIComponent(raw);
   };
 
-  const getMapEmbedUrl = () => {
-    const q = buildLocationQuery();
-    // Use output=embed to avoid API key restrictions
-    return `https://www.google.com/maps?q=${q}&z=15&output=embed`;
-  };
-
   const getMapsOpenUrl = () => {
     const q = buildLocationQuery();
-    // Prefer maps.app.goo.gl which usually bypasses preview/sandbox blocks
-    return `https://maps.google.com/?q=${q}`;
+    return `https://www.google.com/maps/search/?api=1&query=${q}`;
   };
   return (
     <HoverCard openDelay={100} closeDelay={1500}>
@@ -129,46 +122,24 @@ export const FacilitySportsComplexHoverCard = ({
             )}
           </div>
 
-          {/* Google Maps Section */}
+          {/* Google Maps Link */}
           <div className="px-4 pb-4">
-            <p className="text-sm font-semibold text-foreground mb-2">
-              Locație
-            </p>
-            <div 
-              className="relative w-full h-40 rounded-lg overflow-hidden border bg-muted/60 flex items-center justify-center select-none"
-              onClick={(e) => {
-                e.stopPropagation();
-                openExternal(getMapsOpenUrl());
-              }}
-              role="button"
-              aria-label="Deschide harta în Google Maps"
-            >
-              <div className="flex items-center gap-2 text-xs text-muted-foreground px-4 text-center">
-                <MapPin className="h-4 w-4" />
-                <span>Previzualizarea hărții poate fi blocată aici. Apasă pentru a deschide în Google Maps.</span>
-              </div>
-            </div>
             <a
               href={getMapsOpenUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-primary hover:underline mt-2 inline-block pointer-events-auto"
-              onMouseDown={(e) => {
-                // Prevent hovercard from closing on mousedown
-                e.stopPropagation();
-              }}
+              className="flex items-center gap-2 text-sm text-primary hover:underline pointer-events-auto"
               onClick={(e) => {
-                // Open in new tab using parent window when inside iframes
                 e.stopPropagation();
                 const url = getMapsOpenUrl();
                 const ok = openExternal(url);
                 if (ok) {
-                  // Prevent default to avoid double-open
                   e.preventDefault();
                 }
               }}
             >
-              Deschide în Google Maps →
+              <MapPin className="h-4 w-4" />
+              <span>Deschide locația în Google Maps →</span>
             </a>
           </div>
         </div>
