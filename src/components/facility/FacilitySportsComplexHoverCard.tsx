@@ -24,24 +24,24 @@ export const FacilitySportsComplexHoverCard = ({
   allSportsTypes,
   city,
 }: FacilitySportsComplexHoverCardProps) => {
-  // Generate Google Maps embed URL
+  // Generate Google Maps embed URL with city for better accuracy
   const getMapEmbedUrl = () => {
     const searchQuery = sportsComplexAddress 
-      ? encodeURIComponent(sportsComplexAddress)
+      ? encodeURIComponent(`${sportsComplexAddress}, ${city}`)
       : encodeURIComponent(`${sportsComplexName}, ${city}`);
     
     return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${searchQuery}&zoom=15`;
   };
 
   return (
-    <HoverCard openDelay={200} closeDelay={100}>
+    <HoverCard openDelay={200} closeDelay={300}>
       <HoverCardTrigger asChild>
         {children}
       </HoverCardTrigger>
       <HoverCardContent 
         className="w-96 p-0 z-[1000]" 
         align="start"
-        sideOffset={5}
+        sideOffset={8}
       >
         <div className="space-y-4">
           {/* Header */}
@@ -129,7 +129,7 @@ export const FacilitySportsComplexHoverCard = ({
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${
                 sportsComplexAddress 
-                  ? encodeURIComponent(sportsComplexAddress)
+                  ? encodeURIComponent(`${sportsComplexAddress}, ${city}`)
                   : encodeURIComponent(`${sportsComplexName}, ${city}`)
               }`}
               target="_blank"
