@@ -48,6 +48,7 @@ interface Facility {
   phone_number?: string;
   operating_hours_start?: string;
   operating_hours_end?: string;
+  allowed_durations?: number[]; // Array of allowed booking durations in minutes
 }
 interface UserProfile {
   role: 'client' | 'facility_owner' | 'admin';
@@ -308,6 +309,19 @@ const FacilitiesPage = () => {
       // Apply search term filter
       if (searchTerm) {
         filteredFacilities = filteredFacilities.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()) || f.description && f.description.toLowerCase().includes(searchTerm.toLowerCase()) || f.sports_complex_name && f.sports_complex_name.toLowerCase().includes(searchTerm.toLowerCase()));
+      }
+
+      // Apply duration filter - only show facilities that allow the selected duration
+      if (duration) {
+        const durationInMinutes = parseInt(duration);
+        filteredFacilities = filteredFacilities.filter(f => {
+          // If facility doesn't have allowed_durations defined, assume it allows all standard durations
+          if (!f.allowed_durations || f.allowed_durations.length === 0) {
+            return true;
+          }
+          // Check if the selected duration is in the facility's allowed durations
+          return f.allowed_durations.includes(durationInMinutes);
+        });
       }
 
       // Update blocked dates for calendar based on currently visible facilities
