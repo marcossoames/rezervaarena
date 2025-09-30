@@ -18,6 +18,7 @@ import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
+import { FacilitySportsComplexHoverCard } from "@/components/facility/FacilitySportsComplexHoverCard";
 interface Facility {
   id: string;
   name: string;
@@ -904,10 +905,27 @@ applyFilters();
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="text-xl font-bold text-foreground mb-1">{facility.name}</h3>
-                          {/* Show sports complex name */}
-                          {facility.sports_complex_name && <div className="text-sm font-medium text-primary mb-1">
-                              {facility.sports_complex_name}
-                            </div>}
+                          {/* Show sports complex name with hover card */}
+                          {facility.sports_complex_name && (
+                            <FacilitySportsComplexHoverCard
+                              sportsComplexName={facility.sports_complex_name}
+                              sportsComplexAddress={facility.sports_complex_address}
+                              generalServices={facility.general_services}
+                              allSportsTypes={
+                                // Get all unique sports types from facilities with the same sports complex name
+                                Array.from(new Set(
+                                  allFacilities
+                                    .filter(f => f.sports_complex_name === facility.sports_complex_name)
+                                    .map(f => f.facility_type)
+                                ))
+                              }
+                              city={facility.city}
+                            >
+                              <div className="text-sm font-medium text-primary mb-1 cursor-pointer hover:underline">
+                                {facility.sports_complex_name}
+                              </div>
+                            </FacilitySportsComplexHoverCard>
+                          )}
                             <div className="flex items-center text-muted-foreground text-sm mb-1">
                               <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                               <span className="text-left">
