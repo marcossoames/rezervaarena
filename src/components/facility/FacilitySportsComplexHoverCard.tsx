@@ -43,7 +43,8 @@ export const FacilitySportsComplexHoverCard = ({
 
   const getMapsOpenUrl = () => {
     const q = buildLocationQuery();
-    return `https://www.google.com/maps/search/?api=1&query=${q}`;
+    // Prefer maps.app.goo.gl which usually bypasses preview/sandbox blocks
+    return `https://maps.app.goo.gl/?q=${q}`;
   };
   return (
     <HoverCard openDelay={100} closeDelay={1500}>
