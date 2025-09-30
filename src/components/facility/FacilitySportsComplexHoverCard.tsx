@@ -34,12 +34,12 @@ export const FacilitySportsComplexHoverCard = ({
   };
 
   return (
-    <HoverCard openDelay={100} closeDelay={700}>
+    <HoverCard openDelay={100} closeDelay={1500}>
       <HoverCardTrigger asChild>
         {children}
       </HoverCardTrigger>
       <HoverCardContent 
-        className="w-96 p-0 z-[1000]" 
+        className="w-96 p-0 z-[1000] pointer-events-auto" 
         align="start"
         sideOffset={2}
       >
@@ -134,7 +134,8 @@ export const FacilitySportsComplexHoverCard = ({
               }`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-primary hover:underline mt-2 inline-block"
+              className="text-xs text-primary hover:underline mt-2 inline-block pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
             >
               Deschide în Google Maps →
             </a>
