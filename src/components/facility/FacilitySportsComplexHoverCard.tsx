@@ -6,6 +6,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Building2, Dumbbell } from "lucide-react";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
+import { openExternal } from "@/utils/openExternal";
 
 interface FacilitySportsComplexHoverCardProps {
   children: React.ReactNode;
@@ -149,9 +150,18 @@ export const FacilitySportsComplexHoverCard = ({
               rel="noopener noreferrer"
               className="text-xs text-primary hover:underline mt-2 inline-block pointer-events-auto"
               onMouseDown={(e) => {
+                // Prevent hovercard from closing on mousedown
+                e.stopPropagation();
+              }}
+              onClick={(e) => {
+                // Open in new tab using parent window when inside iframes
                 e.stopPropagation();
                 const url = getMapsOpenUrl();
-                window.open(url, "_blank", "noopener,noreferrer");
+                const ok = openExternal(url);
+                if (ok) {
+                  // Prevent default to avoid double-open
+                  e.preventDefault();
+                }
               }}
             >
               Deschide în Google Maps →
