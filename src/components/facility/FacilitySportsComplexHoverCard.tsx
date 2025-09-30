@@ -132,6 +132,29 @@ export const FacilitySportsComplexHoverCard = ({
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-primary hover:underline pointer-events-auto"
+              onClick={(e) => {
+                // Robust open: write a tiny redirect page into the new tab
+                e.preventDefault();
+                const url = getMapsOpenUrl();
+                const w = window.open('', '_blank');
+                if (w) {
+                  try {
+                    const html = `<!doctype html><html lang="ro"><head><meta charset="utf-8"/><meta http-equiv="refresh" content="0;url=${url}"><title>Deschidere Google Maps...</title></head><body style="font-family:system-ui,sans-serif;padding:16px;">
+                    <p>Se deschide Google Maps...</p>
+                    <script>window.location.replace(${JSON.stringify(url)});</script>
+                    </body></html>`;
+                    w.document.open();
+                    w.document.write(html);
+                    w.document.close();
+                  } catch (_) {
+                    // Fallback: navigate the current tab if popup policies interfere
+                    window.location.href = url;
+                  }
+                } else {
+                  // Last resort: navigate current tab
+                  window.location.href = url;
+                }
+              }}
             >
               <MapPin className="h-4 w-4" />
               <span>Deschide locația în Google Maps →</span>
