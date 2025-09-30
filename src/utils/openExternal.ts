@@ -1,26 +1,32 @@
 export const openExternal = (url: string) => {
   try {
-    // If we're inside an iframe, try opening from the top window
-    if (window.top && window.top !== window) {
+    const tryOpen = (win: Window) => {
+      // Strategy 1: open blank tab, then assign location (bypasses some sandbox blocks)
       try {
-        // @ts-ignore - open exists on Window
-        const newWindow = window.top.open(url, '_blank', 'noopener,noreferrer');
-        if (newWindow) {
-          return true; // Successfully opened
+        const w = win.open('', '_blank');
+        if (w) {
+          try { (w as any).opener = null; } catch {}
+          w.location.href = url;
+          return true;
         }
-      } catch (_) {
-        // Ignore and try local window fallback
-      }
+      } catch (_) {}
+
+      // Strategy 2: direct open
+      try {
+        const w2 = win.open(url, '_blank', 'noopener');
+        if (w2) return true;
+      } catch (_) {}
+
+      return false;
+    };
+
+    if (window.top && window.top !== window) {
+      if (tryOpen(window.top)) return true;
     }
 
-    // Try opening with local window
-    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-    if (newWindow) {
-      return true; // Successfully opened
-    }
-    
-    // If popup was blocked, we won't redirect the current page
-    // Just return false to indicate failure
+    if (tryOpen(window)) return true;
+
+    // If popup was blocked or disallowed
     return false;
   } catch (_) {
     return false;
