@@ -404,32 +404,57 @@ const FacilitiesPage = () => {
               }))
           );
           const unavailableFacilities = new Set();
-          if (startTime && duration) {
-            // Calculate end time from start time and duration
-            const [startHour, startMinute] = startTime.split(':').map(Number);
-            const startMinutes = startHour * 60 + startMinute;
-            const endMinutes = startMinutes + parseInt(duration);
-            const endHour = Math.floor(endMinutes / 60);
-            const endMinute = endMinutes % 60;
-            const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+          if (startTime) {
+            if (duration) {
+              // Both start time and duration selected - check for exact time range availability
+              const [startHour, startMinute] = startTime.split(':').map(Number);
+              const startMinutes = startHour * 60 + startMinute;
+              const endMinutes = startMinutes + parseInt(duration);
+              const endHour = Math.floor(endMinutes / 60);
+              const endMinute = endMinutes % 60;
+              const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
 
-            // Check which facilities are booked or blocked during this time range
-            const bookingsInTimeRange = bookings?.filter(booking => {
-              const bookingStart = booking.start_time;
-              const bookingEnd = booking.end_time;
-              // Check for overlap: booking overlaps if it starts before our range ends and ends after our range starts
-              return bookingStart < endTime && bookingEnd > startTime;
-            }) || [];
-            const blockedInTimeRange = blockedDates?.filter(blocked => {
-              // If no specific time, entire day is blocked
-              if (!blocked.start_time || !blocked.end_time) return true;
-              // Check for overlap with specific blocked time
-              return blocked.start_time < endTime && blocked.end_time > startTime;
-            }) || [];
+              // Check which facilities are booked or blocked during this time range
+              const bookingsInTimeRange = bookings?.filter(booking => {
+                const bookingStart = booking.start_time;
+                const bookingEnd = booking.end_time;
+                // Check for overlap: booking overlaps if it starts before our range ends and ends after our range starts
+                return bookingStart < endTime && bookingEnd > startTime;
+              }) || [];
+              const blockedInTimeRange = blockedDates?.filter(blocked => {
+                // If no specific time, entire day is blocked
+                if (!blocked.start_time || !blocked.end_time) return true;
+                // Check for overlap with specific blocked time
+                return blocked.start_time < endTime && blocked.end_time > startTime;
+              }) || [];
 
-            // Mark facilities as unavailable if they have bookings or are blocked during this time range
-            bookingsInTimeRange.forEach(booking => unavailableFacilities.add(booking.facility_id));
-            blockedInTimeRange.forEach(blocked => unavailableFacilities.add(blocked.facility_id));
+              // Mark facilities as unavailable if they have bookings or are blocked during this time range
+              bookingsInTimeRange.forEach(booking => unavailableFacilities.add(booking.facility_id));
+              blockedInTimeRange.forEach(blocked => unavailableFacilities.add(blocked.facility_id));
+            } else {
+              // Only start time selected (no duration) - check if facility has ANY availability at this start time
+              // We'll check for at least a 30-minute slot availability starting from this time
+              const [startHour, startMinute] = startTime.split(':').map(Number);
+              const startMinutes = startHour * 60 + startMinute;
+              const checkEndMinutes = startMinutes + 30; // Check for at least 30 minutes
+              const checkEndTime = `${Math.floor(checkEndMinutes / 60).toString().padStart(2, '0')}:${(checkEndMinutes % 60).toString().padStart(2, '0')}`;
+
+              // Check if any facility has conflicts in this 30-minute window
+              const conflictsInTimeSlot = bookings?.filter(booking => {
+                const bookingStart = booking.start_time;
+                const bookingEnd = booking.end_time;
+                return bookingStart < checkEndTime && bookingEnd > startTime;
+              }) || [];
+              
+              const blocksInTimeSlot = blockedDates?.filter(blocked => {
+                if (!blocked.start_time || !blocked.end_time) return true; // Full day block
+                return blocked.start_time < checkEndTime && blocked.end_time > startTime;
+              }) || [];
+
+              // Mark facilities as unavailable if they're booked/blocked in this time slot
+              conflictsInTimeSlot.forEach(booking => unavailableFacilities.add(booking.facility_id));
+              blocksInTimeSlot.forEach(blocked => unavailableFacilities.add(blocked.facility_id));
+            }
           } else {
             // No specific time slot - check if facilities have any availability
             
@@ -655,8 +680,8 @@ applyFilters();
                 </div>
               </div>
 
-              {/* Second Row: Date and Time */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {/* Second Row: Date, Start Time, Duration */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Data rezervării</label>
                   <Popover>
@@ -731,55 +756,36 @@ applyFilters();
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Interval rezervare</label>
-                  <div className="grid grid-cols-1 gap-3">
-                    {/* Duration Selection */}
-                    <div className="space-y-2">
-                      <Select value={duration} onValueChange={(value) => {
-                        setDuration(value);
-                        // Reset start time when duration changes
-                        setStartTime('');
-                      }}>
-                        <SelectTrigger className="h-11 bg-background border-border focus:border-primary">
-                          <SelectValue placeholder="Selectează durata" />
-                        </SelectTrigger>
-                        <SelectContent className="z-[100]">
-                          <SelectItem value="60">60 minute (1 oră)</SelectItem>
-                          <SelectItem value="90">90 minute (1.5 ore)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Start Time Selection - only show when duration is selected */}
-                    {duration && (
-                      <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                        <Select value={startTime} onValueChange={setStartTime}>
-                          <SelectTrigger className="h-11 pl-10 bg-background border-border focus:border-primary">
-                            <SelectValue placeholder="Selectează ora de început" />
-                          </SelectTrigger>
-                          <SelectContent className="z-[100]">
-                            {getTimeOptions().map(time => {
-                              // Check if this start time + duration would exceed operating hours
-                              const [hour, minute] = time.value.split(':').map(Number);
-                              const startMinutes = hour * 60 + minute;
-                              const endMinutes = startMinutes + parseInt(duration);
-                              const endHour = Math.floor(endMinutes / 60);
-                              
-                              // Don't show times that would exceed 22:00 (operating hours end)
-                              if (endHour > 22) return null;
-                              
-                              return (
-                                <SelectItem key={time.value} value={time.value}>
-                                  {time.label}
-                                </SelectItem>
-                              );
-                            }).filter(Boolean)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                  <label className="text-sm font-medium text-foreground">Ora de începere</label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    <Select value={startTime} onValueChange={setStartTime}>
+                      <SelectTrigger className="h-11 pl-10 bg-white border-2 border-primary/20 focus:border-primary shadow-sm">
+                        <SelectValue placeholder="Selectează ora" />
+                      </SelectTrigger>
+                      <SelectContent className="z-[1000]">
+                        {getTimeOptions().map(time => (
+                          <SelectItem key={time.value} value={time.value}>
+                            {time.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Durata rezervării</label>
+                  <Select value={duration} onValueChange={setDuration}>
+                    <SelectTrigger className="h-11 bg-white border-2 border-primary/20 focus:border-primary shadow-sm">
+                      <SelectValue placeholder="Selectează durata" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[1000]">
+                      <SelectItem value="60">60 minute (1 oră)</SelectItem>
+                      <SelectItem value="90">90 minute (1.5 ore)</SelectItem>
+                      <SelectItem value="120">120 minute (2 ore)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
