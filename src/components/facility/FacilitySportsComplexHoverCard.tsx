@@ -44,7 +44,7 @@ export const FacilitySportsComplexHoverCard = ({
   const getMapsOpenUrl = () => {
     const q = buildLocationQuery();
     // Prefer maps.app.goo.gl which usually bypasses preview/sandbox blocks
-    return `https://maps.app.goo.gl/?q=${q}`;
+    return `https://maps.google.com/?q=${q}`;
   };
   return (
     <HoverCard openDelay={100} closeDelay={1500}>
@@ -134,16 +134,19 @@ export const FacilitySportsComplexHoverCard = ({
             <p className="text-sm font-semibold text-foreground mb-2">
               Locație
             </p>
-            <div className="relative w-full h-40 rounded-lg overflow-hidden border bg-muted">
-              <iframe
-                title={`Harta pentru ${sportsComplexName}`}
-                src={getMapEmbedUrl()}
-                className="w-full h-full pointer-events-auto"
-                style={{ border: 0 }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-              />
+            <div 
+              className="relative w-full h-40 rounded-lg overflow-hidden border bg-muted/60 flex items-center justify-center select-none"
+              onClick={(e) => {
+                e.stopPropagation();
+                openExternal(getMapsOpenUrl());
+              }}
+              role="button"
+              aria-label="Deschide harta în Google Maps"
+            >
+              <div className="flex items-center gap-2 text-xs text-muted-foreground px-4 text-center">
+                <MapPin className="h-4 w-4" />
+                <span>Previzualizarea hărții poate fi blocată aici. Apasă pentru a deschide în Google Maps.</span>
+              </div>
             </div>
             <a
               href={getMapsOpenUrl()}
