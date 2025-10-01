@@ -628,7 +628,7 @@ const FacilityCalendarPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -1059,9 +1059,9 @@ const FacilityCalendarPage = () => {
                         <div 
                           key={booking.id} 
                           id={`booking-${booking.id}`}
-                          className="flex items-start justify-between p-4 border rounded-lg bg-card transition-all duration-300"
+                          className="flex flex-wrap items-start justify-between gap-3 p-4 border rounded-lg bg-card transition-all duration-300"
                         >
-                          <div className="flex-1">
+                          <div className="min-w-0 flex-1">
                             <div className="font-medium mb-1">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</div>
                             <div className="text-muted-foreground text-sm mb-2">
                               {booking.total_price} RON • {booking.payment_method === 'card' ? 'Plată cu cardul' : 'Plată cash'}
@@ -1070,9 +1070,9 @@ const FacilityCalendarPage = () => {
                             {/* Client Information */}
                             <div className="text-sm text-muted-foreground mb-2">
                               <div className="font-medium text-foreground">{booking.client_info?.full_name || 'Client neidentificat'}</div>
-                              <div className="flex gap-4 text-xs mt-1">
-                                <span>📞 {booking.client_info?.phone || 'Telefon nedisponibil'}</span>
-                                <span>✉️ {booking.client_info?.email || 'Email nedisponibil'}</span>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-1 min-w-0">
+                                <span className="min-w-0 break-words">📞 {booking.client_info?.phone || 'Telefon nedisponibil'}</span>
+                                <span className="min-w-0 break-words">✉️ {booking.client_info?.email || 'Email nedisponibil'}</span>
                               </div>
                             </div>
                             
@@ -1082,7 +1082,7 @@ const FacilityCalendarPage = () => {
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 ml-4">
+                          <div className="flex items-center gap-2 ml-0 sm:ml-4 flex-shrink-0">
                             <BookingStatusManager 
                               booking={booking}
                               onStatusUpdate={refreshBookings}

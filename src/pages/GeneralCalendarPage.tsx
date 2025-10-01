@@ -852,36 +852,38 @@ const GeneralCalendarPage = () => {
                             </div>
                           </div>
                         </div>
-                          <div className="mt-3 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-2 min-w-0">
                               <div className={`w-2 h-2 rounded-full ${isManual ? 'bg-black' : 'bg-blue-500'}`}></div>
                               <span className="text-sm leading-none text-muted-foreground">
                                 {booking.client_info?.full_name || 'Client necunoscut'}
                               </span>
                               {booking.client_info?.phone && (
-                                <span className="inline-flex items-center gap-1 text-sm leading-none text-muted-foreground whitespace-nowrap">
+                                <span className="inline-flex items-center gap-1 text-sm leading-none text-muted-foreground">
                                   <span aria-hidden="true">•</span>
                                   <a
                                     href={`tel:${(booking.client_info.phone || '').replace(/\s+/g, '')}`}
-                                    className="no-underline hover:underline"
+                                    className="no-underline hover:underline break-words"
                                   >
                                     {booking.client_info.phone}
                                   </a>
                                 </span>
                               )}
                             </div>
-                          <BookingStatusManager
-                            booking={booking}
-                            onStatusUpdate={async () => {
-                              // Reload data to get updated booking
-                              const { data: { user } } = await supabase.auth.getUser();
-                              if (user) {
-                                await loadAllData(user.id);
-                              }
-                            }}
-                            showStatusUpdate={true}
-                          />
-                        </div>
+                            <div className="flex-shrink-0">
+                              <BookingStatusManager
+                                booking={booking}
+                                onStatusUpdate={async () => {
+                                  // Reload data to get updated booking
+                                  const { data: { user } } = await supabase.auth.getUser();
+                                  if (user) {
+                                    await loadAllData(user.id);
+                                  }
+                                }}
+                                showStatusUpdate={true}
+                              />
+                            </div>
+                          </div>
                       </CardContent>
                     </Card>
                   );
@@ -918,7 +920,7 @@ const GeneralCalendarPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
       
       <main className="container mx-auto px-4 py-8">
