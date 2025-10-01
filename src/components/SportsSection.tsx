@@ -180,10 +180,10 @@ const SportsSection = () => {
                   </div>
                 </div>
                 
-                <div className="p-4 flex flex-col h-full">
-                  <p className="text-sm text-muted-foreground mb-2 flex-grow leading-relaxed">{sport.description}</p>
+                <div className="p-3 flex flex-col h-full">
+                  <p className="text-sm text-muted-foreground mb-1.5 flex-grow leading-relaxed">{sport.description}</p>
                   
-                  <div className="space-y-1 mb-3">
+                  <div className="space-y-0.5 mb-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-muted-foreground">Terenuri disponibile:</span>
                       <span className="font-bold text-primary">{sport.facilities}</span>
