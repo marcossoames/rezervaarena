@@ -163,18 +163,18 @@ const SportsSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sportsData.map(sport => <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none flex flex-col h-full">
               <CardContent className="p-0 flex flex-col h-full">
-                <div className="relative overflow-hidden rounded-t-lg">
+                <div className="relative overflow-hidden rounded-t-lg bg-muted">
                   <OptimizedImage 
                     src={sport.image} 
                     alt={sport.name} 
-                    className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-300" 
+                    className="w-full h-80 object-contain group-hover:scale-110 transition-transform duration-300" 
                     loading="lazy" 
                     width={395} 
                     height={320}
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px" 
                     quality={75}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent pointer-events-none"></div>
                   <div className="absolute bottom-4 left-4">
                     <h3 className="text-xl font-bold text-primary-foreground drop-shadow-lg">{sport.name}</h3>
                   </div>
