@@ -329,6 +329,33 @@ const FacilitiesPage = () => {
         filteredFacilities = filteredFacilities.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()) || f.description && f.description.toLowerCase().includes(searchTerm.toLowerCase()) || f.sports_complex_name && f.sports_complex_name.toLowerCase().includes(searchTerm.toLowerCase()));
       }
 
+      // Enrich facilities with allowed_durations and operating hours when missing (best effort)
+      try {
+        const idsNeeding = filteredFacilities
+          .filter(f => !f.allowed_durations || !Array.isArray(f.allowed_durations))
+          .map(f => f.id);
+        if (idsNeeding.length) {
+          const { data: rows } = await supabase
+            .from('facilities')
+            .select('id, allowed_durations, operating_hours_start, operating_hours_end')
+            .in('id', idsNeeding);
+          if (rows) {
+            const map = new Map(rows.map((r: any) => [r.id, r]));
+            filteredFacilities = filteredFacilities.map(f => {
+              const extra = map.get(f.id);
+              return extra
+                ? { ...f, 
+                    allowed_durations: extra.allowed_durations ?? f.allowed_durations,
+                    operating_hours_start: extra.operating_hours_start ?? f.operating_hours_start,
+                    operating_hours_end: extra.operating_hours_end ?? f.operating_hours_end }
+                : f;
+            });
+          }
+        }
+      } catch (_) {
+        // Ignore if not permitted by RLS (unauthenticated visitors)
+      }
+
       // Apply duration filter - only show facilities that allow the selected duration
       if (duration) {
         const durationInMinutes = parseInt(duration);
@@ -337,8 +364,8 @@ const FacilitiesPage = () => {
           if (f.allowed_durations && f.allowed_durations.length > 0) {
             return f.allowed_durations.includes(durationInMinutes);
           }
-          // If no allowed_durations defined, allow standard durations (60, 90, 120, 180)
-          return [60, 90, 120, 180].includes(durationInMinutes);
+          // If we still don't know the allowed durations, be permissive
+          return true;
         });
       }
 
@@ -455,10 +482,33 @@ const FacilitiesPage = () => {
                 // Both start time and duration selected - check for exact time range availability
                 const [startHour, startMinute] = startTime.split(':').map(Number);
                 const startMinutes = startHour * 60 + startMinute;
-                const endMinutes = startMinutes + parseInt(duration);
+                const durationMinutes = parseInt(duration);
+                const endMinutes = startMinutes + durationMinutes;
                 const endHour = Math.floor(endMinutes / 60);
                 const endMinute = endMinutes % 60;
                 const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+
+                // Validate alignment with operating hours and step (min allowed duration)
+                const opStart = facility.operating_hours_start || '08:00';
+                const opEnd = facility.operating_hours_end || '22:00';
+                const [opSH, opSM] = opStart.split(':').map(Number);
+                const [opEH, opEM] = opEnd.split(':').map(Number);
+                const opStartMinutes = opSH * 60 + opSM;
+                const opEndMinutes = opEH * 60 + opEM;
+                const minDuration = facility.allowed_durations && facility.allowed_durations.length > 0
+                  ? Math.min(...facility.allowed_durations)
+                  : 60;
+                const step = minDuration; // start times must align to min allowed step from opening time
+                const isAligned = ((startMinutes - opStartMinutes) % step) === 0;
+                const withinOperating = startMinutes >= opStartMinutes && endMinutes <= opEndMinutes;
+
+                // Enforce duration allowance
+                const durationAllowed = !facility.allowed_durations || facility.allowed_durations.includes(durationMinutes);
+
+                if (!isAligned || !withinOperating || !durationAllowed) {
+                  unavailableFacilities.add(facility.id);
+                  return;
+                }
 
                 // Check for booking conflicts
                 const hasBookingConflict = facilityBookings.some(booking => {
@@ -486,6 +536,20 @@ const FacilitiesPage = () => {
                 const startMinutes = startHour * 60 + startMinute;
                 const checkEndMinutes = startMinutes + minDuration;
                 const checkEndTime = `${Math.floor(checkEndMinutes / 60).toString().padStart(2, '0')}:${(checkEndMinutes % 60).toString().padStart(2, '0')}`;
+
+                // Alignment and operating hours check
+                const opStart = facility.operating_hours_start || '08:00';
+                const opEnd = facility.operating_hours_end || '22:00';
+                const [opSH, opSM] = opStart.split(':').map(Number);
+                const [opEH, opEM] = opEnd.split(':').map(Number);
+                const opStartMinutes = opSH * 60 + opSM;
+                const opEndMinutes = opEH * 60 + opEM;
+                const isAligned = ((startMinutes - opStartMinutes) % minDuration) === 0;
+                const withinOperating = startMinutes >= opStartMinutes && checkEndMinutes <= opEndMinutes;
+                if (!isAligned || !withinOperating) {
+                  unavailableFacilities.add(facility.id);
+                  return;
+                }
 
                 // Check if start time falls INSIDE an existing booking
                 const isInsideBooking = facilityBookings.some(booking => {
