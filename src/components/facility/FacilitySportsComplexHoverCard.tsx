@@ -53,7 +53,7 @@ export const FacilitySportsComplexHoverCard = ({
         {children}
       </HoverCardTrigger>
       <HoverCardContent 
-        className="w-[440px] p-0 z-[1000] pointer-events-auto" 
+        className="w-[500px] p-0 z-[1000] pointer-events-auto" 
         align="start"
         sideOffset={2}
       >
