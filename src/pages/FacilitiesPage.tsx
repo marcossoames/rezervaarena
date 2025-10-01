@@ -477,8 +477,7 @@ const FacilitiesPage = () => {
                   unavailableFacilities.add(facility.id);
                 }
               } else if (startTime) {
-                // Only start time selected - check if facility is available at this specific time
-                // Check with minimum booking duration from allowed_durations or default to 60 minutes
+                // Only start time selected - check if this exact start time can begin a new booking
                 const minDuration = facility.allowed_durations && facility.allowed_durations.length > 0 
                   ? Math.min(...facility.allowed_durations) 
                   : 60;
@@ -488,19 +487,26 @@ const FacilitiesPage = () => {
                 const checkEndMinutes = startMinutes + minDuration;
                 const checkEndTime = `${Math.floor(checkEndMinutes / 60).toString().padStart(2, '0')}:${(checkEndMinutes % 60).toString().padStart(2, '0')}`;
 
-                // Check for conflicts in this time window
-                const hasBookingConflict = facilityBookings.some(booking => {
+                // Check if start time falls INSIDE an existing booking
+                const isInsideBooking = facilityBookings.some(booking => {
+                  return startTime >= booking.start_time && startTime < booking.end_time;
+                });
+                
+                // Check if the minimum duration would overlap with any booking
+                const hasOverlap = facilityBookings.some(booking => {
                   return booking.start_time < checkEndTime && booking.end_time > startTime;
                 });
                 
-                const hasBlockConflict = facilityBlocks.some(blocked => {
+                // Check blocks
+                const isBlockedOrOverlaps = facilityBlocks.some(blocked => {
                   if (blocked.start_time && blocked.end_time) {
-                    return blocked.start_time < checkEndTime && blocked.end_time > startTime;
+                    return (startTime >= blocked.start_time && startTime < blocked.end_time) ||
+                           (blocked.start_time < checkEndTime && blocked.end_time > startTime);
                   }
                   return false;
                 });
 
-                if (hasBookingConflict || hasBlockConflict) {
+                if (isInsideBooking || hasOverlap || isBlockedOrOverlaps) {
                   unavailableFacilities.add(facility.id);
                 }
               } else if (duration) {
