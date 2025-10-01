@@ -852,18 +852,24 @@ const GeneralCalendarPage = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="mt-3 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${isManual ? 'bg-black' : 'bg-blue-500'}`}></div>
-                            <span className="text-sm text-muted-foreground">
-                              {booking.client_info?.full_name || 'Client necunoscut'}
-                            </span>
-                            {booking.client_info?.phone && (
-                              <span className="text-xs text-muted-foreground">
-                                • {booking.client_info.phone}
+                          <div className="mt-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${isManual ? 'bg-black' : 'bg-blue-500'}`}></div>
+                              <span className="text-sm leading-none text-muted-foreground">
+                                {booking.client_info?.full_name || 'Client necunoscut'}
                               </span>
-                            )}
-                          </div>
+                              {booking.client_info?.phone && (
+                                <span className="inline-flex items-center gap-1 text-sm leading-none text-muted-foreground whitespace-nowrap">
+                                  <span aria-hidden="true">•</span>
+                                  <a
+                                    href={`tel:${(booking.client_info.phone || '').replace(/\s+/g, '')}`}
+                                    className="no-underline hover:underline"
+                                  >
+                                    {booking.client_info.phone}
+                                  </a>
+                                </span>
+                              )}
+                            </div>
                           <BookingStatusManager
                             booking={booking}
                             onStatusUpdate={async () => {
