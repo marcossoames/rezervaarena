@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   HoverCard,
   HoverCardContent,
@@ -27,6 +28,8 @@ export const FacilitySportsComplexHoverCard = ({
   allSportsTypes,
   city,
 }: FacilitySportsComplexHoverCardProps) => {
+  const [open, setOpen] = useState(false);
+  
   // Build location query and URL (avoid duplicating city)
   const buildLocationQuery = () => {
     const cityTrim = (city || "").trim();
@@ -42,8 +45,11 @@ export const FacilitySportsComplexHoverCard = ({
     return `https://www.google.com/maps/search/?api=1&query=${q}`;
   };
   return (
-    <HoverCard openDelay={100} closeDelay={1500}>
-      <HoverCardTrigger asChild>
+    <HoverCard open={open} onOpenChange={setOpen} openDelay={100} closeDelay={1500}>
+      <HoverCardTrigger asChild onClick={(e) => {
+        e.stopPropagation();
+        setOpen(!open);
+      }}>
         {children}
       </HoverCardTrigger>
       <HoverCardContent 
