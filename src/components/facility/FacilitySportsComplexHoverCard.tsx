@@ -45,7 +45,7 @@ export const FacilitySportsComplexHoverCard = ({
     return `https://www.google.com/maps/search/?api=1&query=${q}`;
   };
   return (
-    <HoverCard open={open} onOpenChange={setOpen} openDelay={100} closeDelay={1000}>
+    <HoverCard open={open} onOpenChange={setOpen} openDelay={100} closeDelay={700}>
       <HoverCardTrigger asChild onClick={(e) => {
         e.stopPropagation();
         setOpen(!open);
