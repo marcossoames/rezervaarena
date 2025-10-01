@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
 import { FacilitySportsComplexHoverCard } from "@/components/facility/FacilitySportsComplexHoverCard";
+import { openExternal } from "@/utils/openExternal";
 interface Facility {
   id: string;
   name: string;
@@ -72,6 +73,18 @@ const FacilitiesPage = () => {
   const [partiallyBlockedDates, setPartiallyBlockedDates] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<string>('newest');
   const navigate = useNavigate();
+
+  // Helper functions for Google Maps
+  const buildLocationQuery = (address: string | undefined, city: string): string => {
+    if (!address) return city;
+    return `${address}, ${city}`;
+  };
+
+  const getMapsOpenUrl = (address: string | undefined, city: string): string => {
+    const query = buildLocationQuery(address, city);
+    const q = encodeURIComponent(query);
+    return `https://www.google.com/maps/search/?api=1&query=${q}`;
+  };
   const calculateBlockedDatesForVisibleFacilities = async () => {
     if (!allFacilities.length) return { fullyBlocked: new Set(), partiallyBlocked: new Set() };
     
@@ -954,9 +967,17 @@ applyFilters();
                           )}
                             <div className="flex items-center text-muted-foreground text-sm mb-1">
                               <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                              <span className="text-left">
+                              <a
+                                href={getMapsOpenUrl(facility.address || facility.sports_complex_address, facility.city)}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  openExternal(getMapsOpenUrl(facility.address || facility.sports_complex_address, facility.city));
+                                }}
+                                className="text-left hover:text-primary hover:underline cursor-pointer transition-colors"
+                              >
                                 {facility.address || facility.sports_complex_address || `${facility.city}`}
-                              </span>
+                              </a>
                             </div>
                             {/* Operating Hours */}
                             {(facility.operating_hours_start && facility.operating_hours_end) && (
