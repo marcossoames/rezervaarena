@@ -333,12 +333,12 @@ const FacilitiesPage = () => {
       if (duration) {
         const durationInMinutes = parseInt(duration);
         filteredFacilities = filteredFacilities.filter(f => {
-          // If facility doesn't have allowed_durations defined, assume it allows all standard durations
-          if (!f.allowed_durations || f.allowed_durations.length === 0) {
-            return true;
+          // If facility has allowed_durations defined, check if the selected duration is allowed
+          if (f.allowed_durations && f.allowed_durations.length > 0) {
+            return f.allowed_durations.includes(durationInMinutes);
           }
-          // Check if the selected duration is in the facility's allowed durations
-          return f.allowed_durations.includes(durationInMinutes);
+          // If no allowed_durations defined, allow standard durations (60, 90, 120, 180)
+          return [60, 90, 120, 180].includes(durationInMinutes);
         });
       }
 
@@ -436,133 +436,111 @@ const FacilitiesPage = () => {
               }))
           );
           const unavailableFacilities = new Set();
-          if (startTime) {
-            if (duration) {
-              // Both start time and duration selected - check for exact time range availability
-              const [startHour, startMinute] = startTime.split(':').map(Number);
-              const startMinutes = startHour * 60 + startMinute;
-              const endMinutes = startMinutes + parseInt(duration);
-              const endHour = Math.floor(endMinutes / 60);
-              const endMinute = endMinutes % 60;
-              const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
-
-              // Check which facilities are booked or blocked during this time range
-              const bookingsInTimeRange = bookings?.filter(booking => {
-                const bookingStart = booking.start_time;
-                const bookingEnd = booking.end_time;
-                // Check for overlap: booking overlaps if it starts before our range ends and ends after our range starts
-                return bookingStart < endTime && bookingEnd > startTime;
-              }) || [];
-              const blockedInTimeRange = blockedDates?.filter(blocked => {
-                // If no specific time, entire day is blocked
-                if (!blocked.start_time || !blocked.end_time) return true;
-                // Check for overlap with specific blocked time
-                return blocked.start_time < endTime && blocked.end_time > startTime;
-              }) || [];
-
-              // Mark facilities as unavailable if they have bookings or are blocked during this time range
-              bookingsInTimeRange.forEach(booking => unavailableFacilities.add(booking.facility_id));
-              blockedInTimeRange.forEach(blocked => unavailableFacilities.add(blocked.facility_id));
-            } else {
-              // Only start time selected (no duration) - check if facility has ANY availability at this start time
-              // We'll check for at least a 30-minute slot availability starting from this time
-              const [startHour, startMinute] = startTime.split(':').map(Number);
-              const startMinutes = startHour * 60 + startMinute;
-              const checkEndMinutes = startMinutes + 30; // Check for at least 30 minutes
-              const checkEndTime = `${Math.floor(checkEndMinutes / 60).toString().padStart(2, '0')}:${(checkEndMinutes % 60).toString().padStart(2, '0')}`;
-
-              // Check if any facility has conflicts in this 30-minute window
-              const conflictsInTimeSlot = bookings?.filter(booking => {
-                const bookingStart = booking.start_time;
-                const bookingEnd = booking.end_time;
-                return bookingStart < checkEndTime && bookingEnd > startTime;
-              }) || [];
-              
-              const blocksInTimeSlot = blockedDates?.filter(blocked => {
-                if (!blocked.start_time || !blocked.end_time) return true; // Full day block
-                return blocked.start_time < checkEndTime && blocked.end_time > startTime;
-              }) || [];
-
-              // Mark facilities as unavailable if they're booked/blocked in this time slot
-              conflictsInTimeSlot.forEach(booking => unavailableFacilities.add(booking.facility_id));
-              blocksInTimeSlot.forEach(blocked => unavailableFacilities.add(blocked.facility_id));
-            }
-          } else {
-            // No specific time slot - check if facilities have any availability
-            
-            // Check for full day blocks first
-            const fullyBlockedFacilities = blockedDates?.filter(blocked => !blocked.start_time || !blocked.end_time).map(blocked => blocked.facility_id) || [];
-            fullyBlockedFacilities.forEach(facilityId => unavailableFacilities.add(facilityId));
-
-            // For each facility, check if it's completely booked by examining coverage
+          
+          // Check availability based on selected time/duration filters
+          if (startTime || duration) {
+            // Filter facilities based on time slot availability
             filteredFacilities.forEach(facility => {
-              // Skip if already marked as unavailable due to full day block
-              if (unavailableFacilities.has(facility.id)) return;
-              
-              // Get all bookings for this facility
               const facilityBookings = bookings?.filter(b => b.facility_id === facility.id) || [];
+              const facilityBlocks = blockedDates?.filter(b => b.facility_id === facility.id) || [];
               
-              // Get operating hours (default 8-22 if not specified)
-              const opStart = facility.operating_hours_start || '08:00';
-              const opEnd = facility.operating_hours_end || '22:00';
-              
-              // Convert to minutes for easier calculation
-              const [startHour, startMin] = opStart.split(':').map(Number);
-              const [endHour, endMin] = opEnd.split(':').map(Number);
-              const operatingStartMinutes = startHour * 60 + startMin;
-              const operatingEndMinutes = endHour * 60 + endMin;
-              const totalOperatingMinutes = operatingEndMinutes - operatingStartMinutes;
-              
-              // Calculate total booked minutes
-              let totalBookedMinutes = 0;
-              const timeSlots = new Array(totalOperatingMinutes / 30).fill(false); // 30-minute slots
-              
-              facilityBookings.forEach(booking => {
-                const [bStartHour, bStartMin] = booking.start_time.split(':').map(Number);
-                const [bEndHour, bEndMin] = booking.end_time.split(':').map(Number);
-                const bookingStartMinutes = bStartHour * 60 + bStartMin;
-                const bookingEndMinutes = bEndHour * 60 + bEndMin;
-                
-                // Mark time slots as booked (convert to slot indices)
-                const startSlot = Math.max(0, Math.floor((bookingStartMinutes - operatingStartMinutes) / 30));
-                const endSlot = Math.min(timeSlots.length, Math.ceil((bookingEndMinutes - operatingStartMinutes) / 30));
-                
-                for (let i = startSlot; i < endSlot; i++) {
-                  if (i >= 0 && i < timeSlots.length) {
-                    timeSlots[i] = true;
-                  }
-                }
-              });
-              
-              // Check partial time blocks for this facility
-              const facilityPartialBlocks = blockedDates?.filter(blocked => 
-                blocked.facility_id === facility.id && 
-                blocked.start_time && 
-                blocked.end_time
-              ) || [];
-              
-              facilityPartialBlocks.forEach(blocked => {
-                const [bStartHour, bStartMin] = blocked.start_time!.split(':').map(Number);
-                const [bEndHour, bEndMin] = blocked.end_time!.split(':').map(Number);
-                const blockStartMinutes = bStartHour * 60 + bStartMin;
-                const blockEndMinutes = bEndHour * 60 + bEndMin;
-                
-                const startSlot = Math.max(0, Math.floor((blockStartMinutes - operatingStartMinutes) / 30));
-                const endSlot = Math.min(timeSlots.length, Math.ceil((blockEndMinutes - operatingStartMinutes) / 30));
-                
-                for (let i = startSlot; i < endSlot; i++) {
-                  if (i >= 0 && i < timeSlots.length) {
-                    timeSlots[i] = true;
-                  }
-                }
-              });
-              
-              // If more than 90% of time slots are booked/blocked, consider facility unavailable
-              const bookedSlots = timeSlots.filter(slot => slot).length;
-              const occupancyRate = bookedSlots / timeSlots.length;
-              
-              if (occupancyRate > 0.9) {
+              // Check if facility has full day block
+              const hasFullDayBlock = facilityBlocks.some(blocked => !blocked.start_time || !blocked.end_time);
+              if (hasFullDayBlock) {
                 unavailableFacilities.add(facility.id);
+                return;
+              }
+              
+              if (startTime && duration) {
+                // Both start time and duration selected - check for exact time range availability
+                const [startHour, startMinute] = startTime.split(':').map(Number);
+                const startMinutes = startHour * 60 + startMinute;
+                const endMinutes = startMinutes + parseInt(duration);
+                const endHour = Math.floor(endMinutes / 60);
+                const endMinute = endMinutes % 60;
+                const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+
+                // Check for booking conflicts
+                const hasBookingConflict = facilityBookings.some(booking => {
+                  return booking.start_time < endTime && booking.end_time > startTime;
+                });
+                
+                // Check for block conflicts
+                const hasBlockConflict = facilityBlocks.some(blocked => {
+                  if (blocked.start_time && blocked.end_time) {
+                    return blocked.start_time < endTime && blocked.end_time > startTime;
+                  }
+                  return false;
+                });
+
+                if (hasBookingConflict || hasBlockConflict) {
+                  unavailableFacilities.add(facility.id);
+                }
+              } else if (startTime) {
+                // Only start time selected - check if facility is available at this specific time
+                // Check with minimum booking duration from allowed_durations or default to 60 minutes
+                const minDuration = facility.allowed_durations && facility.allowed_durations.length > 0 
+                  ? Math.min(...facility.allowed_durations) 
+                  : 60;
+                
+                const [startHour, startMinute] = startTime.split(':').map(Number);
+                const startMinutes = startHour * 60 + startMinute;
+                const checkEndMinutes = startMinutes + minDuration;
+                const checkEndTime = `${Math.floor(checkEndMinutes / 60).toString().padStart(2, '0')}:${(checkEndMinutes % 60).toString().padStart(2, '0')}`;
+
+                // Check for conflicts in this time window
+                const hasBookingConflict = facilityBookings.some(booking => {
+                  return booking.start_time < checkEndTime && booking.end_time > startTime;
+                });
+                
+                const hasBlockConflict = facilityBlocks.some(blocked => {
+                  if (blocked.start_time && blocked.end_time) {
+                    return blocked.start_time < checkEndTime && blocked.end_time > startTime;
+                  }
+                  return false;
+                });
+
+                if (hasBookingConflict || hasBlockConflict) {
+                  unavailableFacilities.add(facility.id);
+                }
+              } else if (duration) {
+                // Only duration selected - check if facility has ANY continuous time slot of this duration available
+                const durationInMinutes = parseInt(duration);
+                const opStart = facility.operating_hours_start || '08:00';
+                const opEnd = facility.operating_hours_end || '22:00';
+                
+                const [startHour, startMin] = opStart.split(':').map(Number);
+                const [endHour, endMin] = opEnd.split(':').map(Number);
+                const operatingStartMinutes = startHour * 60 + startMin;
+                const operatingEndMinutes = endHour * 60 + endMin;
+                
+                // Check every 30-minute slot to see if we can fit the duration
+                let hasAvailableSlot = false;
+                
+                for (let checkStartMinutes = operatingStartMinutes; checkStartMinutes + durationInMinutes <= operatingEndMinutes; checkStartMinutes += 30) {
+                  const checkStartTime = `${Math.floor(checkStartMinutes / 60).toString().padStart(2, '0')}:${(checkStartMinutes % 60).toString().padStart(2, '0')}`;
+                  const checkEndMinutes = checkStartMinutes + durationInMinutes;
+                  const checkEndTime = `${Math.floor(checkEndMinutes / 60).toString().padStart(2, '0')}:${(checkEndMinutes % 60).toString().padStart(2, '0')}`;
+                  
+                  // Check if this slot is free
+                  const hasConflict = facilityBookings.some(booking => {
+                    return booking.start_time < checkEndTime && booking.end_time > checkStartTime;
+                  }) || facilityBlocks.some(blocked => {
+                    if (blocked.start_time && blocked.end_time) {
+                      return blocked.start_time < checkEndTime && blocked.end_time > checkStartTime;
+                    }
+                    return false;
+                  });
+                  
+                  if (!hasConflict) {
+                    hasAvailableSlot = true;
+                    break;
+                  }
+                }
+                
+                if (!hasAvailableSlot) {
+                  unavailableFacilities.add(facility.id);
+                }
               }
             });
           }
