@@ -167,10 +167,10 @@ const SportsSection = () => {
                   <OptimizedImage 
                     src={sport.image} 
                     alt={sport.name} 
-                    className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-300" 
+                    className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-300" 
                     loading="lazy" 
                     width={395} 
-                    height={288}
+                    height={320}
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px" 
                     quality={75}
                   />
@@ -181,9 +181,9 @@ const SportsSection = () => {
                 </div>
                 
                 <div className="p-4 flex flex-col h-full">
-                  <p className="text-sm text-muted-foreground mb-3 flex-grow leading-relaxed">{sport.description}</p>
+                  <p className="text-sm text-muted-foreground mb-2 flex-grow leading-relaxed">{sport.description}</p>
                   
-                  <div className="space-y-1 mb-4">
+                  <div className="space-y-1 mb-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-muted-foreground">Terenuri disponibile:</span>
                       <span className="font-bold text-primary">{sport.facilities}</span>
