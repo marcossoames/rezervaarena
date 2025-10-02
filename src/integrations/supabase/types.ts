@@ -895,6 +895,14 @@ export type Database = {
           min_price: number
         }[]
       }
+      get_facility_unavailable_slots_public: {
+        Args: { booking_date_param: string; facility_id_param: string }
+        Returns: {
+          end_time: string
+          start_time: string
+          unavailable_type: string
+        }[]
+      }
       get_masked_bank_details_for_user: {
         Args: { user_id_param: string }
         Returns: {
