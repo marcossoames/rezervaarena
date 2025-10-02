@@ -990,8 +990,7 @@ applyFilters();
                     <div className="md:w-2/3 p-6 flex flex-col flex-1">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className="text-xl font-bold text-foreground mb-1">{facility.name}</h3>
-                          {/* Show sports complex name with hover card */}
+                          {/* Show sports complex name first with hover card */}
                           {facility.sports_complex_name && (
                             <FacilitySportsComplexHoverCard
                               sportsComplexName={facility.sports_complex_name}
@@ -1008,11 +1007,14 @@ applyFilters();
                               }
                               city={facility.city}
                             >
-                              <div className="text-sm font-medium text-primary mb-1 cursor-pointer hover:underline">
+                              <h3 className="text-xl font-bold text-foreground mb-1 cursor-pointer hover:text-primary transition-colors">
                                 {facility.sports_complex_name}
-                              </div>
+                              </h3>
                             </FacilitySportsComplexHoverCard>
                           )}
+                          <div className="text-sm font-medium text-muted-foreground mb-1">
+                            {facility.name}
+                          </div>
                             <div className="flex items-center text-muted-foreground text-sm mb-1">
                               <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                               <a
