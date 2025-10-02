@@ -424,44 +424,74 @@ const FacilitiesPage = () => {
         try {
           const dateString = format(selectedDate, 'yyyy-MM-dd');
 
-          // Use secure RPC to get unavailable time slots for each facility
-          const facilityAvailabilityPromises = filteredFacilities.map(async (facility) => {
-            const { data: unavailableSlots, error } = await supabase
-              .rpc('get_facility_availability_secure', {
-                facility_id_param: facility.id,
-                booking_date_param: dateString
-              });
-            
-            if (error) {
-              console.error('Error fetching availability for facility:', facility.id, error);
-              return { facilityId: facility.id, unavailableSlots: [] };
-            }
-            
-            return { facilityId: facility.id, unavailableSlots: unavailableSlots || [] };
-          });
-
-          const facilityAvailabilities = await Promise.all(facilityAvailabilityPromises);
+          // Get unavailable time slots for each facility
+          // Use different approach based on authentication status
+          let bookings: any[] = [];
+          let blockedDates: any[] = [];
           
-          // Convert to the expected format for backward compatibility
-          const bookings = facilityAvailabilities.flatMap(({ facilityId, unavailableSlots }) => 
-            unavailableSlots
-              .filter(slot => slot.unavailable_type === 'booking')
-              .map(slot => ({
-                facility_id: facilityId,
-                start_time: slot.start_time,
-                end_time: slot.end_time
-              }))
-          );
+          if (session) {
+            // Authenticated users - use secure RPC
+            const facilityAvailabilityPromises = filteredFacilities.map(async (facility) => {
+              const { data: unavailableSlots, error } = await supabase
+                .rpc('get_facility_availability_secure', {
+                  facility_id_param: facility.id,
+                  booking_date_param: dateString
+                });
+              
+              if (error) {
+                console.error('Error fetching availability for facility:', facility.id, error);
+                return { facilityId: facility.id, unavailableSlots: [] };
+              }
+              
+              return { facilityId: facility.id, unavailableSlots: unavailableSlots || [] };
+            });
 
-          const blockedDates = facilityAvailabilities.flatMap(({ facilityId, unavailableSlots }) => 
-            unavailableSlots
-              .filter(slot => slot.unavailable_type === 'blocked')
-              .map(slot => ({
-                facility_id: facilityId,
-                start_time: slot.start_time,
-                end_time: slot.end_time
-              }))
-          );
+            const facilityAvailabilities = await Promise.all(facilityAvailabilityPromises);
+            
+            // Convert to the expected format
+            bookings = facilityAvailabilities.flatMap(({ facilityId, unavailableSlots }) => 
+              unavailableSlots
+                .filter(slot => slot.unavailable_type === 'booking')
+                .map(slot => ({
+                  facility_id: facilityId,
+                  start_time: slot.start_time,
+                  end_time: slot.end_time
+                }))
+            );
+
+            blockedDates = facilityAvailabilities.flatMap(({ facilityId, unavailableSlots }) => 
+              unavailableSlots
+                .filter(slot => slot.unavailable_type === 'blocked')
+                .map(slot => ({
+                  facility_id: facilityId,
+                  start_time: slot.start_time,
+                  end_time: slot.end_time
+                }))
+            );
+          } else {
+            // Unauthenticated users - query directly with public access
+            const facilityIds = filteredFacilities.map(f => f.id);
+            
+            // Get bookings for the selected date
+            const { data: bookingsData } = await supabase
+              .from('bookings')
+              .select('facility_id, start_time, end_time')
+              .in('facility_id', facilityIds)
+              .eq('booking_date', dateString)
+              .in('status', ['confirmed', 'pending']);
+            
+            bookings = bookingsData || [];
+            
+            // Blocked dates were already fetched in the earlier query
+            // We need to filter them for the selected date
+            const { data: blockedDatesData } = await supabase
+              .from('blocked_dates')
+              .select('facility_id, start_time, end_time')
+              .in('facility_id', facilityIds)
+              .eq('blocked_date', dateString);
+            
+            blockedDates = blockedDatesData || [];
+          }
           const unavailableFacilities = new Set();
           
           // Check availability based on selected time/duration filters
