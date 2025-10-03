@@ -1009,10 +1009,6 @@ export type Database = {
           price_per_hour: number
         }[]
       }
-      has_role: {
-        Args: { _role: Database["public"]["Enums"]["user_role"] }
-        Returns: boolean
-      }
       has_role_v2: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
