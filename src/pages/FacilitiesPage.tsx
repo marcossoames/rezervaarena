@@ -72,6 +72,8 @@ const FacilitiesPage = () => {
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
   const [partiallyBlockedDates, setPartiallyBlockedDates] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<string>('newest');
+  const [showSportsComplexDropdown, setShowSportsComplexDropdown] = useState(false);
+  const [filteredSportsComplexes, setFilteredSportsComplexes] = useState<string[]>([]);
   const navigate = useNavigate();
 
   // Helper functions for Google Maps
@@ -240,6 +242,20 @@ const FacilitiesPage = () => {
       setSelectedDate(new Date());
     }
   }, [searchParams]);
+
+  // Extract unique sports complex names for autocomplete
+  useEffect(() => {
+    if (allFacilities.length > 0) {
+      const uniqueNames = Array.from(
+        new Set(
+          allFacilities
+            .map(f => f.sports_complex_name)
+            .filter(name => name && name.trim() !== '')
+        )
+      ).sort();
+      setFilteredSportsComplexes(uniqueNames);
+    }
+  }, [allFacilities]);
   useEffect(() => {
     // If user is facility owner, redirect to management page
     if (userProfile?.role === 'facility_owner') {
@@ -691,13 +707,71 @@ applyFilters();
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Caută bază sportivă</label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                     <Input 
                       placeholder="Caută nume bază sportivă" 
                       className="h-11 pl-10 bg-white border-2 border-primary/20 focus:border-primary shadow-sm"
                       value={searchTerm} 
-                      onChange={(e) => setSearchTerm(e.target.value)} 
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setSearchTerm(value);
+                        
+                        // Filter sports complexes based on search term
+                        if (value.trim()) {
+                          const filtered = Array.from(
+                            new Set(
+                              allFacilities
+                                .map(f => f.sports_complex_name)
+                                .filter(name => 
+                                  name && 
+                                  name.toLowerCase().includes(value.toLowerCase())
+                                )
+                            )
+                          ).sort();
+                          setFilteredSportsComplexes(filtered);
+                          setShowSportsComplexDropdown(filtered.length > 0);
+                        } else {
+                          const uniqueNames = Array.from(
+                            new Set(
+                              allFacilities
+                                .map(f => f.sports_complex_name)
+                                .filter(name => name && name.trim() !== '')
+                            )
+                          ).sort();
+                          setFilteredSportsComplexes(uniqueNames);
+                          setShowSportsComplexDropdown(false);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (searchTerm.trim()) {
+                          setShowSportsComplexDropdown(filteredSportsComplexes.length > 0);
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay closing to allow click on dropdown item
+                        setTimeout(() => setShowSportsComplexDropdown(false), 200);
+                      }}
                     />
+                    
+                    {/* Autocomplete Dropdown */}
+                    {showSportsComplexDropdown && filteredSportsComplexes.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-background border-2 border-primary/20 rounded-lg shadow-lg z-[100] max-h-60 overflow-y-auto">
+                        <ul className="py-2">
+                          {filteredSportsComplexes.map((name, index) => (
+                            <li 
+                              key={index}
+                              className="px-4 py-2 hover:bg-primary/10 cursor-pointer transition-colors text-foreground"
+                              onClick={() => {
+                                setSearchTerm(name);
+                                setShowSportsComplexDropdown(false);
+                              }}
+                            >
+                              {name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
