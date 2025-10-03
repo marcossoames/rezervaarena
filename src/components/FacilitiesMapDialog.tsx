@@ -43,8 +43,9 @@ const defaultCenter = {
   lng: 26.1025, // Bucharest, Romania
 };
 
+const GOOGLE_MAPS_API_KEY = 'AIzaSyCGrKiAKmNEGqvx5Qfrfo_CwnkzA95QqiY';
+
 const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDialogProps) => {
-  const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string>('');
   const [facilitiesWithCoords, setFacilitiesWithCoords] = useState<FacilityWithCoords[]>([]);
   const [selectedFacility, setSelectedFacility] = useState<FacilityWithCoords | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -70,9 +71,9 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
     }
   }, [open]);
 
-  // Geocode facilities when API key is provided
+  // Geocode facilities when dialog opens
   useEffect(() => {
-    if (!googleMapsApiKey || !open) return;
+    if (!open) return;
 
     const geocodeFacilities = async () => {
       setIsGeocoding(true);
@@ -84,7 +85,7 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
         try {
           const query = encodeURIComponent(`${facility.address}, ${facility.city}, Romania`);
           const response = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${googleMapsApiKey}`
+            `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${GOOGLE_MAPS_API_KEY}`
           );
           const data = await response.json();
 
@@ -114,7 +115,7 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
     };
 
     geocodeFacilities();
-  }, [googleMapsApiKey, facilities, open, userLocation]);
+  }, [facilities, open, userLocation]);
 
   const handleNavigate = (facility: FacilityWithCoords) => {
     if (!facility.address) return;
@@ -158,31 +159,7 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
           </DialogDescription>
         </DialogHeader>
 
-        {!googleMapsApiKey ? (
-          <div className="p-6 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Pentru a vizualiza harta, introdu cheia ta Google Maps API:
-            </p>
-            <Input
-              type="text"
-              placeholder="AIza..."
-              onChange={(e) => setGoogleMapsApiKey(e.target.value)}
-              className="w-full"
-            />
-            <p className="text-xs text-muted-foreground">
-              Obține o cheie gratuită pe{' '}
-              <a
-                href="https://console.cloud.google.com/google/maps-apis"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                Google Cloud Console
-              </a>
-              {' '}(Maps JavaScript API + Geocoding API)
-            </p>
-          </div>
-        ) : isGeocoding ? (
+        {isGeocoding ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
@@ -191,7 +168,7 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
           </div>
         ) : (
           <div className="flex-1 relative">
-            <LoadScript googleMapsApiKey={googleMapsApiKey}>
+            <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
               <GoogleMap
                 mapContainerStyle={mapContainerStyle}
                 center={mapCenter}
@@ -284,7 +261,7 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
           </div>
         )}
 
-        {googleMapsApiKey && !isGeocoding && (
+        {!isGeocoding && (
           <div className="px-6 py-3 bg-muted/50 text-xs text-muted-foreground border-t">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
