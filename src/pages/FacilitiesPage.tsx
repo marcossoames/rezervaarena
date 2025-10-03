@@ -874,13 +874,20 @@ applyFilters();
                       <EnhancedCalendar 
                         mode="single" 
                         selected={selectedDate} 
-                         blockedDates={blockedDates}
-                         partiallyBlockedDates={partiallyBlockedDates}
+                        blockedDates={blockedDates}
+                        partiallyBlockedDates={partiallyBlockedDates}
                         onSelect={(date) => {
-                          setSelectedDate(date);
+                          // Prevent selecting fully blocked dates (extra safety)
+                          if (date) {
+                            const dateStr = format(date, 'yyyy-MM-dd');
+                            if ((blockedDates as Set<string>).has(dateStr)) {
+                              return; // ignore selection for fully blocked days
+                            }
+                          }
+                          setSelectedDate(date || undefined);
                           // Clear time selections when date changes to avoid past time selections
                           if (date) {
-                            const timeOptions = [];
+                            const timeOptions: string[] = [];
                             for (let hour = 8; hour <= 22; hour++) {
                               for (let minute = 0; minute < 60; minute += 30) {
                                 const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
@@ -897,12 +904,6 @@ applyFilters();
                             setDuration('');
                           }
                         }} 
-                        disabled={(date) => {
-                          const today = new Date();
-                          const twoWeeksFromNow = new Date();
-                          twoWeeksFromNow.setDate(today.getDate() + 14);
-                          return date < today || date > twoWeeksFromNow;
-                        }}
                         initialFocus 
                         className="p-3 pointer-events-auto" 
                       />
