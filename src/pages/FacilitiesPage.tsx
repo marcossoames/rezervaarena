@@ -590,6 +590,61 @@ const FacilitiesPage = () => {
                 }
               }
             });
+          } else {
+            // Only date selected (no time/duration) - hide facilities that are completely blocked or fully booked
+            filteredFacilities.forEach(facility => {
+              const facilityBookings = bookings?.filter(b => b.facility_id === facility.id) || [];
+              const facilityBlocks = blockedDates?.filter(b => b.facility_id === facility.id) || [];
+              
+              // Check if facility has full day block (no start_time or end_time means entire day)
+              const hasFullDayBlock = facilityBlocks.some(blocked => !blocked.start_time || !blocked.end_time);
+              
+              if (hasFullDayBlock) {
+                unavailableFacilities.add(facility.id);
+                return;
+              }
+              
+              // Check if facility is fully booked for the entire operating hours
+              const opStart = facility.operating_hours_start || '08:00';
+              const opEnd = facility.operating_hours_end || '22:00';
+              const [startHour, startMin] = opStart.split(':').map(Number);
+              const [endHour, endMin] = opEnd.split(':').map(Number);
+              const operatingStartMinutes = startHour * 60 + startMin;
+              const operatingEndMinutes = endHour * 60 + endMin;
+              
+              // Check every 30-minute slot to see if there's at least one available slot
+              const minDuration = facility.allowed_durations && facility.allowed_durations.length > 0 
+                ? Math.min(...facility.allowed_durations) 
+                : 60;
+              
+              let hasAnyAvailableSlot = false;
+              
+              for (let checkStartMinutes = operatingStartMinutes; checkStartMinutes + minDuration <= operatingEndMinutes; checkStartMinutes += 30) {
+                const checkStartTime = `${Math.floor(checkStartMinutes / 60).toString().padStart(2, '0')}:${(checkStartMinutes % 60).toString().padStart(2, '0')}`;
+                const checkEndMinutes = checkStartMinutes + minDuration;
+                const checkEndTime = `${Math.floor(checkEndMinutes / 60).toString().padStart(2, '0')}:${(checkEndMinutes % 60).toString().padStart(2, '0')}`;
+                
+                // Check if this slot is free
+                const hasConflict = facilityBookings.some(booking => {
+                  return booking.start_time < checkEndTime && booking.end_time > checkStartTime;
+                }) || facilityBlocks.some(blocked => {
+                  if (blocked.start_time && blocked.end_time) {
+                    return blocked.start_time < checkEndTime && blocked.end_time > checkStartTime;
+                  }
+                  return false;
+                });
+                
+                if (!hasConflict) {
+                  hasAnyAvailableSlot = true;
+                  break;
+                }
+              }
+              
+              // If no available slots found, hide this facility
+              if (!hasAnyAvailableSlot) {
+                unavailableFacilities.add(facility.id);
+              }
+            });
           }
 
       // Filter out unavailable facilities
