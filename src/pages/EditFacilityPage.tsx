@@ -16,6 +16,18 @@ import Footer from "@/components/Footer";
 import { facilityTypeOptions } from "@/utils/facilityTypes";
 import { TimePicker } from "@/components/ui/time-picker";
 import { getImagePublicUrl } from "@/utils/imageUtils";
+import { DailyHoursEditor } from "@/components/facility/DailyHoursEditor";
+
+interface DailyHours {
+  monday?: { start: string; end: string } | null;
+  tuesday?: { start: string; end: string } | null;
+  wednesday?: { start: string; end: string } | null;
+  thursday?: { start: string; end: string } | null;
+  friday?: { start: string; end: string } | null;
+  saturday?: { start: string; end: string } | null;
+  sunday?: { start: string; end: string } | null;
+}
+
 interface FacilityFormData {
   facilityName: string;
   description: string;
@@ -44,6 +56,7 @@ interface FacilityData {
   main_image_url: string;
   operating_hours_start: string;
   operating_hours_end: string;
+  daily_hours?: DailyHours;
 }
 
 // Normalize time values like "08:00:00" to "08:00"
@@ -74,6 +87,15 @@ const EditFacilityPage = () => {
   const [uploading, setUploading] = useState(false);
   const [isCapacityRange, setIsCapacityRange] = useState(false);
   const [allowedDurations, setAllowedDurations] = useState<number[]>([60, 90, 120]);
+  const [dailyHours, setDailyHours] = useState<DailyHours>({
+    monday: { start: "08:00", end: "22:00" },
+    tuesday: { start: "08:00", end: "22:00" },
+    wednesday: { start: "08:00", end: "22:00" },
+    thursday: { start: "08:00", end: "22:00" },
+    friday: { start: "08:00", end: "22:00" },
+    saturday: { start: "08:00", end: "22:00" },
+    sunday: { start: "08:00", end: "22:00" },
+  });
 
   const { register, handleSubmit, setValue, formState: { errors }, getValues, watch } = useForm<FacilityFormData>();
   const { toast } = useToast();
@@ -225,6 +247,26 @@ const EditFacilityPage = () => {
           const normalizedEndForForm = formatTimeToHHMM((facilityData as any).operating_hours_end) || "22:00";
           setValue("operatingHoursStart", normalizedStartForForm);
           setValue("operatingHoursEnd", normalizedEndForForm);
+
+          // Load daily_hours or create default from operating hours
+          if ((facilityData as any).daily_hours) {
+            setDailyHours((facilityData as any).daily_hours);
+          } else {
+            // Create default from operating hours (all days open)
+            const defaultHours = {
+              start: normalizedStartForForm,
+              end: normalizedEndForForm
+            };
+            setDailyHours({
+              monday: defaultHours,
+              tuesday: defaultHours,
+              wednesday: defaultHours,
+              thursday: defaultHours,
+              friday: defaultHours,
+              saturday: defaultHours,
+              sunday: defaultHours,
+            });
+          }
         }
       } catch (error) {
         console.error('Error:', error);
@@ -427,7 +469,8 @@ const EditFacilityPage = () => {
           main_image_url: mainImageUrl,
           operating_hours_start: data.operatingHoursStart,
           operating_hours_end: data.operatingHoursEnd,
-          allowed_durations: allowedDurations
+          allowed_durations: allowedDurations,
+          daily_hours: dailyHours
         })
         .eq('id', facility.id);
 
@@ -703,7 +746,21 @@ const EditFacilityPage = () => {
                     type="hidden"
                     {...register("operatingHoursEnd", { required: "Ora de închidere este obligatorie" })}
                   />
+                  
+                  <div className="p-3 bg-muted/30 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      Orele de funcționare sunt doar pentru referință - folosește secțiunea Program Zilnic pentru a seta orele specifice pe zile.
+                    </p>
+                  </div>
                 </div>
+
+                {/* Daily Hours Editor */}
+                <DailyHoursEditor
+                  value={dailyHours}
+                  onChange={setDailyHours}
+                  defaultStart={watch("operatingHoursStart") || "08:00"}
+                  defaultEnd={watch("operatingHoursEnd") || "22:00"}
+                />
 
                 {/* Allowed Durations */}
                 <div className="space-y-4">

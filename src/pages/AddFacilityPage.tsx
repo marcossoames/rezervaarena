@@ -14,6 +14,17 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { facilityTypeOptions } from "@/utils/facilityTypes";
 import { TimePicker } from "@/components/ui/time-picker";
+import { DailyHoursEditor } from "@/components/facility/DailyHoursEditor";
+
+interface DailyHours {
+  monday?: { start: string; end: string } | null;
+  tuesday?: { start: string; end: string } | null;
+  wednesday?: { start: string; end: string } | null;
+  thursday?: { start: string; end: string } | null;
+  friday?: { start: string; end: string } | null;
+  saturday?: { start: string; end: string } | null;
+  sunday?: { start: string; end: string } | null;
+}
 
 interface FacilityFormData {
   facilityName: string;
@@ -42,6 +53,15 @@ const AddFacilityPage = () => {
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>('');
   const [isCapacityRange, setIsCapacityRange] = useState(false);
   const [allowedDurations, setAllowedDurations] = useState<number[]>([60, 90, 120]);
+  const [dailyHours, setDailyHours] = useState<DailyHours>({
+    monday: { start: "08:00", end: "22:00" },
+    tuesday: { start: "08:00", end: "22:00" },
+    wednesday: { start: "08:00", end: "22:00" },
+    thursday: { start: "08:00", end: "22:00" },
+    friday: { start: "08:00", end: "22:00" },
+    saturday: { start: "08:00", end: "22:00" },
+    sunday: { start: "08:00", end: "22:00" },
+  });
 
   const { register, handleSubmit, setValue, formState: { errors }, getValues, watch, control } = useForm<FacilityFormData>({
     defaultValues: {
@@ -304,7 +324,8 @@ const AddFacilityPage = () => {
           operating_hours_start: data.operatingHoursStart,
           operating_hours_end: data.operatingHoursEnd,
           amenities: amenities, // These are facility-specific amenities, not general services
-          allowed_durations: allowedDurations
+          allowed_durations: allowedDurations,
+          daily_hours: dailyHours
         })
         .select()
         .single();
@@ -639,10 +660,18 @@ const AddFacilityPage = () => {
                   
                   <div className="p-3 bg-muted/30 rounded-lg">
                     <p className="text-sm text-muted-foreground">
-                      Orele de funcționare determină intervalul în care clienții pot face rezervări și tu poți bloca ore în calendar.
+                      Orele de funcționare sunt doar pentru referință - folosește secțiunea Program Zilnic pentru a seta orele specifice pe zile.
                     </p>
                   </div>
                 </div>
+
+                {/* Daily Hours Editor */}
+                <DailyHoursEditor
+                  value={dailyHours}
+                  onChange={setDailyHours}
+                  defaultStart={watch("operatingHoursStart") || "08:00"}
+                  defaultEnd={watch("operatingHoursEnd") || "22:00"}
+                />
 
                 {/* Allowed Durations */}
                 <div className="space-y-4">

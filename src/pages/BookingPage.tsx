@@ -18,6 +18,16 @@ import { filterAllowedTimeSlots, getMinimumAllowedTime } from "@/utils/dateTimeV
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { getImagePublicUrl } from "@/utils/imageUtils";
 
+interface DailyHours {
+  monday?: { start: string; end: string } | null;
+  tuesday?: { start: string; end: string } | null;
+  wednesday?: { start: string; end: string } | null;
+  thursday?: { start: string; end: string } | null;
+  friday?: { start: string; end: string } | null;
+  saturday?: { start: string; end: string } | null;
+  sunday?: { start: string; end: string } | null;
+}
+
 interface Facility {
   id: string;
   name: string;
@@ -31,6 +41,7 @@ interface Facility {
   images: string[];
   operating_hours_start?: string;
   operating_hours_end?: string;
+  daily_hours?: DailyHours;
   // Sports complex information
   sports_complex_name?: string;
   sports_complex_address?: string;
