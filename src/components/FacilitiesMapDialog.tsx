@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import LeafletFallbackMap, { FacilityWithCoords as LeafletFacility } from '@/components/maps/LeafletFallbackMap';
 import {
   Dialog,
   DialogContent,
@@ -126,6 +127,36 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
 
     geocodeFacilities();
   }, [facilities, open, userLocation, isLoaded]);
+
+  // Fallback geocoding with OpenStreetMap when Google Maps fails to load
+  useEffect(() => {
+    if (!open || !loadError) return;
+
+    const geocodeFacilitiesOSM = async () => {
+      setIsGeocoding(true);
+      const geocoded: FacilityWithCoords[] = [];
+      for (const facility of facilities) {
+        if (!facility.address) continue;
+        try {
+          const query = encodeURIComponent(`${facility.address}, ${facility.city}, Romania`);
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`);
+          const arr = await res.json();
+          if (Array.isArray(arr) && arr.length > 0) {
+            geocoded.push({ ...facility, lat: parseFloat(arr[0].lat), lng: parseFloat(arr[0].lon) });
+          }
+        } catch (e) {
+          console.error('OSM geocoding error for facility:', facility.name, e);
+        }
+      }
+      setFacilitiesWithCoords(geocoded);
+      setIsGeocoding(false);
+      if (geocoded.length > 0 && !userLocation) {
+        setMapCenter({ lat: geocoded[0].lat, lng: geocoded[0].lng });
+      }
+    };
+
+    geocodeFacilitiesOSM();
+  }, [open, loadError, facilities, userLocation]);
 
   const handleNavigate = (facility: FacilityWithCoords) => {
     if (!facility.address) return;
