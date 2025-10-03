@@ -772,6 +772,7 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           address: string
+          allowed_durations: number[]
           amenities: string[]
           capacity: number
           capacity_max: number
@@ -812,6 +813,7 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           address: string
+          allowed_durations: number[]
           amenities: string[]
           capacity: number
           capacity_max: number

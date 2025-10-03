@@ -329,33 +329,6 @@ const FacilitiesPage = () => {
         filteredFacilities = filteredFacilities.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()) || f.description && f.description.toLowerCase().includes(searchTerm.toLowerCase()) || f.sports_complex_name && f.sports_complex_name.toLowerCase().includes(searchTerm.toLowerCase()));
       }
 
-      // Enrich facilities with allowed_durations and operating hours when missing (best effort)
-      try {
-        const idsNeeding = filteredFacilities
-          .filter(f => !f.allowed_durations || !Array.isArray(f.allowed_durations))
-          .map(f => f.id);
-        if (idsNeeding.length) {
-          const { data: rows } = await supabase
-            .from('facilities')
-            .select('id, allowed_durations, operating_hours_start, operating_hours_end')
-            .in('id', idsNeeding);
-          if (rows) {
-            const map = new Map(rows.map((r: any) => [r.id, r]));
-            filteredFacilities = filteredFacilities.map(f => {
-              const extra = map.get(f.id);
-              return extra
-                ? { ...f, 
-                    allowed_durations: extra.allowed_durations ?? f.allowed_durations,
-                    operating_hours_start: extra.operating_hours_start ?? f.operating_hours_start,
-                    operating_hours_end: extra.operating_hours_end ?? f.operating_hours_end }
-                : f;
-            });
-          }
-        }
-      } catch (_) {
-        // Ignore if not permitted by RLS (unauthenticated visitors)
-      }
-
       // Apply duration filter - only show facilities that allow the selected duration
       if (duration) {
         const durationInMinutes = parseInt(duration);
