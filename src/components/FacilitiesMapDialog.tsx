@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import {
   Dialog,
   DialogContent,
@@ -46,11 +46,21 @@ const defaultCenter = {
 const GOOGLE_MAPS_API_KEY = 'AIzaSyCGrKiAKmNEGqvx5Qfrfo_CwnkzA95QqiY';
 
 const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDialogProps) => {
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+  });
+
   const [facilitiesWithCoords, setFacilitiesWithCoords] = useState<FacilityWithCoords[]>([]);
   const [selectedFacility, setSelectedFacility] = useState<FacilityWithCoords | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  
+  const mapOptions = useMemo(() => ({
+    streetViewControl: false,
+    mapTypeControl: false,
+    fullscreenControl: false,
+  }), []);
 
   // Get user's location
   useEffect(() => {
@@ -159,25 +169,28 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
           </DialogDescription>
         </DialogHeader>
 
-        {isGeocoding ? (
+        {loadError ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm text-destructive">Eroare la încărcarea hărții</p>
+            </div>
+          </div>
+        ) : !isLoaded || isGeocoding ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-              <p className="text-sm text-muted-foreground">Se încarcă locațiile pe hartă...</p>
+              <p className="text-sm text-muted-foreground">
+                {isGeocoding ? 'Se încarcă locațiile pe hartă...' : 'Se încarcă harta...'}
+              </p>
             </div>
           </div>
         ) : (
           <div className="flex-1 relative">
-            <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
-              <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={mapCenter}
-                zoom={userLocation ? 12 : 7}
-                options={{
-                  streetViewControl: false,
-                  mapTypeControl: false,
-                  fullscreenControl: false,
-                }}
+            <GoogleMap
+              mapContainerStyle={mapContainerStyle}
+              center={mapCenter}
+              zoom={userLocation ? 12 : 7}
+              options={mapOptions}
               >
                 {/* User location marker */}
                 {userLocation && (
@@ -257,11 +270,10 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
                   </InfoWindow>
                 )}
               </GoogleMap>
-            </LoadScript>
           </div>
         )}
 
-        {!isGeocoding && (
+        {isLoaded && !isGeocoding && (
           <div className="px-6 py-3 bg-muted/50 text-xs text-muted-foreground border-t">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
