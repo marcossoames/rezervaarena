@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import {
   Dialog,
@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { MapPin, Navigation, Loader2 } from 'lucide-react';
-
 import { Badge } from "@/components/ui/badge";
 
 interface Facility {
@@ -47,8 +46,8 @@ const GOOGLE_MAPS_API_KEY = 'AIzaSyCGrKiAKmNEGqvx5Qfrfo_CwnkzA95QqiY';
 
 const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDialogProps) => {
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     id: 'google-map-script',
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
   });
 
   const [facilitiesWithCoords, setFacilitiesWithCoords] = useState<FacilityWithCoords[]>([]);
@@ -56,20 +55,12 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [isGeocoding, setIsGeocoding] = useState(false);
-  
+
   const mapOptions = useMemo(() => ({
     streetViewControl: false,
     mapTypeControl: false,
     fullscreenControl: false,
   }), []);
-
-  // Log loading status
-  useEffect(() => {
-    console.log('Google Maps API loading status:', { isLoaded, loadError });
-    if (loadError) {
-      console.error('Google Maps loading error:', loadError);
-    }
-  }, [isLoaded, loadError]);
 
   // Get user's location
   useEffect(() => {
@@ -90,9 +81,9 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
     }
   }, [open]);
 
-  // Geocode facilities when dialog opens
+  // Geocode facilities when dialog opens and API is loaded
   useEffect(() => {
-    if (!open) return;
+    if (!open || !isLoaded) return;
 
     const geocodeFacilities = async () => {
       setIsGeocoding(true);
@@ -134,13 +125,11 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
     };
 
     geocodeFacilities();
-  }, [facilities, open, userLocation]);
+  }, [facilities, open, userLocation, isLoaded]);
 
   const handleNavigate = (facility: FacilityWithCoords) => {
     if (!facility.address) return;
-    
     const query = encodeURIComponent(`${facility.address}, ${facility.city}, Romania`);
-    
     if (userLocation) {
       window.open(
         `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${query}`,
@@ -203,89 +192,89 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
               center={mapCenter}
               zoom={userLocation ? 12 : 7}
               options={mapOptions}
-              >
-                {/* User location marker */}
-                {userLocation && (
-                  <Marker
-                    position={userLocation}
-                    icon={{
-                      path: google.maps.SymbolPath.CIRCLE,
-                      scale: 8,
-                      fillColor: '#3b82f6',
-                      fillOpacity: 1,
-                      strokeColor: '#ffffff',
-                      strokeWeight: 2,
-                    }}
-                    title="Locația ta"
-                  />
-                )}
+            >
+              {/* User location marker */}
+              {userLocation && (
+                <Marker
+                  position={userLocation}
+                  icon={{
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 8,
+                    fillColor: '#3b82f6',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                  }}
+                  title="Locația ta"
+                />
+              )}
 
-                {/* Facility markers */}
-                {facilitiesWithCoords.map((facility) => (
-                  <Marker
-                    key={facility.id}
-                    position={{ lat: facility.lat, lng: facility.lng }}
-                    onClick={() => setSelectedFacility(facility)}
-                    icon={{
-                      path: google.maps.SymbolPath.CIRCLE,
-                      scale: 10,
-                      fillColor: '#10b981',
-                      fillOpacity: 1,
-                      strokeColor: '#ffffff',
-                      strokeWeight: 2,
-                    }}
-                  />
-                ))}
+              {/* Facility markers */}
+              {facilitiesWithCoords.map((facility) => (
+                <Marker
+                  key={facility.id}
+                  position={{ lat: facility.lat, lng: facility.lng }}
+                  onClick={() => setSelectedFacility(facility)}
+                  icon={{
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: '#10b981',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                  }}
+                />
+              ))}
 
-                {/* Info window for selected facility */}
-                {selectedFacility && (
-                  <InfoWindow
-                    position={{ lat: selectedFacility.lat, lng: selectedFacility.lng }}
-                    onCloseClick={() => setSelectedFacility(null)}
-                  >
-                    <div className="p-2 max-w-xs">
-                      <div className="flex items-start gap-2 mb-2">
-                        <h3 className="font-semibold text-base">{selectedFacility.name}</h3>
-                        <Badge variant="outline" className="flex-shrink-0 text-xs">
-                          {getFacilityTypeLabel(selectedFacility.facility_type)}
-                        </Badge>
-                      </div>
-                      
-                      {selectedFacility.sports_complex_name && (
-                        <p className="text-xs text-gray-600 mb-2">
-                          {selectedFacility.sports_complex_name}
-                        </p>
-                      )}
-                      
-                      <div className="flex items-start gap-1 mb-2">
-                        <MapPin className="h-3 w-3 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-xs text-gray-700">
-                          {selectedFacility.address}, {selectedFacility.city}
-                        </span>
-                      </div>
-                      
-                      {selectedFacility.price_per_hour && (
-                        <p className="text-sm font-medium text-primary mb-3">
-                          {selectedFacility.price_per_hour} RON/oră
-                        </p>
-                      )}
-                      
-                      <Button
-                        onClick={() => handleNavigate(selectedFacility)}
-                        size="sm"
-                        className="w-full gap-2"
-                      >
-                        <Navigation className="h-3 w-3" />
-                        Navigație Google Maps
-                      </Button>
+              {/* Info window for selected facility */}
+              {selectedFacility && (
+                <InfoWindow
+                  position={{ lat: selectedFacility.lat, lng: selectedFacility.lng }}
+                  onCloseClick={() => setSelectedFacility(null)}
+                >
+                  <div className="p-2 max-w-xs">
+                    <div className="flex items-start gap-2 mb-2">
+                      <h3 className="font-semibold text-base">{selectedFacility.name}</h3>
+                      <Badge variant="outline" className="flex-shrink-0 text-xs">
+                        {getFacilityTypeLabel(selectedFacility.facility_type)}
+                      </Badge>
                     </div>
-                  </InfoWindow>
-                )}
-              </GoogleMap>
+
+                    {selectedFacility.sports_complex_name && (
+                      <p className="text-xs text-gray-600 mb-2">
+                        {selectedFacility.sports_complex_name}
+                      </p>
+                    )}
+
+                    <div className="flex items-start gap-1 mb-2">
+                      <MapPin className="h-3 w-3 text-gray-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-xs text-gray-700">
+                        {selectedFacility.address}, {selectedFacility.city}
+                      </span>
+                    </div>
+
+                    {selectedFacility.price_per_hour && (
+                      <p className="text-sm font-medium text-primary mb-3">
+                        {selectedFacility.price_per_hour} RON/oră
+                      </p>
+                    )}
+
+                    <Button
+                      onClick={() => handleNavigate(selectedFacility)}
+                      size="sm"
+                      className="w-full gap-2"
+                    >
+                      <Navigation className="h-3 w-3" />
+                      Navigație Google Maps
+                    </Button>
+                  </div>
+                </InfoWindow>
+              )}
+            </GoogleMap>
           </div>
         )}
 
-        {isLoaded && !isGeocoding && (
+        {!isGeocoding && (
           <div className="px-6 py-3 bg-muted/50 text-xs text-muted-foreground border-t">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
