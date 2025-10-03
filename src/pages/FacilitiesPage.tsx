@@ -1082,11 +1082,11 @@ applyFilters();
               </div>
 
               {/* Sorting Options */}
-              <div className="flex items-center gap-4 justify-between">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 md:justify-between">
                 <div className="flex items-center gap-4">
                   <label className="text-sm font-medium text-foreground">Sortează după:</label>
                   <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-64">
+                  <SelectTrigger className="w-full md:w-64">
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Selectează sortarea" />
                   </SelectTrigger>
@@ -1109,11 +1109,11 @@ applyFilters();
                 </Select>
                 </div>
                 
-                {/* Map Button */}
+                {/* Map Button - Full width on mobile */}
                 <Button
                   onClick={() => setShowMapDialog(true)}
                   variant="outline"
-                  className="gap-2"
+                  className="gap-2 w-full md:w-auto"
                 >
                   <MapIcon className="h-4 w-4" />
                   Hartă
