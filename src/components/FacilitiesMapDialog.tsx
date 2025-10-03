@@ -48,6 +48,7 @@ const GOOGLE_MAPS_API_KEY = 'AIzaSyCGrKiAKmNEGqvx5Qfrfo_CwnkzA95QqiY';
 const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDialogProps) => {
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    id: 'google-map-script',
   });
 
   const [facilitiesWithCoords, setFacilitiesWithCoords] = useState<FacilityWithCoords[]>([]);
@@ -61,6 +62,14 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
     mapTypeControl: false,
     fullscreenControl: false,
   }), []);
+
+  // Log loading status
+  useEffect(() => {
+    console.log('Google Maps API loading status:', { isLoaded, loadError });
+    if (loadError) {
+      console.error('Google Maps loading error:', loadError);
+    }
+  }, [isLoaded, loadError]);
 
   // Get user's location
   useEffect(() => {
