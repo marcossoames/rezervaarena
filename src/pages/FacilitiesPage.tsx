@@ -730,7 +730,7 @@ applyFilters();
                         const value = e.target.value;
                         setSearchTerm(value);
                         
-                        // Filter sports complexes based on search term - only show those that START with the search term
+                        // Filter sports complexes based on search term
                         if (value.trim()) {
                           const filtered = Array.from(
                             new Set(
@@ -738,7 +738,7 @@ applyFilters();
                                 .map(f => f.sports_complex_name)
                                 .filter(name => 
                                   name && 
-                                  name.toLowerCase().startsWith(value.toLowerCase())
+                                  name.toLowerCase().includes(value.toLowerCase())
                                 )
                             )
                           ).sort();
@@ -801,7 +801,7 @@ applyFilters();
                         const value = e.target.value;
                         setLocationFilter(value);
                         
-                        // Filter cities based on search term - only show those that START with the search term
+                        // Filter cities based on search term
                         if (value.trim()) {
                           const filtered = Array.from(
                             new Set(
@@ -809,7 +809,7 @@ applyFilters();
                                 .map(f => f.city)
                                 .filter(city => 
                                   city && 
-                                  city.toLowerCase().startsWith(value.toLowerCase())
+                                  city.toLowerCase().includes(value.toLowerCase())
                                 )
                             )
                           ).sort();

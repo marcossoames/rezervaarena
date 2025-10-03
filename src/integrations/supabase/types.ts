@@ -339,7 +339,6 @@ export type Database = {
           capacity_max: number | null
           city: string
           created_at: string
-          daily_hours: Json | null
           description: string | null
           facility_type: Database["public"]["Enums"]["facility_type"]
           id: string
@@ -361,7 +360,6 @@ export type Database = {
           capacity_max?: number | null
           city: string
           created_at?: string
-          daily_hours?: Json | null
           description?: string | null
           facility_type: Database["public"]["Enums"]["facility_type"]
           id?: string
@@ -383,7 +381,6 @@ export type Database = {
           capacity_max?: number | null
           city?: string
           created_at?: string
-          daily_hours?: Json | null
           description?: string | null
           facility_type?: Database["public"]["Enums"]["facility_type"]
           id?: string
