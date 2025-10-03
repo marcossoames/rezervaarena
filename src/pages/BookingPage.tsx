@@ -130,10 +130,10 @@ const BookingPage = () => {
       }
 
       try {
-        // Get facility data directly to include allowed_durations
+        // Get facility data directly to include allowed_durations and daily_hours
         const { data: facilityData, error: facilityError } = await supabase
           .from('facilities')
-          .select('*, allowed_durations')
+          .select('*, allowed_durations, daily_hours')
           .eq('id', facilityId)
           .eq('is_active', true)
           .single();
@@ -168,6 +168,7 @@ const BookingPage = () => {
           images: facilityData.images || [],
           operating_hours_start: facilityData.operating_hours_start || "08:00",
           operating_hours_end: facilityData.operating_hours_end || "22:00",
+          daily_hours: facilityData.daily_hours,
           sports_complex_name: sportsComplexData?.name,
           sports_complex_address: sportsComplexData?.address,
         };
@@ -253,13 +254,28 @@ const BookingPage = () => {
 
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       
-      // Generate simple time slots without complex pricing logic
-      const startSlots = [];
-      const [startHour, startMinute] = facility.operating_hours_start?.split(':').map(Number) || [8, 0];
-      const [endHour, endMinute] = facility.operating_hours_end?.split(':').map(Number) || [22, 0];
+      // Get day of week for selected date (0=Sunday, 1=Monday, ..., 6=Saturday)
+      const dayOfWeek = selectedDate.getDay();
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const dayName = dayNames[dayOfWeek] as keyof DailyHours;
+      
+      // Check if facility is open on this day using daily_hours
+      const dayHours = facility.daily_hours?.[dayName];
+      if (!dayHours || dayHours === null) {
+        // Facility is closed on this day
+        setStartTimeSlots([]);
+        return;
+      }
+      
+      // Use daily hours for this specific day
+      const [startHour, startMinute] = dayHours.start.split(':').map(Number);
+      const [endHour, endMinute] = dayHours.end.split(':').map(Number);
       
       const startTime = startHour * 60 + startMinute;
       const endTime = endHour * 60 + endMinute;
+      
+      // Generate simple time slots without complex pricing logic
+      const startSlots = [];
       
       // Generate 30-minute slots, excluding the closing time for start times
       for (let time = startTime; time < endTime; time += 30) {
@@ -457,13 +473,34 @@ const BookingPage = () => {
                     <span className="text-left">{facility.city} area</span>
                   </div>
                   
-                  {/* Operating Hours */}
-                  {facility.operating_hours_start && facility.operating_hours_end && (
-                    <div className="flex items-center text-muted-foreground mb-4">
-                      <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span className="text-left">
-                        Orar: {facility.operating_hours_start?.slice(0, 5)} - {facility.operating_hours_end?.slice(0, 5)}
-                      </span>
+                  {/* Operating Hours - show daily schedule */}
+                  {facility.daily_hours && (
+                    <div className="mb-4 p-4 rounded-lg bg-muted/30">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span className="font-medium">Program săptămânal:</span>
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        {[
+                          { key: 'monday', label: 'Luni' },
+                          { key: 'tuesday', label: 'Marți' },
+                          { key: 'wednesday', label: 'Miercuri' },
+                          { key: 'thursday', label: 'Joi' },
+                          { key: 'friday', label: 'Vineri' },
+                          { key: 'saturday', label: 'Sâmbătă' },
+                          { key: 'sunday', label: 'Duminică' },
+                        ].map(({ key, label }) => {
+                          const hours = facility.daily_hours?.[key as keyof DailyHours];
+                          return (
+                            <div key={key} className="flex justify-between">
+                              <span className="text-muted-foreground">{label}:</span>
+                              <span className={hours ? "text-foreground" : "text-destructive"}>
+                                {hours ? `${hours.start} - ${hours.end}` : 'Închis'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                   
