@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, Filter, Search, LogIn, CalendarIcon, Users, ArrowUpDown, Map as MapIcon } from "lucide-react";
+import { Calendar, MapPin, Clock, Filter, Search, LogIn, CalendarIcon, Users, ArrowUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +20,6 @@ import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
 import { FacilitySportsComplexHoverCard } from "@/components/facility/FacilitySportsComplexHoverCard";
 import { openExternal } from "@/utils/openExternal";
-import FacilitiesMapDialog from "@/components/FacilitiesMapDialog";
 interface Facility {
   id: string;
   name: string;
@@ -77,7 +76,6 @@ const FacilitiesPage = () => {
   const [filteredSportsComplexes, setFilteredSportsComplexes] = useState<string[]>([]);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [filteredCities, setFilteredCities] = useState<string[]>([]);
-  const [showMapDialog, setShowMapDialog] = useState(false);
   const navigate = useNavigate();
 
   // Helper functions for Google Maps
@@ -1082,11 +1080,10 @@ applyFilters();
               </div>
 
               {/* Sorting Options */}
-              <div className="flex flex-col md:flex-row md:items-center gap-4 md:justify-between">
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-foreground">Sortează după:</label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-full md:w-64">
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-medium text-foreground">Sortează după:</label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-64">
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Selectează sortarea" />
                   </SelectTrigger>
@@ -1107,28 +1104,10 @@ applyFilters();
                     <SelectItem value="capacity-low">Capacitate: Mică-Mare</SelectItem>
                   </SelectContent>
                 </Select>
-                </div>
-                
-                {/* Map Button - Full width on mobile */}
-                <Button
-                  onClick={() => setShowMapDialog(true)}
-                  variant="outline"
-                  className="gap-2 w-full md:w-auto"
-                >
-                  <MapIcon className="h-4 w-4" />
-                  Hartă
-                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
-        
-        {/* Map Dialog */}
-        <FacilitiesMapDialog
-          open={showMapDialog}
-          onOpenChange={setShowMapDialog}
-          facilities={facilities}
-        />
 
         {/* Facilities Grid */}
         {facilities.length === 0 ? <div className="text-center py-12">
