@@ -74,6 +74,8 @@ const FacilitiesPage = () => {
   const [sortBy, setSortBy] = useState<string>('newest');
   const [showSportsComplexDropdown, setShowSportsComplexDropdown] = useState(false);
   const [filteredSportsComplexes, setFilteredSportsComplexes] = useState<string[]>([]);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [filteredCities, setFilteredCities] = useState<string[]>([]);
   const navigate = useNavigate();
 
   // Helper functions for Google Maps
@@ -254,6 +256,16 @@ const FacilitiesPage = () => {
         )
       ).sort();
       setFilteredSportsComplexes(uniqueNames);
+      
+      // Extract unique cities for autocomplete
+      const uniqueCities = Array.from(
+        new Set(
+          allFacilities
+            .map(f => f.city)
+            .filter(city => city && city.trim() !== '')
+        )
+      ).sort();
+      setFilteredCities(uniqueCities);
     }
   }, [allFacilities]);
   useEffect(() => {
@@ -335,9 +347,11 @@ const FacilitiesPage = () => {
         filteredFacilities = filteredFacilities.filter(f => f.facility_type === selectedType);
       }
 
-      // Apply location filter
+      // Apply city filter (only search by city, not full address)
       if (locationFilter) {
-        filteredFacilities = filteredFacilities.filter(f => f.city.toLowerCase().includes(locationFilter.toLowerCase()) || f.address && f.address.toLowerCase().includes(locationFilter.toLowerCase()));
+        filteredFacilities = filteredFacilities.filter(f => 
+          f.city.toLowerCase().includes(locationFilter.toLowerCase())
+        );
       }
 
       // Apply search term filter
@@ -776,15 +790,73 @@ applyFilters();
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Locație</label>
+                  <label className="text-sm font-medium text-foreground">Oraș</label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                     <Input 
-                      placeholder="Locație..." 
+                      placeholder="Caută oraș..." 
                       className="h-11 pl-10 bg-white border-2 border-primary/20 focus:border-primary shadow-sm"
                       value={locationFilter} 
-                      onChange={(e) => setLocationFilter(e.target.value)} 
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setLocationFilter(value);
+                        
+                        // Filter cities based on search term
+                        if (value.trim()) {
+                          const filtered = Array.from(
+                            new Set(
+                              allFacilities
+                                .map(f => f.city)
+                                .filter(city => 
+                                  city && 
+                                  city.toLowerCase().includes(value.toLowerCase())
+                                )
+                            )
+                          ).sort();
+                          setFilteredCities(filtered);
+                          setShowCityDropdown(filtered.length > 0);
+                        } else {
+                          const uniqueCities = Array.from(
+                            new Set(
+                              allFacilities
+                                .map(f => f.city)
+                                .filter(city => city && city.trim() !== '')
+                            )
+                          ).sort();
+                          setFilteredCities(uniqueCities);
+                          setShowCityDropdown(false);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (locationFilter.trim()) {
+                          setShowCityDropdown(filteredCities.length > 0);
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay closing to allow click on dropdown item
+                        setTimeout(() => setShowCityDropdown(false), 200);
+                      }}
                     />
+                    
+                    {/* City Autocomplete Dropdown */}
+                    {showCityDropdown && filteredCities.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-background border-2 border-primary/20 rounded-lg shadow-lg z-[100] max-h-60 overflow-y-auto">
+                        <ul className="py-2">
+                          {filteredCities.map((city, index) => (
+                            <li 
+                              key={index}
+                              className="px-4 py-2 hover:bg-primary/10 cursor-pointer transition-colors text-foreground"
+                              onClick={() => {
+                                setLocationFilter(city);
+                                setShowCityDropdown(false);
+                              }}
+                            >
+                              {city}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
