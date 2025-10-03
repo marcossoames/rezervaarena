@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { MapPin, Navigation, Loader2 } from 'lucide-react';
-import { Input } from "@/components/ui/input";
+
 import { Badge } from "@/components/ui/badge";
 
 interface Facility {
@@ -182,6 +182,9 @@ const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDi
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <p className="text-sm text-destructive">Eroare la încărcarea hărții</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {(loadError as any)?.message || 'Verifică restricțiile cheii și API-urile activate (Maps JavaScript API, Geocoding API).'}
+              </p>
             </div>
           </div>
         ) : !isLoaded || isGeocoding ? (
