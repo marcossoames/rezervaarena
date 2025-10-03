@@ -932,6 +932,14 @@ export type Database = {
           unavailable_type: string
         }[]
       }
+      get_fully_unavailable_dates_public: {
+        Args: { facility_ids_param: string[] }
+        Returns: {
+          blocked_date: string
+          fully_blocked_count: number
+          partially_blocked_count: number
+        }[]
+      }
       get_masked_bank_details_for_user: {
         Args: { user_id_param: string }
         Returns: {

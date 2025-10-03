@@ -373,41 +373,33 @@ const FacilitiesPage = () => {
       }
 
       // Update blocked dates for calendar based on currently visible facilities
+      // Use secure public function to check availability without exposing sensitive data
       if (filteredFacilities.length > 0) {
         try {
           const facilityIds = filteredFacilities.map(f => f.id);
-          const { data: blockedDatesData } = await supabase
-            .from('blocked_dates')
-            .select('facility_id, blocked_date, start_time, end_time')
-            .in('facility_id', facilityIds);
-
-          if (blockedDatesData) {
-            const blocksByDate = new Map();
-            
-            blockedDatesData.forEach(item => {
-              if (!blocksByDate.has(item.blocked_date)) {
-                blocksByDate.set(item.blocked_date, { fullDay: new Set(), partial: new Set() });
-              }
-              
-              const blocks = blocksByDate.get(item.blocked_date);
-              if (!item.start_time && !item.end_time) {
-                blocks.fullDay.add(item.facility_id);
-              } else {
-                blocks.partial.add(item.facility_id);
-              }
+          const { data: availabilityData, error } = await supabase
+            .rpc('get_fully_unavailable_dates_public', {
+              facility_ids_param: facilityIds
             });
-            
+
+          if (error) {
+            console.error('Error fetching availability data:', error);
+          } else if (availabilityData) {
             const fullyBlocked = new Set<string>();
             const partiallyBlocked = new Set<string>();
             
-            blocksByDate.forEach((blocks, date) => {
-              const totalFacilities = facilityIds.length;
-              const fullyBlockedCount = blocks.fullDay.size;
+            const totalFacilities = facilityIds.length;
+            
+            availabilityData.forEach((item: any) => {
+              const { blocked_date, fully_blocked_count, partially_blocked_count } = item;
               
-              if (fullyBlockedCount === totalFacilities) {
-                fullyBlocked.add(date);
-              } else if (fullyBlockedCount > 0 || blocks.partial.size > 0) {
-                partiallyBlocked.add(date);
+              // If all facilities are fully blocked on this date
+              if (fully_blocked_count === totalFacilities) {
+                fullyBlocked.add(blocked_date);
+              } 
+              // If some facilities are blocked (fully or partially)
+              else if (fully_blocked_count > 0 || partially_blocked_count > 0) {
+                partiallyBlocked.add(blocked_date);
               }
             });
             
