@@ -42,7 +42,7 @@ const defaultCenter = {
   lng: 26.1025, // Bucharest, Romania
 };
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyCGrKiAKmNEGqvx5Qfrfo_CwnkzA95QqiY';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyCUJfYBXXKM3quBv6rKU9KK8HrM63yfANw';
 
 const FacilitiesMapDialog = ({ open, onOpenChange, facilities }: FacilitiesMapDialogProps) => {
   const { isLoaded, loadError } = useJsApiLoader({
