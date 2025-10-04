@@ -713,32 +713,6 @@ const UserManagement = () => {
                             </AlertDialog>
                           )}
                           
-                          {/* Demote facility owner button for admins */}
-                          {user.role === 'facility_owner' && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
-                                  <User className="h-4 w-4 mr-1" />
-                                  Demote Client
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Demotare Bază Sportivă</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Ești sigur că vrei să îl demotezi pe <strong>{user.full_name}</strong> de la proprietar bază sportivă la client obișnuit? 
-                                    Acesta va pierde accesul la gestionarea bazei sportive.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Anulează</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => demoteFacilityOwnerToClient(user.user_id, user.email)}>
-                                    Demotează
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
                           {user.role !== 'admin' && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -759,33 +733,6 @@ const UserManagement = () => {
                                   <AlertDialogCancel>Anulează</AlertDialogCancel>
                                   <AlertDialogAction onClick={() => promoteToAdmin(user.user_id, user.email)}>
                                     Promovează
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                          
-                          {/* Demote button only for super admin on admins */}
-                          {user.role === 'admin' && user.email !== 'soamespaul@gmail.com' && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
-                                  <User className="h-4 w-4 mr-1" />
-                                  Demote Client
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Demotare Administrator</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Ești sigur că vrei să îl demotezi pe <strong>{user.full_name}</strong> la client obișnuit? 
-                                    Acesta va pierde accesul la panoul de administrare.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Anulează</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => demoteAdminToClient(user.user_id, user.email)}>
-                                    Demotează
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
