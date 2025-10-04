@@ -33,7 +33,6 @@ const UserManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<{ userId: string; userName: string; userEmail: string } | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userStats, setUserStats] = useState({
     clients: 0,
     facilityOwners: 0,
@@ -42,15 +41,6 @@ const UserManagement = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get current user ID
-    const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
-      }
-    };
-    getCurrentUser();
-    
     fetchUsers();
     // Force refresh when component mounts
     const interval = setInterval(() => {
@@ -62,7 +52,7 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      // Fetch profiles data
+      // Force refresh from server and recalculate booking stats in real-time
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -70,43 +60,14 @@ const UserManagement = () => {
 
       if (profilesError) throw profilesError;
 
-      // Fetch all user roles
-      const { data: userRolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-
-      if (rolesError) throw rolesError;
-
-      // Create a map of user roles
-      const roleMap = new Map();
-      (userRolesData || []).forEach((ur: any) => {
-        if (!roleMap.has(ur.user_id)) {
-          roleMap.set(ur.user_id, []);
-        }
-        roleMap.get(ur.user_id).push(ur.role);
-      });
-
-      // For each user, get their actual role and booking counts
+      // For each user, get their actual booking counts from the bookings table
       const usersWithStats = await Promise.all(
         (profilesData || []).map(async (profile) => {
-          // Get the highest priority role from user_roles
-          const userRoles = roleMap.get(profile.user_id) || ['client'];
-          const roleOrder = { 'super_admin': 1, 'admin': 2, 'facility_owner': 3, 'client': 4 };
-          const actualRole = userRoles.sort((a: string, b: string) => 
-            (roleOrder[a as keyof typeof roleOrder] || 5) - (roleOrder[b as keyof typeof roleOrder] || 5)
-          )[0];
-
-          // Override the role with actual role from user_roles
-          const profileWithActualRole = {
-            ...profile,
-            role: actualRole
-          };
-
-          if (actualRole !== 'client') {
-            return profileWithActualRole;
+          if (profile.role !== 'client') {
+            return profile;
           }
           
-          // Get real-time booking counts for clients
+          // Get real-time booking counts
           const { data: bookingStats } = await supabase
             .from('bookings')
             .select('status')
@@ -120,7 +81,7 @@ const UserManagement = () => {
           };
           
           return {
-            ...profileWithActualRole,
+            ...profile,
             ...stats
           };
         })
@@ -134,7 +95,7 @@ const UserManagement = () => {
       const stats = {
         clients: userData.filter(user => user.role === 'client').length,
         facilityOwners: userData.filter(user => user.role === 'facility_owner').length,
-        admins: userData.filter(user => user.role === 'admin' || user.role === 'super_admin').length
+        admins: userData.filter(user => user.role === 'admin').length
       };
       setUserStats(stats);
       
@@ -156,15 +117,8 @@ const UserManagement = () => {
 
   const promoteToAdmin = async (userId: string, userEmail: string) => {
     try {
-      // Get current user ID
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Nu ești autentificat');
-      }
-
-      const { data, error } = await supabase.rpc('promote_user_to_admin_v2', {
-        _caller_user_id: user.id,
-        _target_user_id: userId
+      const { data, error } = await supabase.rpc('promote_user_to_admin_secure', {
+        _user_id: userId
       });
 
       if (error) {
@@ -188,7 +142,7 @@ const UserManagement = () => {
       console.error('Error promoting user:', error);
       toast({
         title: "Eroare",
-        description: error.message || "Nu s-a putut promova utilizatorul.",
+        description: "Nu s-a putut promova utilizatorul. Doar administratorii pot promova utilizatori.",
         variant: "destructive",
       });
     }
@@ -294,14 +248,8 @@ const UserManagement = () => {
 
   const promoteToFacilityOwner = async (userId: string, userEmail: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Nu ești autentificat');
-      }
-
-      const { data, error } = await supabase.rpc('promote_user_to_facility_owner_v2', {
-        _caller_user_id: user.id,
-        _target_user_id: userId
+      const { data, error } = await supabase.rpc('promote_user_to_facility_owner_secure', {
+        _user_id: userId
       });
 
       if (error) {
@@ -313,7 +261,7 @@ const UserManagement = () => {
           title: "Succes",
           description: `Utilizatorul ${userEmail} a fost promovat ca proprietar de bază sportivă.`,
         });
-        fetchUsers();
+        fetchUsers(); // Refresh the list
       } else {
         toast({
           title: "Eroare",
@@ -325,46 +273,7 @@ const UserManagement = () => {
       console.error('Error promoting user:', error);
       toast({
         title: "Eroare",
-        description: error.message || "Nu s-a putut promova utilizatorul.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const demoteAdminToClient = async (userId: string, userEmail: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Nu ești autentificat');
-      }
-
-      const { data, error } = await supabase.rpc('demote_admin_to_client_v2', {
-        _caller_user_id: user.id,
-        _target_user_id: userId
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        toast({
-          title: "Succes",
-          description: `Administratorul ${userEmail} a fost retrogradat la client obișnuit.`,
-        });
-        fetchUsers();
-      } else {
-        toast({
-          title: "Eroare",
-          description: "Utilizatorul nu a fost găsit.",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error('Error demoting admin:', error);
-      toast({
-        title: "Eroare",
-        description: error.message || "Nu s-a putut demota administratorul.",
+        description: "Nu s-a putut promova utilizatorul. Doar administratorii pot promova utilizatori.",
         variant: "destructive",
       });
     }
@@ -634,40 +543,6 @@ const UserManagement = () => {
                                   <AlertDialogCancel>Anulează</AlertDialogCancel>
                                   <AlertDialogAction onClick={() => promoteToAdmin(user.user_id, user.email)}>
                                     Promovează
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-
-                          {/* Doar super admin poate demota administratori */}
-                          {user.role === 'admin' && user.email !== 'soamespaul@gmail.com' && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
-                                  <Shield className="h-4 w-4 mr-1" />
-                                  Demotează Admin
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Demotare Administrator</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Ești sigur că vrei să demotezi administratorul <strong>{user.full_name}</strong> la client obișnuit? 
-                                    Acesta va pierde accesul la panoul de administrare.
-                                    <br /><br />
-                                    <span className="text-orange-600 font-medium">
-                                      ⚠️ Doar super admin poate efectua această operațiune.
-                                    </span>
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Anulează</AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={() => demoteAdminToClient(user.user_id, user.email)}
-                                    className="bg-orange-600 hover:bg-orange-700"
-                                  >
-                                    Demotează
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
