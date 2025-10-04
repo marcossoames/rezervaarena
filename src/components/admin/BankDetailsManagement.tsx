@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Plus, Edit, Trash2, CreditCard, Landmark } from "lucide-react";
+import { Building2, Plus, Edit, Trash2, CreditCard, Landmark, Shield } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { validateIbanFormat, sanitizeInput, validateAccountHolderName, validateBankName, maskIban } from "@/utils/bankSecurity";
 
@@ -49,24 +49,34 @@ const BankDetailsManagement = () => {
     try {
       setIsLoading(true);
       
-      // Get all bank details
-      const { data: bankData, error: bankError } = await supabase
-        .from('bank_details')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // SECURITY FIX: Use secure edge function instead of direct database access
+      // This ensures all banking operations go through proper security checks:
+      // - Rate limiting
+      // - Audit logging with IP tracking
+      // - Session validation
+      
+      // Get all facility owners first
+      const { data: allProfilesData } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email, user_type_comment');
 
-      if (bankError) throw bankError;
+      const profileMap = new Map(allProfilesData?.map(p => [p.user_id, p]) || []);
+      
+      // For each facility owner, fetch their bank details through secure edge function
+      const bankDetailsPromises = Array.from(profileMap.keys()).map(async (userId) => {
+        try {
+          const { data, error } = await supabase.functions.invoke('secure-banking-operations', {
+            body: { 
+              operation: 'read',
+              targetUserId: userId // Admin reading another user's bank details
+            }
+          });
 
-      if (bankData && bankData.length > 0) {
-        // Get ALL profiles that could be facility owners
-        const { data: allProfilesData } = await supabase
-          .from('profiles')
-          .select('user_id, full_name, email, user_type_comment');
+          if (error || !data?.bankDetails) {
+            return null;
+          }
 
-        const profileMap = new Map(allProfilesData?.map(p => [p.user_id, p]) || []);
-
-        const enrichedBankDetails = bankData.map(bank => {
-          const profile = profileMap.get(bank.user_id);
+          const profile = profileMap.get(userId);
           let complexName = 'Baza Sportivă';
           
           if (profile?.user_type_comment) {
@@ -75,19 +85,24 @@ const BankDetailsManagement = () => {
               complexName = commentParts[0];
             }
           }
-          
+
           return {
-            ...bank,
+            ...data.bankDetails,
+            user_id: userId,
             owner_name: profile?.full_name || 'Necunoscut',
             owner_email: profile?.email || 'Necunoscut',
             complex_name: complexName
           };
-        });
+        } catch (err) {
+          console.error(`Failed to load bank details for user ${userId}:`, err);
+          return null;
+        }
+      });
 
-        setBankDetails(enrichedBankDetails);
-      } else {
-        setBankDetails([]);
-      }
+      const results = await Promise.all(bankDetailsPromises);
+      const validBankDetails = results.filter(detail => detail !== null);
+      
+      setBankDetails(validBankDetails);
     } catch (error) {
       console.error('Error loading bank details:', error);
       toast({
@@ -178,37 +193,30 @@ const BankDetailsManagement = () => {
         iban: data.iban.replace(/\s/g, '').toUpperCase()
       };
 
-      if (editingBank) {
-        // Update existing bank details
-        const { error } = await supabase
-          .from('bank_details')
-          .update(sanitizedData)
-          .eq('id', editingBank.id);
+      // SECURITY FIX: Use secure edge function for all banking operations
+      const operation = editingBank ? 'update' : 'create';
+      const targetUserId = editingBank ? editingBank.user_id : selectedOwnerId;
+      
+      const { data: responseData, error: responseError } = await supabase.functions.invoke('secure-banking-operations', {
+        body: {
+          operation,
+          targetUserId, // Admin creating/updating for another user
+          bankDetails: sanitizedData
+        }
+      });
 
-        if (error) throw error;
-
-        toast({
-          title: "Succes",
-          description: "Detaliile bancare au fost actualizate",
-        });
-      } else {
-        // Create new bank details
-        const { error } = await supabase
-          .from('bank_details')
-          .insert([
-            {
-              user_id: selectedOwnerId,
-              ...sanitizedData
-            }
-          ]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Succes",
-          description: "Detaliile bancare au fost adăugate",
-        });
+      if (responseError) {
+        throw new Error(responseError.message || 'Failed to save bank details');
       }
+
+      if (!responseData?.success) {
+        throw new Error(responseData?.error || 'Failed to save bank details');
+      }
+
+      toast({
+        title: "Succes",
+        description: editingBank ? "Detaliile bancare au fost actualizate" : "Detaliile bancare au fost adăugate",
+      });
 
       setIsDialogOpen(false);
       reset();
@@ -223,18 +231,27 @@ const BankDetailsManagement = () => {
     }
   };
 
-  const deleteBankDetails = async (bankId: string, ownerName: string) => {
+  const deleteBankDetails = async (bankId: string, ownerName: string, userId: string) => {
     if (!confirm(`Ești sigur că vrei să ștergi detaliile bancare pentru ${ownerName}?`)) {
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from('bank_details')
-        .delete()
-        .eq('id', bankId);
+      // SECURITY FIX: Use secure edge function for delete operations
+      const { data: responseData, error: responseError } = await supabase.functions.invoke('secure-banking-operations', {
+        body: {
+          operation: 'delete',
+          targetUserId: userId // Admin deleting another user's bank details
+        }
+      });
 
-      if (error) throw error;
+      if (responseError) {
+        throw new Error(responseError.message || 'Failed to delete bank details');
+      }
+
+      if (!responseData?.success) {
+        throw new Error(responseData?.error || 'Failed to delete bank details');
+      }
 
       setBankDetails(prev => prev.filter(bank => bank.id !== bankId));
       
@@ -270,8 +287,8 @@ const BankDetailsManagement = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Landmark className="h-6 w-6" />
-            Detalii Bancare ({bankDetails.length})
+            <Shield className="h-6 w-6 text-green-600" />
+            Detalii Bancare - Acces Securizat ({bankDetails.length})
           </CardTitle>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -415,7 +432,7 @@ const BankDetailsManagement = () => {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => deleteBankDetails(bank.id, bank.owner_name || 'Unknown')}
+                          onClick={() => deleteBankDetails(bank.id, bank.owner_name || 'Unknown', bank.user_id)}
                         >
                           <Trash2 className="h-3 w-3 mr-1" />
                           Șterge
