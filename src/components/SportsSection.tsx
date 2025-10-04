@@ -42,7 +42,7 @@ const initialSportsData = [{
   name: "Tenis",
   type: "tennis",
   image: tennisImage,
-  description: "Terenuri de tenis cu suprafețe variate - zgură, hard și sintetic. Iluminare pentru jocuri de seară și echipament la standarde înalte.",
+  description: "Terenuri de tenis cu suprafețe variate - zgură, hard și sintetic.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
