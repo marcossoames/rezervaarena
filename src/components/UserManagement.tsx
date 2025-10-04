@@ -39,8 +39,18 @@ const UserManagement = () => {
     admins: 0
   });
   const { toast } = useToast();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Get current user ID
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    };
+    getCurrentUser();
+    
     fetchUsers();
     // Force refresh when component mounts
     const interval = setInterval(() => {
@@ -116,9 +126,19 @@ const UserManagement = () => {
   };
 
   const promoteToAdmin = async (userId: string, userEmail: string) => {
+    if (!currentUserId) {
+      toast({
+        title: "Eroare",
+        description: "Nu se poate determina identitatea administratorului.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
-      const { data, error } = await supabase.rpc('promote_user_to_admin_secure', {
-        _user_id: userId
+      const { data, error } = await supabase.rpc('promote_user_to_admin_v2', {
+        _caller_user_id: currentUserId,
+        _target_user_id: userId
       });
 
       if (error) {
@@ -142,7 +162,7 @@ const UserManagement = () => {
       console.error('Error promoting user:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-a putut promova utilizatorul. Doar administratorii pot promova utilizatori.",
+        description: error.message || "Nu s-a putut promova utilizatorul.",
         variant: "destructive",
       });
     }
@@ -247,9 +267,19 @@ const UserManagement = () => {
   };
 
   const promoteToFacilityOwner = async (userId: string, userEmail: string) => {
+    if (!currentUserId) {
+      toast({
+        title: "Eroare",
+        description: "Nu se poate determina identitatea administratorului.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
-      const { data, error } = await supabase.rpc('promote_user_to_facility_owner_secure', {
-        _user_id: userId
+      const { data, error } = await supabase.rpc('promote_user_to_facility_owner_v2', {
+        _caller_user_id: currentUserId,
+        _target_user_id: userId
       });
 
       if (error) {
@@ -273,7 +303,50 @@ const UserManagement = () => {
       console.error('Error promoting user:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-a putut promova utilizatorul. Doar administratorii pot promova utilizatori.",
+        description: error.message || "Nu s-a putut promova utilizatorul.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const demoteAdminToClient = async (userId: string, userEmail: string) => {
+    if (!currentUserId) {
+      toast({
+        title: "Eroare",
+        description: "Nu se poate determina identitatea administratorului.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const { data, error } = await supabase.rpc('demote_admin_to_client_v2', {
+        _caller_user_id: currentUserId,
+        _target_user_id: userId
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        toast({
+          title: "Succes",
+          description: `Utilizatorul ${userEmail} a fost demotat la client obișnuit.`,
+        });
+        fetchUsers(); // Refresh the list
+      } else {
+        toast({
+          title: "Eroare",
+          description: "Utilizatorul nu a fost găsit.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error demoting user:', error);
+      toast({
+        title: "Eroare",
+        description: error.message || "Nu s-a putut demota utilizatorul.",
         variant: "destructive",
       });
     }
@@ -543,6 +616,33 @@ const UserManagement = () => {
                                   <AlertDialogCancel>Anulează</AlertDialogCancel>
                                   <AlertDialogAction onClick={() => promoteToAdmin(user.user_id, user.email)}>
                                     Promovează
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                          
+                          {/* Demote button only for super admin on admins */}
+                          {user.role === 'admin' && user.email !== 'soamespaul@gmail.com' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
+                                  <User className="h-4 w-4 mr-1" />
+                                  Demote Client
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Demotare Administrator</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Ești sigur că vrei să îl demotezi pe <strong>{user.full_name}</strong> la client obișnuit? 
+                                    Acesta va pierde accesul la panoul de administrare.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Anulează</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => demoteAdminToClient(user.user_id, user.email)}>
+                                    Demotează
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
