@@ -1,0 +1,226 @@
+-- Phase 1: Fix Critical Privilege Escalation Vulnerability
+-- Remove the role column from profiles table to prevent self-promotion
+
+-- Step 1: Drop the role column from profiles table
+ALTER TABLE public.profiles DROP COLUMN IF EXISTS role;
+
+-- Step 2: Ensure user_roles table has proper RLS policies
+-- Only admins can manage user roles (already exists, but reinforcing)
+DROP POLICY IF EXISTS "Only admins can insert user roles" ON public.user_roles;
+CREATE POLICY "Only admins can insert user roles" 
+ON public.user_roles 
+FOR INSERT 
+TO authenticated
+WITH CHECK (has_role_v2(auth.uid(), 'admin'::app_role));
+
+DROP POLICY IF EXISTS "Only admins can update user roles" ON public.user_roles;
+CREATE POLICY "Only admins can update user roles" 
+ON public.user_roles 
+FOR UPDATE 
+TO authenticated
+USING (has_role_v2(auth.uid(), 'admin'::app_role))
+WITH CHECK (has_role_v2(auth.uid(), 'admin'::app_role));
+
+DROP POLICY IF EXISTS "Only admins can delete user roles" ON public.user_roles;
+CREATE POLICY "Only admins can delete user roles" 
+ON public.user_roles 
+FOR DELETE 
+TO authenticated
+USING (has_role_v2(auth.uid(), 'admin'::app_role));
+
+-- Step 3: Add explicit DENY policy for unauthenticated users on sensitive tables
+DROP POLICY IF EXISTS "Deny unauthenticated access to profiles" ON public.profiles;
+CREATE POLICY "Deny unauthenticated access to profiles" 
+ON public.profiles 
+FOR ALL 
+TO anon
+USING (false)
+WITH CHECK (false);
+
+DROP POLICY IF EXISTS "Deny unauthenticated access to bank_details" ON public.bank_details;
+CREATE POLICY "Deny unauthenticated access to bank_details" 
+ON public.bank_details 
+FOR ALL 
+TO anon
+USING (false)
+WITH CHECK (false);
+
+DROP POLICY IF EXISTS "Deny unauthenticated access to bookings" ON public.bookings;
+CREATE POLICY "Deny unauthenticated access to bookings" 
+ON public.bookings 
+FOR ALL 
+TO anon
+USING (false)
+WITH CHECK (false);
+
+-- Step 4: Update handle_new_user function to remove role assignment
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  facilities_json jsonb;
+  facility jsonb;
+  facility_type_text text;
+  amenities_text_array text[];
+  general_services_array text[];
+  city_text text;
+  address_text text;
+  price_numeric numeric;
+  capacity_int integer;
+  capacity_max_int integer;
+  operating_hours_start_text text;
+  operating_hours_end_text text;
+  business_name_text text;
+  business_description_text text;
+  allowed_durations_array integer[];
+  user_role app_role;
+BEGIN
+  -- Determine user role
+  IF (NEW.raw_user_meta_data ->> 'role') = 'facility_owner' OR NEW.raw_user_meta_data ->> 'business_name' IS NOT NULL THEN
+    user_role := 'facility_owner'::app_role;
+  ELSE
+    user_role := 'client'::app_role;
+  END IF;
+
+  -- Create profile (without role column - SECURITY FIX)
+  INSERT INTO public.profiles (user_id, email, full_name, phone, user_type_comment)
+  VALUES (
+    NEW.id, 
+    NEW.email, 
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data ->> 'full_name', ''),
+      NULLIF(NEW.raw_user_meta_data ->> 'name', ''),
+      split_part(NEW.email, '@', 1)
+    ),
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data ->> 'phone', ''),
+      'Telefon necompletat'
+    ),
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data ->> 'user_type_comment', ''),
+      CASE 
+        WHEN NEW.raw_user_meta_data ->> 'business_name' IS NOT NULL 
+        THEN CONCAT(NEW.raw_user_meta_data ->> 'business_name', ' - Proprietar bază sportivă')
+        ELSE 'Client obișnuit'
+      END
+    )
+  )
+  ON CONFLICT (user_id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = EXCLUDED.full_name,
+    phone = EXCLUDED.phone,
+    user_type_comment = EXCLUDED.user_type_comment;
+
+  -- Create role in user_roles table (SECURITY: Single source of truth)
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (NEW.id, user_role)
+  ON CONFLICT (user_id, role) DO NOTHING;
+  
+  -- Create sports complex if business data is provided
+  business_name_text := NULLIF(NEW.raw_user_meta_data ->> 'business_name', '');
+  business_description_text := NULLIF(NEW.raw_user_meta_data ->> 'business_description', '');
+  city_text := NULLIF(NEW.raw_user_meta_data ->> 'city', '');
+  address_text := NULLIF(NEW.raw_user_meta_data ->> 'address', '');
+  
+  IF NEW.raw_user_meta_data ? 'general_services' AND 
+     NEW.raw_user_meta_data ->> 'general_services' IS NOT NULL THEN
+    general_services_array := ARRAY(
+      SELECT jsonb_array_elements_text(NEW.raw_user_meta_data -> 'general_services')
+    );
+  ELSE
+    general_services_array := '{}';
+  END IF;
+  
+  IF business_name_text IS NOT NULL THEN
+    INSERT INTO public.sports_complexes (
+      owner_id,
+      name,
+      description,
+      address,
+      city,
+      general_services
+    ) VALUES (
+      NEW.id,
+      business_name_text,
+      business_description_text,
+      address_text,
+      city_text,
+      general_services_array
+    ) ON CONFLICT (owner_id) DO UPDATE SET
+      name = EXCLUDED.name,
+      description = EXCLUDED.description,
+      address = EXCLUDED.address,
+      city = EXCLUDED.city,
+      general_services = EXCLUDED.general_services;
+  END IF;
+  
+  -- Create facilities from metadata if provided
+  facilities_json := NEW.raw_user_meta_data -> 'facilities';
+  IF facilities_json IS NOT NULL AND jsonb_typeof(facilities_json) = 'array' THEN
+    FOR facility IN SELECT jsonb_array_elements(facilities_json) LOOP
+      BEGIN
+        facility_type_text := NULLIF(facility->>'facilityType', '');
+        city_text := COALESCE(NULLIF(facility->>'city', ''), NULLIF(NEW.raw_user_meta_data->>'city', ''));
+        address_text := COALESCE(NULLIF(facility->>'address', ''), NULLIF(NEW.raw_user_meta_data->>'address', ''));
+        price_numeric := NULLIF(facility->>'pricePerHour', '')::numeric;
+        capacity_int := NULLIF(facility->>'capacity', '')::integer;
+        capacity_max_int := NULLIF(facility->>'capacityMax', '')::integer;
+        operating_hours_start_text := COALESCE(NULLIF(facility->>'operatingHoursStart', ''), '08:00');
+        operating_hours_end_text := COALESCE(NULLIF(facility->>'operatingHoursEnd', ''), '22:00');
+        
+        amenities_text_array := (
+          SELECT ARRAY(SELECT jsonb_array_elements_text(facility->'amenities'))
+        );
+        
+        IF facility ? 'allowedDurations' THEN
+          allowed_durations_array := ARRAY(SELECT (jsonb_array_elements(facility->'allowedDurations'))::text::integer);
+        ELSE
+          allowed_durations_array := ARRAY[60,90,120];
+        END IF;
+
+        INSERT INTO public.facilities (
+          owner_id,
+          name,
+          description,
+          facility_type,
+          address,
+          city,
+          price_per_hour,
+          capacity,
+          capacity_max,
+          amenities,
+          operating_hours_start,
+          operating_hours_end,
+          allowed_durations,
+          is_active
+        ) VALUES (
+          NEW.id,
+          COALESCE(NULLIF(facility->>'name',''), 'Facilitate'),
+          NULLIF(facility->>'description',''),
+          CASE WHEN facility_type_text IS NOT NULL THEN facility_type_text::facility_type ELSE NULL END,
+          address_text,
+          city_text,
+          price_numeric,
+          capacity_int,
+          capacity_max_int,
+          COALESCE(amenities_text_array, '{}'),
+          operating_hours_start_text::time,
+          operating_hours_end_text::time,
+          COALESCE(allowed_durations_array, ARRAY[60,90,120]),
+          true
+        );
+      EXCEPTION WHEN OTHERS THEN
+        RAISE WARNING 'Failed to create facility for user %: %', NEW.id, SQLERRM;
+      END;
+    END LOOP;
+  END IF;
+
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  RAISE WARNING 'Failed in handle_new_user for user %: %', NEW.id, SQLERRM;
+  RETURN NEW;
+END;
+$$;

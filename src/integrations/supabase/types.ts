@@ -586,7 +586,6 @@ export type Database = {
           id: string
           no_show_bookings: number | null
           phone: string
-          role: Database["public"]["Enums"]["user_role"]
           total_bookings: number | null
           updated_at: string
           user_id: string
@@ -601,7 +600,6 @@ export type Database = {
           id?: string
           no_show_bookings?: number | null
           phone: string
-          role?: Database["public"]["Enums"]["user_role"]
           total_bookings?: number | null
           updated_at?: string
           user_id: string
@@ -616,7 +614,6 @@ export type Database = {
           id?: string
           no_show_bookings?: number | null
           phone?: string
-          role?: Database["public"]["Enums"]["user_role"]
           total_bookings?: number | null
           updated_at?: string
           user_id?: string
