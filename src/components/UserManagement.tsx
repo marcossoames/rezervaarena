@@ -297,7 +297,8 @@ const UserManagement = () => {
     }
   };
 
-  const getRoleBadge = (role: string) => {
+  const getRoleBadge = (roles: string[]) => {
+    const role = roles[0] || 'client'; // Use primary role
     switch (role) {
       case 'admin':
         return <Badge variant="destructive" className="bg-red-600 hover:bg-red-700"><Shield className="w-3 h-3 mr-1" />Administrator</Badge>;
