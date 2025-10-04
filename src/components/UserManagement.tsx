@@ -33,6 +33,7 @@ const UserManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<{ userId: string; userName: string; userEmail: string } | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userStats, setUserStats] = useState({
     clients: 0,
     facilityOwners: 0,
@@ -41,6 +42,15 @@ const UserManagement = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Get current user ID
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    };
+    getCurrentUser();
+    
     fetchUsers();
     // Force refresh when component mounts
     const interval = setInterval(() => {
