@@ -790,6 +790,10 @@ export type Database = {
         Args: { _caller_user_id: string; _target_user_id: string }
         Returns: boolean
       }
+      demote_facility_owner_to_client_v2: {
+        Args: { _caller_user_id: string; _target_user_id: string }
+        Returns: boolean
+      }
       get_client_info_for_facility_bookings: {
         Args: { facility_owner_id: string }
         Returns: {

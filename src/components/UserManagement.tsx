@@ -352,6 +352,49 @@ const UserManagement = () => {
     }
   };
 
+  const demoteFacilityOwnerToClient = async (userId: string, userEmail: string) => {
+    if (!currentUserId) {
+      toast({
+        title: "Eroare",
+        description: "Nu se poate determina identitatea administratorului.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const { data, error } = await supabase.rpc('demote_facility_owner_to_client_v2', {
+        _caller_user_id: currentUserId,
+        _target_user_id: userId
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        toast({
+          title: "Succes",
+          description: `Utilizatorul ${userEmail} a fost demotat de la bază sportivă la client obișnuit.`,
+        });
+        fetchUsers(); // Refresh the list
+      } else {
+        toast({
+          title: "Eroare",
+          description: "Utilizatorul nu a fost găsit.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error demoting facility owner:', error);
+      toast({
+        title: "Eroare",
+        description: error.message || "Nu s-a putut demota utilizatorul.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filterUsers = (role: string) => {
     setRoleFilter(role);
     if (role === 'all') {
@@ -595,6 +638,33 @@ const UserManagement = () => {
                               <Building2 className="h-4 w-4 mr-1" />
                               Promovează Bază Sportivă
                             </Button>
+                          )}
+                          
+                          {/* Demote facility owner button for admins */}
+                          {user.role === 'facility_owner' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
+                                  <User className="h-4 w-4 mr-1" />
+                                  Demote Client
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Demotare Bază Sportivă</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Ești sigur că vrei să îl demotezi pe <strong>{user.full_name}</strong> de la proprietar bază sportivă la client obișnuit? 
+                                    Acesta va pierde accesul la gestionarea bazei sportive.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Anulează</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => demoteFacilityOwnerToClient(user.user_id, user.email)}>
+                                    Demotează
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           )}
                           {user.role !== 'admin' && (
                             <AlertDialog>
