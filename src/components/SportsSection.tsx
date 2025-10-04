@@ -34,7 +34,7 @@ const initialSportsData = [{
   name: "Fotbal",
   type: "football",
   image: footballImage,
-  description: "Terenuri de fotbal cu gazon sintetic modern și natural. Perfecte pentru meciuri cu prietenii sau antrenamente. Condiții optime tot anul.",
+  description: "Terenuri de fotbal moderne, cu gazon sintetic, în exterior sau în balon. Condiții optime tot anul. Perfecte pentru meciuri cu prietenii sau antrenamente.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
