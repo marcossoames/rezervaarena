@@ -1044,6 +1044,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      promote_user_to_admin_test: {
+        Args: { _caller_user_id: string; _target_user_id: string }
+        Returns: boolean
+      }
       promote_user_to_facility_owner_secure: {
         Args: { _user_id: string }
         Returns: boolean
