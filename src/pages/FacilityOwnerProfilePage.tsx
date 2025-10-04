@@ -178,26 +178,25 @@ const FacilityOwnerProfilePage = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Use secure function to get masked bank details
-      const { data: bankData, error } = await supabase
-        .rpc('get_masked_bank_details_for_user', { user_id_param: user.id });
+      // SECURITY: Use secure edge function instead of direct DB access
+      const { data, error } = await supabase.functions.invoke('secure-banking-operations', {
+        body: { operation: 'read' }
+      });
 
       if (error) {
         console.error('Error loading bank details:', error);
         return;
       }
 
-      // Transform the data to match our interface
-      if (bankData && bankData.length > 0) {
-        const maskedBankDetails = {
-          id: bankData[0].id,
-          account_holder_name: bankData[0].account_holder_name,
-          bank_name: bankData[0].bank_name,
-          iban: bankData[0].iban_masked, // This is already masked
-          created_at: bankData[0].created_at,
-          updated_at: bankData[0].updated_at
-        };
-        setBankDetails(maskedBankDetails);
+      if (data?.bankDetails) {
+        setBankDetails({
+          id: data.bankDetails.id,
+          account_holder_name: data.bankDetails.account_holder_name,
+          bank_name: data.bankDetails.bank_name,
+          iban: data.bankDetails.iban_masked,
+          created_at: data.bankDetails.created_at,
+          updated_at: data.bankDetails.updated_at
+        });
       } else {
         setBankDetails(null);
       }
@@ -218,7 +217,7 @@ const FacilityOwnerProfilePage = () => {
     setIsBankDialogOpen(true);
   };
 
-  const onBankSubmit = async (data: BankFormData) => {
+  const onBankSubmit = async (formData: BankFormData) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -234,7 +233,7 @@ const FacilityOwnerProfilePage = () => {
       }
 
       // Client-side validation and sanitization
-      const accountHolderValidation = validateAccountHolderName(data.account_holder_name);
+      const accountHolderValidation = validateAccountHolderName(formData.account_holder_name);
       if (!accountHolderValidation.isValid) {
         toast({
           title: "Eroare de validare",
@@ -244,7 +243,7 @@ const FacilityOwnerProfilePage = () => {
         return;
       }
 
-      const bankNameValidation = validateBankName(data.bank_name);
+      const bankNameValidation = validateBankName(formData.bank_name);
       if (!bankNameValidation.isValid) {
         toast({
           title: "Eroare de validare",
@@ -254,7 +253,7 @@ const FacilityOwnerProfilePage = () => {
         return;
       }
 
-      if (!validateIbanFormat(data.iban)) {
+      if (!validateIbanFormat(formData.iban)) {
         toast({
           title: "Eroare de validare",
           description: "Formatul IBAN este invalid. Utilizați formatul RO12ABCD1234567890123456",
@@ -265,42 +264,28 @@ const FacilityOwnerProfilePage = () => {
 
       // Sanitize inputs
       const sanitizedData = {
-        account_holder_name: sanitizeInput(data.account_holder_name),
-        bank_name: sanitizeInput(data.bank_name),
-        iban: data.iban.replace(/\s/g, '').toUpperCase()
+        account_holder_name: sanitizeInput(formData.account_holder_name),
+        bank_name: sanitizeInput(formData.bank_name),
+        iban: formData.iban.replace(/\s/g, '').toUpperCase()
       };
 
-      if (isEditingBank && bankDetails) {
-        // Update existing bank details
-        const { error } = await supabase
-          .from('bank_details')
-          .update(sanitizedData)
-          .eq('id', bankDetails.id);
+      // SECURITY: Use secure edge function instead of direct DB access
+      const operation = isEditingBank ? 'update' : 'create';
+      const { data, error } = await supabase.functions.invoke('secure-banking-operations', {
+        body: { 
+          operation,
+          bankDetails: sanitizedData
+        }
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Succes",
-          description: "Detaliile bancare au fost actualizate",
-        });
-      } else {
-        // Create new bank details
-        const { error } = await supabase
-          .from('bank_details')
-          .insert([
-            {
-              user_id: user.id,
-              ...sanitizedData
-            }
-          ]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Succes",
-          description: "Detaliile bancare au fost adăugate",
-        });
-      }
+      toast({
+        title: "Succes",
+        description: isEditingBank 
+          ? "Detaliile bancare au fost actualizate"
+          : "Detaliile bancare au fost adăugate",
+      });
 
       setIsBankDialogOpen(false);
       reset();
@@ -321,10 +306,10 @@ const FacilityOwnerProfilePage = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('bank_details')
-        .delete()
-        .eq('id', bankDetails.id);
+      // SECURITY: Use secure edge function instead of direct DB access
+      const { error } = await supabase.functions.invoke('secure-banking-operations', {
+        body: { operation: 'delete' }
+      });
 
       if (error) throw error;
 

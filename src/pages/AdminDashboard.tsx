@@ -49,14 +49,14 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Check if user has admin role
-      const { data: profile, error } = await supabase
-        .from('profiles')
+      // SECURITY: Check admin role from user_roles table (single source of truth)
+      const { data: userRoles, error } = await supabase
+        .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
-        .single();
+        .in('role', ['admin', 'super_admin']);
 
-      if (error || profile?.role !== 'admin') {
+      if (error || !userRoles || userRoles.length === 0) {
         toast({
           title: "Acces interzis",
           description: "Nu aveți permisiuni de administrator",
@@ -66,7 +66,10 @@ const AdminDashboard = () => {
         return;
       }
 
-      setUserRole(profile.role);
+      // Set role to the highest privilege role
+      const hasRole = userRoles.find(r => r.role === 'super_admin') ? 'super_admin' : 'admin';
+      setUserRole(hasRole);
+      
       toast({
         title: "Bun venit!",
         description: "Bun venit în panoul de administrare.",
@@ -85,10 +88,25 @@ const AdminDashboard = () => {
 
   const loadStats = async () => {
     try {
-      // Get all users with roles
-      const { data: usersData } = await supabase
+      // SECURITY: Get user counts from user_roles table (single source of truth)
+      const { data: allUsers } = await supabase
         .from('profiles')
-        .select('role');
+        .select('user_id');
+
+      const { data: clientRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'client');
+
+      const { data: facilityOwnerRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'facility_owner');
+
+      const { data: adminRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('role', ['admin', 'super_admin']);
 
       // Get total facilities
       const { count: facilitiesCount } = await supabase
@@ -102,12 +120,12 @@ const AdminDashboard = () => {
         .select('*', { count: 'exact', head: true })
         .eq('booking_date', today);
 
-      // Calculate user stats by role
+      // Calculate user stats by role from user_roles
       const userStats = {
-        totalUsers: usersData?.length || 0,
-        clients: usersData?.filter(user => user.role === 'client').length || 0,
-        facilityOwners: usersData?.filter(user => user.role === 'facility_owner').length || 0,
-        admins: usersData?.filter(user => user.role === 'admin').length || 0,
+        totalUsers: allUsers?.length || 0,
+        clients: clientRoles?.length || 0,
+        facilityOwners: facilityOwnerRoles?.length || 0,
+        admins: adminRoles?.length || 0,
         totalFacilities: facilitiesCount || 0,
         todayBookings: bookingsCount || 0
       };

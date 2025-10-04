@@ -480,7 +480,17 @@ const FacilityRegister = () => {
             <Input
               id="phone"
               type="tel"
-              {...register("phone", { required: "Telefonul este obligatoriu" })}
+              placeholder="0712 345 678"
+              {...register("phone", { 
+                required: "Telefonul este obligatoriu",
+                validate: (value) => {
+                  const phoneRegex = /^(\+40|0)[0-9]{9}$/;
+                  if (!phoneRegex.test(value.replace(/\s/g, ''))) {
+                    return "Format invalid. Folosiți 0712 345 678 sau +40712 345 678";
+                  }
+                  return true;
+                }
+              })}
               className="bg-background/50"
             />
             {errors.phone && (
