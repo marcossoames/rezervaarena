@@ -34,7 +34,7 @@ const initialSportsData = [{
   name: "Fotbal",
   type: "football",
   image: footballImage,
-  description: "Terenuri de fotbal cu gazon sintetic și natural",
+  description: "Descoperă terenuri de fotbal premium cu gazon sintetic de ultimă generație și natural întreținut profesional. Perfecte pentru meciuri competitive, antrenamente intensive sau simple jocuri recreative cu prietenii în condiții optime.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -42,7 +42,7 @@ const initialSportsData = [{
   name: "Tenis",
   type: "tennis",
   image: tennisImage,
-  description: "Terenuri profesionale de tenis cu suprafețe moderne",
+  description: "Terenuri profesionale de tenis cu suprafețe moderne - zgură, hard court și sintetic. Iluminare LED performantă pentru jocuri de seară, fileu profesional și linii marcate conform standardelor ITF. Ideal pentru turnee, antrenamente și lecții.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -50,7 +50,7 @@ const initialSportsData = [{
   name: "Padel",
   type: "padel",
   image: padelImage,
-  description: "Terenuri moderne de padel cu echipament complet",
+  description: "Terenuri moderne de padel cu pereți din sticlă securizată și gazon sintetic premium. Echipament complet disponibil pentru închiriere, vestiare amenajate și zone de relaxare. Sportul cu cea mai rapidă creștere în popularitate!",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -58,7 +58,7 @@ const initialSportsData = [{
   name: "Squash",
   type: "squash",
   image: squashImage,
-  description: "Terenuri moderne de squash pentru antrenament și competiții",
+  description: "Terenuri indoor de squash cu pereți profesionali, podea specială anti-alunecare și climat controlat. Excelente pentru cardio intens, antrenament competitiv sau partide relaxante. Mingi și rachete disponibile la locație.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -66,7 +66,7 @@ const initialSportsData = [{
   name: "Baschet",
   type: "basketball",
   image: basketballImage,
-  description: "Terenuri moderne de baschet cu echipament profesional",
+  description: "Terenuri de baschet indoor și outdoor cu coșuri profesionale reglabile, marcaje oficiale FIBA și suprafețe anti-alunecare. Perfect pentru meciuri 3x3, 5x5, antrenamente individuale sau turnee organizate cu prietenii.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -74,7 +74,7 @@ const initialSportsData = [{
   name: "Volei",
   type: "volleyball",
   image: volleyballImage,
-  description: "Terenuri de volei pentru competiții și antrenamente",
+  description: "Terenuri de volei indoor cu fileu reglabil, pardoseală profesională amortizată și spații generoase. Posibilitate rezervare pentru volei în sală sau beach volley pe nisip fin. Atmosferă ideală pentru competiții și antrenamente de echipă.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -82,7 +82,7 @@ const initialSportsData = [{
   name: "Tenis de Picior",
   type: "foot_tennis",
   image: footTennisImage,
-  description: "Terenuri de tenis de picior pentru jocuri dinamice și distractive",
+  description: "Terenuri special amenajate pentru tenis de picior - combinația perfectă între fotbal și tenis. Suprafață sintetică de calitate, fileu la înălțime optimă și dimensiuni standardizate. Sportul ideal pentru agilitate, tehnică și distracție maximă!",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -90,7 +90,7 @@ const initialSportsData = [{
   name: "Ping Pong",
   type: "ping_pong",
   image: pingPongImage,
-  description: "Mese profesionale de tenis de masă pentru toate nivelurile",
+  description: "Mese profesionale de tenis de masă în spații indoor climatizate, conforme standardelor ITTF. Palete și mingi de calitate disponibile, podea anti-alunecare și iluminare LED fără umbre. Pentru toate nivelurile de joc, de la începători la avansați.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }];
@@ -161,41 +161,41 @@ const SportsSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sportsData.map(sport => <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-105 bg-gradient-card border-none flex flex-col h-full">
+          {sportsData.map(sport => <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-[1.02] bg-gradient-card border-none flex flex-col h-full overflow-hidden">
               <CardContent className="p-0 flex flex-col h-full">
-                <div className="relative overflow-hidden rounded-t-lg bg-muted">
+                <div className="relative overflow-hidden bg-muted">
                   <OptimizedImage 
                     src={sport.image} 
                     alt={sport.name} 
-                    className="w-full h-80 object-contain group-hover:scale-110 transition-transform duration-300" 
+                    className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500" 
                     loading="lazy" 
                     width={395} 
-                    height={320}
+                    height={224}
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 395px" 
-                    quality={75}
+                    quality={80}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent pointer-events-none"></div>
-                  <div className="absolute bottom-4 left-4">
-                    <h3 className="text-xl font-bold text-primary-foreground drop-shadow-lg">{sport.name}</h3>
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-foreground/20 to-transparent pointer-events-none"></div>
+                  <div className="absolute bottom-3 left-4">
+                    <h3 className="text-2xl font-bold text-primary-foreground drop-shadow-lg">{sport.name}</h3>
                   </div>
                 </div>
                 
-                <div className="p-3 flex flex-col h-full">
-                  <p className="text-sm text-muted-foreground mb-1.5 flex-grow leading-relaxed">{sport.description}</p>
+                <div className="p-4 flex flex-col flex-grow">
+                  <p className="text-sm text-muted-foreground mb-3 leading-relaxed line-clamp-4">{sport.description}</p>
                   
-                  <div className="space-y-0.5 mb-2">
+                  <div className="space-y-1.5 mb-3 mt-auto">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-muted-foreground">Terenuri disponibile:</span>
-                      <span className="font-bold text-primary">{sport.facilities}</span>
+                      <span className="font-bold text-lg text-primary">{sport.facilities}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-muted-foreground">De la:</span>
-                      <span className="font-bold text-accent">{sport.minPrice}</span>
+                      <span className="font-bold text-lg text-accent">{sport.minPrice}</span>
                     </div>
                   </div>
                   
-                  <Link to={`/facilities?type=${sport.type}`} className="mt-auto">
-                    <Button className="w-full" variant="default">
+                  <Link to={`/facilities?type=${sport.type}`} className="mt-2">
+                    <Button className="w-full" variant="default" size="lg">
                       Rezervă Acum
                     </Button>
                   </Link>
