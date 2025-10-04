@@ -53,7 +53,7 @@ interface Facility {
   allowed_durations?: number[]; // Array of allowed booking durations in minutes
 }
 interface UserProfile {
-  role: 'client' | 'facility_owner' | 'admin';
+  role: string | null;
 }
 const FacilitiesPage = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);

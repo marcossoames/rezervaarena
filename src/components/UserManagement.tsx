@@ -19,7 +19,7 @@ interface Profile {
   email: string;
   full_name: string;
   phone?: string;
-  role: 'client' | 'facility_owner' | 'admin';
+  role: string | null;
   created_at: string;
   total_bookings?: number;
   completed_bookings?: number;

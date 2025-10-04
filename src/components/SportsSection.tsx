@@ -34,7 +34,7 @@ const initialSportsData = [{
   name: "Fotbal",
   type: "football",
   image: footballImage,
-  description: "Descoperă terenuri de fotbal premium cu gazon sintetic de ultimă generație și natural întreținut profesional. Perfecte pentru meciuri competitive, antrenamente intensive sau simple jocuri recreative cu prietenii în condiții optime.",
+  description: "Terenuri de fotbal cu gazon sintetic modern și natural. Perfecte pentru meciuri cu prietenii sau antrenamente. Condiții optime tot anul.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -42,7 +42,7 @@ const initialSportsData = [{
   name: "Tenis",
   type: "tennis",
   image: tennisImage,
-  description: "Terenuri profesionale de tenis cu suprafețe moderne - zgură, hard court și sintetic. Iluminare LED performantă pentru jocuri de seară, fileu profesional și linii marcate conform standardelor ITF. Ideal pentru turnee, antrenamente și lecții.",
+  description: "Terenuri de tenis cu suprafețe variate - zgură, hard și sintetic. Iluminare pentru jocuri de seară și echipament la standarde înalte.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -50,7 +50,7 @@ const initialSportsData = [{
   name: "Padel",
   type: "padel",
   image: padelImage,
-  description: "Terenuri moderne de padel cu pereți din sticlă securizată și gazon sintetic premium. Echipament complet disponibil pentru închiriere, vestiare amenajate și zone de relaxare. Sportul cu cea mai rapidă creștere în popularitate!",
+  description: "Terenuri moderne de padel cu pereți din sticlă și gazon sintetic. Echipament disponibil pentru închiriere. Sportul momentului!",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -58,7 +58,7 @@ const initialSportsData = [{
   name: "Squash",
   type: "squash",
   image: squashImage,
-  description: "Terenuri indoor de squash cu pereți profesionali, podea specială anti-alunecare și climat controlat. Excelente pentru cardio intens, antrenament competitiv sau partide relaxante. Mingi și rachete disponibile la locație.",
+  description: "Terenuri indoor de squash cu climat controlat și suprafețe anti-alunecare. Excelent pentru cardio intens sau partide relaxante.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -66,7 +66,7 @@ const initialSportsData = [{
   name: "Baschet",
   type: "basketball",
   image: basketballImage,
-  description: "Terenuri de baschet indoor și outdoor cu coșuri profesionale reglabile, marcaje oficiale FIBA și suprafețe anti-alunecare. Perfect pentru meciuri 3x3, 5x5, antrenamente individuale sau turnee organizate cu prietenii.",
+  description: "Terenuri de baschet indoor și outdoor cu coșuri reglabile și marcaje oficiale. Ideal pentru 3x3, 5x5 sau antrenamente individuale.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -74,7 +74,7 @@ const initialSportsData = [{
   name: "Volei",
   type: "volleyball",
   image: volleyballImage,
-  description: "Terenuri de volei indoor cu fileu reglabil, pardoseală profesională amortizată și spații generoase. Posibilitate rezervare pentru volei în sală sau beach volley pe nisip fin. Atmosferă ideală pentru competiții și antrenamente de echipă.",
+  description: "Terenuri de volei în sală cu pardoseală amortizată sau beach volley pe nisip fin. Perfect pentru meciuri de echipă și antrenamente.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -82,7 +82,7 @@ const initialSportsData = [{
   name: "Tenis de Picior",
   type: "foot_tennis",
   image: footTennisImage,
-  description: "Terenuri special amenajate pentru tenis de picior - combinația perfectă între fotbal și tenis. Suprafață sintetică de calitate, fileu la înălțime optimă și dimensiuni standardizate. Sportul ideal pentru agilitate, tehnică și distracție maximă!",
+  description: "Combinația perfectă între fotbal și tenis! Suprafață sintetică de calitate și fileu la înălțime optimă. Distracție garantată!",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
@@ -90,7 +90,7 @@ const initialSportsData = [{
   name: "Ping Pong",
   type: "ping_pong",
   image: pingPongImage,
-  description: "Mese profesionale de tenis de masă în spații indoor climatizate, conforme standardelor ITTF. Palete și mingi de calitate disponibile, podea anti-alunecare și iluminare LED fără umbre. Pentru toate nivelurile de joc, de la începători la avansați.",
+  description: "Mese de tenis de masă în spații indoor climatizate. Palete și mingi disponibile. Pentru toate nivelurile - de la începători la avansați.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }];
