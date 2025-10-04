@@ -782,6 +782,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      demote_admin_to_client: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       get_client_info_for_facility_bookings: {
         Args: { facility_owner_id: string }
         Returns: {
@@ -1024,6 +1028,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_super_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       log_banking_data_access: {
         Args: { operation_type: string }
         Returns: undefined
@@ -1081,7 +1089,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "facility_owner" | "client"
+      app_role: "admin" | "facility_owner" | "client" | "super_admin"
       booking_status:
         | "pending"
         | "confirmed"
@@ -1225,7 +1233,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "facility_owner", "client"],
+      app_role: ["admin", "facility_owner", "client", "super_admin"],
       booking_status: [
         "pending",
         "confirmed",
