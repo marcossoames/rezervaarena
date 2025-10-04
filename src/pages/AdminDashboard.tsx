@@ -93,6 +93,7 @@ const AdminDashboard = () => {
         .from('profiles')
         .select('user_id');
 
+      // Get unique user IDs for each role (un user poate avea multiple roluri)
       const { data: clientRoles } = await supabase
         .from('user_roles')
         .select('user_id')
@@ -120,12 +121,16 @@ const AdminDashboard = () => {
         .select('*', { count: 'exact', head: true })
         .eq('booking_date', today);
 
-      // Calculate user stats by role from user_roles
+      // Numără utilizatori unici pentru fiecare rol (elimină duplicatele)
+      const uniqueClients = new Set(clientRoles?.map(r => r.user_id) || []);
+      const uniqueFacilityOwners = new Set(facilityOwnerRoles?.map(r => r.user_id) || []);
+      const uniqueAdmins = new Set(adminRoles?.map(r => r.user_id) || []);
+
       const userStats = {
         totalUsers: allUsers?.length || 0,
-        clients: clientRoles?.length || 0,
-        facilityOwners: facilityOwnerRoles?.length || 0,
-        admins: adminRoles?.length || 0,
+        clients: uniqueClients.size,
+        facilityOwners: uniqueFacilityOwners.size,
+        admins: uniqueAdmins.size,
         totalFacilities: facilitiesCount || 0,
         todayBookings: bookingsCount || 0
       };

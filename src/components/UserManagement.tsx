@@ -450,25 +450,8 @@ const UserManagement = () => {
         return;
       }
 
-      // Update email in auth.users if changed
-      if (editFormData.email !== editingUser.email) {
-        const { error: authError } = await supabase.auth.admin.updateUserById(
-          editingUser.user_id,
-          { email: editFormData.email }
-        );
-        
-        if (authError) {
-          console.error('Error updating auth email:', authError);
-          toast({
-            title: "Eroare",
-            description: "Nu s-a putut actualiza email-ul în sistem de autentificare. Doar admin poate modifica email-ul.",
-            variant: "destructive"
-          });
-          return;
-        }
-      }
-
-      // Update profile
+      // IMPORTANT: Doar actualizăm profiles, nu auth.users
+      // Email-ul din auth.users trebuie modificat manual de superadmin în Supabase dashboard
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -480,16 +463,30 @@ const UserManagement = () => {
 
       if (profileError) throw profileError;
 
-      toast({
-        title: "Succes",
-        description: "Informațiile utilizatorului au fost actualizate",
-      });
+      // Afișăm mesaj informativ dacă emailul s-a schimbat
+      if (editFormData.email !== editingUser.email) {
+        toast({
+          title: "Atenție",
+          description: "Email-ul a fost actualizat în profil. Pentru schimbarea email-ului de autentificare, contactați superadmin-ul.",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Succes",
+          description: "Informațiile utilizatorului au fost actualizate",
+        });
+      }
 
       setIsEditDialogOpen(false);
       setEditingUser(null);
       
-      // Force immediate refresh
+      // Force immediate refresh - așteaptă până se termină
       await fetchUsers();
+      
+      // Forțează refresh după o scurtă pauză pentru a fi sigur
+      setTimeout(() => {
+        fetchUsers();
+      }, 500);
     } catch (error: any) {
       console.error('Error updating user:', error);
       toast({
