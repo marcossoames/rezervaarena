@@ -279,6 +279,39 @@ const UserManagement = () => {
     }
   };
 
+  const demoteAdminToClient = async (userId: string, userEmail: string) => {
+    try {
+      const { data, error } = await supabase.rpc('demote_admin_to_client', {
+        _user_id: userId
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        toast({
+          title: "Succes",
+          description: `Administratorul ${userEmail} a fost retrogradat la client obișnuit.`,
+        });
+        fetchUsers(); // Refresh the list
+      } else {
+        toast({
+          title: "Eroare",
+          description: "Utilizatorul nu a fost găsit.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error demoting admin:', error);
+      toast({
+        title: "Eroare",
+        description: error.message || "Nu s-a putut demota administratorul. Doar super admin poate demota administratori.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filterUsers = (role: string) => {
     setRoleFilter(role);
     if (role === 'all') {
@@ -543,6 +576,40 @@ const UserManagement = () => {
                                   <AlertDialogCancel>Anulează</AlertDialogCancel>
                                   <AlertDialogAction onClick={() => promoteToAdmin(user.user_id, user.email)}>
                                     Promovează
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+
+                          {/* Doar super admin poate demota administratori */}
+                          {user.role === 'admin' && user.email !== 'soamespaul@gmail.com' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
+                                  <Shield className="h-4 w-4 mr-1" />
+                                  Demotează Admin
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Demotare Administrator</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Ești sigur că vrei să demotezi administratorul <strong>{user.full_name}</strong> la client obișnuit? 
+                                    Acesta va pierde accesul la panoul de administrare.
+                                    <br /><br />
+                                    <span className="text-orange-600 font-medium">
+                                      ⚠️ Doar super admin poate efectua această operațiune.
+                                    </span>
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Anulează</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => demoteAdminToClient(user.user_id, user.email)}
+                                    className="bg-orange-600 hover:bg-orange-700"
+                                  >
+                                    Demotează
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
