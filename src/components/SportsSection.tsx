@@ -50,7 +50,7 @@ const initialSportsData = [{
   name: "Padel",
   type: "padel",
   image: padelImage,
-  description: "Terenuri moderne de padel cu pereți din sticlă și gazon sintetic. Echipament disponibil pentru închiriere. Sportul momentului!",
+  description: "Terenuri moderne de padel cu pereți din sticlă. Echipament disponibil pentru închiriere. Sportul momentului!",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
