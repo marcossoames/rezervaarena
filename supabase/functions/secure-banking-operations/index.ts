@@ -14,7 +14,6 @@ interface BankingRequest {
     iban: string
   }
   verification_code?: string
-  targetUserId?: string // For admin operations on behalf of other users
 }
 
 serve(async (req) => {
@@ -65,56 +64,33 @@ serve(async (req) => {
                     'unknown'
     const userAgent = req.headers.get('user-agent') || 'unknown'
 
-    // SECURITY: Check if user is admin when targetUserId is specified
-    let targetUserId = user.id // Default to current user
-    let isAdminOperation = false
-    
-    if (body.targetUserId && body.targetUserId !== user.id) {
-      // Verify admin role
-      const { data: adminRoles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .in('role', ['admin', 'super_admin'])
-        .limit(1)
-      
-      if (!adminRoles || adminRoles.length === 0) {
-        throw new Error('Unauthorized: Admin privileges required for this operation')
-      }
-      
-      targetUserId = body.targetUserId
-      isAdminOperation = true
-      console.log(`Admin ${user.id} performing banking operation on behalf of user ${targetUserId}`)
-    }
-
     console.log(`Banking operation requested: ${body.operation} by user ${user.id} from IP ${clientIP}`)
 
-    // Enhanced security checks (on the authenticated user, not target)
+    // Enhanced security checks
     await performSecurityChecks(supabase, user.id, clientIP, userAgent, body.operation)
 
-    // Route to appropriate operation (using targetUserId)
+    // Route to appropriate operation
     let result
     switch (body.operation) {
       case 'read':
-        result = await readBankDetails(supabase, targetUserId)
+        result = await readBankDetails(supabase, user.id)
         break
       case 'create':
       case 'update':
         if (!body.bankDetails) {
           throw new Error('Bank details required for create/update operations')
         }
-        result = await upsertBankDetails(supabase, targetUserId, body.bankDetails, body.operation)
+        result = await upsertBankDetails(supabase, user.id, body.bankDetails, body.operation)
         break
       case 'delete':
-        result = await deleteBankDetails(supabase, targetUserId)
+        result = await deleteBankDetails(supabase, user.id)
         break
       default:
         throw new Error('Invalid operation')
     }
 
-    // Log successful operation (log both user and target if admin operation)
-    const logMetadata = isAdminOperation ? `admin_for_${targetUserId}` : body.operation
-    await logBankingActivity(supabase, user.id, logMetadata, clientIP, userAgent, 'success')
+    // Log successful operation
+    await logBankingActivity(supabase, user.id, body.operation, clientIP, userAgent, 'success')
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

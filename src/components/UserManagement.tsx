@@ -131,19 +131,11 @@ const UserManagement = () => {
       setUsers(userData);
       setFilteredUsers(userData);
       
-      // Calculate stats from user_roles table (single source of truth for security)
-      const { data: roleStats } = await supabase
-        .from('user_roles')
-        .select('role, user_id');
-
-      const clientIds = new Set(roleStats?.filter(r => r.role === 'client').map(r => r.user_id) || []);
-      const facilityOwnerIds = new Set(roleStats?.filter(r => r.role === 'facility_owner').map(r => r.user_id) || []);
-      const adminIds = new Set(roleStats?.filter(r => r.role === 'admin' || r.role === 'super_admin').map(r => r.user_id) || []);
-
+      // Calculate stats with fresh data
       const stats = {
-        clients: clientIds.size,
-        facilityOwners: facilityOwnerIds.size,
-        admins: adminIds.size
+        clients: userData.filter(user => user.role === 'client').length,
+        facilityOwners: userData.filter(user => user.role === 'facility_owner').length,
+        admins: userData.filter(user => user.role === 'admin').length
       };
       setUserStats(stats);
       
