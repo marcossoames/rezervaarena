@@ -4,12 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Trash2, User, Calendar, Building2, MapPin, Phone, Mail, RefreshCw, Filter, AlertTriangle, Users, Eye } from "lucide-react";
+import { Shield, Trash2, User, Calendar, Building2, MapPin, Phone, Mail, RefreshCw, Filter, AlertTriangle, Users, Eye, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { ro } from "date-fns/locale";
+import { validatePhone } from "@/utils/inputValidation";
 import ClientBehaviorStats from "@/components/admin/ClientBehaviorStats";
 import UserBookingsDialog from "@/components/admin/UserBookingsDialog";
 
@@ -33,6 +37,13 @@ const UserManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<{ userId: string; userName: string; userEmail: string } | null>(null);
+  const [editingUser, setEditingUser] = useState<Profile | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    full_name: '',
+    email: '',
+    phone: ''
+  });
   const [userStats, setUserStats] = useState({
     clients: 0,
     facilityOwners: 0,
@@ -414,6 +425,60 @@ const UserManagement = () => {
     }
   };
 
+  const openEditDialog = (user: Profile) => {
+    setEditingUser(user);
+    setEditFormData({
+      full_name: user.full_name,
+      email: user.email,
+      phone: user.phone || ''
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
+
+    try {
+      // Validate phone number
+      const phoneValidation = validatePhone(editFormData.phone);
+      if (editFormData.phone && !phoneValidation.isValid) {
+        toast({
+          title: "Eroare validare",
+          description: phoneValidation.error,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Update profile
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: editFormData.full_name,
+          email: editFormData.email,
+          phone: editFormData.phone
+        })
+        .eq('user_id', editingUser.user_id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succes",
+        description: "Informațiile utilizatorului au fost actualizate",
+      });
+
+      setIsEditDialogOpen(false);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      toast({
+        title: "Eroare",
+        description: error.message || "Nu s-au putut actualiza informațiile",
+        variant: "destructive"
+      });
+    }
+  };
+
   const filterUsers = (role: string) => {
     setRoleFilter(role);
     if (role === 'all') {
@@ -638,6 +703,67 @@ const UserManagement = () => {
                       </TableCell>
                        <TableCell>
                          <div className="flex items-center gap-2 flex-wrap">
+                           {/* Edit User Button */}
+                           <Dialog open={isEditDialogOpen && editingUser?.user_id === user.user_id} onOpenChange={(open) => {
+                             if (!open) setIsEditDialogOpen(false);
+                           }}>
+                             <DialogTrigger asChild>
+                               <Button 
+                                 variant="outline" 
+                                 size="sm"
+                                 onClick={() => openEditDialog(user)}
+                               >
+                                 <Edit className="h-4 w-4 mr-1" />
+                                 Editează
+                               </Button>
+                             </DialogTrigger>
+                             <DialogContent>
+                               <DialogHeader>
+                                 <DialogTitle>Editează Utilizator</DialogTitle>
+                               </DialogHeader>
+                               <div className="space-y-4 py-4">
+                                 <div className="space-y-2">
+                                   <Label htmlFor="full_name">Nume complet</Label>
+                                   <Input
+                                     id="full_name"
+                                     value={editFormData.full_name}
+                                     onChange={(e) => setEditFormData({ ...editFormData, full_name: e.target.value })}
+                                   />
+                                 </div>
+                                 <div className="space-y-2">
+                                   <Label htmlFor="email">Email</Label>
+                                   <Input
+                                     id="email"
+                                     type="email"
+                                     value={editFormData.email}
+                                     onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                                   />
+                                 </div>
+                                 <div className="space-y-2">
+                                   <Label htmlFor="phone">Telefon</Label>
+                                   <Input
+                                     id="phone"
+                                     type="tel"
+                                     placeholder="0712 345 678"
+                                     value={editFormData.phone}
+                                     onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                                   />
+                                   <p className="text-xs text-muted-foreground">
+                                     Format acceptat: 0712 345 678 sau +40712 345 678
+                                   </p>
+                                 </div>
+                                 <div className="flex justify-end gap-2 pt-4">
+                                   <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                                     Anulează
+                                   </Button>
+                                   <Button onClick={handleUpdateUser}>
+                                     Salvează modificările
+                                   </Button>
+                                 </div>
+                               </div>
+                             </DialogContent>
+                           </Dialog>
+
                            {/* View Bookings Button */}
                            <Button 
                              variant="outline" 
