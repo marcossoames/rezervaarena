@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
 import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
+import { validatePhone } from "@/utils/inputValidation";
 
 interface ClientFormData {
   email: string;
@@ -189,7 +190,13 @@ const ClientRegister = () => {
                     type="tel"
                     placeholder="0712 345 678"
                     className="pl-10 bg-background/50"
-                    {...register("phone", { required: "Telefonul este obligatoriu" })}
+                    {...register("phone", { 
+                      required: "Telefonul este obligatoriu",
+                      validate: (value) => {
+                        const result = validatePhone(value);
+                        return result.isValid || result.error;
+                      }
+                    })}
                   />
                 </div>
                 {errors.phone && (

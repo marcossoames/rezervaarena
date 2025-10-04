@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { deleteUserAccount, checkActiveBookings } from "@/utils/deleteAccount";
+import { validatePhone } from "@/utils/inputValidation";
 
 const ClientProfilePage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -148,6 +149,17 @@ const ClientProfilePage = () => {
 
   const handleSaveProfile = async () => {
     try {
+      // Validate phone number
+      const phoneValidation = validatePhone(editedProfile.phone);
+      if (!phoneValidation.isValid) {
+        toast({
+          title: "Eroare validare",
+          description: phoneValidation.error,
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -323,12 +335,18 @@ const ClientProfilePage = () => {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Telefon</label>
                   {isEditMode ? (
-                    <input
-                      type="tel"
-                      value={editedProfile.phone || ''}
-                      onChange={(e) => setEditedProfile({...editedProfile, phone: e.target.value})}
-                      className="w-full mt-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
+                    <div>
+                      <input
+                        type="tel"
+                        value={editedProfile.phone || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, phone: e.target.value})}
+                        placeholder="0712 345 678"
+                        className="w-full mt-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Format acceptat: 0712 345 678 sau +40712 345 678
+                      </p>
+                    </div>
                   ) : (
                     <p className="text-lg">{userProfile.phone}</p>
                   )}
