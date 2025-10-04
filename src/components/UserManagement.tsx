@@ -450,8 +450,26 @@ const UserManagement = () => {
         return;
       }
 
+      // Update email in auth.users if changed
+      if (editFormData.email !== editingUser.email) {
+        const { error: authError } = await supabase.auth.admin.updateUserById(
+          editingUser.user_id,
+          { email: editFormData.email }
+        );
+        
+        if (authError) {
+          console.error('Error updating auth email:', authError);
+          toast({
+            title: "Eroare",
+            description: "Nu s-a putut actualiza email-ul în sistem de autentificare. Doar admin poate modifica email-ul.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
       // Update profile
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: editFormData.full_name,
@@ -460,7 +478,7 @@ const UserManagement = () => {
         })
         .eq('user_id', editingUser.user_id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
 
       toast({
         title: "Succes",
@@ -468,7 +486,10 @@ const UserManagement = () => {
       });
 
       setIsEditDialogOpen(false);
-      fetchUsers();
+      setEditingUser(null);
+      
+      // Force immediate refresh
+      await fetchUsers();
     } catch (error: any) {
       console.error('Error updating user:', error);
       toast({
