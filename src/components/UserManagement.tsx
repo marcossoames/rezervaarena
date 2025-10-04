@@ -450,43 +450,28 @@ const UserManagement = () => {
         return;
       }
 
-      // IMPORTANT: Doar actualizăm profiles, nu auth.users
-      // Email-ul din auth.users trebuie modificat manual de superadmin în Supabase dashboard
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
+      // Call secure Edge Function as admin
+      const { data, error } = await supabase.functions.invoke('admin-update-profile', {
+        body: {
+          userId: editingUser.user_id,
           full_name: editFormData.full_name,
-          email: editFormData.email,
-          phone: editFormData.phone
-        })
-        .eq('user_id', editingUser.user_id);
+          phone: editFormData.phone,
+          email: editFormData.email
+        }
+      });
 
-      if (profileError) throw profileError;
+      if (error) throw error;
 
-      // Afișăm mesaj informativ dacă emailul s-a schimbat
-      if (editFormData.email !== editingUser.email) {
-        toast({
-          title: "Atenție",
-          description: "Email-ul a fost actualizat în profil. Pentru schimbarea email-ului de autentificare, contactați superadmin-ul.",
-          variant: "default"
-        });
+      if (data?.warning) {
+        toast({ title: 'Atenție', description: data.warning });
       } else {
-        toast({
-          title: "Succes",
-          description: "Informațiile utilizatorului au fost actualizate",
-        });
+        toast({ title: 'Succes', description: 'Informațiile utilizatorului au fost actualizate' });
       }
 
       setIsEditDialogOpen(false);
       setEditingUser(null);
-      
-      // Force immediate refresh - așteaptă până se termină
       await fetchUsers();
-      
-      // Forțează refresh după o scurtă pauză pentru a fi sigur
-      setTimeout(() => {
-        fetchUsers();
-      }, 500);
+      setTimeout(() => { fetchUsers(); }, 400);
     } catch (error: any) {
       console.error('Error updating user:', error);
       toast({
