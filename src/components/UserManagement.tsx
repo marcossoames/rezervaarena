@@ -60,56 +60,28 @@ const UserManagement = () => {
 
       if (profilesError) throw profilesError;
 
-      // For each user, get their actual role from user_roles and booking counts
+      // For each user, get their actual booking counts from the bookings table
       const usersWithStats = await Promise.all(
         (profilesData || []).map(async (profile) => {
-          // Get user's actual roles from user_roles table
-          const { data: userRoles } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', profile.user_id)
-            .order('role', { ascending: true }); // super_admin will come first alphabetically
-          
-          // Determine the highest role (super_admin > admin > facility_owner > client)
-          let actualRole = profile.role || 'client';
-          if (userRoles && userRoles.length > 0) {
-            const roles = userRoles.map(r => r.role);
-            if (roles.includes('super_admin')) {
-              actualRole = 'super_admin';
-            } else if (roles.includes('admin')) {
-              actualRole = 'admin';
-            } else if (roles.includes('facility_owner')) {
-              actualRole = 'facility_owner';
-            } else if (roles.includes('client')) {
-              actualRole = 'client';
-            }
+          if (profile.role !== 'client') {
+            return profile;
           }
           
-          // Get real-time booking counts for clients
-          let stats = {
-            total_bookings: 0,
-            completed_bookings: 0,
-            no_show_bookings: 0,
-            cancelled_bookings: 0
+          // Get real-time booking counts
+          const { data: bookingStats } = await supabase
+            .from('bookings')
+            .select('status')
+            .eq('client_id', profile.user_id);
+          
+          const stats = {
+            total_bookings: bookingStats?.length || 0,
+            completed_bookings: bookingStats?.filter(b => b.status === 'completed').length || 0,
+            no_show_bookings: bookingStats?.filter(b => b.status === 'no_show').length || 0,
+            cancelled_bookings: bookingStats?.filter(b => b.status === 'cancelled').length || 0
           };
-          
-          if (actualRole === 'client') {
-            const { data: bookingStats } = await supabase
-              .from('bookings')
-              .select('status')
-              .eq('client_id', profile.user_id);
-            
-            stats = {
-              total_bookings: bookingStats?.length || 0,
-              completed_bookings: bookingStats?.filter(b => b.status === 'completed').length || 0,
-              no_show_bookings: bookingStats?.filter(b => b.status === 'no_show').length || 0,
-              cancelled_bookings: bookingStats?.filter(b => b.status === 'cancelled').length || 0
-            };
-          }
           
           return {
             ...profile,
-            role: actualRole,
             ...stats
           };
         })
@@ -123,7 +95,7 @@ const UserManagement = () => {
       const stats = {
         clients: userData.filter(user => user.role === 'client').length,
         facilityOwners: userData.filter(user => user.role === 'facility_owner').length,
-        admins: userData.filter(user => user.role === 'admin' || user.role === 'super_admin').length
+        admins: userData.filter(user => user.role === 'admin').length
       };
       setUserStats(stats);
       
@@ -307,31 +279,6 @@ const UserManagement = () => {
     }
   };
 
-  const demoteAdminToClient = async (userId: string, userEmail: string) => {
-    try {
-      const { data, error } = await supabase.rpc('demote_admin_to_client', {
-        _user_id: userId
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Succes",
-        description: `Administratorul ${userEmail} a fost retrogradat la client.`,
-      });
-      fetchUsers(); // Refresh the list
-    } catch (error: any) {
-      console.error('Error demoting admin:', error);
-      toast({
-        title: "Eroare",
-        description: error.message || "Nu s-a putut retrograda administratorul. Doar super-adminul poate face acest lucru.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const filterUsers = (role: string) => {
     setRoleFilter(role);
     if (role === 'all') {
@@ -352,8 +299,6 @@ const UserManagement = () => {
 
   const getRoleBadge = (role: string) => {
     switch (role) {
-      case 'super_admin':
-        return <Badge variant="destructive" className="bg-purple-600 hover:bg-purple-700 border-2 border-yellow-400"><Shield className="w-3 h-3 mr-1" />Super Admin</Badge>;
       case 'admin':
         return <Badge variant="destructive" className="bg-red-600 hover:bg-red-700"><Shield className="w-3 h-3 mr-1" />Administrator</Badge>;
       case 'facility_owner':
@@ -367,8 +312,6 @@ const UserManagement = () => {
 
   const getRoleDescription = (role: string) => {
     switch (role) {
-      case 'super_admin':
-        return 'Acces complet + poate demote admini la client';
       case 'admin':
         return 'Acces complet la panoul de administrare';
       case 'facility_owner':
@@ -580,7 +523,7 @@ const UserManagement = () => {
                               Promovează Bază Sportivă
                             </Button>
                           )}
-                           {user.role !== 'admin' && (
+                          {user.role !== 'admin' && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="outline" size="sm">
@@ -600,35 +543,6 @@ const UserManagement = () => {
                                   <AlertDialogCancel>Anulează</AlertDialogCancel>
                                   <AlertDialogAction onClick={() => promoteToAdmin(user.user_id, user.email)}>
                                     Promovează
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                          
-                          {user.role === 'admin' && user.email !== 'soamespaul@gmail.com' && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
-                                  <User className="h-4 w-4 mr-1" />
-                                  Retrogradează la Client
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Retrogradare Administrator la Client</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Ești sigur că vrei să retrogradezi administratorul <strong>{user.full_name}</strong> la client? 
-                                    Acesta va pierde accesul la panoul de administrare. Doar super-adminul poate efectua această acțiune.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Anulează</AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={() => demoteAdminToClient(user.user_id, user.email)}
-                                    className="bg-orange-500 text-white hover:bg-orange-600"
-                                  >
-                                    Retrogradează
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
