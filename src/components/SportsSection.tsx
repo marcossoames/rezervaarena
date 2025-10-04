@@ -74,7 +74,7 @@ const initialSportsData = [{
   name: "Volei",
   type: "volleyball",
   image: volleyballImage,
-  description: "Terenuri de volei în sală cu pardoseală amortizată sau beach volley pe nisip fin. Perfect pentru meciuri de echipă și antrenamente.",
+  description: "Terenuri de volei în sală, perfecte pentru meciuri de echipă și antrenamente.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }, {
