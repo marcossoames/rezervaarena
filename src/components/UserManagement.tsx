@@ -52,7 +52,7 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      // Force refresh from server and recalculate booking stats in real-time
+      // Fetch profiles data
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -60,14 +60,43 @@ const UserManagement = () => {
 
       if (profilesError) throw profilesError;
 
-      // For each user, get their actual booking counts from the bookings table
+      // Fetch all user roles
+      const { data: userRolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Create a map of user roles
+      const roleMap = new Map();
+      (userRolesData || []).forEach((ur: any) => {
+        if (!roleMap.has(ur.user_id)) {
+          roleMap.set(ur.user_id, []);
+        }
+        roleMap.get(ur.user_id).push(ur.role);
+      });
+
+      // For each user, get their actual role and booking counts
       const usersWithStats = await Promise.all(
         (profilesData || []).map(async (profile) => {
-          if (profile.role !== 'client') {
-            return profile;
+          // Get the highest priority role from user_roles
+          const userRoles = roleMap.get(profile.user_id) || ['client'];
+          const roleOrder = { 'super_admin': 1, 'admin': 2, 'facility_owner': 3, 'client': 4 };
+          const actualRole = userRoles.sort((a: string, b: string) => 
+            (roleOrder[a as keyof typeof roleOrder] || 5) - (roleOrder[b as keyof typeof roleOrder] || 5)
+          )[0];
+
+          // Override the role with actual role from user_roles
+          const profileWithActualRole = {
+            ...profile,
+            role: actualRole
+          };
+
+          if (actualRole !== 'client') {
+            return profileWithActualRole;
           }
           
-          // Get real-time booking counts
+          // Get real-time booking counts for clients
           const { data: bookingStats } = await supabase
             .from('bookings')
             .select('status')
@@ -81,7 +110,7 @@ const UserManagement = () => {
           };
           
           return {
-            ...profile,
+            ...profileWithActualRole,
             ...stats
           };
         })
@@ -95,7 +124,7 @@ const UserManagement = () => {
       const stats = {
         clients: userData.filter(user => user.role === 'client').length,
         facilityOwners: userData.filter(user => user.role === 'facility_owner').length,
-        admins: userData.filter(user => user.role === 'admin').length
+        admins: userData.filter(user => user.role === 'admin' || user.role === 'super_admin').length
       };
       setUserStats(stats);
       
