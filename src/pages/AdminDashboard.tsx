@@ -134,28 +134,36 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center space-x-2 md:space-x-3 min-w-0">
               <Button 
                 onClick={() => navigate("/")} 
                 variant="outline" 
                 size="sm"
-                className="flex items-center gap-2 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
+                className="hidden sm:flex items-center gap-2 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200 shrink-0"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Înapoi la Home
               </Button>
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <Shield className="w-6 h-6 text-primary-foreground" />
+              <Button 
+                onClick={() => navigate("/")} 
+                variant="outline" 
+                size="sm"
+                className="sm:hidden p-2 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200 shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-full flex items-center justify-center shrink-0">
+                <Shield className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">RezervaArena Admin</h1>
-                <p className="text-sm text-muted-foreground">Panou de administrare</p>
+              <div className="hidden sm:block min-w-0">
+                <h1 className="text-base md:text-xl font-bold text-foreground truncate">RezervaArena Admin</h1>
+                <p className="text-xs md:text-sm text-muted-foreground">Panou de administrare</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Deconectare
+            <Button variant="outline" size="sm" onClick={handleLogout} className="shrink-0">
+              <LogOut className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Deconectare</span>
             </Button>
           </div>
         </div>
@@ -249,86 +257,86 @@ const AdminDashboard = () => {
           
           <div className="space-y-4">
             {/* First row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
               <Button 
                 variant={activeTab === 'dashboard' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('dashboard')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+                className="h-16 flex flex-col items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium px-2"
               >
-                <Shield className="h-5 w-5" />
-                Dashboard
+                <Shield className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-center">Dashboard</span>
               </Button>
               <Button 
                 variant={activeTab === 'users' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('users')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+                className="h-16 flex flex-col items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium px-2"
               >
-                <Users className="h-5 w-5" />
-                Utilizatori
+                <Users className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-center">Utilizatori</span>
               </Button>
               <Button 
                 variant={activeTab === 'facilities' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('facilities')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+                className="h-16 flex flex-col items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium px-2"
               >
-                <Building2 className="h-5 w-5" />
-                Terenuri
+                <Building2 className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-center">Terenuri</span>
               </Button>
               <Button 
                 variant={activeTab === 'bookings' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('bookings')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+                className="h-16 flex flex-col items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium px-2"
               >
-                <Calendar className="h-5 w-5" />
-                Rezervări
+                <Calendar className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-center">Rezervări</span>
               </Button>
             </div>
             
             {/* Second row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
               <Button 
                 variant={activeTab === 'articles' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('articles')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+                className="h-16 flex flex-col items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium px-2"
               >
-                <FileText className="h-5 w-5" />
-                Articole
+                <FileText className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-center">Articole</span>
               </Button>
               <Button 
                 variant={activeTab === 'income' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('income')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+                className="h-16 flex flex-col items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium px-2"
               >
-                <Coins className="h-5 w-5" />
-                Încasări
+                <Coins className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-center">Încasări</span>
               </Button>
               <Button 
                 variant={activeTab === 'bank' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('bank')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+                className="h-16 flex flex-col items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium px-2"
               >
-                <Landmark className="h-5 w-5" />
-                Conturi Bancare
+                <Landmark className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-center leading-tight">Conturi Bancare</span>
               </Button>
               <Button 
                 variant={activeTab === 'audit' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('audit')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+                className="h-16 flex flex-col items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium px-2"
               >
-                <Shield className="h-5 w-5" />
-                Audit Logs
+                <Shield className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-center leading-tight">Audit Logs</span>
               </Button>
             </div>
             
             {/* Third row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
               <Button 
                 variant={activeTab === 'settings' ? 'default' : 'outline'} 
                 onClick={() => setActiveTab('settings')}
-                className="h-16 flex flex-col items-center justify-center gap-2 text-sm font-medium"
+                className="h-16 flex flex-col items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium px-2"
               >
-                <Settings className="h-5 w-5" />
-                Setări Sistem
+                <Settings className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-center">Setări Sistem</span>
               </Button>
             </div>
           </div>
