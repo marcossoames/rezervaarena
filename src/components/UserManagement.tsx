@@ -146,8 +146,15 @@ const UserManagement = () => {
 
   const promoteToAdmin = async (userId: string, userEmail: string) => {
     try {
-      const { data, error } = await supabase.rpc('promote_user_to_admin_secure', {
-        _user_id: userId
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Nu ești autentificat');
+      }
+
+      const { data, error } = await supabase.rpc('promote_user_to_admin_v2', {
+        _caller_user_id: user.id,
+        _target_user_id: userId
       });
 
       if (error) {
@@ -171,7 +178,7 @@ const UserManagement = () => {
       console.error('Error promoting user:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-a putut promova utilizatorul. Doar administratorii pot promova utilizatori.",
+        description: error.message || "Nu s-a putut promova utilizatorul.",
         variant: "destructive",
       });
     }
@@ -277,8 +284,14 @@ const UserManagement = () => {
 
   const promoteToFacilityOwner = async (userId: string, userEmail: string) => {
     try {
-      const { data, error } = await supabase.rpc('promote_user_to_facility_owner_secure', {
-        _user_id: userId
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Nu ești autentificat');
+      }
+
+      const { data, error } = await supabase.rpc('promote_user_to_facility_owner_v2', {
+        _caller_user_id: user.id,
+        _target_user_id: userId
       });
 
       if (error) {
@@ -290,7 +303,7 @@ const UserManagement = () => {
           title: "Succes",
           description: `Utilizatorul ${userEmail} a fost promovat ca proprietar de bază sportivă.`,
         });
-        fetchUsers(); // Refresh the list
+        fetchUsers();
       } else {
         toast({
           title: "Eroare",
@@ -302,7 +315,7 @@ const UserManagement = () => {
       console.error('Error promoting user:', error);
       toast({
         title: "Eroare",
-        description: "Nu s-a putut promova utilizatorul. Doar administratorii pot promova utilizatori.",
+        description: error.message || "Nu s-a putut promova utilizatorul.",
         variant: "destructive",
       });
     }
@@ -310,8 +323,14 @@ const UserManagement = () => {
 
   const demoteAdminToClient = async (userId: string, userEmail: string) => {
     try {
-      const { data, error } = await supabase.rpc('demote_admin_to_client', {
-        _user_id: userId
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Nu ești autentificat');
+      }
+
+      const { data, error } = await supabase.rpc('demote_admin_to_client_v2', {
+        _caller_user_id: user.id,
+        _target_user_id: userId
       });
 
       if (error) {
@@ -323,7 +342,7 @@ const UserManagement = () => {
           title: "Succes",
           description: `Administratorul ${userEmail} a fost retrogradat la client obișnuit.`,
         });
-        fetchUsers(); // Refresh the list
+        fetchUsers();
       } else {
         toast({
           title: "Eroare",
@@ -335,7 +354,7 @@ const UserManagement = () => {
       console.error('Error demoting admin:', error);
       toast({
         title: "Eroare",
-        description: error.message || "Nu s-a putut demota administratorul. Doar super admin poate demota administratori.",
+        description: error.message || "Nu s-a putut demota administratorul.",
         variant: "destructive",
       });
     }

@@ -786,6 +786,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      demote_admin_to_client_v2: {
+        Args: { _caller_user_id: string; _target_user_id: string }
+        Returns: boolean
+      }
       get_client_info_for_facility_bookings: {
         Args: { facility_owner_id: string }
         Returns: {
@@ -1048,8 +1052,16 @@ export type Database = {
         Args: { _caller_user_id: string; _target_user_id: string }
         Returns: boolean
       }
+      promote_user_to_admin_v2: {
+        Args: { _caller_user_id: string; _target_user_id: string }
+        Returns: boolean
+      }
       promote_user_to_facility_owner_secure: {
         Args: { _user_id: string }
+        Returns: boolean
+      }
+      promote_user_to_facility_owner_v2: {
+        Args: { _caller_user_id: string; _target_user_id: string }
         Returns: boolean
       }
       register_facility_with_profile_secure: {
