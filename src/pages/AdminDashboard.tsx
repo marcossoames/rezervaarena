@@ -50,12 +50,13 @@ const AdminDashboard = () => {
       }
 
       // Check if user has admin role
-      const { data: roles, error } = await supabase
-        .from('user_roles')
+      const { data: profile, error } = await supabase
+        .from('profiles')
         .select('role')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .single();
 
-      if (error || !roles?.some(r => r.role === 'admin')) {
+      if (error || profile?.role !== 'admin') {
         toast({
           title: "Acces interzis",
           description: "Nu aveți permisiuni de administrator",
@@ -65,7 +66,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      setUserRole('admin');
+      setUserRole(profile.role);
       toast({
         title: "Bun venit!",
         description: "Bun venit în panoul de administrare.",
@@ -102,19 +103,11 @@ const AdminDashboard = () => {
         .eq('booking_date', today);
 
       // Calculate user stats by role
-      const rolesByUser = new Map<string, string[]>();
-      rolesData?.forEach(r => {
-        if (!rolesByUser.has(r.user_id)) {
-          rolesByUser.set(r.user_id, []);
-        }
-        rolesByUser.get(r.user_id)!.push(r.role);
-      });
-
       const userStats = {
         totalUsers: usersData?.length || 0,
-        clients: Array.from(rolesByUser.values()).filter(roles => roles.includes('client')).length,
-        facilityOwners: Array.from(rolesByUser.values()).filter(roles => roles.includes('facility_owner')).length,
-        admins: Array.from(rolesByUser.values()).filter(roles => roles.includes('admin')).length,
+        clients: usersData?.filter(user => user.role === 'client').length || 0,
+        facilityOwners: usersData?.filter(user => user.role === 'facility_owner').length || 0,
+        admins: usersData?.filter(user => user.role === 'admin').length || 0,
         totalFacilities: facilitiesCount || 0,
         todayBookings: bookingsCount || 0
       };

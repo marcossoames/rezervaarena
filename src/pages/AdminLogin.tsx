@@ -40,17 +40,17 @@ const AdminLogin = () => {
 
       if (authData.user) {
         // Check if user has admin role
-        const { data: roles, error: rolesError } = await supabase
-          .from('user_roles')
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
           .select('role')
-          .eq('user_id', authData.user.id);
+          .eq('user_id', authData.user.id)
+          .single();
 
-        if (rolesError) {
+        if (profileError) {
           throw new Error('Nu s-a putut verifica rolul utilizatorului');
         }
 
-        const hasAdminRole = roles?.some(r => r.role === 'admin');
-        if (!hasAdminRole) {
+        if (profile?.role !== 'admin') {
           await supabase.auth.signOut();
           throw new Error('Acces interzis. Doar administratorii pot accesa această secțiune.');
         }
