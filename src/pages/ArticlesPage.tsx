@@ -110,7 +110,7 @@ const ArticlesPage = () => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {articles.map((article) => (
-              <Card key={article.id} className="border-0 shadow-card bg-card/50 backdrop-blur-sm overflow-hidden group hover:shadow-lg transition-all duration-300">
+              <Card key={article.id} className="border-0 shadow-card bg-card/50 backdrop-blur-sm overflow-hidden group hover:shadow-lg transition-all duration-300 flex flex-col h-full">
                 <CardHeader className="p-0">
                   {article.images && article.images.length > 0 && (
                     <div className="h-48 overflow-hidden">
@@ -122,7 +122,7 @@ const ArticlesPage = () => {
                     </div>
                   )}
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-6 flex flex-col flex-grow">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                     <Calendar className="h-4 w-4" />
                     {formatDate(article.created_at)}
@@ -132,13 +132,13 @@ const ArticlesPage = () => {
                     {article.title}
                   </CardTitle>
                   
-                  <p className="text-muted-foreground line-clamp-3 mb-4">
+                  <p className="text-muted-foreground line-clamp-3 mb-4 flex-grow">
                     {article.content}
                   </p>
                   
                   <Button 
                     variant="outline" 
-                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all mt-auto"
                     onClick={() => setSelectedArticle(article)}
                   >
                     Citește mai mult
