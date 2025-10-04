@@ -90,7 +90,7 @@ const initialSportsData = [{
   name: "Ping Pong",
   type: "ping_pong",
   image: pingPongImage,
-  description: "Mese de tenis de masă în spații indoor climatizate. Palete și mingi disponibile. Pentru toate nivelurile - de la începători la avansați.",
+  description: "Mese de tenis în interior. Palete și mingi disponibile. Pentru toate nivelurile - de la începători la avansați.",
   facilities: 0,
   minPrice: "0 RON/oră"
 }];
