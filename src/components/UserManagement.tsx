@@ -279,6 +279,31 @@ const UserManagement = () => {
     }
   };
 
+  const demoteAdminToClient = async (userId: string, userEmail: string) => {
+    try {
+      const { data, error } = await supabase.rpc('demote_admin_to_client', {
+        _user_id: userId
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Succes",
+        description: `Administratorul ${userEmail} a fost retrogradat la client.`,
+      });
+      fetchUsers(); // Refresh the list
+    } catch (error: any) {
+      console.error('Error demoting admin:', error);
+      toast({
+        title: "Eroare",
+        description: error.message || "Nu s-a putut retrograda administratorul. Doar super-adminul poate face acest lucru.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filterUsers = (role: string) => {
     setRoleFilter(role);
     if (role === 'all') {
@@ -523,7 +548,7 @@ const UserManagement = () => {
                               Promovează Bază Sportivă
                             </Button>
                           )}
-                          {user.role !== 'admin' && (
+                           {user.role !== 'admin' && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="outline" size="sm">
@@ -543,6 +568,35 @@ const UserManagement = () => {
                                   <AlertDialogCancel>Anulează</AlertDialogCancel>
                                   <AlertDialogAction onClick={() => promoteToAdmin(user.user_id, user.email)}>
                                     Promovează
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                          
+                          {user.role === 'admin' && user.email !== 'soamespaul@gmail.com' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
+                                  <User className="h-4 w-4 mr-1" />
+                                  Retrogradează la Client
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Retrogradare Administrator la Client</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Ești sigur că vrei să retrogradezi administratorul <strong>{user.full_name}</strong> la client? 
+                                    Acesta va pierde accesul la panoul de administrare. Doar super-adminul poate efectua această acțiune.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Anulează</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => demoteAdminToClient(user.user_id, user.email)}
+                                    className="bg-orange-500 text-white hover:bg-orange-600"
+                                  >
+                                    Retrogradează
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>

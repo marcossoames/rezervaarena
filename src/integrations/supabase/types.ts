@@ -782,6 +782,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      demote_admin_to_client: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       get_client_info_for_facility_bookings: {
         Args: { facility_owner_id: string }
         Returns: {
@@ -1022,6 +1026,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_super_admin: {
+        Args: { _user_id: string }
         Returns: boolean
       }
       log_banking_data_access: {
