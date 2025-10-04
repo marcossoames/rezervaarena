@@ -40,13 +40,32 @@ const UserManagement = () => {
   });
   const { toast } = useToast();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
-    // Get current user ID
+    // Get current user ID and check if super admin
     const getCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setCurrentUserId(user.id);
+        
+        // Check if user is super admin
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('user_id', user.id)
+          .single();
+        
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'super_admin');
+        
+        setIsSuperAdmin(
+          (roles && roles.length > 0) || 
+          (profile?.email === 'soamespaul@gmail.com')
+        );
       }
     };
     getCurrentUser();
@@ -638,6 +657,60 @@ const UserManagement = () => {
                               <Building2 className="h-4 w-4 mr-1" />
                               Promovează Bază Sportivă
                             </Button>
+                          )}
+                          
+                          {/* Demote admin button - only for super admin */}
+                          {isSuperAdmin && user.role === 'admin' && user.email !== 'soamespaul@gmail.com' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
+                                  <User className="h-4 w-4 mr-1" />
+                                  Demote Client
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Demotare Administrator</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Ești sigur că vrei să îl demotezi pe <strong>{user.full_name}</strong> la client obișnuit? 
+                                    Acesta va pierde accesul la panoul de administrare.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Anulează</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => demoteAdminToClient(user.user_id, user.email)}>
+                                    Demotează
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                          
+                          {/* Demote facility owner button - only for super admin */}
+                          {isSuperAdmin && user.role === 'facility_owner' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
+                                  <User className="h-4 w-4 mr-1" />
+                                  Demote Client
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Demotare Bază Sportivă</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Ești sigur că vrei să îl demotezi pe <strong>{user.full_name}</strong> de la proprietar bază sportivă la client obișnuit? 
+                                    Acesta va pierde accesul la gestionarea bazei sportive.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Anulează</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => demoteFacilityOwnerToClient(user.user_id, user.email)}>
+                                    Demotează
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           )}
                           
                           {/* Demote facility owner button for admins */}
