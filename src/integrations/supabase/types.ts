@@ -1030,7 +1030,9 @@ export type Database = {
         }[]
       }
       has_role: {
-        Args: { _role: string }
+        Args:
+          | { _role: Database["public"]["Enums"]["user_role"] }
+          | { _role: string }
         Returns: boolean
       }
       has_role_v2: {
