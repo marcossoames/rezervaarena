@@ -54,6 +54,59 @@ const ClientLogin = () => {
       }
 
       if (authData.user) {
+        // Check user role to redirect appropriately
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', authData.user.id);
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('user_type_comment')
+          .eq('user_id', authData.user.id)
+          .single();
+
+        const { data: facilities } = await supabase
+          .from('facilities')
+          .select('id')
+          .eq('owner_id', authData.user.id)
+          .limit(1);
+
+        // Determine if user is a facility owner
+        const isFacilityOwner = 
+          userRoles?.some(ur => ur.role === 'facility_owner') ||
+          profile?.user_type_comment?.includes('Proprietar bază sportivă') ||
+          (facilities && facilities.length > 0);
+
+        const isAdmin = userRoles?.some(ur => ur.role === 'admin' || ur.role === 'super_admin');
+
+        if (isFacilityOwner) {
+          toast({
+            title: "Acces restricționat",
+            description: "Proprietarii de baze sportive trebuie să se autentifice prin pagina dedicată.",
+            variant: "destructive"
+          });
+          await supabase.auth.signOut();
+          setTimeout(() => {
+            navigate('/facility/login');
+          }, 1500);
+          return;
+        }
+
+        if (isAdmin) {
+          toast({
+            title: "Acces restricționat",
+            description: "Administratorii trebuie să se autentifice prin pagina de admin.",
+            variant: "destructive"
+          });
+          await supabase.auth.signOut();
+          setTimeout(() => {
+            navigate('/admin/login');
+          }, 1500);
+          return;
+        }
+
+        // Regular client login
         toast({
           title: "Conectare reușită!",
           description: "Te-ai conectat cu succes."
