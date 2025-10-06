@@ -211,17 +211,10 @@ async function readBankDetails(supabase: any, userId: string) {
     throw new Error(`Failed to read bank details: ${error.message}`)
   }
 
-  // SECURITY: Decrypt and mask IBAN for display
+  // Mask IBAN for display
   if (data && data.iban) {
-    try {
-      const decryptedIban = await decryptIban(data.iban)
-      data.iban_masked = maskIban(decryptedIban)
-      delete data.iban // NEVER return full IBAN to client
-    } catch (error) {
-      console.error('Failed to decrypt IBAN:', error)
-      data.iban_masked = 'RO********************' // Safe fallback
-      delete data.iban
-    }
+    data.iban_masked = maskIban(data.iban)
+    delete data.iban // Don't return full IBAN
   }
 
   return { bankDetails: data }
@@ -232,21 +225,16 @@ async function upsertBankDetails(supabase: any, userId: string, bankDetails: any
   validateBankDetails(bankDetails)
 
   // Sanitize inputs
-  const sanitizedIban = sanitizeInput(bankDetails.iban.replace(/\s/g, '').toUpperCase())
-  
-  // Validate IBAN format BEFORE encryption
-  if (!validateIbanFormat(sanitizedIban)) {
-    throw new Error('Invalid IBAN format for Romania')
-  }
-
-  // SECURITY: Encrypt IBAN before storing
-  const encryptedIban = await encryptIban(sanitizedIban)
-  
   const sanitizedData = {
     user_id: userId,
     account_holder_name: sanitizeInput(bankDetails.account_holder_name),
     bank_name: sanitizeInput(bankDetails.bank_name),
-    iban: encryptedIban // Store encrypted IBAN
+    iban: sanitizeInput(bankDetails.iban.replace(/\s/g, '').toUpperCase())
+  }
+
+  // Validate IBAN format
+  if (!validateIbanFormat(sanitizedData.iban)) {
+    throw new Error('Invalid IBAN format for Romania')
   }
 
   let result
@@ -271,17 +259,10 @@ async function upsertBankDetails(supabase: any, userId: string, bankDetails: any
     result = data
   }
 
-  // SECURITY: Decrypt and mask IBAN for response (never send full IBAN)
+  // Mask IBAN in response
   if (result && result.iban) {
-    try {
-      const decryptedIban = await decryptIban(result.iban)
-      result.iban_masked = maskIban(decryptedIban)
-      delete result.iban // NEVER return encrypted or full IBAN
-    } catch (error) {
-      console.error('Failed to decrypt IBAN for response:', error)
-      result.iban_masked = 'RO********************'
-      delete result.iban
-    }
+    result.iban_masked = maskIban(result.iban)
+    delete result.iban
   }
 
   return { bankDetails: result }
@@ -363,79 +344,4 @@ function maskIban(iban: string): string {
     return iban
   }
   return iban.substring(0, 4) + '*'.repeat(iban.length - 8) + iban.substring(iban.length - 4)
-}
-
-// SECURITY: Encryption/Decryption utilities using AES-GCM
-async function getEncryptionKey(): Promise<CryptoKey> {
-  const keyString = Deno.env.get('BANKING_ENCRYPTION_KEY')
-  if (!keyString) {
-    throw new Error('BANKING_ENCRYPTION_KEY not configured')
-  }
-  
-  // Convert base64 key to ArrayBuffer
-  const keyData = Uint8Array.from(atob(keyString), c => c.charCodeAt(0))
-  
-  return await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  )
-}
-
-async function encryptIban(iban: string): Promise<string> {
-  try {
-    const key = await getEncryptionKey()
-    const encoder = new TextEncoder()
-    const data = encoder.encode(iban)
-    
-    // Generate random IV (Initialization Vector)
-    const iv = crypto.getRandomValues(new Uint8Array(12))
-    
-    // Encrypt the data
-    const encryptedData = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      data
-    )
-    
-    // Combine IV and encrypted data for storage
-    const combined = new Uint8Array(iv.length + encryptedData.byteLength)
-    combined.set(iv, 0)
-    combined.set(new Uint8Array(encryptedData), iv.length)
-    
-    // Convert to base64 for database storage
-    return btoa(String.fromCharCode(...combined))
-  } catch (error) {
-    console.error('Encryption error:', error)
-    throw new Error('Failed to encrypt sensitive data')
-  }
-}
-
-async function decryptIban(encryptedIban: string): Promise<string> {
-  try {
-    const key = await getEncryptionKey()
-    
-    // Convert from base64
-    const combined = Uint8Array.from(atob(encryptedIban), c => c.charCodeAt(0))
-    
-    // Extract IV and encrypted data
-    const iv = combined.slice(0, 12)
-    const encryptedData = combined.slice(12)
-    
-    // Decrypt the data
-    const decryptedData = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      encryptedData
-    )
-    
-    // Convert back to string
-    const decoder = new TextDecoder()
-    return decoder.decode(decryptedData)
-  } catch (error) {
-    console.error('Decryption error:', error)
-    throw new Error('Failed to decrypt sensitive data')
-  }
 }
