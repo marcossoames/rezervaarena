@@ -134,9 +134,22 @@ const PaymentPage = () => {
       });
 
       if (error) {
+        // Provide specific error messages for common validation failures
+        let errorMessage = error.message || "Nu s-a putut crea rezervarea";
+        
+        if (error.message?.includes('overlaps')) {
+          errorMessage = "Intervalul selectat este deja rezervat. Vă rugăm să selectați alt interval orar.";
+        } else if (error.message?.includes('blocked') || error.message?.includes('blocat')) {
+          errorMessage = "Intervalul selectat este blocat. Vă rugăm să selectați alt interval orar.";
+        } else if (error.message?.includes('past')) {
+          errorMessage = "Nu puteți rezerva în trecut. Vă rugăm să selectați o dată viitoare.";
+        } else if (error.message?.includes('operating hours')) {
+          errorMessage = "Intervalul selectat este în afara orelor de funcționare.";
+        }
+        
         toast({
-          title: "Eroare",
-          description: error.message || "Nu s-a putut crea rezervarea",
+          title: "Rezervarea nu poate fi procesată",
+          description: errorMessage,
           variant: "destructive"
         });
         return;
