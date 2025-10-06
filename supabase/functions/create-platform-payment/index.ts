@@ -94,6 +94,86 @@ serve(async (req) => {
       calculatedTotalPrice: totalPrice
     });
 
+    // SECURITY: Validate booking is not in the past
+    const today = new Date().toISOString().split('T')[0];
+    if (bookingDate < today) {
+      throw new Error('Cannot book dates in the past');
+    }
+
+    // SECURITY: Check if date/interval is blocked (full-day blocks)
+    const { data: fullDayBlocks, error: blockCheckError1 } = await supabaseService
+      .from('blocked_dates')
+      .select('id')
+      .eq('facility_id', facilityId)
+      .eq('blocked_date', bookingDate)
+      .is('start_time', null)
+      .is('end_time', null)
+      .limit(1);
+
+    if (blockCheckError1) {
+      logStep("Block check failed", blockCheckError1);
+      throw new Error('Could not verify availability');
+    }
+
+    if (fullDayBlocks && fullDayBlocks.length > 0) {
+      throw new Error('Selected interval is blocked (interval blocat)');
+    }
+
+    // SECURITY: Check for partial blocked intervals that overlap
+    const { data: partialBlocks, error: blockCheckError2 } = await supabaseService
+      .from('blocked_dates')
+      .select('start_time, end_time')
+      .eq('facility_id', facilityId)
+      .eq('blocked_date', bookingDate)
+      .not('start_time', 'is', null)
+      .not('end_time', 'is', null);
+
+    if (blockCheckError2) {
+      logStep("Partial block check failed", blockCheckError2);
+      throw new Error('Could not verify availability');
+    }
+
+    if (partialBlocks && partialBlocks.length > 0) {
+      // Check for overlap with any partial block
+      for (const block of partialBlocks) {
+        const blockStart = block.start_time;
+        const blockEnd = block.end_time;
+        
+        // Check if intervals overlap: (start1 < end2) && (start2 < end1)
+        if (startTime < blockEnd && blockStart < endTime) {
+          throw new Error('Selected interval overlaps a blocked period (interval blocat)');
+        }
+      }
+    }
+
+    // SECURITY: Check for overlapping existing bookings
+    const { data: existingBookings, error: bookingCheckError } = await supabaseService
+      .from('bookings')
+      .select('start_time, end_time')
+      .eq('facility_id', facilityId)
+      .eq('booking_date', bookingDate)
+      .in('status', ['confirmed', 'pending']);
+
+    if (bookingCheckError) {
+      logStep("Booking overlap check failed", bookingCheckError);
+      throw new Error('Could not verify availability');
+    }
+
+    if (existingBookings && existingBookings.length > 0) {
+      // Check for overlap with existing bookings
+      for (const booking of existingBookings) {
+        const bookingStart = booking.start_time;
+        const bookingEnd = booking.end_time;
+        
+        // Check if intervals overlap
+        if (startTime < bookingEnd && bookingStart < endTime) {
+          throw new Error('Booking time overlaps with existing booking');
+        }
+      }
+    }
+
+    logStep("All validations passed - proceeding to payment");
+
     // Initialize Stripe
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
