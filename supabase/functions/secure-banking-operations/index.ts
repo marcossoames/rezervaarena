@@ -48,6 +48,11 @@ serve(async (req) => {
       throw new Error('Authentication required')
     }
 
+    // Create a user-scoped client so RLS/auth.uid() work inside DB triggers
+    const userClient = createClient(supabaseUrl, supabaseAnon, {
+      global: { headers: { Authorization: `Bearer ${token}` } }
+    })
+
     // Get request body
     const body: BankingRequest = await req.json()
     
@@ -67,17 +72,17 @@ serve(async (req) => {
     let result
     switch (body.operation) {
       case 'read':
-        result = await readBankDetails(supabase, user.id)
+        result = await readBankDetails(userClient, user.id)
         break
       case 'create':
       case 'update':
         if (!body.bankDetails) {
           throw new Error('Bank details required for create/update operations')
         }
-        result = await upsertBankDetails(supabase, user.id, body.bankDetails, body.operation)
+        result = await upsertBankDetails(userClient, user.id, body.bankDetails, body.operation)
         break
       case 'delete':
-        result = await deleteBankDetails(supabase, user.id)
+        result = await deleteBankDetails(userClient, user.id)
         break
       default:
         throw new Error('Invalid operation')
