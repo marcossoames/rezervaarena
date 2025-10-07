@@ -82,7 +82,7 @@ const BookingPage = () => {
 
     return { 
       duration: durationHours, 
-      totalPrice: Math.round(totalPrice), 
+      totalPrice: totalPrice, 
       formattedDuration,
       endTime
     };
