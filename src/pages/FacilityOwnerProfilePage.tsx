@@ -173,6 +173,47 @@ const FacilityOwnerProfilePage = () => {
     }
   };
 
+  // Extracts detailed error message from Supabase Edge Function invoke errors
+  const parseFunctionError = (err: any): string => {
+    try {
+      let message = err?.message || 'Eroare la salvarea datelor.';
+      const ctx = err?.context || err;
+      const candidates = [
+        ctx?.response?.text,
+        ctx?.response?.body,
+        ctx?.response?.data,
+        ctx?.response?.error,
+        ctx?.json,
+        ctx?.body
+      ];
+      for (const c of candidates) {
+        if (!c) continue;
+        if (typeof c === 'string') {
+          try {
+            const parsed = JSON.parse(c);
+            if (parsed?.error) { message = parsed.error; break; }
+          } catch {
+            message = c; break;
+          }
+        } else if (typeof c === 'object') {
+          if (c?.error) { message = c.error; break; }
+        }
+      }
+      if (/Rate limit exceeded/i.test(message)) {
+        return 'Prea multe încercări. Vă rugăm să așteptați 15 minute și să încercați din nou.';
+      }
+      if (/Invalid Romanian IBAN format|IBAN format invalid/i.test(message)) {
+        return 'Format IBAN invalid pentru România. Folosiți: RO12ABCD1234567890123456.';
+      }
+      if (/Authentication required|Session too old|Session expired/i.test(message)) {
+        return 'Sesiune expirată pentru operațiuni bancare. Reautentificați-vă și reîncercați.';
+      }
+      return message;
+    } catch {
+      return 'Eroare la salvarea datelor.';
+    }
+  };
+
   const loadBankDetails = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -298,8 +339,7 @@ const FacilityOwnerProfilePage = () => {
       });
 
       if (error) {
-        const serverMsg = (data as any)?.error;
-        throw new Error(serverMsg || error.message);
+        throw new Error(parseFunctionError(error));
       }
 
       toast({
@@ -314,14 +354,7 @@ const FacilityOwnerProfilePage = () => {
       loadBankDetails();
     } catch (error) {
       console.error('Error saving bank details:', error);
-      let message = 'Nu s-au putut salva detaliile bancare.';
-      const anyErr: any = error;
-      if (anyErr?.message) message = anyErr.message;
-      if (anyErr?.error?.message) message = anyErr.error.message;
-      if (anyErr?.data?.error) message = anyErr.data.error;
-      if (/Invalid IBAN format/i.test(message)) {
-        message = 'Format IBAN invalid pentru România. Folosiți: RO12ABCD1234567890123456 (24 caractere).';
-      }
+      const message = parseFunctionError(error);
       toast({
         title: "Eroare",
         description: message,
