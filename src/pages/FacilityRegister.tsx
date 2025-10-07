@@ -255,6 +255,17 @@ const FacilityRegister = () => {
       return;
     }
 
+    // Validate password strength
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    if (!passwordRegex.test(data.password)) {
+      toast({
+        title: "Parolă nesigură",
+        description: "Parola trebuie să conțină minim 8 caractere, cel puțin o literă mare, o literă mică, un număr și un caracter special (@$!%*?&#)",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const formDataWithServices = { ...data, generalServices };
     setAccountData(formDataWithServices);
     initializeFacilities(data.numberOfFacilities);
