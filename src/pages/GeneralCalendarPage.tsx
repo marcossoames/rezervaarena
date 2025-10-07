@@ -730,8 +730,11 @@ const GeneralCalendarPage = () => {
                       <div className="flex-1 overflow-y-auto px-1 py-1">
                         {slotBookings.map((booking, index) => {
                           const colors = getSportColor(booking.facility.facility_type);
-                          // Simplified: all bookings are blue, no status-based colors
-                          const statusColor = 'bg-blue-600';
+                          
+                          // Determine color: manual (black) vs website (blue)
+                          const notes = booking.notes?.toUpperCase() || '';
+                          const isManual = notes.includes('REZERVARE MANUALĂ') || notes.includes('REZERVARE MANUALA') || notes.includes('BLOCAJ') || notes.includes('BLOCARE');
+                          const statusColor = isManual ? 'bg-gray-800' : 'bg-blue-600';
                           
                           return (
                             <div

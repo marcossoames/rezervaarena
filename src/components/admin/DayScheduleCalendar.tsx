@@ -63,10 +63,16 @@ const DayScheduleCalendar = ({
   blockedDates = []
 }: DayScheduleCalendarProps) => {
 
-  // Get booking color - simplified: only distinguish between bookings and blocks
+  // Get booking color: manual (black) vs website (blue)
   const getBookingColor = (booking: Booking) => {
-    // All bookings are blue regardless of status
-    return 'bg-blue-600';
+    const notes = booking.notes?.toUpperCase() || '';
+    const isManual = notes.includes('REZERVARE MANUALĂ') || notes.includes('REZERVARE MANUALA') || notes.includes('BLOCAJ') || notes.includes('BLOCARE');
+    
+    if (isManual) {
+      return 'bg-gray-800'; // Black for manual bookings
+    }
+    
+    return 'bg-blue-600'; // Blue for website bookings
   };
 
   // Get operating hours for selected facility
@@ -257,22 +263,6 @@ const DayScheduleCalendar = ({
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-yellow-500 rounded"></div>
               <span>Blocat</span>
-            </div>
-          </div>
-          
-          <div className="text-sm font-medium mt-3">Status rezervări:</div>
-          <div className="flex flex-wrap gap-3 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-red-500 rounded"></div>
-              <span>Anulat</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-green-600 rounded"></div>
-              <span>Finalizat</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-orange-600 rounded"></div>
-              <span>Lipsă</span>
             </div>
           </div>
         </div>
