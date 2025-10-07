@@ -28,27 +28,21 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Get user from authorization header
+    // Get user from authorization header using JWT
     const authHeader = req.headers.get('authorization')
     if (!authHeader) {
       throw new Error('Missing authorization header')
     }
 
-    // Create client with user token for authentication
+    // Extract JWT token
+    const token = authHeader.replace('Bearer ', '')
+    
+    // Verify the JWT token using the anon key client
     const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY')!
-    const userSupabase = createClient(supabaseUrl, supabaseAnon, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      },
-      global: {
-        headers: {
-          authorization: authHeader
-        }
-      }
-    })
-
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser()
+    const anonClient = createClient(supabaseUrl, supabaseAnon)
+    
+    const { data: { user }, error: authError } = await anonClient.auth.getUser(token)
+    
     if (authError || !user) {
       console.error('Authentication failed:', authError)
       throw new Error('Authentication required')
@@ -108,12 +102,12 @@ serve(async (req) => {
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
         const supabase = createClient(supabaseUrl, supabaseServiceKey)
         
+        const token = authHeader.replace('Bearer ', '')
         const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY')!
-        const userSupabase = createClient(supabaseUrl, supabaseAnon, {
-          global: { headers: { authorization: authHeader } }
-        })
+        const anonClient = createClient(supabaseUrl, supabaseAnon)
         
-        const { data: { user } } = await userSupabase.auth.getUser()
+        const { data: { user } } = await anonClient.auth.getUser(token)
+        
         if (user) {
           const clientIP = req.headers.get('cf-connecting-ip') || 'unknown'
           const userAgent = req.headers.get('user-agent') || 'unknown'
