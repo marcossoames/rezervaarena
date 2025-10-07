@@ -179,12 +179,21 @@ const FacilityOwnerProfilePage = () => {
       if (!user) return;
 
       // SECURITY: Use secure edge function instead of direct DB access
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        console.error('No active session for secure banking read');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('secure-banking-operations', {
-        body: { operation: 'read' }
+        body: { operation: 'read' },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
+        }
       });
 
       if (error) {
-        console.error('Error loading bank details:', error);
+        console.error('Error loading bank details:', error, data);
         return;
       }
 
@@ -210,7 +219,7 @@ const FacilityOwnerProfilePage = () => {
     if (editing && bankDetails) {
       setValue('account_holder_name', bankDetails.account_holder_name);
       setValue('bank_name', bankDetails.bank_name);
-      setValue('iban', bankDetails.iban);
+      setValue('iban', ''); // Do not prefill masked IBAN; require re-entry
     } else {
       reset();
     }
@@ -288,7 +297,10 @@ const FacilityOwnerProfilePage = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        const serverMsg = (data as any)?.error;
+        throw new Error(serverMsg || error.message);
+      }
 
       toast({
         title: "Succes",
@@ -302,9 +314,17 @@ const FacilityOwnerProfilePage = () => {
       loadBankDetails();
     } catch (error) {
       console.error('Error saving bank details:', error);
+      let message = 'Nu s-au putut salva detaliile bancare.';
+      const anyErr: any = error;
+      if (anyErr?.message) message = anyErr.message;
+      if (anyErr?.error?.message) message = anyErr.error.message;
+      if (anyErr?.data?.error) message = anyErr.data.error;
+      if (/Invalid IBAN format/i.test(message)) {
+        message = 'Format IBAN invalid pentru România. Folosiți: RO12ABCD1234567890123456 (24 caractere).';
+      }
       toast({
         title: "Eroare",
-        description: "Nu s-au putut salva detaliile bancare. Verificați formatul datelor.",
+        description: message,
         variant: "destructive"
       });
     }
