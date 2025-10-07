@@ -530,27 +530,23 @@ const FacilityOwnerProfilePage = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Left column - Personal and complex info in 2-column grid */}
+                {/* Left column - Personal info in 2 columns */}
                 <div>
                   <h3 className="font-semibold text-lg mb-4">{sportsComplexName}</h3>
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-sm text-muted-foreground">Nume complet:</span>
                       <p className="font-medium">{profile.full_name}</p>
                     </div>
                     <div>
                       <span className="text-sm text-muted-foreground">Email:</span>
-                      <p className="font-medium break-all">{profile.email}</p>
+                      <p className="font-medium">{profile.email}</p>
                     </div>
                     <div>
                       <span className="text-sm text-muted-foreground">Telefon:</span>
                       <p className="font-medium">{profile.phone}</p>
                     </div>
                     <div>
-                      <span className="text-sm text-muted-foreground">Oraș:</span>
-                      <p className="font-medium">{sportsComplexData?.city || 'Nu este setat'}</p>
-                    </div>
-                    <div className="col-span-2">
                       <span className="text-sm text-muted-foreground">Adresă:</span>
                       <p className="font-medium">{sportsComplexData?.address || 'Nu este setată'}</p>
                     </div>
