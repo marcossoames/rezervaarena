@@ -264,20 +264,7 @@ const ClientLogin = () => {
                 )}
               </div>
 
-              <div className="flex items-center justify-between text-sm">
-                <Link 
-                  to="/client/register" 
-                  onClick={() => {
-                    // Preserve redirect path when going to register
-                    const currentRedirect = sessionStorage.getItem('redirectAfterLogin');
-                    if (currentRedirect) {
-                      sessionStorage.setItem('redirectAfterLogin', currentRedirect);
-                    }
-                  }}
-                  className="text-primary hover:underline"
-                >
-                  Creează cont nou
-                </Link>
+              <div className="flex items-center justify-end text-sm">
                 <Link to="/forgot-password" className="text-muted-foreground hover:text-primary transition-smooth">
                   Ai uitat parola?
                 </Link>
@@ -292,27 +279,6 @@ const ClientLogin = () => {
                 {isLoading ? "Se conectează..." : "Conectează-te"}
               </Button>
             </form>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">sau</span>
-              </div>
-            </div>
-
-            <Button variant="outline" className="w-full" asChild>
-              <Link 
-                to="/" 
-                onClick={() => {
-                  // Clear redirect path when continuing as visitor
-                  sessionStorage.removeItem('redirectAfterLogin');
-                }}
-              >
-                Continuă ca vizitator
-              </Link>
-            </Button>
           </CardContent>
         </Card>
       </div>

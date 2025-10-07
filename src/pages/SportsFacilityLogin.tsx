@@ -155,10 +155,7 @@ const SportsFacilityLogin = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-sm">
-                <Link to="/facility/register" className="text-primary hover:underline">
-                  Înregistrează baza sportivă
-                </Link>
+              <div className="flex items-center justify-end text-sm">
                 <Link to="/forgot-password" className="text-muted-foreground hover:text-primary transition-smooth">
                   Ai uitat parola?
                 </Link>
@@ -174,15 +171,6 @@ const SportsFacilityLogin = () => {
                 {isLoading ? "Se conectează..." : "Acces Dashboard"}
               </Button>
             </form>
-
-            <div className="bg-secondary/50 rounded-lg p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">Nou pe RezervaArena?</p>
-              <Link to="/facility/register">
-                <Button variant="outline" size="sm">
-                  Înregistrează-ți baza sportivă
-                </Button>
-              </Link>
-            </div>
           </CardContent>
         </Card>
       </div>
