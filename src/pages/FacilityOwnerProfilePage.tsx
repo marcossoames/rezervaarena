@@ -558,10 +558,6 @@ const FacilityOwnerProfilePage = () => {
                   <h3 className="font-semibold text-lg mb-4 text-muted-foreground">Detalii Bază Sportivă</h3>
                   <div className="space-y-2">
                     <div>
-                      <span className="text-sm text-muted-foreground">Oraș:</span>
-                      <p className="font-medium">{sportsComplexData?.city || 'Nu este setat'}</p>
-                    </div>
-                    <div>
                       <span className="text-sm text-muted-foreground">Adresă:</span>
                       <p className="font-medium">{sportsComplexData?.address || 'Nu este setată'}</p>
                     </div>
