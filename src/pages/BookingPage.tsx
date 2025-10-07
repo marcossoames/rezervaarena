@@ -454,7 +454,7 @@ const BookingPage = () => {
                   <h2 className="text-2xl font-bold text-foreground mb-2">{facility.name}</h2>
                   <div className="flex items-center text-muted-foreground mb-4">
                     <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span className="text-left">{facility.city} area</span>
+                    <span className="text-left">{facility.address}</span>
                   </div>
                   
                   {/* Operating Hours */}
