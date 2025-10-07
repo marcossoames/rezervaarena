@@ -5,31 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  ArrowLeft,
-  Calendar,
-  Building2,
-  Settings,
-  User,
-  Trash2,
-  CreditCard,
-  CheckCircle,
-  AlertCircle,
-  Edit,
-  Plus,
-  DollarSign,
-} from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ArrowLeft, Calendar, Building2, Settings, User, Trash2, CreditCard, CheckCircle, AlertCircle, Edit, Plus, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -47,19 +24,19 @@ interface BankDetails {
   created_at: string;
   updated_at: string;
 }
-
 interface BankFormData {
   account_holder_name: string;
   bank_name: string;
   iban: string;
 }
-
 const FacilityOwnerProfilePage = () => {
   const [activeBookingsInfo, setActiveBookingsInfo] = useState<any>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [submittingBankDetails, setSubmittingBankDetails] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,31 +48,31 @@ const FacilityOwnerProfilePage = () => {
     handleSubmit,
     setValue,
     reset,
-    formState: { errors },
+    formState: {
+      errors
+    }
   } = useForm<BankFormData>();
   const [stats, setStats] = useState({
     todayBookings: 0,
     monthlyBookings: 0,
-    activeFacilities: 0,
+    activeFacilities: 0
   });
-
   useEffect(() => {
     checkAuth();
     loadBankDetails();
     loadSportsComplexData();
   }, []);
-
   const checkAuth = async () => {
     try {
       const {
-        data: { user },
+        data: {
+          user
+        }
       } = await supabase.auth.getUser();
-
       if (!user) {
         navigate("/facility/login");
         return;
       }
-
       await loadProfile(user.id);
       await loadStats(user.id);
     } catch (error) {
@@ -103,66 +80,63 @@ const FacilityOwnerProfilePage = () => {
       navigate("/facility/login");
     }
   };
-
   const loadProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase.from("profiles").select("*").eq("user_id", userId).single();
-
+      const {
+        data,
+        error
+      } = await supabase.from("profiles").select("*").eq("user_id", userId).single();
       if (error) {
         throw error;
       }
-
       setProfile(data);
     } catch (error) {
       console.error("Error loading profile:", error);
       toast({
         title: "Eroare",
         description: "Nu s-a putut încărca profilul",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const loadSportsComplexData = async () => {
     try {
       const {
-        data: { user },
+        data: {
+          user
+        }
       } = await supabase.auth.getUser();
       if (!user) return;
-
-      const { data, error } = await supabase.from("sports_complexes").select("*").eq("owner_id", user.id).maybeSingle();
-
+      const {
+        data,
+        error
+      } = await supabase.from("sports_complexes").select("*").eq("owner_id", user.id).maybeSingle();
       if (error) {
         console.error("Error loading sports complex:", error);
         return;
       }
-
       setSportsComplexData(data);
     } catch (error) {
       console.error("Error loading sports complex data:", error);
     }
   };
-
   const loadStats = async (userId: string) => {
     try {
       // Get user's ACTIVE facilities
-      const { data: facilities, error: facilitiesError } = await supabase
-        .from("facilities")
-        .select("id")
-        .eq("owner_id", userId)
-        .eq("is_active", true); // Only count active facilities
+      const {
+        data: facilities,
+        error: facilitiesError
+      } = await supabase.from("facilities").select("id").eq("owner_id", userId).eq("is_active", true); // Only count active facilities
 
       if (facilitiesError) {
         throw facilitiesError;
       }
-
-      const facilityIds = facilities.map((f) => f.id);
-
+      const facilityIds = facilities.map(f => f.id);
       if (facilityIds.length === 0) {
         setStats({
           todayBookings: 0,
           monthlyBookings: 0,
-          activeFacilities: 0,
+          activeFacilities: 0
         });
         return;
       }
@@ -177,42 +151,48 @@ const FacilityOwnerProfilePage = () => {
       const monthStart = format(new Date(currentYear, currentMonth, 1), "yyyy-MM-dd");
       const monthEnd = format(new Date(currentYear, currentMonth + 1, 0), "yyyy-MM-dd"); // Last day of current month
 
-      console.log("Date range for stats:", { todayStr, monthStart, monthEnd, facilityIds });
+      console.log("Date range for stats:", {
+        todayStr,
+        monthStart,
+        monthEnd,
+        facilityIds
+      });
 
       // Get today's bookings (confirmed and pending only)
-      const { data: todayBookings, error: todayError } = await supabase
-        .from("bookings")
-        .select("*")
-        .in("facility_id", facilityIds)
-        .eq("booking_date", todayStr)
-        .in("status", ["confirmed", "pending"]);
+      const {
+        data: todayBookings,
+        error: todayError
+      } = await supabase.from("bookings").select("*").in("facility_id", facilityIds).eq("booking_date", todayStr).in("status", ["confirmed", "pending"]);
 
       // Get monthly bookings (confirmed and pending for accurate count)
-      const { data: monthlyBookings, error: monthlyError } = await supabase
-        .from("bookings")
-        .select("*")
-        .in("facility_id", facilityIds)
-        .gte("booking_date", monthStart)
-        .lte("booking_date", monthEnd)
-        .in("status", ["confirmed", "pending"]);
-
-      console.log("Today bookings query result:", { todayBookings, todayError });
-      console.log("Monthly bookings query result:", { monthlyBookings, monthlyError });
-
+      const {
+        data: monthlyBookings,
+        error: monthlyError
+      } = await supabase.from("bookings").select("*").in("facility_id", facilityIds).gte("booking_date", monthStart).lte("booking_date", monthEnd).in("status", ["confirmed", "pending"]);
+      console.log("Today bookings query result:", {
+        todayBookings,
+        todayError
+      });
+      console.log("Monthly bookings query result:", {
+        monthlyBookings,
+        monthlyError
+      });
       if (todayError) throw todayError;
       if (monthlyError) throw monthlyError;
-
       console.log("Booking stats loaded:", {
         todayCount: todayBookings?.length || 0,
         monthlyCount: monthlyBookings?.length || 0,
         activeFacilitiesCount: facilities.length,
-        debug: { todayStr, monthStart, monthEnd },
+        debug: {
+          todayStr,
+          monthStart,
+          monthEnd
+        }
       });
-
       setStats({
         todayBookings: todayBookings?.length || 0,
         monthlyBookings: monthlyBookings?.length || 0,
-        activeFacilities: facilities.length,
+        activeFacilities: facilities.length
       });
     } catch (error) {
       console.error("Error loading stats:", error);
@@ -226,14 +206,7 @@ const FacilityOwnerProfilePage = () => {
     try {
       let message = err?.message || "Eroare la salvarea datelor.";
       const ctx = err?.context || err;
-      const candidates = [
-        ctx?.response?.text,
-        ctx?.response?.body,
-        ctx?.response?.data,
-        ctx?.response?.error,
-        ctx?.json,
-        ctx?.body,
-      ];
+      const candidates = [ctx?.response?.text, ctx?.response?.body, ctx?.response?.data, ctx?.response?.error, ctx?.json, ctx?.body];
       for (const c of candidates) {
         if (!c) continue;
         if (typeof c === "string") {
@@ -268,33 +241,38 @@ const FacilityOwnerProfilePage = () => {
       return "Eroare la salvarea datelor.";
     }
   };
-
   const loadBankDetails = async () => {
     try {
       const {
-        data: { user },
+        data: {
+          user
+        }
       } = await supabase.auth.getUser();
       if (!user) return;
 
       // SECURITY: Use secure edge function instead of direct DB access
-      const { data: sessionData } = await supabase.auth.getSession();
+      const {
+        data: sessionData
+      } = await supabase.auth.getSession();
       if (!sessionData?.session) {
         console.error("No active session for secure banking read");
         return;
       }
-
-      const { data, error } = await supabase.functions.invoke("secure-banking-operations", {
-        body: { operation: "read" },
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`,
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("secure-banking-operations", {
+        body: {
+          operation: "read"
         },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
+        }
       });
-
       if (error) {
         console.error("Error loading bank details:", error, data);
         return;
       }
-
       if (data?.bankDetails) {
         setBankDetails({
           id: data.bankDetails.id,
@@ -302,7 +280,7 @@ const FacilityOwnerProfilePage = () => {
           bank_name: data.bankDetails.bank_name,
           iban: data.bankDetails.iban_masked,
           created_at: data.bankDetails.created_at,
-          updated_at: data.bankDetails.updated_at,
+          updated_at: data.bankDetails.updated_at
         });
       } else {
         setBankDetails(null);
@@ -311,7 +289,6 @@ const FacilityOwnerProfilePage = () => {
       console.error("Error loading bank details:", error);
     }
   };
-
   const openBankDialog = (editing = false) => {
     setIsEditingBank(editing);
     if (editing && bankDetails) {
@@ -323,11 +300,12 @@ const FacilityOwnerProfilePage = () => {
     }
     setIsBankDialogOpen(true);
   };
-
   const onBankSubmit = async (formData: BankFormData) => {
     try {
       const {
-        data: { user },
+        data: {
+          user
+        }
       } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -337,7 +315,7 @@ const FacilityOwnerProfilePage = () => {
         toast({
           title: "Prea multe încercări",
           description: "Vă rugăm să așteptați înainte de a încerca din nou",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
@@ -348,26 +326,24 @@ const FacilityOwnerProfilePage = () => {
         toast({
           title: "Eroare de validare",
           description: accountHolderValidation.error,
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       const bankNameValidation = validateBankName(formData.bank_name);
       if (!bankNameValidation.isValid) {
         toast({
           title: "Eroare de validare",
           description: bankNameValidation.error,
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       if (!validateIbanFormat(formData.iban)) {
         toast({
           title: "Eroare de validare",
           description: "Formatul IBAN este invalid. Utilizați formatul RO12ABCD1234567890123456",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
@@ -376,7 +352,7 @@ const FacilityOwnerProfilePage = () => {
       const sanitizedData = {
         account_holder_name: sanitizeInput(formData.account_holder_name),
         bank_name: sanitizeInput(formData.bank_name),
-        iban: formData.iban.replace(/\s/g, "").toUpperCase(),
+        iban: formData.iban.replace(/\s/g, "").toUpperCase()
       };
 
       // SECURITY: Use secure edge function instead of direct DB access
@@ -384,31 +360,32 @@ const FacilityOwnerProfilePage = () => {
 
       // Get the current session to pass the auth token
       const {
-        data: { session },
+        data: {
+          session
+        }
       } = await supabase.auth.getSession();
       if (!session) {
         throw new Error("Sesiune expirată. Vă rugăm să vă autentificați din nou.");
       }
-
-      const { data, error } = await supabase.functions.invoke("secure-banking-operations", {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("secure-banking-operations", {
         body: {
           operation,
-          bankDetails: sanitizedData,
+          bankDetails: sanitizedData
         },
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
-
       if (error) {
         throw new Error(parseFunctionError(error));
       }
-
       toast({
         title: "Succes",
-        description: isEditingBank ? "Detaliile bancare au fost actualizate" : "Detaliile bancare au fost adăugate",
+        description: isEditingBank ? "Detaliile bancare au fost actualizate" : "Detaliile bancare au fost adăugate"
       });
-
       setIsBankDialogOpen(false);
       reset();
       loadBankDetails();
@@ -418,50 +395,49 @@ const FacilityOwnerProfilePage = () => {
       toast({
         title: "Eroare",
         description: message,
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const deleteBankDetails = async () => {
     if (!bankDetails || !confirm("Ești sigur că vrei să ștergi detaliile bancare?")) {
       return;
     }
-
     try {
       // SECURITY: Use secure edge function instead of direct DB access
       const {
-        data: { session },
+        data: {
+          session
+        }
       } = await supabase.auth.getSession();
       if (!session) {
         throw new Error("Sesiune expirată. Vă rugăm să vă autentificați din nou.");
       }
-
-      const { error } = await supabase.functions.invoke("secure-banking-operations", {
-        body: { operation: "delete" },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
+      const {
+        error
+      } = await supabase.functions.invoke("secure-banking-operations", {
+        body: {
+          operation: "delete"
         },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
-
       if (error) throw error;
-
       setBankDetails(null);
-
       toast({
         title: "Succes",
-        description: "Detaliile bancare au fost șterse",
+        description: "Detaliile bancare au fost șterse"
       });
     } catch (error) {
       console.error("Error deleting bank details:", error);
       toast({
         title: "Eroare",
         description: "Nu s-au putut șterge detaliile bancare",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const extractSportsComplexName = (userTypeComment: string): string => {
     if (!userTypeComment) return "Baza Sportivă";
 
@@ -474,32 +450,30 @@ const FacilityOwnerProfilePage = () => {
     if (userTypeComment.startsWith("Proprietar bază sportivă - ")) {
       return userTypeComment.replace("Proprietar bază sportivă - ", "").trim();
     }
-
     return userTypeComment;
   };
-
   const handleDeleteClick = async () => {
     const activeBookingsData = await checkOwnerActiveFacilityBookings();
     setActiveBookingsInfo(activeBookingsData);
     setShowDeleteDialog(true);
   };
-
   const handleDeleteAccount = async () => {
     try {
       const result = await deleteUserAccount();
-
       if (result.success) {
         toast({
           title: "Cont șters",
-          description: "Contul a fost șters cu succes.",
+          description: "Contul a fost șters cu succes."
         });
         // Redirect to home page as visitor
-        navigate("/", { replace: true });
+        navigate("/", {
+          replace: true
+        });
       } else {
         toast({
           title: "Eroare",
           description: result.error,
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     } catch (error) {
@@ -507,14 +481,12 @@ const FacilityOwnerProfilePage = () => {
       toast({
         title: "Eroare",
         description: "Nu s-a putut șterge contul. Vă rugăm să încercați din nou.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   if (isLoading || !profile) {
-    return (
-      <div className="min-h-screen bg-background">
+    return <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
@@ -523,23 +495,15 @@ const FacilityOwnerProfilePage = () => {
           </div>
         </main>
         <Footer />
-      </div>
-    );
+      </div>;
   }
-
   const sportsComplexName = extractSportsComplexName(profile.user_type_comment || "");
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Header />
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="mb-4 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
-          >
+          <Button variant="ghost" onClick={() => navigate("/")} className="mb-4 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Înapoi la pagina principală
           </Button>
@@ -549,10 +513,7 @@ const FacilityOwnerProfilePage = () => {
 
         {/* Navigation Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow h-full"
-            onClick={() => navigate("/facility-calendar")}
-          >
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full" onClick={() => navigate("/facility-calendar")}>
             <CardHeader className="flex flex-col h-full">
               <CardTitle className="flex items-center gap-2 min-h-[3rem]">
                 <Calendar className="h-5 w-5" />
@@ -562,10 +523,7 @@ const FacilityOwnerProfilePage = () => {
             </CardHeader>
           </Card>
 
-          <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow h-full"
-            onClick={() => navigate("/manage-facilities")}
-          >
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full" onClick={() => navigate("/manage-facilities")}>
             <CardHeader className="flex flex-col h-full">
               <CardTitle className="flex items-center gap-2 min-h-[3rem]">
                 <Building2 className="h-5 w-5" />
@@ -575,10 +533,7 @@ const FacilityOwnerProfilePage = () => {
             </CardHeader>
           </Card>
 
-          <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow h-full"
-            onClick={() => navigate("/facility-owner-income")}
-          >
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full" onClick={() => navigate("/facility-owner-income")}>
             <CardHeader className="flex flex-col h-full">
               <CardTitle className="flex items-center gap-2 min-h-[3rem]">
                 <DollarSign className="h-5 w-5" />
@@ -636,9 +591,7 @@ const FacilityOwnerProfilePage = () => {
                     <div>
                       <span className="text-sm text-muted-foreground">Servicii generale:</span>
                       <p className="font-medium text-sm">
-                        {sportsComplexData?.general_services && sportsComplexData.general_services.length > 0
-                          ? sportsComplexData.general_services.join(", ")
-                          : "Nu sunt setate servicii"}
+                        {sportsComplexData?.general_services && sportsComplexData.general_services.length > 0 ? sportsComplexData.general_services.join(", ") : "Nu sunt setate servicii"}
                       </p>
                     </div>
                   </div>
@@ -674,7 +627,7 @@ const FacilityOwnerProfilePage = () => {
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs text-muted-foreground">Facilități active</p>
+                          <p className="text-xs text-muted-foreground">Terenuri active</p>
                           <p className="text-xl font-bold">{stats.activeFacilities}</p>
                         </div>
                         <Building2 className="h-6 w-6 text-green-500" />
@@ -693,8 +646,7 @@ const FacilityOwnerProfilePage = () => {
                 <CreditCard className="h-6 w-6" />
                 Detalii Bancare
               </CardTitle>
-              {bankDetails ? (
-                <div className="flex gap-2">
+              {bankDetails ? <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => openBankDialog(true)}>
                     <Edit className="h-4 w-4 mr-2" />
                     Editează
@@ -703,17 +655,13 @@ const FacilityOwnerProfilePage = () => {
                     <Trash2 className="h-4 w-4 mr-2" />
                     Șterge
                   </Button>
-                </div>
-              ) : (
-                <Button onClick={() => openBankDialog(false)}>
+                </div> : <Button onClick={() => openBankDialog(false)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Adaugă Cont Bancar
-                </Button>
-              )}
+                </Button>}
             </CardHeader>
             <CardContent>
-              {bankDetails ? (
-                <div className="grid md:grid-cols-2 gap-4 text-sm">
+              {bankDetails ? <div className="grid md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">Titular Cont:</p>
                     <p className="font-medium">{bankDetails.account_holder_name}</p>
@@ -728,12 +676,9 @@ const FacilityOwnerProfilePage = () => {
                     <p className="text-muted-foreground">IBAN:</p>
                     <p className="font-mono text-xs">{bankDetails.iban}</p>
                   </div>
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-4">
+                </div> : <p className="text-muted-foreground text-center py-4">
                   Nu aveți încă detalii bancare adăugate. Adăugați un cont bancar pentru a primi plăți.
-                </p>
-              )}
+                </p>}
             </CardContent>
           </Card>
 
@@ -746,39 +691,29 @@ const FacilityOwnerProfilePage = () => {
               <form onSubmit={handleSubmit(onBankSubmit)} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="account_holder_name">Numele Titularului</Label>
-                  <Input
-                    id="account_holder_name"
-                    {...register("account_holder_name", { required: "Numele titularului este obligatoriu" })}
-                    placeholder="ex: SC SportComplex SRL"
-                  />
-                  {errors.account_holder_name && (
-                    <p className="text-sm text-destructive">{errors.account_holder_name.message}</p>
-                  )}
+                  <Input id="account_holder_name" {...register("account_holder_name", {
+                  required: "Numele titularului este obligatoriu"
+                })} placeholder="ex: SC SportComplex SRL" />
+                  {errors.account_holder_name && <p className="text-sm text-destructive">{errors.account_holder_name.message}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="bank_name">Numele Băncii</Label>
-                  <Input
-                    id="bank_name"
-                    {...register("bank_name", { required: "Numele băncii este obligatoriu" })}
-                    placeholder="ex: Banca Transilvania"
-                  />
+                  <Input id="bank_name" {...register("bank_name", {
+                  required: "Numele băncii este obligatoriu"
+                })} placeholder="ex: Banca Transilvania" />
                   {errors.bank_name && <p className="text-sm text-destructive">{errors.bank_name.message}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="iban">IBAN</Label>
-                  <Input
-                    id="iban"
-                    {...register("iban", {
-                      required: "IBAN-ul este obligatoriu",
-                      pattern: {
-                        value: /^RO\d{2}[A-Z]{4}[A-Z0-9]{16}$/,
-                        message: "IBAN-ul trebuie să fie în formatul: RO12ABCD1234567890123456",
-                      },
-                    })}
-                    placeholder="ex: RO12ABCD1234567890123456"
-                  />
+                  <Input id="iban" {...register("iban", {
+                  required: "IBAN-ul este obligatoriu",
+                  pattern: {
+                    value: /^RO\d{2}[A-Z]{4}[A-Z0-9]{16}$/,
+                    message: "IBAN-ul trebuie să fie în formatul: RO12ABCD1234567890123456"
+                  }
+                })} placeholder="ex: RO12ABCD1234567890123456" />
                   {errors.iban && <p className="text-sm text-destructive">{errors.iban.message}</p>}
                 </div>
 
@@ -814,17 +749,12 @@ const FacilityOwnerProfilePage = () => {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirmă ștergerea contului</AlertDialogTitle>
                     <AlertDialogDescription>
-                      {activeBookingsInfo?.activeBookings > 0
-                        ? `Atenție: aveți ${activeBookingsInfo.activeBookings} rezervări viitoare pe facilitățile dvs. Confirmând, toate aceste rezervări vor fi anulate automat înainte de ștergerea contului.`
-                        : `Confirmând, contul va fi șters definitiv. Dacă există rezervări viitoare, acestea vor fi anulate automat înainte de ștergere.`}
+                      {activeBookingsInfo?.activeBookings > 0 ? `Atenție: aveți ${activeBookingsInfo.activeBookings} rezervări viitoare pe facilitățile dvs. Confirmând, toate aceste rezervări vor fi anulate automat înainte de ștergerea contului.` : `Confirmând, contul va fi șters definitiv. Dacă există rezervări viitoare, acestea vor fi anulate automat înainte de ștergere.`}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Renunță</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAccount}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
+                    <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                       Da, șterge contul
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -836,8 +766,6 @@ const FacilityOwnerProfilePage = () => {
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default FacilityOwnerProfilePage;
