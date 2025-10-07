@@ -131,7 +131,7 @@ const FacilityIncomeManagement = () => {
           totalReceivedCash += booking.total_price * 0.9;
           totalGrossCash += booking.total_price;
           cashBookings++;
-        } else if (booking.payment_method === 'card' && ['confirmed', 'completed'].includes(booking.status)) {
+        } else if (booking.payment_method === 'card' && booking.status === 'completed') {
           // For card payments: facility gets 90%, platform gets 10%
           totalReceivedCard += booking.total_price * 0.9;
           totalGrossCard += booking.total_price;
@@ -201,7 +201,7 @@ const FacilityIncomeManagement = () => {
             totalReceivedCash += booking.total_price * 0.9;
             totalGrossCash += booking.total_price;
             cashBookings++;
-          } else if (booking.payment_method === 'card' && ['confirmed', 'completed'].includes(booking.status)) {
+          } else if (booking.payment_method === 'card' && booking.status === 'completed') {
             totalReceivedCard += booking.total_price * 0.9;
             totalGrossCard += booking.total_price;
             cardBookings++;
@@ -428,7 +428,7 @@ const FacilityIncomeManagement = () => {
                 <div>
                   <p className="font-medium">Încasări Card</p>
                   <p className="text-sm text-muted-foreground">
-                    Primiți 90% din rezervările cu plată card confirmate sau finalizate. Platforma percepe 10% comision.
+                    Primiți 90% din rezervările cu plată card finalizate. Platforma percepe 10% comision.
                   </p>
                 </div>
               </div>

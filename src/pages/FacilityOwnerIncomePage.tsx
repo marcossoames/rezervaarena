@@ -78,6 +78,19 @@ const FacilityOwnerIncomePage = () => {
                 </div>
               </div>
 
+              {/* When Income Appears */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-blue-900 mb-2">Când apar veniturile în statistici</h3>
+                    <p className="text-blue-800 text-sm">
+                      Veniturile (atât pentru plăți cash cât și pentru cele cu cardul) apar în statistici <span className="font-bold">doar după ce marcați rezervarea ca finalizată</span>. Aceasta asigură că veniturile reflectă doar serviciile efectiv prestate.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <Button 
                   onClick={handleClosePricingInfo}
