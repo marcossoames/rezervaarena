@@ -18,6 +18,7 @@ import { filterAllowedTimeSlots, getMinimumAllowedTime } from "@/utils/dateTimeV
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { getImagePublicUrl } from "@/utils/imageUtils";
 import ImageCarousel from "@/components/ImageCarousel";
+import { openExternal } from "@/utils/openExternal";
 
 interface Facility {
   id: string;
@@ -44,6 +45,17 @@ const BookingPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  
+  // Helper functions for Google Maps
+  const buildLocationQuery = (address: string, city: string): string => {
+    return `${address}, ${city}`;
+  };
+
+  const getMapsOpenUrl = (address: string, city: string): string => {
+    const query = buildLocationQuery(address, city);
+    const q = encodeURIComponent(query);
+    return `https://www.google.com/maps/search/?api=1&query=${q}`;
+  };
   
   // Check if date is passed in URL and use it, otherwise use today
   const getInitialDate = () => {
@@ -454,7 +466,17 @@ const BookingPage = () => {
                   <h2 className="text-2xl font-bold text-foreground mb-2">{facility.name}</h2>
                   <div className="flex items-center text-muted-foreground mb-4">
                     <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span className="text-left">{facility.address}</span>
+                    <a
+                      href={getMapsOpenUrl(facility.address, facility.city)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openExternal(getMapsOpenUrl(facility.address, facility.city));
+                      }}
+                      className="text-left hover:text-primary hover:underline cursor-pointer transition-colors"
+                    >
+                      {facility.address}, {facility.city}
+                    </a>
                   </div>
                   
                   {/* Operating Hours */}
