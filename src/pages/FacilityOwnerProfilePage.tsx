@@ -735,19 +735,7 @@ const FacilityOwnerProfilePage = () => {
           </Dialog>
 
           {/* Navigation Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/my-reservations')}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Rezervările Mele
-                </CardTitle>
-                <CardDescription>
-                  Vezi și gestionează rezervările pentru facilitățile tale
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/facility-calendar')}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -764,22 +752,10 @@ const FacilityOwnerProfilePage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  Gestionează Facilități
+                  Setări Terenuri
                 </CardTitle>
                 <CardDescription>
                   Adaugă, editează sau șterge facilitățile sportive
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/edit-sports-complex-settings')}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Setări
-                </CardTitle>
-                <CardDescription>
-                  Editează informațiile complexului sportiv
                 </CardDescription>
               </CardHeader>
             </Card>
