@@ -249,7 +249,7 @@ const loadBankDetails = async () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('bank_details')
+        .from('facility_owner_bank_details')
         .select('id, account_holder_name, bank_name, iban, created_at, updated_at')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -330,7 +330,7 @@ const onBankSubmit = async (formData: BankFormData) => {
 
       // Check if bank details already exist
       const { data: existing, error: existingError } = await supabase
-        .from('bank_details')
+        .from('facility_owner_bank_details')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -339,7 +339,7 @@ const onBankSubmit = async (formData: BankFormData) => {
       let dbError: any = null;
       if (existing) {
         const { error } = await supabase
-          .from('bank_details')
+          .from('facility_owner_bank_details')
           .update({
             account_holder_name: sanitizedData.account_holder_name,
             bank_name: sanitizedData.bank_name,
@@ -350,7 +350,7 @@ const onBankSubmit = async (formData: BankFormData) => {
         dbError = error;
       } else {
         const { error } = await supabase
-          .from('bank_details')
+          .from('facility_owner_bank_details')
           .insert([{
             user_id: user.id,
             account_holder_name: sanitizedData.account_holder_name,
@@ -385,7 +385,7 @@ const deleteBankDetails = async () => {
       if (!user) return;
 
       const { error } = await supabase
-        .from('bank_details')
+        .from('facility_owner_bank_details')
         .delete()
         .eq('user_id', user.id);
       if (error) throw error;

@@ -452,6 +452,36 @@ export type Database = {
           },
         ]
       }
+      facility_owner_bank_details: {
+        Row: {
+          account_holder_name: string
+          bank_name: string
+          created_at: string
+          iban: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_holder_name: string
+          bank_name: string
+          created_at?: string
+          iban: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_holder_name?: string
+          bank_name?: string
+          created_at?: string
+          iban?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       facility_services: {
         Row: {
           created_at: string
@@ -1112,12 +1142,20 @@ export type Database = {
             }
         Returns: string
       }
+      sanitize_text: {
+        Args: { _input: string }
+        Returns: string
+      }
       update_booking_status_owner: {
         Args: {
           p_booking_id: string
           p_new_status: Database["public"]["Enums"]["booking_status"]
           p_notes?: string
         }
+        Returns: boolean
+      }
+      validate_romanian_iban: {
+        Args: { _iban: string }
         Returns: boolean
       }
     }
