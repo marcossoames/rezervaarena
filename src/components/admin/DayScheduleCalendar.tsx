@@ -63,21 +63,9 @@ const DayScheduleCalendar = ({
   blockedDates = []
 }: DayScheduleCalendarProps) => {
 
-  // Get booking color based on priority: status > booking type
+  // Get booking color - simplified: only distinguish between bookings and blocks
   const getBookingColor = (booking: Booking) => {
-    // Priority 1: Status colors override everything
-    if (booking.status === 'cancelled') return 'bg-red-500';
-    if (booking.status === 'completed') return 'bg-green-600';
-    if (booking.status === 'no_show') return 'bg-orange-600';
-    
-    // Priority 2: Booking type - Manual vs Website
-    const notes = booking.notes?.toUpperCase() || '';
-    const isManual = notes.includes('REZERVARE MANUALĂ') || notes.includes('REZERVARE MANUALA') || notes.includes('BLOCAJ') || notes.includes('BLOCARE');
-    if (isManual) {
-      return 'bg-gray-800'; // Dark gray for manual bookings
-    }
-    
-    // Website bookings: all reservations made through the website (any payment method)
+    // All bookings are blue regardless of status
     return 'bg-blue-600';
   };
 

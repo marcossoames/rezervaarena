@@ -730,16 +730,8 @@ const GeneralCalendarPage = () => {
                       <div className="flex-1 overflow-y-auto px-1 py-1">
                         {slotBookings.map((booking, index) => {
                           const colors = getSportColor(booking.facility.facility_type);
-                          let statusColor = colors.accent;
-                          
-                          // Override color based on status
-                          if (booking.status === 'cancelled') {
-                            statusColor = 'bg-red-500';
-                          } else if (booking.status === 'completed') {
-                            statusColor = 'bg-emerald-600';
-                          } else if (booking.status === 'no_show') {
-                            statusColor = 'bg-rose-600';
-                          }
+                          // Simplified: all bookings are blue, no status-based colors
+                          const statusColor = 'bg-blue-600';
                           
                           return (
                             <div
