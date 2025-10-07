@@ -371,7 +371,8 @@ const onBankSubmit = async (formData: BankFormData) => {
       loadBankDetails();
     } catch (error) {
       console.error("Error saving bank details:", error);
-      toast({ title: "Eroare", description: "Nu s-au putut salva detaliile bancare", variant: "destructive" });
+      const errMsg = (error as any)?.message || (error as any)?.details || "Nu s-au putut salva detaliile bancare";
+      toast({ title: "Eroare", description: errMsg, variant: "destructive" });
     } finally {
       setSubmittingBankDetails(false);
     }

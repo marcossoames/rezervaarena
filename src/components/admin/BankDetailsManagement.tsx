@@ -51,7 +51,7 @@ const BankDetailsManagement = () => {
       
       // Get all bank details
       const { data: bankData, error: bankError } = await supabase
-        .from('bank_details')
+        .from('facility_owner_bank_details')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -181,7 +181,7 @@ const BankDetailsManagement = () => {
       if (editingBank) {
         // Update existing bank details
         const { error } = await supabase
-          .from('bank_details')
+          .from('facility_owner_bank_details')
           .update(sanitizedData)
           .eq('id', editingBank.id);
 
@@ -194,7 +194,7 @@ const BankDetailsManagement = () => {
       } else {
         // Create new bank details
         const { error } = await supabase
-          .from('bank_details')
+          .from('facility_owner_bank_details')
           .insert([
             {
               user_id: selectedOwnerId,
@@ -230,7 +230,7 @@ const BankDetailsManagement = () => {
 
     try {
       const { error } = await supabase
-        .from('bank_details')
+        .from('facility_owner_bank_details')
         .delete()
         .eq('id', bankId);
 
