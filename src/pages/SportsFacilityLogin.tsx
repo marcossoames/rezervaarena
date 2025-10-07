@@ -171,7 +171,7 @@ const SportsFacilityLogin = () => {
                 variant="sport"
                 disabled={isLoading}
               >
-                {isLoading ? "Se conectează..." : "Acces Dashboard"}
+                {isLoading ? "Se conectează..." : "Conectare"}
               </Button>
             </form>
           </CardContent>
