@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, Filter, Search, LogIn, CalendarIcon, Users, ArrowUpDown, ChevronDown } from "lucide-react";
+import { Calendar, MapPin, Clock, Filter, Search, LogIn, CalendarIcon, Users, ArrowUpDown, ChevronDown, CircleDot } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -804,7 +804,7 @@ applyFilters();
           <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-lg">
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 bg-primary/20 rounded-full flex items-center justify-center">
-                <span className="text-primary font-bold">🏠</span>
+                <CircleDot className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Bine ai venit!</h3>
