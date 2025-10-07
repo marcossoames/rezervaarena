@@ -714,8 +714,46 @@ applyFilters();
     const times = [];
     const dateToCheck = selectedDate || new Date(); // Use today if no date selected
     
-    for (let hour = 8; hour <= 22; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
+    // Calculate min and max operating hours from currently filtered facilities
+    let minHour = 8;
+    let minMinute = 0;
+    let maxHour = 22;
+    let maxMinute = 0;
+    
+    if (facilities.length > 0) {
+      // Get earliest start time
+      const earliestStart = facilities.reduce((earliest, facility) => {
+        if (!facility.operating_hours_start) return earliest;
+        const [hour, minute] = facility.operating_hours_start.split(':').map(Number);
+        const totalMinutes = hour * 60 + minute;
+        return totalMinutes < earliest ? totalMinutes : earliest;
+      }, 24 * 60); // Start with max possible value
+      
+      // Get latest end time
+      const latestEnd = facilities.reduce((latest, facility) => {
+        if (!facility.operating_hours_end) return latest;
+        const [hour, minute] = facility.operating_hours_end.split(':').map(Number);
+        const totalMinutes = hour * 60 + minute;
+        return totalMinutes > latest ? totalMinutes : latest;
+      }, 0); // Start with min possible value
+      
+      if (earliestStart < 24 * 60) {
+        minHour = Math.floor(earliestStart / 60);
+        minMinute = earliestStart % 60;
+      }
+      
+      if (latestEnd > 0) {
+        maxHour = Math.floor(latestEnd / 60);
+        maxMinute = latestEnd % 60;
+      }
+    }
+    
+    // Generate time slots from min to max
+    for (let hour = minHour; hour <= maxHour; hour++) {
+      const startMinute = (hour === minHour) ? minMinute : 0;
+      const endMinute = (hour === maxHour) ? maxMinute : 59;
+      
+      for (let minute = startMinute; minute <= endMinute; minute += 30) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         
         // Apply time validation for the selected date or today
