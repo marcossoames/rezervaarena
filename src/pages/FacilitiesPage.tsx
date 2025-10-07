@@ -324,11 +324,10 @@ const FacilitiesPage = () => {
           throw error;
         }
 
-        // Fetch booking counts for each facility
+        // Fetch booking counts for each facility (all bookings, not just confirmed)
         const { data: bookingCounts, error: bookingError } = await supabase
           .from('bookings')
-          .select('facility_id')
-          .eq('status', 'confirmed');
+          .select('facility_id');
 
         if (!bookingError && bookingCounts) {
           // Count bookings per facility
@@ -342,6 +341,12 @@ const FacilitiesPage = () => {
           allFacilities = allFacilities?.map(facility => ({
             ...facility,
             booking_count: countMap.get(facility.id) || 0
+          }));
+        } else {
+          // If there's an error, set booking_count to 0 for all facilities
+          allFacilities = allFacilities?.map(facility => ({
+            ...facility,
+            booking_count: 0
           }));
         }
 
