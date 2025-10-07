@@ -511,6 +511,46 @@ const FacilityOwnerProfilePage = () => {
           </p>
         </div>
 
+
+        {/* Navigation Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/facility-calendar')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Calendar Facilități
+              </CardTitle>
+              <CardDescription>
+                Vizualizează calendarul și blochează zile/ore specifice
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/manage-facilities')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Setări Terenuri
+              </CardTitle>
+              <CardDescription>
+                Adaugă, editează sau șterge facilitățile sportive
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/facility-owner-income')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                Venituri
+              </CardTitle>
+              <CardDescription>
+                Vizualizează veniturile din rezervări și comisioane
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
         <div className="grid gap-6">
           {/* Profile Info */}
           <Card>
@@ -734,44 +774,6 @@ const FacilityOwnerProfilePage = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Navigation Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/facility-calendar')}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Calendar Facilități
-                </CardTitle>
-                <CardDescription>
-                  Vizualizează calendarul și blochează zile/ore specifice
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/manage-facilities')}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  Setări Terenuri
-                </CardTitle>
-                <CardDescription>
-                  Adaugă, editează sau șterge facilitățile sportive
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/facility-owner-income')}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Venituri
-                </CardTitle>
-                <CardDescription>
-                  Vizualizează veniturile din rezervări și comisioane
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
 
           {/* Delete Account */}
           <Card className="border-destructive">
