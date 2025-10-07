@@ -316,7 +316,7 @@ const GeneralCalendarPage = () => {
           total_price: totalPrice,
           status: 'confirmed',
           payment_method: 'cash',
-          notes: `REZERVARE MANUALĂ - Client: ${manualBookingData.clientName} (Tel: ${manualBookingData.clientPhone}). ${manualBookingData.notes}`
+          notes: `Creat manual de proprietarul facilității${manualBookingData.notes ? `. ${manualBookingData.notes}` : ''}`
         });
 
       if (error) throw error;
