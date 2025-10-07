@@ -571,7 +571,7 @@ const BookingPage = () => {
                              duration === 120 ? '2 ore' : `${duration} minute`}
                           </div>
                           <div className="text-lg font-bold text-primary mt-2">
-                            {facility ? Math.round(facility.price_per_hour * (duration / 60)) : 0} RON
+                            {facility ? (facility.price_per_hour * (duration / 60)).toFixed(2).replace(/\.00$/, '') : 0} RON
                           </div>
                         </div>
                       </div>
