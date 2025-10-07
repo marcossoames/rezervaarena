@@ -663,20 +663,6 @@ const GeneralCalendarPage = () => {
             <span className="text-xs">Blocat</span>
           </div>
           
-          <div className="text-sm font-medium text-muted-foreground mb-2 w-full mt-2">Status rezervări:</div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-500 rounded"></div>
-            <span className="text-xs">Anulat</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-emerald-600 rounded"></div>
-            <span className="text-xs">Finalizat</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-rose-600 rounded"></div>
-            <span className="text-xs">Nu s-a prezentat</span>
-          </div>
-          
           <div className="text-sm font-medium text-muted-foreground mb-2 w-full mt-2">Sporturi:</div>
           {facilities.map(facility => {
             const colors = getSportColor(facility.facility_type);
