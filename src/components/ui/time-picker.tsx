@@ -39,29 +39,6 @@ export const TimePicker: React.FC<TimePickerProps> = ({
 
   const timeOptions = generateTimeOptions();
 
-  const isMobile = typeof window !== 'undefined' && (
-    (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ||
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-  );
-
-  if (isMobile) {
-    return (
-      <div className="space-y-2">
-        {label && <Label htmlFor={id}>{label}</Label>}
-        <input
-          id={id}
-          type="time"
-          value={value || ''}
-          onChange={(e) => onChange(e.target.value)}
-          step="900"
-          className={`bg-background/50 w-full h-10 rounded-md border border-input px-3 py-2 text-foreground ${className}`}
-          placeholder={placeholder}
-        />
-        {error && <p className="text-sm text-destructive">{error}</p>}
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-2">
       {label && <Label htmlFor={id}>{label}</Label>}
