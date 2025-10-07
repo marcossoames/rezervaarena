@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ImageCarousel from "@/components/ImageCarousel";
+import { FacilityCardCarousel } from "@/components/FacilityCardCarousel";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { EnhancedCalendar } from "@/components/ui/enhanced-calendar";
@@ -1132,15 +1132,12 @@ applyFilters();
                 <CardContent className="p-0 h-full">
                   <div className="flex flex-col md:flex-row h-full">
                     <div className="md:w-1/3 relative overflow-hidden rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg">
-                        <ImageCarousel 
+                        <FacilityCardCarousel 
                           images={facility.images || []}
                           facilityName={facility.name}
                           facilityType={facility.facility_type}
                           className="w-full h-48 md:h-full rounded-l-lg md:rounded-l-lg md:rounded-r-none rounded-r-lg md:rounded-bl-lg" 
                         />
-                      <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground z-10">
-                        {getFacilityTypeLabel(facility.facility_type)}
-                      </Badge>
                     </div>
                     
                     <div className="md:w-2/3 p-6 flex flex-col flex-1">
