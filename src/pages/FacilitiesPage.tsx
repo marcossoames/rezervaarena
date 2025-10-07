@@ -779,6 +779,44 @@ applyFilters();
         {userProfile?.role !== 'facility_owner' && (
           <Card className="mb-8 animate-fade-in shadow-lg border-2 border-primary/20 bg-white">
             <CardContent className="p-6">
+              {/* Reset and Sort buttons at the top */}
+              <div className="flex flex-wrap gap-4 justify-between items-center mb-6 pb-4 border-b border-border">
+                <Button 
+                  variant="secondary" 
+                  size="lg"
+                  className="px-8 py-3 border-2 border-border bg-background text-foreground hover:bg-secondary hover:text-secondary-foreground" 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setLocationFilter('');
+                    setSelectedDate(undefined);
+                    setStartTime('');
+                    setDuration('');
+                    setSelectedType(null);
+                    setSortBy('price-low');
+                  }}
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  Resetează Filtrele
+                </Button>
+
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-foreground">Sortează:</label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-56 h-11 border-2 border-primary/20 bg-white">
+                      <ArrowUpDown className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Selectează sortarea" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[1000] bg-background">
+                      <SelectItem value="price-low">Preț: Crescător</SelectItem>
+                      <SelectItem value="price-high">Preț: Descrescător</SelectItem>
+                      <SelectItem value="complex-az">Bază sportivă: A-Z</SelectItem>
+                      <SelectItem value="complex-za">Bază sportivă: Z-A</SelectItem>
+                      <SelectItem value="popular">Cele mai populare</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
               {/* First Row: Search and Location */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
@@ -1052,44 +1090,6 @@ applyFilters();
                       <SelectItem value="60">60 minute (1 oră)</SelectItem>
                       <SelectItem value="90">90 minute (1.5 ore)</SelectItem>
                       <SelectItem value="120">120 minute (2 ore)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Fourth Row: Reset and Sort buttons */}
-              <div className="flex flex-wrap gap-4 justify-center items-center">
-                <Button 
-                  variant="secondary" 
-                  size="lg"
-                  className="px-8 py-3 border-2 border-border bg-background text-foreground hover:bg-secondary hover:text-secondary-foreground" 
-                  onClick={() => {
-                    setSearchTerm('');
-                    setLocationFilter('');
-                    setSelectedDate(undefined);
-                    setStartTime('');
-                    setDuration('');
-                    setSelectedType(null);
-                    setSortBy('price-low');
-                  }}
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Resetează Filtrele
-                </Button>
-
-                <div className="flex items-center gap-3">
-                  <label className="text-sm font-medium text-foreground">Sortează:</label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-56 h-11 border-2 border-primary/20 bg-white">
-                      <ArrowUpDown className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Selectează sortarea" />
-                    </SelectTrigger>
-                    <SelectContent className="z-[1000] bg-background">
-                      <SelectItem value="price-low">Preț: Crescător</SelectItem>
-                      <SelectItem value="price-high">Preț: Descrescător</SelectItem>
-                      <SelectItem value="complex-az">Bază sportivă: A-Z</SelectItem>
-                      <SelectItem value="complex-za">Bază sportivă: Z-A</SelectItem>
-                      <SelectItem value="popular">Cele mai populare</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
