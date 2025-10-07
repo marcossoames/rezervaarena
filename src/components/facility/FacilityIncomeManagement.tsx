@@ -302,45 +302,49 @@ const FacilityIncomeManagement = () => {
 
         <CardContent className="p-6">
           {/* Income Summary Cards */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <Card className="border-l-4 border-l-orange-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Încasări Cash (90%)</CardTitle>
-                <Banknote className="h-4 w-4 text-orange-600" />
+          <div className="space-y-6 mb-8">
+            {/* Total Primit - Large, Full Width */}
+            <Card className="border-l-4 border-l-green-500 shadow-lg hover:shadow-xl transition-all hover-scale bg-gradient-to-r from-green-50/50 to-card/80">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-lg font-semibold">Total Încasări</CardTitle>
+                <TrendingUp className="h-6 w-6 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{incomeData.totalReceivedCash.toFixed(2)} RON</div>
-                <p className="text-xs text-muted-foreground">
-                  Din {incomeData.totalGrossCash.toFixed(2)} RON total • {incomeData.cashBookings} rezervări
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-blue-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Încasări Card (90%)</CardTitle>
-                <CreditCard className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{incomeData.totalReceivedCard.toFixed(2)} RON</div>
-                <p className="text-xs text-muted-foreground">
-                  Din {incomeData.totalGrossCard.toFixed(2)} RON total • {incomeData.cardBookings} rezervări
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-green-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Primit</CardTitle>
-                <TrendingUp className="h-5 w-5 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">{incomeData.totalReceived.toFixed(2)} RON</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="text-4xl font-bold text-green-600">{incomeData.totalReceived.toFixed(2)} RON</div>
+                <p className="text-sm text-muted-foreground mt-2">
                   Din {incomeData.totalGross.toFixed(2)} RON total • {incomeData.totalBookings} rezervări
                 </p>
               </CardContent>
             </Card>
+
+            {/* Cash and Card - Smaller, Side by Side */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <Card className="border-l-4 border-l-orange-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Încasări Cash (90%)</CardTitle>
+                  <Banknote className="h-4 w-4 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-600">{incomeData.totalReceivedCash.toFixed(2)} RON</div>
+                  <p className="text-xs text-muted-foreground">
+                    Din {incomeData.totalGrossCash.toFixed(2)} RON total • {incomeData.cashBookings} rezervări
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-blue-500 shadow-md hover:shadow-lg transition-all hover-scale bg-gradient-to-r from-card to-card/80">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Încasări Card (90%)</CardTitle>
+                  <CreditCard className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">{incomeData.totalReceivedCard.toFixed(2)} RON</div>
+                  <p className="text-xs text-muted-foreground">
+                    Din {incomeData.totalGrossCard.toFixed(2)} RON total • {incomeData.cardBookings} rezervări
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           {/* Monthly Breakdown */}
