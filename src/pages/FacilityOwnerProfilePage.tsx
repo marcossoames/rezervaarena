@@ -42,6 +42,7 @@ const FacilityOwnerProfilePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isBankDialogOpen, setIsBankDialogOpen] = useState(false);
   const [isEditingBank, setIsEditingBank] = useState(false);
+  const [sportsComplexData, setSportsComplexData] = useState<any>(null);
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<BankFormData>();
   const [stats, setStats] = useState({
     todayBookings: 0,
@@ -52,6 +53,7 @@ const FacilityOwnerProfilePage = () => {
   useEffect(() => {
     checkAuth();
     loadBankDetails();
+    loadSportsComplexData();
   }, []);
 
   const checkAuth = async () => {
@@ -91,6 +93,28 @@ const FacilityOwnerProfilePage = () => {
         description: "Nu s-a putut încărca profilul",
         variant: "destructive"
       });
+    }
+  };
+
+  const loadSportsComplexData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('sports_complexes')
+        .select('*')
+        .eq('owner_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading sports complex:', error);
+        return;
+      }
+
+      setSportsComplexData(data);
+    } catch (error) {
+      console.error('Error loading sports complex data:', error);
     }
   };
 
@@ -497,7 +521,8 @@ const FacilityOwnerProfilePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Left column - Personal info */}
                 <div>
                   <h3 className="font-semibold text-lg mb-4">{sportsComplexName}</h3>
                   <div className="space-y-2">
@@ -520,40 +545,67 @@ const FacilityOwnerProfilePage = () => {
                   </div>
                 </div>
 
-                {/* Quick Stats */}
-                <div className="grid grid-cols-1 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
+                {/* Middle column - Sports complex info */}
+                <div>
+                  <h3 className="font-semibold text-lg mb-4 text-muted-foreground">Detalii Bază Sportivă</h3>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Oraș:</span>
+                      <p className="font-medium">{sportsComplexData?.city || 'Nu este setat'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Adresă:</span>
+                      <p className="font-medium">{sportsComplexData?.address || 'Nu este setată'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Descriere:</span>
+                      <p className="font-medium text-sm">{sportsComplexData?.description || 'Nu există descriere'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Servicii generale:</span>
+                      <p className="font-medium text-sm">
+                        {sportsComplexData?.general_services && sportsComplexData.general_services.length > 0 
+                          ? sportsComplexData.general_services.join(', ') 
+                          : 'Nu sunt setate servicii'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right column - Quick Stats (narrower) */}
+                <div className="grid grid-cols-1 gap-3">
+                  <Card className="border-2">
+                    <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">Rezervări astăzi</p>
-                          <p className="text-2xl font-bold">{stats.todayBookings}</p>
+                          <p className="text-xs text-muted-foreground">Rezervări astăzi</p>
+                          <p className="text-xl font-bold">{stats.todayBookings}</p>
                         </div>
-                        <Calendar className="h-8 w-8 text-primary" />
+                        <Calendar className="h-6 w-6 text-primary" />
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardContent className="p-4">
+                  <Card className="border-2">
+                    <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">Rezervări luna aceasta</p>
-                          <p className="text-2xl font-bold">{stats.monthlyBookings}</p>
+                          <p className="text-xs text-muted-foreground">Rezervări luna aceasta</p>
+                          <p className="text-xl font-bold">{stats.monthlyBookings}</p>
                         </div>
-                        <Calendar className="h-8 w-8 text-blue-500" />
+                        <Calendar className="h-6 w-6 text-blue-500" />
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardContent className="p-4">
+                  <Card className="border-2">
+                    <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">Facilități active</p>
-                          <p className="text-2xl font-bold">{stats.activeFacilities}</p>
+                          <p className="text-xs text-muted-foreground">Facilități active</p>
+                          <p className="text-xl font-bold">{stats.activeFacilities}</p>
                         </div>
-                        <Building2 className="h-8 w-8 text-green-500" />
+                        <Building2 className="h-6 w-6 text-green-500" />
                       </div>
                     </CardContent>
                   </Card>
