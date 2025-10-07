@@ -271,10 +271,20 @@ const FacilityOwnerProfilePage = () => {
 
       // SECURITY: Use secure edge function instead of direct DB access
       const operation = isEditingBank ? 'update' : 'create';
+      
+      // Get the current session to pass the auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Sesiune expirată. Vă rugăm să vă autentificați din nou.');
+      }
+      
       const { data, error } = await supabase.functions.invoke('secure-banking-operations', {
         body: { 
           operation,
           bankDetails: sanitizedData
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
         }
       });
 
@@ -307,8 +317,16 @@ const FacilityOwnerProfilePage = () => {
 
     try {
       // SECURITY: Use secure edge function instead of direct DB access
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Sesiune expirată. Vă rugăm să vă autentificați din nou.');
+      }
+      
       const { error } = await supabase.functions.invoke('secure-banking-operations', {
-        body: { operation: 'delete' }
+        body: { operation: 'delete' },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;
