@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, Filter, Search, LogIn, CalendarIcon, Users, ArrowUpDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Calendar, MapPin, Clock, Filter, Search, LogIn, CalendarIcon, Users, ArrowUpDown, ChevronDown } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -20,6 +20,7 @@ import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
 import { FacilitySportsComplexHoverCard } from "@/components/facility/FacilitySportsComplexHoverCard";
 import { openExternal } from "@/utils/openExternal";
+import { useIsMobile } from "@/hooks/use-mobile";
 interface Facility {
   id: string;
   name: string;
@@ -78,11 +79,18 @@ const FacilitiesPage = () => {
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [filteredCities, setFilteredCities] = useState<string[]>([]);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const facilitiesRef = useRef<HTMLDivElement>(null);
 
   // Helper functions for Google Maps
   const buildLocationQuery = (address: string | undefined, city: string): string => {
     if (!address) return city;
     return `${address}, ${city}`;
+  };
+
+
+  const scrollToFacilities = () => {
+    facilitiesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const getMapsOpenUrl = (address: string | undefined, city: string): string => {
@@ -1094,11 +1102,26 @@ applyFilters();
                   </Select>
                 </div>
               </div>
+
+              {/* Mobile only: Apply Filters button */}
+              {isMobile && (
+                <div className="mt-6 flex justify-center">
+                  <Button 
+                    size="lg"
+                    className="w-full max-w-md px-8 py-6 text-lg font-semibold"
+                    onClick={scrollToFacilities}
+                  >
+                    <ChevronDown className="h-5 w-5 mr-2" />
+                    Aplică Filtrele
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
 
         {/* Facilities Grid */}
+        <div ref={facilitiesRef}>
         {facilities.length === 0 ? <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-foreground mb-4">Nu există facilități disponibile</h2>
             <p className="text-muted-foreground mb-6">
@@ -1272,6 +1295,7 @@ applyFilters();
                 </CardContent>
               </Card>)}
           </div>}
+        </div>
       </main>
       
       <Footer />
