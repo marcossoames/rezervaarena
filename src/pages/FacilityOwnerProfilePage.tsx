@@ -529,11 +529,12 @@ const FacilityOwnerProfilePage = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Left column - Personal info in 2 columns */}
+              <div className="grid grid-cols-1 gap-6">
                 <div>
                   <h3 className="font-semibold text-lg mb-4">{sportsComplexName}</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  
+                  {/* First row - 3 columns */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                       <span className="text-sm text-muted-foreground">Nume complet:</span>
                       <p className="font-medium">{profile.full_name}</p>
@@ -546,17 +547,10 @@ const FacilityOwnerProfilePage = () => {
                       <span className="text-sm text-muted-foreground">Telefon:</span>
                       <p className="font-medium">{profile.phone}</p>
                     </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Adresă:</span>
-                      <p className="font-medium">{sportsComplexData?.address || 'Nu este setată'}</p>
-                    </div>
                   </div>
-                </div>
-
-                {/* Middle column - Sports complex info */}
-                <div>
-                  <h3 className="font-semibold text-lg mb-4 text-muted-foreground">Detalii Bază Sportivă</h3>
-                  <div className="space-y-2">
+                  
+                  {/* Second row - 3 columns */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <span className="text-sm text-muted-foreground">Adresă:</span>
                       <p className="font-medium">{sportsComplexData?.address || 'Nu este setată'}</p>
@@ -577,7 +571,7 @@ const FacilityOwnerProfilePage = () => {
                 </div>
 
                 {/* Right column - Quick Stats (narrower) */}
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <Card className="border-2">
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between">
