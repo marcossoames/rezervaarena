@@ -830,11 +830,11 @@ applyFilters();
           <Card className="mb-8 animate-fade-in shadow-lg border-2 border-primary/20 bg-white">
             <CardContent className="p-6">
               {/* Reset and Sort buttons at the top */}
-              <div className="flex flex-wrap gap-4 justify-between items-center mb-6 pb-4 border-b border-border">
+              <div className="flex flex-col md:flex-row md:flex-wrap gap-4 md:justify-between md:items-center mb-6 pb-4 border-b border-border">
                 <Button 
                   variant="secondary" 
                   size="lg"
-                  className="px-8 py-3 border-2 border-border bg-background text-foreground hover:bg-secondary hover:text-secondary-foreground" 
+                  className="px-8 py-3 border-2 border-border bg-background text-foreground hover:bg-secondary hover:text-secondary-foreground mx-auto md:mx-0" 
                   onClick={() => {
                     setSearchTerm('');
                     setLocationFilter('');
@@ -849,8 +849,8 @@ applyFilters();
                   Resetează Filtrele
                 </Button>
 
-                <div className="flex items-center gap-3">
-                  <label className="text-sm font-medium text-foreground">Sortează:</label>
+                <div className="flex flex-col md:flex-row items-center gap-3 mx-auto md:mx-0">
+                  <label className="text-sm font-medium text-foreground text-center">Sortează:</label>
                   <Select value={sortBy} onValueChange={setSortBy}>
                     <SelectTrigger className="w-56 h-11 border-2 border-primary/20 bg-white">
                       <ArrowUpDown className="h-4 w-4 mr-2" />
