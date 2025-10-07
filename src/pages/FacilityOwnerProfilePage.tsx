@@ -515,36 +515,36 @@ const FacilityOwnerProfilePage = () => {
         {/* Navigation Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full" onClick={() => navigate('/facility-calendar')}>
-            <CardHeader className="h-full flex flex-col">
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="flex flex-col h-full">
+              <CardTitle className="flex items-center gap-2 min-h-[3rem]">
                 <Calendar className="h-5 w-5" />
                 Calendar Facilități
               </CardTitle>
-              <CardDescription className="mt-2">
+              <CardDescription>
                 Vizualizează calendarul și blochează zile/ore specifice
               </CardDescription>
             </CardHeader>
           </Card>
 
           <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full" onClick={() => navigate('/manage-facilities')}>
-            <CardHeader className="h-full flex flex-col">
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="flex flex-col h-full">
+              <CardTitle className="flex items-center gap-2 min-h-[3rem]">
                 <Building2 className="h-5 w-5" />
                 Setări Terenuri
               </CardTitle>
-              <CardDescription className="mt-2">
+              <CardDescription>
                 Adaugă, editează sau șterge facilitățile sportive
               </CardDescription>
             </CardHeader>
           </Card>
 
           <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full" onClick={() => navigate('/facility-owner-income')}>
-            <CardHeader className="h-full flex flex-col">
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="flex flex-col h-full">
+              <CardTitle className="flex items-center gap-2 min-h-[3rem]">
                 <DollarSign className="h-5 w-5" />
                 Venituri
               </CardTitle>
-              <CardDescription className="mt-2">
+              <CardDescription>
                 Vizualizează veniturile din rezervări și comisioane
               </CardDescription>
             </CardHeader>
