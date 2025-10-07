@@ -324,17 +324,15 @@ const FacilitiesPage = () => {
           throw error;
         }
 
-        // Fetch booking counts for each facility (all bookings, not just confirmed)
+        // Fetch booking counts using the secure function
         const { data: bookingCounts, error: bookingError } = await supabase
-          .from('bookings')
-          .select('facility_id');
+          .rpc('get_facility_booking_counts');
 
         if (!bookingError && bookingCounts) {
-          // Count bookings per facility
+          // Create a map of facility_id to booking_count
           const countMap = new Map<string, number>();
-          bookingCounts.forEach(booking => {
-            const current = countMap.get(booking.facility_id) || 0;
-            countMap.set(booking.facility_id, current + 1);
+          bookingCounts.forEach((item: { facility_id: string; booking_count: number }) => {
+            countMap.set(item.facility_id, item.booking_count);
           });
 
           // Add booking count to facilities

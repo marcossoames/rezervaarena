@@ -881,6 +881,13 @@ export type Database = {
           unavailable_type: string
         }[]
       }
+      get_facility_booking_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          booking_count: number
+          facility_id: string
+        }[]
+      }
       get_facility_contact_for_booking: {
         Args: { facility_id_param: string }
         Returns: {
