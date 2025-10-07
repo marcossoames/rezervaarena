@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +42,30 @@ const BookingPage = () => {
   const { facilityId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [searchParams] = useSearchParams();
+  
+  // Check if date is passed in URL and use it, otherwise use today
+  const getInitialDate = () => {
+    const dateParam = searchParams.get('date');
+    if (dateParam) {
+      try {
+        const parsedDate = new Date(dateParam);
+        // Validate the date is not in the past and within booking window
+        const normalizedParsed = startOfDay(parsedDate);
+        const normalizedToday = startOfDay(new Date());
+        const maxDate = addDays(normalizedToday, 14);
+        
+        if (!isBefore(normalizedParsed, normalizedToday) && !isAfter(normalizedParsed, maxDate)) {
+          return parsedDate;
+        }
+      } catch (e) {
+        console.error('Invalid date in URL:', e);
+      }
+    }
+    return new Date();
+  };
+  
+  const [selectedDate, setSelectedDate] = useState<Date>(getInitialDate());
   const [facility, setFacility] = useState<Facility | null>(null);
   const [loading, setLoading] = useState(true);
   const [startTimeSlots, setStartTimeSlots] = useState<Array<{time: string, available: boolean, price: number}>>([]);

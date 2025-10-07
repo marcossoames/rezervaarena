@@ -1264,7 +1264,10 @@ applyFilters();
                         <div className="flex gap-3">
                           {session ? (
                             <Button variant="sport" asChild className="flex-1 justify-center">
-                              <Link to={`/booking/${facility.id}`} className="text-center">
+                              <Link 
+                                to={`/booking/${facility.id}${selectedDate ? `?date=${format(selectedDate, 'yyyy-MM-dd')}` : ''}`} 
+                                className="text-center"
+                              >
                                 Rezervă Acum
                               </Link>
                             </Button>
