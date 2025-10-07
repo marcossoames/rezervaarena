@@ -729,12 +729,16 @@ applyFilters();
         return totalMinutes < earliest ? totalMinutes : earliest;
       }, 24 * 60); // Start with max possible value
       
-      // Get latest end time
-      const latestEnd = facilities.reduce((latest, facility) => {
-        if (!facility.operating_hours_end) return latest;
+      // Get latest possible start time considering minimum booking duration
+      const latestPossibleStart = facilities.reduce((latest, facility) => {
+        if (!facility.operating_hours_end || !facility.allowed_durations || facility.allowed_durations.length === 0) return latest;
         const [hour, minute] = facility.operating_hours_end.split(':').map(Number);
-        const totalMinutes = hour * 60 + minute;
-        return totalMinutes > latest ? totalMinutes : latest;
+        const endTimeInMinutes = hour * 60 + minute;
+        // Get minimum booking duration for this facility
+        const minDuration = Math.min(...facility.allowed_durations);
+        // Subtract minimum booking duration to get latest valid start time
+        const maxStartTime = endTimeInMinutes - minDuration;
+        return maxStartTime > latest ? maxStartTime : latest;
       }, 0); // Start with min possible value
       
       if (earliestStart < 24 * 60) {
@@ -742,9 +746,9 @@ applyFilters();
         minMinute = earliestStart % 60;
       }
       
-      if (latestEnd > 0) {
-        maxHour = Math.floor(latestEnd / 60);
-        maxMinute = latestEnd % 60;
+      if (latestPossibleStart > 0) {
+        maxHour = Math.floor(latestPossibleStart / 60);
+        maxMinute = latestPossibleStart % 60;
       }
     }
     
