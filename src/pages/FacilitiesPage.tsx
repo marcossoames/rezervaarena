@@ -924,8 +924,28 @@ applyFilters();
                 </div>
               </div>
 
-              {/* Second Row: Date, Start Time, Duration */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              {/* Second Row: Sport Type and Date */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Tip sport</label>
+                  <Select value={selectedType || "all"} onValueChange={(value) => handleTypeFilter(value === "all" ? null : value)}>
+                    <SelectTrigger className="h-11 bg-white border-2 border-primary/20 focus:border-primary shadow-sm">
+                      <SelectValue placeholder="Toate sporturile" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[1000] bg-background">
+                      <SelectItem value="all">Toate sporturile</SelectItem>
+                      <SelectItem value="football">Fotbal</SelectItem>
+                      <SelectItem value="tennis">Tenis</SelectItem>
+                      <SelectItem value="padel">Padel</SelectItem>
+                      <SelectItem value="squash">Squash</SelectItem>
+                      <SelectItem value="basketball">Baschet</SelectItem>
+                      <SelectItem value="volleyball">Volei</SelectItem>
+                      <SelectItem value="foot_tennis">Tenis de picior</SelectItem>
+                      <SelectItem value="ping_pong">Ping Pong</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Data rezervării</label>
                   <Popover>
@@ -999,7 +1019,10 @@ applyFilters();
                     </PopoverContent>
                   </Popover>
                 </div>
+              </div>
 
+              {/* Third Row: Time and Duration */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Ora de începere</label>
                   <div className="relative">
@@ -1008,7 +1031,7 @@ applyFilters();
                       <SelectTrigger className="h-11 pl-10 bg-white border-2 border-primary/20 focus:border-primary shadow-sm">
                         <SelectValue placeholder="Selectează ora" />
                       </SelectTrigger>
-                      <SelectContent className="z-[1000]">
+                      <SelectContent className="z-[1000] bg-background">
                         {getTimeOptions().map(time => (
                           <SelectItem key={time.value} value={time.value}>
                             {time.label}
@@ -1025,7 +1048,7 @@ applyFilters();
                     <SelectTrigger className="h-11 bg-white border-2 border-primary/20 focus:border-primary shadow-sm">
                       <SelectValue placeholder="Selectează durata" />
                     </SelectTrigger>
-                    <SelectContent className="z-[1000]">
+                    <SelectContent className="z-[1000] bg-background">
                       <SelectItem value="60">60 minute (1 oră)</SelectItem>
                       <SelectItem value="90">90 minute (1.5 ore)</SelectItem>
                       <SelectItem value="120">120 minute (2 ore)</SelectItem>
@@ -1034,7 +1057,8 @@ applyFilters();
                 </div>
               </div>
 
-              <div className="flex justify-center">
+              {/* Fourth Row: Reset and Sort buttons */}
+              <div className="flex flex-wrap gap-4 justify-center items-center">
                 <Button 
                   variant="secondary" 
                   size="lg"
@@ -1052,69 +1076,27 @@ applyFilters();
                   <Filter className="h-4 w-4 mr-2" />
                   Resetează Filtrele
                 </Button>
+
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-foreground">Sortează:</label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-56 h-11 border-2 border-primary/20 bg-white">
+                      <ArrowUpDown className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Selectează sortarea" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[1000] bg-background">
+                      <SelectItem value="price-low">Preț: Crescător</SelectItem>
+                      <SelectItem value="price-high">Preț: Descrescător</SelectItem>
+                      <SelectItem value="complex-az">Bază sportivă: A-Z</SelectItem>
+                      <SelectItem value="complex-za">Bază sportivă: Z-A</SelectItem>
+                      <SelectItem value="popular">Cele mai populare</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>
         )}
-        
-        {/* Sport Type Filters */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="flex flex-col space-y-4">
-              {/* Sport Type Badges */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-3 block">Filtrează după tipul de sport</label>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant={selectedType === null ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter(null)}>
-                    Toate
-                  </Badge>
-                  <Badge variant={selectedType === 'football' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('football')}>
-                    Fotbal
-                  </Badge>
-                  <Badge variant={selectedType === 'tennis' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('tennis')}>
-                    Tenis
-                  </Badge>
-                  <Badge variant={selectedType === 'padel' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('padel')}>
-                    Padel
-                  </Badge>
-                  <Badge variant={selectedType === 'squash' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('squash')}>
-                    Squash
-                  </Badge>
-                  <Badge variant={selectedType === 'basketball' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('basketball')}>
-                    Baschet
-                  </Badge>
-                  <Badge variant={selectedType === 'volleyball' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('volleyball')}>
-                    Volei
-                  </Badge>
-                  <Badge variant={selectedType === 'foot_tennis' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('foot_tennis')}>
-                    Tenis de picior
-                  </Badge>
-                  <Badge variant={selectedType === 'ping_pong' ? "default" : "outline"} className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => handleTypeFilter('ping_pong')}>
-                    Ping Pong
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Sorting Options */}
-              <div className="flex items-center gap-4">
-                <label className="text-sm font-medium text-foreground">Sortează după:</label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-64">
-                    <ArrowUpDown className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Selectează sortarea" />
-                  </SelectTrigger>
-                   <SelectContent className="z-[1000]">
-                    <SelectItem value="price-low">Preț: Crescător</SelectItem>
-                    <SelectItem value="price-high">Preț: Descrescător</SelectItem>
-                    <SelectItem value="complex-az">Bază sportivă: A-Z</SelectItem>
-                    <SelectItem value="complex-za">Bază sportivă: Z-A</SelectItem>
-                    <SelectItem value="popular">Cele mai populare</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Facilities Grid */}
         {facilities.length === 0 ? <div className="text-center py-12">
