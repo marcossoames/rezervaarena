@@ -289,7 +289,7 @@ const ClientLogin = () => {
                 size="lg"
                 disabled={isLoading}
               >
-                {isLoading ? "Se conectează..." : "Conectează-te"}
+                {isLoading ? "Se conectează..." : "Conectare"}
               </Button>
             </form>
           </CardContent>
