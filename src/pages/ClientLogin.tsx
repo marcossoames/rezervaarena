@@ -264,7 +264,20 @@ const ClientLogin = () => {
                 )}
               </div>
 
-              <div className="flex items-center justify-end text-sm">
+              <div className="flex items-center justify-between text-sm">
+                <Link 
+                  to="/client/register" 
+                  onClick={() => {
+                    // Preserve redirect path when going to register
+                    const currentRedirect = sessionStorage.getItem('redirectAfterLogin');
+                    if (currentRedirect) {
+                      sessionStorage.setItem('redirectAfterLogin', currentRedirect);
+                    }
+                  }}
+                  className="text-primary hover:underline"
+                >
+                  Creează cont nou
+                </Link>
                 <Link to="/forgot-password" className="text-muted-foreground hover:text-primary transition-smooth">
                   Ai uitat parola?
                 </Link>

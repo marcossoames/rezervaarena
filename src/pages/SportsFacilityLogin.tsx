@@ -155,7 +155,10 @@ const SportsFacilityLogin = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end text-sm">
+              <div className="flex items-center justify-between text-sm">
+                <Link to="/facility/register" className="text-primary hover:underline">
+                  Înregistrează baza sportivă
+                </Link>
                 <Link to="/forgot-password" className="text-muted-foreground hover:text-primary transition-smooth">
                   Ai uitat parola?
                 </Link>
