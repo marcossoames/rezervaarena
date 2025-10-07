@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { deleteUserAccount, checkOwnerActiveFacilityBookings } from "@/utils/deleteAccount";
-import { validateIbanFormat, sanitizeInput, validateAccountHolderName, validateBankName } from "@/utils/bankSecurity";
+import { validateIbanFormat, sanitizeInput, validateAccountHolderName, validateBankName, maskIban } from "@/utils/bankSecurity";
 import { checkClientRateLimit } from "@/utils/securityHeaders";
 import { format } from "date-fns";
 interface BankDetails {
@@ -241,52 +241,38 @@ const FacilityOwnerProfilePage = () => {
       return "Eroare la salvarea datelor.";
     }
   };
-  const loadBankDetails = async () => {
+const loadBankDetails = async () => {
     try {
       const {
-        data: {
-          user
-        }
+        data: { user }
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      // SECURITY: Use secure edge function instead of direct DB access
-      const {
-        data: sessionData
-      } = await supabase.auth.getSession();
-      if (!sessionData?.session) {
-        console.error("No active session for secure banking read");
-        return;
-      }
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke("secure-banking-operations", {
-        body: {
-          operation: "read"
-        },
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`
-        }
-      });
+      const { data, error } = await supabase
+        .from('bank_details')
+        .select('id, account_holder_name, bank_name, iban, created_at, updated_at')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
       if (error) {
-        console.error("Error loading bank details:", error, data);
+        console.error('Error loading bank details:', error);
         return;
       }
-      if (data?.bankDetails) {
+
+      if (data) {
         setBankDetails({
-          id: data.bankDetails.id,
-          account_holder_name: data.bankDetails.account_holder_name,
-          bank_name: data.bankDetails.bank_name,
-          iban: data.bankDetails.iban_masked,
-          created_at: data.bankDetails.created_at,
-          updated_at: data.bankDetails.updated_at
+          id: data.id,
+          account_holder_name: data.account_holder_name,
+          bank_name: data.bank_name,
+          iban: data.iban ? maskIban(data.iban) : '',
+          created_at: data.created_at,
+          updated_at: data.updated_at
         });
       } else {
         setBankDetails(null);
       }
     } catch (error) {
-      console.error("Error loading bank details:", error);
+      console.error('Error loading bank details:', error);
     }
   };
   const openBankDialog = (editing = false) => {
@@ -300,18 +286,15 @@ const FacilityOwnerProfilePage = () => {
     }
     setIsBankDialogOpen(true);
   };
-  const onBankSubmit = async (formData: BankFormData) => {
+const onBankSubmit = async (formData: BankFormData) => {
     try {
       const {
-        data: {
-          user
-        }
+        data: { user }
       } = await supabase.auth.getUser();
       if (!user) return;
 
       // Rate limiting check
       if (!checkClientRateLimit("bank_details_update", 5, 300000)) {
-        // 5 attempts per 5 minutes
         toast({
           title: "Prea multe încercări",
           description: "Vă rugăm să așteptați înainte de a încerca din nou",
@@ -323,28 +306,16 @@ const FacilityOwnerProfilePage = () => {
       // Client-side validation and sanitization
       const accountHolderValidation = validateAccountHolderName(formData.account_holder_name);
       if (!accountHolderValidation.isValid) {
-        toast({
-          title: "Eroare de validare",
-          description: accountHolderValidation.error,
-          variant: "destructive"
-        });
+        toast({ title: "Eroare de validare", description: accountHolderValidation.error, variant: "destructive" });
         return;
       }
       const bankNameValidation = validateBankName(formData.bank_name);
       if (!bankNameValidation.isValid) {
-        toast({
-          title: "Eroare de validare",
-          description: bankNameValidation.error,
-          variant: "destructive"
-        });
+        toast({ title: "Eroare de validare", description: bankNameValidation.error, variant: "destructive" });
         return;
       }
       if (!validateIbanFormat(formData.iban)) {
-        toast({
-          title: "Eroare de validare",
-          description: "Formatul IBAN este invalid. Utilizați formatul RO12ABCD1234567890123456",
-          variant: "destructive"
-        });
+        toast({ title: "Eroare de validare", description: "Formatul IBAN este invalid. Utilizați formatul RO12ABCD1234567890123456", variant: "destructive" });
         return;
       }
 
@@ -355,87 +326,75 @@ const FacilityOwnerProfilePage = () => {
         iban: formData.iban.replace(/\s/g, "").toUpperCase()
       };
 
-      // SECURITY: Use secure edge function instead of direct DB access
-      const operation = isEditingBank ? "update" : "create";
+      setSubmittingBankDetails(true);
 
-      // Get the current session to pass the auth token
-      const {
-        data: {
-          session
-        }
-      } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("Sesiune expirată. Vă rugăm să vă autentificați din nou.");
+      // Check if bank details already exist
+      const { data: existing, error: existingError } = await supabase
+        .from('bank_details')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (existingError) throw existingError;
+
+      let dbError: any = null;
+      if (existing) {
+        const { error } = await supabase
+          .from('bank_details')
+          .update({
+            account_holder_name: sanitizedData.account_holder_name,
+            bank_name: sanitizedData.bank_name,
+            iban: sanitizedData.iban,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+        dbError = error;
+      } else {
+        const { error } = await supabase
+          .from('bank_details')
+          .insert([{
+            user_id: user.id,
+            account_holder_name: sanitizedData.account_holder_name,
+            bank_name: sanitizedData.bank_name,
+            iban: sanitizedData.iban
+          }]);
+        dbError = error;
       }
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke("secure-banking-operations", {
-        body: {
-          operation,
-          bankDetails: sanitizedData
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
-      if (error) {
-        throw new Error(parseFunctionError(error));
-      }
+
+      if (dbError) throw dbError;
+
       toast({
         title: "Succes",
-        description: isEditingBank ? "Detaliile bancare au fost actualizate" : "Detaliile bancare au fost adăugate"
+        description: existing ? "Detaliile bancare au fost actualizate" : "Detaliile bancare au fost adăugate"
       });
       setIsBankDialogOpen(false);
       reset();
       loadBankDetails();
     } catch (error) {
       console.error("Error saving bank details:", error);
-      const message = parseFunctionError(error);
-      toast({
-        title: "Eroare",
-        description: message,
-        variant: "destructive"
-      });
+      toast({ title: "Eroare", description: "Nu s-au putut salva detaliile bancare", variant: "destructive" });
+    } finally {
+      setSubmittingBankDetails(false);
     }
   };
-  const deleteBankDetails = async () => {
+const deleteBankDetails = async () => {
     if (!bankDetails || !confirm("Ești sigur că vrei să ștergi detaliile bancare?")) {
       return;
     }
     try {
-      // SECURITY: Use secure edge function instead of direct DB access
-      const {
-        data: {
-          session
-        }
-      } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("Sesiune expirată. Vă rugăm să vă autentificați din nou.");
-      }
-      const {
-        error
-      } = await supabase.functions.invoke("secure-banking-operations", {
-        body: {
-          operation: "delete"
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('bank_details')
+        .delete()
+        .eq('user_id', user.id);
       if (error) throw error;
+
       setBankDetails(null);
-      toast({
-        title: "Succes",
-        description: "Detaliile bancare au fost șterse"
-      });
+      toast({ title: "Succes", description: "Detaliile bancare au fost șterse" });
     } catch (error) {
       console.error("Error deleting bank details:", error);
-      toast({
-        title: "Eroare",
-        description: "Nu s-au putut șterge detaliile bancare",
-        variant: "destructive"
-      });
+      toast({ title: "Eroare", description: "Nu s-au putut șterge detaliile bancare", variant: "destructive" });
     }
   };
   const extractSportsComplexName = (userTypeComment: string): string => {
