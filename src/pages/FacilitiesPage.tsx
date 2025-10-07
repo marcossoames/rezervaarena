@@ -51,6 +51,7 @@ interface Facility {
   operating_hours_start?: string;
   operating_hours_end?: string;
   allowed_durations?: number[]; // Array of allowed booking durations in minutes
+  booking_count?: number; // Number of bookings for popularity sorting
 }
 interface UserProfile {
   role: string | null;
@@ -71,7 +72,7 @@ const FacilitiesPage = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
   const [partiallyBlockedDates, setPartiallyBlockedDates] = useState<Set<string>>(new Set());
-  const [sortBy, setSortBy] = useState<string>('newest');
+  const [sortBy, setSortBy] = useState<string>('price-low');
   const [showSportsComplexDropdown, setShowSportsComplexDropdown] = useState(false);
   const [filteredSportsComplexes, setFilteredSportsComplexes] = useState<string[]>([]);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -321,6 +322,27 @@ const FacilitiesPage = () => {
         if (error) {
           console.error('Error fetching facilities:', error);
           throw error;
+        }
+
+        // Fetch booking counts for each facility
+        const { data: bookingCounts, error: bookingError } = await supabase
+          .from('bookings')
+          .select('facility_id')
+          .eq('status', 'confirmed');
+
+        if (!bookingError && bookingCounts) {
+          // Count bookings per facility
+          const countMap = new Map<string, number>();
+          bookingCounts.forEach(booking => {
+            const current = countMap.get(booking.facility_id) || 0;
+            countMap.set(booking.facility_id, current + 1);
+          });
+
+          // Add booking count to facilities
+          allFacilities = allFacilities?.map(facility => ({
+            ...facility,
+            booking_count: countMap.get(facility.id) || 0
+          }));
         }
 
         // Store all facilities for filtering
@@ -661,23 +683,14 @@ const FacilitiesPage = () => {
         return (a.price_per_hour || 0) - (b.price_per_hour || 0);
       case 'price-high':
         return (b.price_per_hour || 0) - (a.price_per_hour || 0);
-      case 'name-az':
-        return a.name.localeCompare(b.name);
-      case 'name-za':
-        return b.name.localeCompare(a.name);
-      case 'capacity-high':
-        return (b.capacity || 0) - (a.capacity || 0);
-      case 'capacity-low':
-        return (a.capacity || 0) - (b.capacity || 0);
       case 'complex-az':
         return (a.sports_complex_name || 'Zzz').localeCompare(b.sports_complex_name || 'Zzz');
       case 'complex-za':
         return (b.sports_complex_name || 'Zzz').localeCompare(a.sports_complex_name || 'Zzz');
-      case 'oldest':
-        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-      case 'newest':
+      case 'popular':
+        return (b.booking_count || 0) - (a.booking_count || 0);
       default:
-        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        return (a.price_per_hour || 0) - (b.price_per_hour || 0);
     }
   });
 
@@ -1030,7 +1043,7 @@ applyFilters();
                     setStartTime('');
                     setDuration('');
                     setSelectedType(null);
-                    setSortBy('newest');
+                    setSortBy('price-low');
                   }}
                 >
                   <Filter className="h-4 w-4 mr-2" />
@@ -1088,20 +1101,11 @@ applyFilters();
                     <SelectValue placeholder="Selectează sortarea" />
                   </SelectTrigger>
                    <SelectContent className="z-[1000]">
-                    <SelectItem value="newest">Cele mai noi adăugate</SelectItem>
-                    <SelectItem value="oldest">Cele mai vechi adăugate</SelectItem>
                     <SelectItem value="price-low">Preț: Crescător</SelectItem>
                     <SelectItem value="price-high">Preț: Descrescător</SelectItem>
-                    <SelectItem value="name-az">Nume: A-Z</SelectItem>
-                    <SelectItem value="name-za">Nume: Z-A</SelectItem>
-                    {session && (
-                      <>
-                        <SelectItem value="complex-az">Bază sportivă: A-Z</SelectItem>
-                        <SelectItem value="complex-za">Bază sportivă: Z-A</SelectItem>
-                      </>
-                    )}
-                    <SelectItem value="capacity-high">Capacitate: Mare-Mică</SelectItem>
-                    <SelectItem value="capacity-low">Capacitate: Mică-Mare</SelectItem>
+                    <SelectItem value="complex-az">Bază sportivă: A-Z</SelectItem>
+                    <SelectItem value="complex-za">Bază sportivă: Z-A</SelectItem>
+                    <SelectItem value="popular">Cele mai populare</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
