@@ -5,8 +5,31 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Calendar, Building2, Settings, User, Trash2, CreditCard, CheckCircle, AlertCircle, Edit, Plus, DollarSign } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  ArrowLeft,
+  Calendar,
+  Building2,
+  Settings,
+  User,
+  Trash2,
+  CreditCard,
+  CheckCircle,
+  AlertCircle,
+  Edit,
+  Plus,
+  DollarSign,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -43,11 +66,17 @@ const FacilityOwnerProfilePage = () => {
   const [isBankDialogOpen, setIsBankDialogOpen] = useState(false);
   const [isEditingBank, setIsEditingBank] = useState(false);
   const [sportsComplexData, setSportsComplexData] = useState<any>(null);
-  const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<BankFormData>();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<BankFormData>();
   const [stats, setStats] = useState({
     todayBookings: 0,
     monthlyBookings: 0,
-    activeFacilities: 0
+    activeFacilities: 0,
   });
 
   useEffect(() => {
@@ -58,28 +87,26 @@ const FacilityOwnerProfilePage = () => {
 
   const checkAuth = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
-        navigate('/facility/login');
+        navigate("/facility/login");
         return;
       }
 
       await loadProfile(user.id);
       await loadStats(user.id);
     } catch (error) {
-      console.error('Auth check error:', error);
-      navigate('/facility/login');
+      console.error("Auth check error:", error);
+      navigate("/facility/login");
     }
   };
 
   const loadProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+      const { data, error } = await supabase.from("profiles").select("*").eq("user_id", userId).single();
 
       if (error) {
         throw error;
@@ -87,34 +114,32 @@ const FacilityOwnerProfilePage = () => {
 
       setProfile(data);
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error("Error loading profile:", error);
       toast({
         title: "Eroare",
         description: "Nu s-a putut încărca profilul",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const loadSportsComplexData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('sports_complexes')
-        .select('*')
-        .eq('owner_id', user.id)
-        .maybeSingle();
+      const { data, error } = await supabase.from("sports_complexes").select("*").eq("owner_id", user.id).maybeSingle();
 
       if (error) {
-        console.error('Error loading sports complex:', error);
+        console.error("Error loading sports complex:", error);
         return;
       }
 
       setSportsComplexData(data);
     } catch (error) {
-      console.error('Error loading sports complex data:', error);
+      console.error("Error loading sports complex data:", error);
     }
   };
 
@@ -122,76 +147,75 @@ const FacilityOwnerProfilePage = () => {
     try {
       // Get user's ACTIVE facilities
       const { data: facilities, error: facilitiesError } = await supabase
-        .from('facilities')
-        .select('id')
-        .eq('owner_id', userId)
-        .eq('is_active', true); // Only count active facilities
+        .from("facilities")
+        .select("id")
+        .eq("owner_id", userId)
+        .eq("is_active", true); // Only count active facilities
 
       if (facilitiesError) {
         throw facilitiesError;
       }
 
-      const facilityIds = facilities.map(f => f.id);
+      const facilityIds = facilities.map((f) => f.id);
 
       if (facilityIds.length === 0) {
         setStats({
           todayBookings: 0,
           monthlyBookings: 0,
-          activeFacilities: 0
+          activeFacilities: 0,
         });
         return;
       }
 
       // Get today's date in local timezone (avoid UTC shift)
       const today = new Date();
-      const todayStr = format(today, 'yyyy-MM-dd');
-      
+      const todayStr = format(today, "yyyy-MM-dd");
+
       // Get this month's start and end dates without timezone issues
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth(); // 0-based month
-      const monthStart = format(new Date(currentYear, currentMonth, 1), 'yyyy-MM-dd');
-      const monthEnd = format(new Date(currentYear, currentMonth + 1, 0), 'yyyy-MM-dd'); // Last day of current month
+      const monthStart = format(new Date(currentYear, currentMonth, 1), "yyyy-MM-dd");
+      const monthEnd = format(new Date(currentYear, currentMonth + 1, 0), "yyyy-MM-dd"); // Last day of current month
 
-      console.log('Date range for stats:', { todayStr, monthStart, monthEnd, facilityIds });
+      console.log("Date range for stats:", { todayStr, monthStart, monthEnd, facilityIds });
 
       // Get today's bookings (confirmed and pending only)
       const { data: todayBookings, error: todayError } = await supabase
-        .from('bookings')
-        .select('*')
-        .in('facility_id', facilityIds)
-        .eq('booking_date', todayStr)
-        .in('status', ['confirmed', 'pending']);
+        .from("bookings")
+        .select("*")
+        .in("facility_id", facilityIds)
+        .eq("booking_date", todayStr)
+        .in("status", ["confirmed", "pending"]);
 
       // Get monthly bookings (confirmed and pending for accurate count)
       const { data: monthlyBookings, error: monthlyError } = await supabase
-        .from('bookings')
-        .select('*')
-        .in('facility_id', facilityIds)
-        .gte('booking_date', monthStart)
-        .lte('booking_date', monthEnd)
-        .in('status', ['confirmed', 'pending']);
+        .from("bookings")
+        .select("*")
+        .in("facility_id", facilityIds)
+        .gte("booking_date", monthStart)
+        .lte("booking_date", monthEnd)
+        .in("status", ["confirmed", "pending"]);
 
-      console.log('Today bookings query result:', { todayBookings, todayError });
-      console.log('Monthly bookings query result:', { monthlyBookings, monthlyError });
+      console.log("Today bookings query result:", { todayBookings, todayError });
+      console.log("Monthly bookings query result:", { monthlyBookings, monthlyError });
 
       if (todayError) throw todayError;
       if (monthlyError) throw monthlyError;
 
-      console.log('Booking stats loaded:', { 
-        todayCount: todayBookings?.length || 0, 
+      console.log("Booking stats loaded:", {
+        todayCount: todayBookings?.length || 0,
         monthlyCount: monthlyBookings?.length || 0,
         activeFacilitiesCount: facilities.length,
-        debug: { todayStr, monthStart, monthEnd }
+        debug: { todayStr, monthStart, monthEnd },
       });
 
       setStats({
         todayBookings: todayBookings?.length || 0,
         monthlyBookings: monthlyBookings?.length || 0,
-        activeFacilities: facilities.length
+        activeFacilities: facilities.length,
       });
-
     } catch (error) {
-      console.error('Error loading stats:', error);
+      console.error("Error loading stats:", error);
     } finally {
       setIsLoading(false);
     }
@@ -200,7 +224,7 @@ const FacilityOwnerProfilePage = () => {
   // Extracts detailed error message from Supabase Edge Function invoke errors
   const parseFunctionError = (err: any): string => {
     try {
-      let message = err?.message || 'Eroare la salvarea datelor.';
+      let message = err?.message || "Eroare la salvarea datelor.";
       const ctx = err?.context || err;
       const candidates = [
         ctx?.response?.text,
@@ -208,57 +232,66 @@ const FacilityOwnerProfilePage = () => {
         ctx?.response?.data,
         ctx?.response?.error,
         ctx?.json,
-        ctx?.body
+        ctx?.body,
       ];
       for (const c of candidates) {
         if (!c) continue;
-        if (typeof c === 'string') {
+        if (typeof c === "string") {
           try {
             const parsed = JSON.parse(c);
-            if (parsed?.error) { message = parsed.error; break; }
+            if (parsed?.error) {
+              message = parsed.error;
+              break;
+            }
           } catch {
-            message = c; break;
+            message = c;
+            break;
           }
-        } else if (typeof c === 'object') {
-          if (c?.error) { message = c.error; break; }
+        } else if (typeof c === "object") {
+          if (c?.error) {
+            message = c.error;
+            break;
+          }
         }
       }
       if (/Rate limit exceeded/i.test(message)) {
-        return 'Prea multe încercări. Vă rugăm să așteptați 15 minute și să încercați din nou.';
+        return "Prea multe încercări. Vă rugăm să așteptați 15 minute și să încercați din nou.";
       }
       if (/Invalid Romanian IBAN format|IBAN format invalid/i.test(message)) {
-        return 'Format IBAN invalid pentru România. Folosiți: RO12ABCD1234567890123456.';
+        return "Format IBAN invalid pentru România. Folosiți: RO12ABCD1234567890123456.";
       }
       if (/Authentication required|Session too old|Session expired/i.test(message)) {
-        return 'Sesiune expirată pentru operațiuni bancare. Reautentificați-vă și reîncercați.';
+        return "Sesiune expirată pentru operațiuni bancare. Reautentificați-vă și reîncercați.";
       }
       return message;
     } catch {
-      return 'Eroare la salvarea datelor.';
+      return "Eroare la salvarea datelor.";
     }
   };
 
   const loadBankDetails = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // SECURITY: Use secure edge function instead of direct DB access
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData?.session) {
-        console.error('No active session for secure banking read');
+        console.error("No active session for secure banking read");
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('secure-banking-operations', {
-        body: { operation: 'read' },
+      const { data, error } = await supabase.functions.invoke("secure-banking-operations", {
+        body: { operation: "read" },
         headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`
-        }
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
       });
 
       if (error) {
-        console.error('Error loading bank details:', error, data);
+        console.error("Error loading bank details:", error, data);
         return;
       }
 
@@ -269,22 +302,22 @@ const FacilityOwnerProfilePage = () => {
           bank_name: data.bankDetails.bank_name,
           iban: data.bankDetails.iban_masked,
           created_at: data.bankDetails.created_at,
-          updated_at: data.bankDetails.updated_at
+          updated_at: data.bankDetails.updated_at,
         });
       } else {
         setBankDetails(null);
       }
     } catch (error) {
-      console.error('Error loading bank details:', error);
+      console.error("Error loading bank details:", error);
     }
   };
 
   const openBankDialog = (editing = false) => {
     setIsEditingBank(editing);
     if (editing && bankDetails) {
-      setValue('account_holder_name', bankDetails.account_holder_name);
-      setValue('bank_name', bankDetails.bank_name);
-      setValue('iban', ''); // Do not prefill masked IBAN; require re-entry
+      setValue("account_holder_name", bankDetails.account_holder_name);
+      setValue("bank_name", bankDetails.bank_name);
+      setValue("iban", ""); // Do not prefill masked IBAN; require re-entry
     } else {
       reset();
     }
@@ -293,15 +326,18 @@ const FacilityOwnerProfilePage = () => {
 
   const onBankSubmit = async (formData: BankFormData) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Rate limiting check
-      if (!checkClientRateLimit('bank_details_update', 5, 300000)) { // 5 attempts per 5 minutes
+      if (!checkClientRateLimit("bank_details_update", 5, 300000)) {
+        // 5 attempts per 5 minutes
         toast({
           title: "Prea multe încercări",
           description: "Vă rugăm să așteptați înainte de a încerca din nou",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
@@ -312,7 +348,7 @@ const FacilityOwnerProfilePage = () => {
         toast({
           title: "Eroare de validare",
           description: accountHolderValidation.error,
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
@@ -322,7 +358,7 @@ const FacilityOwnerProfilePage = () => {
         toast({
           title: "Eroare de validare",
           description: bankNameValidation.error,
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
@@ -331,7 +367,7 @@ const FacilityOwnerProfilePage = () => {
         toast({
           title: "Eroare de validare",
           description: "Formatul IBAN este invalid. Utilizați formatul RO12ABCD1234567890123456",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
@@ -340,26 +376,28 @@ const FacilityOwnerProfilePage = () => {
       const sanitizedData = {
         account_holder_name: sanitizeInput(formData.account_holder_name),
         bank_name: sanitizeInput(formData.bank_name),
-        iban: formData.iban.replace(/\s/g, '').toUpperCase()
+        iban: formData.iban.replace(/\s/g, "").toUpperCase(),
       };
 
       // SECURITY: Use secure edge function instead of direct DB access
-      const operation = isEditingBank ? 'update' : 'create';
-      
+      const operation = isEditingBank ? "update" : "create";
+
       // Get the current session to pass the auth token
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
-        throw new Error('Sesiune expirată. Vă rugăm să vă autentificați din nou.');
+        throw new Error("Sesiune expirată. Vă rugăm să vă autentificați din nou.");
       }
-      
-      const { data, error } = await supabase.functions.invoke('secure-banking-operations', {
-        body: { 
+
+      const { data, error } = await supabase.functions.invoke("secure-banking-operations", {
+        body: {
           operation,
-          bankDetails: sanitizedData
+          bankDetails: sanitizedData,
         },
         headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       if (error) {
@@ -368,75 +406,75 @@ const FacilityOwnerProfilePage = () => {
 
       toast({
         title: "Succes",
-        description: isEditingBank 
-          ? "Detaliile bancare au fost actualizate"
-          : "Detaliile bancare au fost adăugate",
+        description: isEditingBank ? "Detaliile bancare au fost actualizate" : "Detaliile bancare au fost adăugate",
       });
 
       setIsBankDialogOpen(false);
       reset();
       loadBankDetails();
     } catch (error) {
-      console.error('Error saving bank details:', error);
+      console.error("Error saving bank details:", error);
       const message = parseFunctionError(error);
       toast({
         title: "Eroare",
         description: message,
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const deleteBankDetails = async () => {
-    if (!bankDetails || !confirm('Ești sigur că vrei să ștergi detaliile bancare?')) {
+    if (!bankDetails || !confirm("Ești sigur că vrei să ștergi detaliile bancare?")) {
       return;
     }
 
     try {
       // SECURITY: Use secure edge function instead of direct DB access
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
-        throw new Error('Sesiune expirată. Vă rugăm să vă autentificați din nou.');
+        throw new Error("Sesiune expirată. Vă rugăm să vă autentificați din nou.");
       }
-      
-      const { error } = await supabase.functions.invoke('secure-banking-operations', {
-        body: { operation: 'delete' },
+
+      const { error } = await supabase.functions.invoke("secure-banking-operations", {
+        body: { operation: "delete" },
         headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       if (error) throw error;
 
       setBankDetails(null);
-      
+
       toast({
         title: "Succes",
         description: "Detaliile bancare au fost șterse",
       });
     } catch (error) {
-      console.error('Error deleting bank details:', error);
+      console.error("Error deleting bank details:", error);
       toast({
         title: "Eroare",
         description: "Nu s-au putut șterge detaliile bancare",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const extractSportsComplexName = (userTypeComment: string): string => {
-    if (!userTypeComment) return 'Baza Sportivă';
-    
+    if (!userTypeComment) return "Baza Sportivă";
+
     // Handle format: "Complex Sportiv ABC - Proprietar bază sportivă"
-    if (userTypeComment.includes(' - Proprietar bază sportivă')) {
-      return userTypeComment.replace(' - Proprietar bază sportivă', '').trim();
+    if (userTypeComment.includes(" - Proprietar bază sportivă")) {
+      return userTypeComment.replace(" - Proprietar bază sportivă", "").trim();
     }
-    
+
     // Handle format: "Proprietar bază sportivă - Complex Sportiv ABC"
-    if (userTypeComment.startsWith('Proprietar bază sportivă - ')) {
-      return userTypeComment.replace('Proprietar bază sportivă - ', '').trim();
+    if (userTypeComment.startsWith("Proprietar bază sportivă - ")) {
+      return userTypeComment.replace("Proprietar bază sportivă - ", "").trim();
     }
-    
+
     return userTypeComment;
   };
 
@@ -449,27 +487,27 @@ const FacilityOwnerProfilePage = () => {
   const handleDeleteAccount = async () => {
     try {
       const result = await deleteUserAccount();
-      
+
       if (result.success) {
         toast({
           title: "Cont șters",
           description: "Contul a fost șters cu succes.",
         });
         // Redirect to home page as visitor
-        navigate('/', { replace: true });
+        navigate("/", { replace: true });
       } else {
         toast({
           title: "Eroare",
           description: result.error,
-          variant: "destructive"
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error deleting account:', error);
+      console.error("Error deleting account:", error);
       toast({
         title: "Eroare",
         description: "Nu s-a putut șterge contul. Vă rugăm să încercați din nou.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -489,64 +527,64 @@ const FacilityOwnerProfilePage = () => {
     );
   }
 
-  const sportsComplexName = extractSportsComplexName(profile.user_type_comment || '');
+  const sportsComplexName = extractSportsComplexName(profile.user_type_comment || "");
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/')}
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
             className="mb-4 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Înapoi la pagina principală
           </Button>
           <h1 className="text-3xl font-bold text-foreground">Profil Proprietar de Bază Sportivă</h1>
-          <p className="text-muted-foreground mt-2">
-            Gestionează-ți profilul și facilitățile sportive
-          </p>
+          <p className="text-muted-foreground mt-2">Gestionează-ți profilul și facilitățile sportive</p>
         </div>
-
 
         {/* Navigation Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full" onClick={() => navigate('/facility-calendar')}>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow h-full"
+            onClick={() => navigate("/facility-calendar")}
+          >
             <CardHeader className="flex flex-col h-full">
               <CardTitle className="flex items-center gap-2 min-h-[3rem]">
                 <Calendar className="h-5 w-5" />
-                Calendar Facilități
+                Calendar Terenuri
               </CardTitle>
-              <CardDescription>
-                Vizualizează calendarul și blochează zile/ore specifice
-              </CardDescription>
+              <CardDescription>Vizualizează calendarul și blochează zile / ore specifice</CardDescription>
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full" onClick={() => navigate('/manage-facilities')}>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow h-full"
+            onClick={() => navigate("/manage-facilities")}
+          >
             <CardHeader className="flex flex-col h-full">
               <CardTitle className="flex items-center gap-2 min-h-[3rem]">
                 <Building2 className="h-5 w-5" />
                 Setări Terenuri
               </CardTitle>
-              <CardDescription>
-                Adaugă, editează sau șterge facilitățile sportive
-              </CardDescription>
+              <CardDescription>Adaugă, editează sau șterge facilitățile sportive</CardDescription>
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full" onClick={() => navigate('/facility-owner-income')}>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow h-full"
+            onClick={() => navigate("/facility-owner-income")}
+          >
             <CardHeader className="flex flex-col h-full">
               <CardTitle className="flex items-center gap-2 min-h-[3rem]">
                 <DollarSign className="h-5 w-5" />
                 Venituri
               </CardTitle>
-              <CardDescription>
-                Vizualizează veniturile din rezervări și comisioane
-              </CardDescription>
+              <CardDescription>Vizualizează veniturile din rezervări și comisioane</CardDescription>
             </CardHeader>
           </Card>
         </div>
@@ -559,11 +597,7 @@ const FacilityOwnerProfilePage = () => {
                 <User className="h-5 w-5" />
                 Informații Profil
               </CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/edit-sports-complex-settings')}
-              >
+              <Button variant="outline" size="sm" onClick={() => navigate("/edit-sports-complex-settings")}>
                 <Settings className="h-4 w-4 mr-2" />
                 Editează Setări
               </Button>
@@ -572,7 +606,7 @@ const FacilityOwnerProfilePage = () => {
               <div className="grid grid-cols-1 gap-6">
                 <div>
                   <h3 className="font-semibold text-lg mb-4">{sportsComplexName}</h3>
-                  
+
                   {/* First row - 3 columns */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
@@ -588,23 +622,23 @@ const FacilityOwnerProfilePage = () => {
                       <p className="font-medium">{profile.phone}</p>
                     </div>
                   </div>
-                  
+
                   {/* Second row - 3 columns */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <span className="text-sm text-muted-foreground">Adresă:</span>
-                      <p className="font-medium">{sportsComplexData?.address || 'Nu este setată'}</p>
+                      <p className="font-medium">{sportsComplexData?.address || "Nu este setată"}</p>
                     </div>
                     <div>
                       <span className="text-sm text-muted-foreground">Descriere:</span>
-                      <p className="font-medium text-sm">{sportsComplexData?.description || 'Nu există descriere'}</p>
+                      <p className="font-medium text-sm">{sportsComplexData?.description || "Nu există descriere"}</p>
                     </div>
                     <div>
                       <span className="text-sm text-muted-foreground">Servicii generale:</span>
                       <p className="font-medium text-sm">
-                        {sportsComplexData?.general_services && sportsComplexData.general_services.length > 0 
-                          ? sportsComplexData.general_services.join(', ') 
-                          : 'Nu sunt setate servicii'}
+                        {sportsComplexData?.general_services && sportsComplexData.general_services.length > 0
+                          ? sportsComplexData.general_services.join(", ")
+                          : "Nu sunt setate servicii"}
                       </p>
                     </div>
                   </div>
@@ -661,19 +695,11 @@ const FacilityOwnerProfilePage = () => {
               </CardTitle>
               {bankDetails ? (
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openBankDialog(true)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => openBankDialog(true)}>
                     <Edit className="h-4 w-4 mr-2" />
                     Editează
                   </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={deleteBankDetails}
-                  >
+                  <Button variant="destructive" size="sm" onClick={deleteBankDetails}>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Șterge
                   </Button>
@@ -692,12 +718,12 @@ const FacilityOwnerProfilePage = () => {
                     <p className="text-muted-foreground">Titular Cont:</p>
                     <p className="font-medium">{bankDetails.account_holder_name}</p>
                   </div>
-                  
+
                   <div>
                     <p className="text-muted-foreground">Banca:</p>
                     <p className="font-medium">{bankDetails.bank_name}</p>
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <p className="text-muted-foreground">IBAN:</p>
                     <p className="font-mono text-xs">{bankDetails.iban}</p>
@@ -715,9 +741,7 @@ const FacilityOwnerProfilePage = () => {
           <Dialog open={isBankDialogOpen} onOpenChange={setIsBankDialogOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>
-                  {isEditingBank ? 'Editează Detalii Bancare' : 'Adaugă Detalii Bancare'}
-                </DialogTitle>
+                <DialogTitle>{isEditingBank ? "Editează Detalii Bancare" : "Adaugă Detalii Bancare"}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit(onBankSubmit)} className="space-y-4">
                 <div className="space-y-2">
@@ -739,27 +763,23 @@ const FacilityOwnerProfilePage = () => {
                     {...register("bank_name", { required: "Numele băncii este obligatoriu" })}
                     placeholder="ex: Banca Transilvania"
                   />
-                  {errors.bank_name && (
-                    <p className="text-sm text-destructive">{errors.bank_name.message}</p>
-                  )}
+                  {errors.bank_name && <p className="text-sm text-destructive">{errors.bank_name.message}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="iban">IBAN</Label>
                   <Input
                     id="iban"
-                    {...register("iban", { 
+                    {...register("iban", {
                       required: "IBAN-ul este obligatoriu",
                       pattern: {
                         value: /^RO\d{2}[A-Z]{4}[A-Z0-9]{16}$/,
-                        message: "IBAN-ul trebuie să fie în formatul: RO12ABCD1234567890123456"
-                      }
+                        message: "IBAN-ul trebuie să fie în formatul: RO12ABCD1234567890123456",
+                      },
                     })}
                     placeholder="ex: RO12ABCD1234567890123456"
                   />
-                  {errors.iban && (
-                    <p className="text-sm text-destructive">{errors.iban.message}</p>
-                  )}
+                  {errors.iban && <p className="text-sm text-destructive">{errors.iban.message}</p>}
                 </div>
 
                 <div className="flex gap-2">
@@ -767,13 +787,12 @@ const FacilityOwnerProfilePage = () => {
                     Anulează
                   </Button>
                   <Button type="submit" className="flex-1">
-                    {isEditingBank ? 'Actualizează' : 'Adaugă'}
+                    {isEditingBank ? "Actualizează" : "Adaugă"}
                   </Button>
                 </div>
               </form>
             </DialogContent>
           </Dialog>
-
 
           {/* Delete Account */}
           <Card className="border-destructive">
@@ -782,9 +801,7 @@ const FacilityOwnerProfilePage = () => {
                 <Trash2 className="h-5 w-5" />
                 Zona Periculoasă
               </CardTitle>
-              <CardDescription>
-                Acțiuni ireversibile pentru contul tău
-              </CardDescription>
+              <CardDescription>Acțiuni ireversibile pentru contul tău</CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="destructive" className="w-full sm:w-auto" onClick={handleDeleteClick}>
@@ -804,7 +821,10 @@ const FacilityOwnerProfilePage = () => {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Renunță</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
                       Da, șterge contul
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -814,7 +834,7 @@ const FacilityOwnerProfilePage = () => {
           </Card>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );
