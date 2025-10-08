@@ -632,9 +632,9 @@ const FacilityCalendarPage = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/manage-facilities" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200 mb-4">
+          <Link to="/facility-owner/profile?tab=facility-calendar" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200 mb-4">
             <ArrowLeft className="h-4 w-4" />
-            Înapoi la terenurile mele
+            Înapoi la calendar terenuri
           </Link>
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
