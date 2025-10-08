@@ -186,16 +186,18 @@ const ManageFacilitiesPage = () => {
             .eq('user_id', booking.client_id)
             .single();
 
+          const isClientDeleted = !clientProfile;
+
           return {
             ...booking,
             facility_name: facilityData?.name || 'Teren necunoscut',
             facility_address: facilityData ? `${facilityData.city}, ${facilityData.address}` : 'unknown',
             facility_type: facilityData?.facility_type || 'unknown',
-            client_name: clientProfile?.full_name || 'Nume nedisponibil',
-            client_phone: clientProfile?.phone || 'Telefon nedisponibil',
-            client_email: clientProfile?.email || 'Email nedisponibil',
-            // Convert any pending status to confirmed
-            status: booking.status === 'pending' ? 'confirmed' : booking.status
+            client_name: isClientDeleted ? 'Nume indisponibil (cont șters)' : (clientProfile?.full_name || 'Nume indisponibil'),
+            client_phone: isClientDeleted ? 'Telefon indisponibil (cont șters)' : (clientProfile?.phone || 'Telefon indisponibil'),
+            client_email: isClientDeleted ? 'Email indisponibil (cont șters)' : (clientProfile?.email || 'Email indisponibil'),
+            // Convert any pending status to confirmed, but mark as cancelled if client was deleted
+            status: isClientDeleted ? 'cancelled' : (booking.status === 'pending' ? 'confirmed' : booking.status)
           } as BookingWithDetails;
         })
       );
