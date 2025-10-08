@@ -269,17 +269,39 @@ const FacilityCalendarPage = () => {
 
   const getAllBookingsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    // Exclude cancelled bookings from calendar and day list (they remain in full booking list)
-    return bookings.filter(booking => 
-      booking.booking_date === dateStr && booking.status !== 'cancelled'
-    );
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    
+    // Exclude cancelled bookings AND pending bookings older than 10 minutes
+    return bookings.filter(booking => {
+      if (booking.booking_date !== dateStr) return false;
+      if (booking.status === 'cancelled') return false;
+      
+      // Exclude pending bookings older than 10 minutes
+      if (booking.status === 'pending') {
+        const bookingCreatedAt = new Date(booking.created_at);
+        if (bookingCreatedAt < tenMinutesAgo) return false;
+      }
+      
+      return true;
+    });
   };
 
   const getActiveBookingsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return bookings.filter(booking => 
-      booking.booking_date === dateStr && (booking.status === 'confirmed' || booking.status === 'pending')
-    );
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    
+    return bookings.filter(booking => {
+      if (booking.booking_date !== dateStr) return false;
+      if (booking.status !== 'confirmed' && booking.status !== 'pending') return false;
+      
+      // Exclude pending bookings older than 10 minutes
+      if (booking.status === 'pending') {
+        const bookingCreatedAt = new Date(booking.created_at);
+        if (bookingCreatedAt < tenMinutesAgo) return false;
+      }
+      
+      return true;
+    });
   };
 
   const getBlockedHoursForDate = (date: Date) => {
