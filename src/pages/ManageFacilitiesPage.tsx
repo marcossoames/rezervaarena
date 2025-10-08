@@ -798,7 +798,7 @@ const ManageFacilitiesPage = () => {
                           <CardTitle className="text-lg mb-2">{booking.facility_name}</CardTitle>
                           {requiresAction && (
                             <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
-                              Necesită atenție
+                              Marchează ca Finalizată sau Lipsă
                             </Badge>
                           )}
                         </div>
