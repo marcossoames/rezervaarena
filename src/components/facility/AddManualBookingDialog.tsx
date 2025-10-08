@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { UserPlus, Repeat } from "lucide-react";
-import { format, addDays, getDay } from "date-fns";
+import { format, addDays, getDay, addWeeks } from "date-fns";
 import { ro } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +35,6 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringType, setRecurringType] = useState<'weekly'>('weekly');
   const [recurringEndDate, setRecurringEndDate] = useState<Date>();
-  const [weeklyDays, setWeeklyDays] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [existingBookings, setExistingBookings] = useState<any[]>([]);
   const [blockedDates, setBlockedDates] = useState<any[]>([]);
@@ -105,6 +104,10 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
     // Reset time selections when date changes to avoid invalid carry-over
     setStartTime("");
     setEndTime("");
+    // Auto-select end date as one week later if recurring is enabled
+    if (date && isRecurring) {
+      setRecurringEndDate(addWeeks(date, 1));
+    }
     if (date) {
       loadDateData(date);
     }
@@ -131,15 +134,6 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
     }
   }, [isOpen, selectedDate]);
 
-  const weekdayLabels = [
-    { value: 1, label: 'Luni' },
-    { value: 2, label: 'Marți' },
-    { value: 3, label: 'Miercuri' },
-    { value: 4, label: 'Joi' },
-    { value: 5, label: 'Vineri' },
-    { value: 6, label: 'Sâmbătă' },
-    { value: 0, label: 'Duminică' }
-  ];
 
   const getTimeOptions = () => {
     const times = [];
@@ -170,27 +164,17 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
     return durationHours * facility.price_per_hour;
   };
 
-  const generateRecurringDates = (startDate: Date, endDate: Date, selectedDays?: number[]) => {
+  const generateRecurringDates = (startDate: Date, endDate: Date) => {
     const dates = [];
     let currentDate = new Date(startDate);
     
-    if (selectedDays && selectedDays.length > 0) {
-      while (currentDate <= endDate) {
-        const dayOfWeek = getDay(currentDate);
-        if (selectedDays.includes(dayOfWeek)) {
-          dates.push(new Date(currentDate));
-        }
-        currentDate = addDays(currentDate, 1);
+    // Weekly pentru aceeași zi din săptămână ca startDate
+    const startDayOfWeek = getDay(startDate);
+    while (currentDate <= endDate) {
+      if (getDay(currentDate) === startDayOfWeek) {
+        dates.push(new Date(currentDate));
       }
-    } else {
-      // Weekly pentru aceeași zi din săptămână ca startDate
-      const startDayOfWeek = getDay(startDate);
-      while (currentDate <= endDate) {
-        if (getDay(currentDate) === startDayOfWeek) {
-          dates.push(new Date(currentDate));
-        }
-        currentDate = addDays(currentDate, 1);
-      }
+      currentDate = addDays(currentDate, 1);
     }
     
     return dates;
@@ -263,8 +247,7 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
       let datesToBook = [bookingDate];
       
       if (isRecurring && recurringEndDate) {
-        const daysToUse = weeklyDays.length > 0 ? weeklyDays : [getDay(bookingDate)];
-        datesToBook = generateRecurringDates(bookingDate, recurringEndDate, daysToUse);
+        datesToBook = generateRecurringDates(bookingDate, recurringEndDate);
       }
 
       // Create bookings for manual entries with proper user handling
@@ -309,7 +292,6 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
       setNotes("");
       setIsRecurring(false);
       setRecurringEndDate(undefined);
-      setWeeklyDays([]);
       setIsOpen(false);
       
       onBookingAdded();
@@ -572,7 +554,13 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
               <Checkbox 
                 id="recurring" 
                 checked={isRecurring}
-                onCheckedChange={(checked) => setIsRecurring(!!checked)}
+                onCheckedChange={(checked) => {
+                  setIsRecurring(!!checked);
+                  // Auto-select end date as one week later when enabling recurring
+                  if (checked && bookingDate) {
+                    setRecurringEndDate(addWeeks(bookingDate, 1));
+                  }
+                }}
               />
               <Label htmlFor="recurring" className="flex items-center gap-2">
                 <Repeat className="h-4 w-4" />
@@ -593,40 +581,6 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
                     </SelectContent>
                   </Select>
                 </div>
-                
-                {recurringType === 'weekly' && (
-                  <div className="space-y-2">
-                    <Label>Zilele săptămânii (opțional)</Label>
-                    <div className="p-3 bg-blue-50 rounded-lg mb-3">
-                      <p className="text-sm text-blue-700">
-                        💡 Implicit se va crea rezervare pentru <strong>{weekdayLabels.find(day => day.value === getDay(bookingDate || new Date()))?.label}</strong>
-                      </p>
-                      <p className="text-xs text-blue-600 mt-1">
-                        Selectează alte zile doar dacă vrei să adaugi rezervări în zile suplimentare
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {weekdayLabels.map((day) => (
-                        <div key={day.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`day-${day.value}`}
-                            checked={weeklyDays.includes(day.value)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setWeeklyDays([...weeklyDays, day.value]);
-                              } else {
-                                setWeeklyDays(weeklyDays.filter(d => d !== day.value));
-                              }
-                            }}
-                          />
-                          <Label htmlFor={`day-${day.value}`} className="text-sm">
-                            {day.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 
                 <div className="space-y-2">
                   <Label>Data de sfârșit</Label>
