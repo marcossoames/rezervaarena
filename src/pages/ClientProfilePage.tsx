@@ -109,6 +109,7 @@ const ClientProfilePage = () => {
           status,
           total_price,
           payment_method,
+          created_at,
           facilities!bookings_facility_id_fkey (
             name,
             city,
@@ -126,7 +127,17 @@ const ClientProfilePage = () => {
         return;
       }
 
-      setActiveBookings(bookings || []);
+      // Filter out expired pending bookings (older than 10 minutes)
+      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+      const filteredBookings = (bookings || []).filter(booking => {
+        if (booking.status === 'pending') {
+          const bookingCreatedAt = new Date(booking.created_at);
+          return bookingCreatedAt >= tenMinutesAgo;
+        }
+        return true;
+      });
+
+      setActiveBookings(filteredBookings);
     } catch (error) {
       console.error('Error in loadActiveBookings:', error);
       // Don't show error to user, just keep bookings empty
