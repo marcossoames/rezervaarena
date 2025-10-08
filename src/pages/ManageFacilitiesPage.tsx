@@ -62,10 +62,10 @@ const ManageFacilitiesPage = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [sortedBookings, setSortedBookings] = useState<BookingWithDetails[]>([]);
-  const [sortBy, setSortBy] = useState<string>('booking_date_desc'); // booking_date_asc, booking_date_desc, created_at_asc, created_at_desc, facility_name_asc, facility_name_desc
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'facilities' | 'bookings'>('facilities');
+  const [bookingsSubTab, setBookingsSubTab] = useState<'upcoming' | 'past'>('upcoming');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -141,23 +141,21 @@ const ManageFacilitiesPage = () => {
     loadData();
   }, []);
 
-  // Apply sorting when bookings or sortBy changes
+  // Apply filtering and sorting when bookings or sub-tab changes
   useEffect(() => {
     if (bookings.length > 0) {
-      applySorting(bookings, sortBy);
+      applyFilteringAndSorting(bookings);
     }
-  }, [bookings, sortBy]);
+  }, [bookings, bookingsSubTab]);
 
   const loadBookings = async (facilityIds: string[]) => {
     try {
-      // Get bookings with facility and profile data
+      // Get ALL bookings (not just future ones)
       const { data: bookingsData, error } = await supabase
         .from('bookings')
         .select('*, created_at')
         .in('facility_id', facilityIds)
-        .gte('booking_date', new Date().toISOString().split('T')[0])
-        .order('booking_date', { ascending: true })
-        .order('start_time', { ascending: true });
+        .order('created_at', { ascending: false }); // Most recent bookings first
 
       if (error) {
         console.error('Error fetching bookings:', error);
@@ -203,49 +201,47 @@ const ManageFacilitiesPage = () => {
       );
 
       setBookings(enhancedBookings);
-      applySorting(enhancedBookings, sortBy);
+      applyFilteringAndSorting(enhancedBookings);
     } catch (error) {
       console.error('Error loading bookings:', error);
     }
   };
 
-  // Sorting function
-  const applySorting = (bookingsToSort: BookingWithDetails[], sortType: string) => {
-    console.log('Applying sorting:', sortType, 'to', bookingsToSort.length, 'bookings');
-    const sorted = [...bookingsToSort].sort((a, b) => {
-      switch (sortType) {
-        case 'booking_date_asc':
-          // Cronologic: most recent dates first (earlier dates come first)
-          const dateA = new Date(a.booking_date + 'T' + a.start_time).getTime();
-          const dateB = new Date(b.booking_date + 'T' + b.start_time).getTime();
-          return dateA - dateB;
-        case 'booking_date_desc':
-          // Cronologic invers: most recent dates last (later dates come first)
-          const dateDescA = new Date(a.booking_date + 'T' + a.start_time).getTime();
-          const dateDescB = new Date(b.booking_date + 'T' + b.start_time).getTime();
-          return dateDescB - dateDescA;
-        case 'created_at_asc':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'created_at_desc':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'facility_name_asc':
-          return (a.facility_name || '').localeCompare(b.facility_name || '');
-        case 'facility_name_desc':
-          return (b.facility_name || '').localeCompare(a.facility_name || '');
-        default:
-          console.log('Unknown sort type:', sortType);
-          return 0;
-      }
-    });
-    console.log('Sorted bookings:', sorted.map(b => ({ date: b.booking_date, time: b.start_time, facility: b.facility_name })));
-    setSortedBookings(sorted);
+  // Filter and sort bookings based on sub-tab
+  const applyFilteringAndSorting = (bookingsToFilter: BookingWithDetails[]) => {
+    const now = new Date();
+    
+    let filtered: BookingWithDetails[];
+    
+    if (bookingsSubTab === 'upcoming') {
+      // Future bookings: start_time > now, exclude cancelled
+      filtered = bookingsToFilter.filter(booking => {
+        const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
+        return bookingDateTime > now && booking.status !== 'cancelled';
+      });
+      // Sort ascending (next ones first)
+      filtered.sort((a, b) => {
+        const aDate = new Date(`${a.booking_date}T${a.start_time}`);
+        const bDate = new Date(`${b.booking_date}T${b.start_time}`);
+        return aDate.getTime() - bDate.getTime();
+      });
+    } else {
+      // Past bookings: end_time < now OR cancelled status
+      filtered = bookingsToFilter.filter(booking => {
+        const bookingDateTime = new Date(`${booking.booking_date}T${booking.end_time}`);
+        return bookingDateTime <= now || booking.status === 'cancelled';
+      });
+      // Sort descending (most recent finished first)
+      filtered.sort((a, b) => {
+        const aDate = new Date(`${a.booking_date}T${a.end_time}`);
+        const bDate = new Date(`${b.booking_date}T${b.end_time}`);
+        return bDate.getTime() - aDate.getTime();
+      });
+    }
+    
+    setSortedBookings(filtered);
   };
 
-  // Handle sort change
-  const handleSortChange = (newSortBy: string) => {
-    setSortBy(newSortBy);
-    applySorting(bookings, newSortBy);
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -624,41 +620,149 @@ const ManageFacilitiesPage = () => {
         </TabsContent>
 
         <TabsContent value="bookings" className="space-y-6">
-          {/* Sorting Controls */}
-          {bookings.length > 0 && (
-            <Card className="p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Sortează după:</span>
-                </div>
-                <Select value={sortBy} onValueChange={handleSortChange}>
-                  <SelectTrigger className="w-64">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="booking_date_asc">Data rezervării (Cronologic)</SelectItem>
-                    <SelectItem value="booking_date_desc">Data rezervării (Cronologic invers)</SelectItem>
-                    <SelectItem value="created_at_asc">Data când s-a făcut rezervarea (Vechi la nou)</SelectItem>
-                    <SelectItem value="created_at_desc">Data când s-a făcut rezervarea (Nou la vechi)</SelectItem>
-                    <SelectItem value="facility_name_asc">Teren (A-Z)</SelectItem>
-                    <SelectItem value="facility_name_desc">Teren (Z-A)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </Card>
-          )}
+          {/* Sub-tabs for Upcoming/Past */}
+          <Tabs value={bookingsSubTab} onValueChange={(value) => setBookingsSubTab(value as 'upcoming' | 'past')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="upcoming">Rezervări Viitoare</TabsTrigger>
+              <TabsTrigger value="past">Rezervări Trecute</TabsTrigger>
+            </TabsList>
 
-          {/* Bookings List */}
-          {bookings.length === 0 ? (
+            <TabsContent value="upcoming" className="space-y-4 mt-6">
+              {sortedBookings.length === 0 ? (
+                <Card className="text-center py-12">
+                  <CardContent>
+                    <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                      <Calendar className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Nicio rezervare viitoare</h3>
+                    <p className="text-muted-foreground">
+                      Când clienții vor face rezervări pentru terenurile tale le vei vedea aici
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {sortedBookings.map((booking) => (
+                    <Card key={booking.id} className="transition-all duration-200 hover:shadow-lg">
+                      <CardHeader className="pb-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-lg mb-2">{booking.facility_name}</CardTitle>
+                            <div className="flex items-center text-muted-foreground mb-1">
+                              <MapPin className="h-4 w-4 mr-2" />
+                              <span>{booking.facility_address || 'Locație nedisponibilă'}</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {getStatusBadge(booking.status)}
+                          </div>
+                        </div>
+                      </CardHeader>
+                  
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="flex items-center">
+                        <Calendar className="h-5 w-5 text-primary mr-3" />
+                        <div>
+                          <p className="font-medium">
+                            {format(new Date(booking.booking_date), 'EEEE, d MMMM yyyy', { locale: ro })}
+                          </p>
+                          <p className="text-sm text-muted-foreground">Data rezervării</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <Clock className="h-5 w-5 text-primary mr-3" />
+                        <div>
+                          <p className="font-medium">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</p>
+                          <p className="text-sm text-muted-foreground">Interval orar</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <User className="h-5 w-5 text-primary mr-3" />
+                        <div>
+                          <p className="font-medium">{booking.client_name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {booking.client_phone}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex justify-between items-center mb-4">
+                        <div className="text-lg font-semibold text-primary">
+                          {booking.total_price} RON
+                          <span className="text-sm font-normal text-muted-foreground ml-2">
+                            ({booking.payment_method === 'card' ? 'Plată cu cardul' : 'Plată cash'})
+                          </span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/facility-calendar/${booking.facility_id}`)}
+                        >
+                          Vezi Calendarul
+                        </Button>
+                      </div>
+
+                      {/* Booking Status Manager */}
+                      <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Gestionare Status
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Actualizează statusul rezervării
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <BookingStatusManager 
+                            booking={{
+                              id: booking.id,
+                              booking_date: booking.booking_date,
+                              start_time: booking.start_time,
+                              end_time: booking.end_time,
+                              status: booking.status,
+                              total_price: booking.total_price,
+                              payment_method: booking.payment_method,
+                              notes: '',
+                              client_id: booking.client_id
+                            }}
+                            onStatusUpdate={() => loadBookings(facilities.map(f => f.id))}
+                          />
+                          {canDeleteBooking(booking) && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => deleteBooking(booking.id)}
+                              className="text-xs"
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Șterge
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="past" className="space-y-4 mt-6">
+          {sortedBookings.length === 0 ? (
             <Card className="text-center py-12">
               <CardContent>
                 <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                   <Calendar className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Nicio rezervare</h3>
+                <h3 className="text-xl font-semibold mb-2">Nicio rezervare trecută</h3>
                 <p className="text-muted-foreground">
-                  Când clienții vor face rezervări pentru terenurile tale le vei vedea aici
+                  Rezervările finalizate și anulate vor apărea aici
                 </p>
               </CardContent>
             </Card>
@@ -773,6 +877,8 @@ const ManageFacilitiesPage = () => {
               ))}
             </div>
           )}
+        </TabsContent>
+      </Tabs>
         </TabsContent>
       </Tabs>
       </div>
