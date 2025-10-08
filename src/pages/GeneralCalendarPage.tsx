@@ -495,8 +495,8 @@ const GeneralCalendarPage = () => {
     return bookings.filter(booking => {
       if (booking.booking_date !== dateStr) return false;
       
-      // Filter out expired pending card payments
-      if (booking.status === 'pending' && booking.payment_method === 'card') {
+      // Filter out expired pending bookings (any payment method)
+      if (booking.status === 'pending') {
         const bookingCreatedAt = new Date(booking.created_at);
         if (bookingCreatedAt < tenMinutesAgo) return false;
       }
