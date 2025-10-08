@@ -370,6 +370,8 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
                 onSelect={handleDateChange}
                 className="rounded-md border p-3 pointer-events-auto"
                 disabled={(date) => date < new Date()}
+                weekStartsOn={1}
+                locale={ro}
               />
               
               {/* Show warnings for selected date */}
@@ -590,6 +592,8 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
                     onSelect={setRecurringEndDate}
                     disabled={(date) => !bookingDate || date <= bookingDate}
                     className="rounded-md border p-3 pointer-events-auto"
+                    weekStartsOn={1}
+                    locale={ro}
                   />
                 </div>
               </div>
