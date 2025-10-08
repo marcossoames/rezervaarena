@@ -51,6 +51,7 @@ interface BookingWithDetails {
   client_id: string;
   created_at: string; // Add this field for sorting by creation date
   facility_name?: string;
+  facility_address?: string;
   facility_type?: string;
   client_name?: string;
   client_phone?: string;
@@ -171,8 +172,12 @@ const ManageFacilitiesPage = () => {
       // Enhance bookings with facility and client details
       const enhancedBookings = await Promise.all(
         (bookingsData || []).map(async (booking) => {
-          // Get facility details
-          const facility = facilities.find(f => f.id === booking.facility_id);
+          // Get facility details directly from database
+          const { data: facilityData } = await supabase
+            .from('facilities')
+            .select('name, facility_type, city, address')
+            .eq('id', booking.facility_id)
+            .single();
           
           // Get client details
           const { data: clientProfile } = await supabase
@@ -183,8 +188,9 @@ const ManageFacilitiesPage = () => {
 
           return {
             ...booking,
-            facility_name: facility?.name || 'Teren necunoscut',
-            facility_type: facility?.facility_type || 'unknown',
+            facility_name: facilityData?.name || 'Teren necunoscut',
+            facility_address: facilityData ? `${facilityData.city}, ${facilityData.address}` : 'unknown',
+            facility_type: facilityData?.facility_type || 'unknown',
             client_name: clientProfile?.full_name || 'Nume nedisponibil',
             client_phone: clientProfile?.phone || 'Telefon nedisponibil',
             client_email: clientProfile?.email || 'Email nedisponibil',
@@ -664,7 +670,7 @@ const ManageFacilitiesPage = () => {
                         <CardTitle className="text-lg mb-2">{booking.facility_name}</CardTitle>
                         <div className="flex items-center text-muted-foreground mb-1">
                           <MapPin className="h-4 w-4 mr-2" />
-                          <span>{getFacilityTypeLabel(booking.facility_type || 'unknown')}</span>
+                          <span>{booking.facility_address || 'Locație nedisponibilă'}</span>
                         </div>
                       </div>
                       <div className="text-right">
