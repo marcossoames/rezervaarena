@@ -96,6 +96,66 @@ export const deleteUserAccount = async () => {
     const activeBookingsData = await checkActiveBookings();
     const ownerFacilitiesData = await checkOwnerActiveFacilityBookings();
 
+    // Collect data for notifying facility owners if this is a client with active bookings
+    let facilityOwnerNotifications: any[] = [];
+    if (profile?.role === 'client' && activeBookingsData.activeBookings > 0) {
+      try {
+        const { data: clientBookings } = await supabase
+          .from('bookings')
+          .select(`
+            id,
+            booking_date,
+            start_time,
+            end_time,
+            total_price,
+            facility_id,
+            facilities:facility_id (
+              name,
+              owner_id,
+              profiles:owner_id (
+                email,
+                full_name
+              )
+            )
+          `)
+          .eq('client_id', user.id)
+          .gte('booking_date', new Date().toISOString().split('T')[0])
+          .in('status', ['confirmed', 'pending']);
+
+        if (clientBookings && clientBookings.length > 0) {
+          // Group bookings by facility owner
+          const ownerBookingsMap = new Map();
+          
+          clientBookings.forEach((booking: any) => {
+            const ownerId = booking.facilities?.owner_id;
+            const ownerEmail = booking.facilities?.profiles?.email;
+            const ownerName = booking.facilities?.profiles?.full_name;
+            
+            if (ownerId && ownerEmail) {
+              if (!ownerBookingsMap.has(ownerId)) {
+                ownerBookingsMap.set(ownerId, {
+                  ownerEmail,
+                  ownerName,
+                  bookings: []
+                });
+              }
+              
+              ownerBookingsMap.get(ownerId).bookings.push({
+                facilityName: booking.facilities?.name,
+                bookingDate: new Date(booking.booking_date).toLocaleDateString("ro-RO"),
+                bookingTime: `${booking.start_time?.slice(0, 5)} - ${booking.end_time?.slice(0, 5)}`,
+                totalPrice: booking.total_price
+              });
+            }
+          });
+
+          facilityOwnerNotifications = Array.from(ownerBookingsMap.values());
+        }
+      } catch (error) {
+        console.error('Error collecting facility owner notifications:', error);
+      }
+    }
+
     // If this is a facility owner with bookings, collect cancellation email data
     let cancellationData = null;
     if (profile?.role === 'facility_owner' && ownerFacilitiesData.activeBookings > 0) {
@@ -154,7 +214,7 @@ export const deleteUserAccount = async () => {
       throw error;
     }
 
-    // Send cancellation emails AFTER successful deletion if needed
+    // Send cancellation emails to clients AFTER successful deletion if facility owner deleted account
     if (cancellationData && cancellationData.bookings && cancellationData.bookings.length > 0) {
       try {
         // Send individual cancellation emails for each booking
@@ -180,6 +240,32 @@ export const deleteUserAccount = async () => {
         }
       } catch (emailError) {
         console.error('Error sending cancellation emails:', emailError);
+        // Don't fail the deletion if email fails
+      }
+    }
+
+    // Send notifications to facility owners if client deleted their account
+    if (facilityOwnerNotifications.length > 0) {
+      try {
+        for (const ownerData of facilityOwnerNotifications) {
+          const emailResult = await supabase.functions.invoke('send-facility-owner-notification', {
+            body: {
+              ownerEmail: ownerData.ownerEmail,
+              ownerName: ownerData.ownerName,
+              clientName: profile?.full_name || 'Client',
+              reason: 'Clientul și-a șters contul',
+              bookings: ownerData.bookings
+            }
+          });
+          
+          if (emailResult.error) {
+            console.error(`Facility owner notification error for ${ownerData.ownerEmail}:`, emailResult.error);
+          } else {
+            console.log(`Facility owner notification sent successfully to ${ownerData.ownerEmail}`);
+          }
+        }
+      } catch (emailError) {
+        console.error('Error sending facility owner notifications:', emailError);
         // Don't fail the deletion if email fails
       }
     }
