@@ -566,6 +566,20 @@ const FacilitiesPage = () => {
                 const checkEndMinutes = startMinutes + minDuration;
                 const checkEndTime = `${Math.floor(checkEndMinutes / 60).toString().padStart(2, '0')}:${(checkEndMinutes % 60).toString().padStart(2, '0')}`;
 
+                // Check if start time + minimum duration fits within operating hours
+                const opStart = facility.operating_hours_start || '08:00';
+                const opEnd = facility.operating_hours_end || '22:00';
+                const [opSH, opSM] = opStart.split(':').map(Number);
+                const [opEH, opEM] = opEnd.split(':').map(Number);
+                const opStartMinutes = opSH * 60 + opSM;
+                const opEndMinutes = opEH * 60 + opEM;
+                
+                // If the booking would extend past closing time, hide the facility
+                if (startMinutes < opStartMinutes || checkEndMinutes > opEndMinutes) {
+                  unavailableFacilities.add(facility.id);
+                  return;
+                }
+
                 // Check if the selected time + minimum duration would overlap with any booking
                 const hasBookingConflict = facilityBookings.some(booking => {
                   return booking.start_time < checkEndTime && booking.end_time > startTime;
