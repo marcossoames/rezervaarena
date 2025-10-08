@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Clock, MapPin, CreditCard, Banknote, X, User, ArrowLeft, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { ro } from "date-fns/locale";
@@ -57,6 +58,7 @@ const MyReservationsPage = () => {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [sortBy, setSortBy] = useState<string>('recent'); // recent, upcoming, date_asc, date_desc, price_asc, price_desc
+  const [activeTab, setActiveTab] = useState<string>('upcoming'); // upcoming or past
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -456,12 +458,51 @@ const MyReservationsPage = () => {
     }
   };
 
-  // Sort bookings based on sort criteria
+  // Filter bookings based on active tab (upcoming or past)
+  const getFilteredBookings = () => {
+    const now = new Date();
+    
+    if (activeTab === 'upcoming') {
+      // Future bookings: start_time > now
+      return bookings.filter(booking => {
+        const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
+        return bookingDateTime > now;
+      });
+    } else {
+      // Past bookings: end_time < now
+      return bookings.filter(booking => {
+        const bookingDateTime = new Date(`${booking.booking_date}T${booking.end_time}`);
+        return bookingDateTime <= now;
+      });
+    }
+  };
+
+  // Sort bookings based on sort criteria and active tab
   const getSortedBookings = () => {
-    // Apply sorting
-    const sortedBookings = [...bookings].sort((a, b) => {
-      const now = new Date();
-      
+    const filteredBookings = getFilteredBookings();
+    const now = new Date();
+    
+    // For regular clients viewing their bookings
+    if (userProfile && !userProfile.user_type_comment?.includes('Proprietar bază sportivă') && userProfile.role !== 'admin') {
+      if (activeTab === 'upcoming') {
+        // Upcoming bookings: sort ascending (next ones first)
+        return [...filteredBookings].sort((a, b) => {
+          const aDate = new Date(`${a.booking_date}T${a.start_time}`);
+          const bDate = new Date(`${b.booking_date}T${b.start_time}`);
+          return aDate.getTime() - bDate.getTime();
+        });
+      } else {
+        // Past bookings: sort descending (most recent finished first)
+        return [...filteredBookings].sort((a, b) => {
+          const aDate = new Date(`${a.booking_date}T${a.end_time}`);
+          const bDate = new Date(`${b.booking_date}T${b.end_time}`);
+          return bDate.getTime() - aDate.getTime();
+        });
+      }
+    }
+    
+    // For facility owners and admins, keep the existing sort functionality
+    const sortedBookings = [...filteredBookings].sort((a, b) => {
       switch (sortBy) {
         case 'recent':
           // Most recently created reservations first
@@ -516,138 +557,10 @@ const MyReservationsPage = () => {
     
     return isFacilityOwner && booking.facilities.owner_id === userProfile.user_id;
   };
-  if (loading) {
-    return <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-lg text-muted-foreground">Se încarcă rezervările...</p>
-          </div>
-        </main>
-        <Footer />
-      </div>;
-  }
-  return <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                if (cameFromManageFacilities) {
-                  navigate('/manage-facilities');
-                } else if (userProfile?.role === 'facility_owner' || userProfile?.user_type_comment?.includes('Proprietar bază sportivă')) {
-                  navigate('/facility-owner-profile');
-                } else if (userProfile?.role === 'admin') {
-                  navigate('/admin/dashboard');
-                } else {
-                  navigate('/client-profile');
-                }
-              }}
-              className="flex items-center gap-2 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary rounded-md px-3 py-2 transition-all duration-200"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {cameFromManageFacilities ? 'Înapoi la Facilități' : 'Înapoi la Profil'}
-            </Button>
-            
-            {/* Buttons for facility owners and admins */}
-            {(userProfile?.role === 'facility_owner' || userProfile?.user_type_comment?.includes('Proprietar bază sportivă') || userProfile?.role === 'admin') && (
-              <div className="flex items-center gap-2">
-                {/* General Calendar Button */}
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/general-calendar')}
-                  className="flex items-center gap-2"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Calendar General
-                </Button>
 
-                {/* Existing Calendar Facilități Button */}
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/facility-calendar')}
-                  className="flex items-center gap-2"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Calendar Facilități
-                </Button>
-
-                {/* Sorting Button */}
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-48">
-                    <div className="flex items-center gap-2">
-                      <ArrowUpDown className="h-4 w-4" />
-                      <SelectValue placeholder="Sortează rezervările" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="upcoming">Cronologic (data urmează)</SelectItem>
-                    <SelectItem value="recent">Data creării (recent)</SelectItem>
-                    <SelectItem value="date_desc">Data rezervării (recent → vechi)</SelectItem>
-                    <SelectItem value="date_asc">Data rezervării (vechi → recent)</SelectItem>
-                    <SelectItem value="price_desc">Preț (mare → mic)</SelectItem>
-                    <SelectItem value="price_asc">Preț (mic → mare)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
-          <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
-          
-          {/* Add sorting for regular clients */}
-          {userProfile && !userProfile.user_type_comment?.includes('Proprietar bază sportivă') && userProfile.role !== 'admin' && (
-            <div className="mt-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <label className="text-sm font-medium text-muted-foreground">Sortează după:</label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="ml-2 w-auto min-w-[200px]">
-                      <ArrowUpDown className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Alege criteriul de sortare" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="recent">Cea mai recent făcută</SelectItem>
-                      <SelectItem value="upcoming">Cea care urmează</SelectItem>
-                      <SelectItem value="date_desc">Data rezervării (recent → vechi)</SelectItem>
-                      <SelectItem value="date_asc">Data rezervării (vechi → recent)</SelectItem>
-                      <SelectItem value="price_desc">Preț (mare → mic)</SelectItem>
-                      <SelectItem value="price_asc">Preț (mic → mare)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {(() => {
-          // Updated function to handle sorting without status filtering
-          const sortedBookings = getSortedBookings();
-          return sortedBookings.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">
-                Nu ai rezervări
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                {userProfile?.user_type_comment?.includes('Proprietar bază sportivă') || userProfile?.role === 'admin' 
-                  ? 'Când clienții vor face rezervări pentru facilitățile tale le vei vedea aici.' 
-                  : 'Când vei avea rezervări le vei vedea aici.'}
-              </p>
-              <Button asChild>
-                <a href="/facilities">Explorează Terenurile</a>
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6">
-            {sortedBookings.map(booking => <Card key={booking.id} id={`booking-${booking.id}`} className="transition-all duration-200 hover:shadow-lg">
+  // Helper function to render booking cards
+  const renderBookingCards = (sortedBookings: Booking[]) => {
+    return sortedBookings.map(booking => <Card key={booking.id} id={`booking-${booking.id}`} className="transition-all duration-200 hover:shadow-lg">
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -819,13 +732,175 @@ const MyReservationsPage = () => {
                       )}
                     </div>}
                 </CardContent>
-              </Card>)}
+              </Card>);
+  };
+
+  if (loading) {
+    return <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-lg text-muted-foreground">Se încarcă rezervările...</p>
           </div>
-        );
-        })()}
-      </main>
+        </main>
+        <Footer />
+      </div>;
+  }
+  return <div className="min-h-screen bg-background">
+      <Header />
       
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                if (cameFromManageFacilities) {
+                  navigate('/manage-facilities');
+                } else if (userProfile?.role === 'facility_owner' || userProfile?.user_type_comment?.includes('Proprietar bază sportivă')) {
+                  navigate('/facility-owner-profile');
+                } else if (userProfile?.role === 'admin') {
+                  navigate('/admin/dashboard');
+                } else {
+                  navigate('/client-profile');
+                }
+              }}
+              className="flex items-center gap-2 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary rounded-md px-3 py-2 transition-all duration-200"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {cameFromManageFacilities ? 'Înapoi la Facilități' : 'Înapoi la Profil'}
+            </Button>
+            
+            {/* Buttons for facility owners and admins */}
+            {(userProfile?.role === 'facility_owner' || userProfile?.user_type_comment?.includes('Proprietar bază sportivă') || userProfile?.role === 'admin') && (
+              <div className="flex items-center gap-2">
+                {/* General Calendar Button */}
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/general-calendar')}
+                  className="flex items-center gap-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Calendar General
+                </Button>
+
+                {/* Existing Calendar Facilități Button */}
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/facility-calendar')}
+                  className="flex items-center gap-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Calendar Facilități
+                </Button>
+
+                {/* Sorting Button */}
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-48">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="h-4 w-4" />
+                      <SelectValue placeholder="Sortează rezervările" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="upcoming">Cronologic (data urmează)</SelectItem>
+                    <SelectItem value="recent">Data creării (recent)</SelectItem>
+                    <SelectItem value="date_desc">Data rezervării (recent → vechi)</SelectItem>
+                    <SelectItem value="date_asc">Data rezervării (vechi → recent)</SelectItem>
+                    <SelectItem value="price_desc">Preț (mare → mic)</SelectItem>
+                    <SelectItem value="price_asc">Preț (mic → mare)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
+          <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
+        </div>
+
+        {/* Tabs for regular clients to switch between upcoming and past bookings */}
+        {userProfile && !userProfile.user_type_comment?.includes('Proprietar bază sportivă') && userProfile.role !== 'admin' ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-6">
+              <TabsTrigger value="upcoming">Rezervări Viitoare</TabsTrigger>
+              <TabsTrigger value="past">Rezervări Trecute</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upcoming">
+              {(() => {
+                const sortedBookings = getSortedBookings();
+                return sortedBookings.length === 0 ? (
+                  <Card className="text-center py-12">
+                    <CardContent>
+                      <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">
+                        Nu ai rezervări viitoare
+                      </h3>
+                      <p className="text-muted-foreground mb-6">
+                        Explorează terenurile disponibile și fă o rezervare!
+                      </p>
+                      <Button asChild>
+                        <a href="/facilities">Explorează Terenurile</a>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-6">{renderBookingCards(sortedBookings)}</div>
+                );
+              })()}
+            </TabsContent>
+            
+            <TabsContent value="past">
+              {(() => {
+                const sortedBookings = getSortedBookings();
+                return sortedBookings.length === 0 ? (
+                  <Card className="text-center py-12">
+                    <CardContent>
+                      <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">
+                        Nu ai rezervări trecute
+                      </h3>
+                      <p className="text-muted-foreground mb-6">
+                        Rezervările pe care le-ai finalizat vor apărea aici.
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-6">{renderBookingCards(sortedBookings)}</div>
+                );
+              })()}
+            </TabsContent>
+          </Tabs>
+        ) : (
+          // For facility owners and admins, keep existing layout
+          <>
+            {(() => {
+              const sortedBookings = getSortedBookings();
+              return sortedBookings.length === 0 ? (
+                <Card className="text-center py-12">
+                  <CardContent>
+                    <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">
+                      Nu ai rezervări
+                    </h3>
+                    <p className="text-muted-foreground mb-6">
+                      Când clienții vor face rezervări pentru facilitățile tale le vei vedea aici.
+                    </p>
+                    <Button asChild>
+                      <a href="/facilities">Explorează Terenurile</a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-6">{renderBookingCards(sortedBookings)}</div>
+              );
+            })()}
+          </>
+        )}
+      </main>
       <Footer />
     </div>;
 };
+
 export default MyReservationsPage;
