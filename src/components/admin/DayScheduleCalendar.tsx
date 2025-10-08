@@ -122,14 +122,15 @@ const DayScheduleCalendar = ({
   return slots;
   };
 
-  // Filter bookings for selected date and facility
+  // Filter bookings for selected date and facility (exclude cancelled bookings)
   const getDayBookings = () => {
     if (!selectedDate) return [];
     
     return bookings.filter(booking => {
       const matchesDate = format(new Date(booking.booking_date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
       const matchesFacility = selectedFacility === 'all' || booking.facility_id === selectedFacility;
-      return matchesDate && matchesFacility;
+      const isNotCancelled = booking.status !== 'cancelled';
+      return matchesDate && matchesFacility && isNotCancelled;
     });
   };
 
