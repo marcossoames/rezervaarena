@@ -125,12 +125,15 @@ const DayScheduleCalendar = ({
   // Filter bookings for selected date and facility (exclude cancelled bookings)
   const getDayBookings = () => {
     if (!selectedDate) return [];
+
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     
     return bookings.filter(booking => {
       const matchesDate = format(new Date(booking.booking_date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
       const matchesFacility = selectedFacility === 'all' || booking.facility_id === selectedFacility;
       const isNotCancelled = booking.status !== 'cancelled';
-      return matchesDate && matchesFacility && isNotCancelled;
+      const isExpiredPendingCard = booking.status === 'pending' && booking.payment_method === 'card' && new Date(booking.created_at) < tenMinutesAgo;
+      return matchesDate && matchesFacility && isNotCancelled && !isExpiredPendingCard;
     });
   };
 
