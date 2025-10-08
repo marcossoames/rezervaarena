@@ -269,7 +269,10 @@ const FacilityCalendarPage = () => {
 
   const getAllBookingsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return bookings.filter(booking => booking.booking_date === dateStr);
+    // Exclude cancelled bookings from calendar and day list (they remain in full booking list)
+    return bookings.filter(booking => 
+      booking.booking_date === dateStr && booking.status !== 'cancelled'
+    );
   };
 
   const getActiveBookingsForDate = (date: Date) => {
