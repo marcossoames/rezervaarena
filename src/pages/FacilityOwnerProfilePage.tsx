@@ -542,7 +542,11 @@ const deleteBankDetails = async () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <span className="text-sm text-muted-foreground">Adresă:</span>
-                      <p className="font-medium">{sportsComplexData?.address || "Nu este setată"}</p>
+                      <p className="font-medium">
+                        {sportsComplexData?.address 
+                          ? `${sportsComplexData.address}, ${sportsComplexData.city || ''}`.trim().replace(/,\s*$/, '')
+                          : "Nu este setată"}
+                      </p>
                     </div>
                     <div>
                       <span className="text-sm text-muted-foreground">Descriere:</span>

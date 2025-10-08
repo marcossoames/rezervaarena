@@ -1240,7 +1240,9 @@ applyFilters();
                                 }}
                                 className="text-left hover:text-primary hover:underline cursor-pointer transition-colors"
                               >
-                                {facility.address || facility.sports_complex_address || `${facility.city}`}
+                                {facility.address || facility.sports_complex_address 
+                                  ? `${facility.address || facility.sports_complex_address}, ${facility.city}` 
+                                  : facility.city}
                               </a>
                             </div>
                             {/* Operating Hours */}
