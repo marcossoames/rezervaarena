@@ -146,10 +146,12 @@ serve(async (req) => {
       }
     }
 
-    // SECURITY: Check for overlapping existing bookings
+    // SECURITY: Check for overlapping existing bookings (exclude old pending ones)
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    
     const { data: existingBookings, error: bookingCheckError } = await supabaseService
       .from('bookings')
-      .select('start_time, end_time')
+      .select('start_time, end_time, status, created_at')
       .eq('facility_id', facilityId)
       .eq('booking_date', bookingDate)
       .in('status', ['confirmed', 'pending']);
@@ -160,8 +162,13 @@ serve(async (req) => {
     }
 
     if (existingBookings && existingBookings.length > 0) {
-      // Check for overlap with existing bookings
+      // Check for overlap with existing bookings (excluding old pending ones)
       for (const booking of existingBookings) {
+        // Skip pending bookings older than 10 minutes (they will be auto-cancelled)
+        if (booking.status === 'pending' && booking.created_at && booking.created_at < tenMinutesAgo) {
+          continue;
+        }
+        
         const bookingStart = booking.start_time;
         const bookingEnd = booking.end_time;
         

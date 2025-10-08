@@ -80,6 +80,33 @@ serve(async (req) => {
       return null;
     };
 
+    // Auto-cancel old pending bookings (>10 min) for this session
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { data: oldPendingBooking } = await supabaseService
+      .from('bookings')
+      .select('id, created_at')
+      .eq('stripe_session_id', sessionId)
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    if (oldPendingBooking && oldPendingBooking.created_at && oldPendingBooking.created_at < tenMinutesAgo) {
+      logStep('Auto-cancelling old pending booking (>10 min)', { bookingId: oldPendingBooking.id });
+      await supabaseService
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', oldPendingBooking.id);
+      
+      await supabaseService
+        .from('platform_payments')
+        .update({ payment_status: 'cancelled' })
+        .eq('stripe_session_id', sessionId);
+
+      return new Response(
+        JSON.stringify({ status: 'timeout', message: 'Payment processing timeout (>10 minutes)' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
     if (isPaid) {
       // Try to get or create booking
       let { data: booking } = await supabaseService
