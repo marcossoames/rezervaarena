@@ -475,8 +475,8 @@ const ManageFacilitiesPage = () => {
                     </Badge>
                   </div>
                   
-                  <CardHeader className="pb-2 flex-shrink-0">
-                    <div className="flex items-start justify-between min-h-[70px]">
+                  <CardHeader className="pb-2 flex-shrink-0 py-3">
+                    <div className="flex items-start justify-between min-h-[60px]">
                       <div className="flex-1 pr-2">
                         <CardTitle className="text-lg leading-tight line-clamp-2">{facility.name}</CardTitle>
                         <CardDescription className="flex items-start gap-1 mt-1 text-xs">
@@ -487,8 +487,8 @@ const ManageFacilitiesPage = () => {
                     </div>
                   </CardHeader>
                    
-                   <CardContent className="flex-1 flex flex-col justify-between p-4">
-                     <div className="space-y-4 flex-1">
+                   <CardContent className="flex-1 flex flex-col justify-between p-4 pt-2">
+                     <div className="space-y-3 flex-1">
                        {/* Type Badge */}
                        <div className="flex items-center justify-between">
                          <Badge variant="outline" className="text-xs">
@@ -496,9 +496,9 @@ const ManageFacilitiesPage = () => {
                          </Badge>
                        </div>
 
-                       {/* Capacity and Price - Fixed Height */}
-                       <div className="grid grid-cols-2 gap-3 text-sm">
-                         <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md min-h-[60px]">
+                       {/* Capacity and Price - Reduced Height */}
+                       <div className="grid grid-cols-2 gap-2 text-sm">
+                         <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md min-h-[50px]">
                            <Users className="h-4 w-4 text-primary flex-shrink-0" />
                            <div className="flex flex-col justify-center min-w-0">
                              <span className="text-xs text-muted-foreground">Capacitate</span>
@@ -510,7 +510,7 @@ const ManageFacilitiesPage = () => {
                              </span>
                            </div>
                          </div>
-                         <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md min-h-[60px]">
+                         <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md min-h-[50px]">
                            <Clock className="h-4 w-4 text-primary flex-shrink-0" />
                            <div className="flex flex-col justify-center min-w-0">
                              <span className="text-xs text-muted-foreground">Preț</span>
@@ -519,8 +519,8 @@ const ManageFacilitiesPage = () => {
                          </div>
                        </div>
 
-                       {/* Description section - Fixed Height */}
-                       <div className="h-[44px] flex items-start">
+                       {/* Description section - Reduced Height */}
+                       <div className="h-[36px] flex items-start">
                          {facility.description ? (
                            <p className="text-sm text-muted-foreground line-clamp-2 leading-tight">
                              {facility.description}
@@ -530,8 +530,8 @@ const ManageFacilitiesPage = () => {
                          )}
                        </div>
 
-                        {/* Services and Amenities section - Fixed Height */}
-                        <div className="h-[80px] flex flex-col justify-start space-y-2">
+                        {/* Services and Amenities section - More Space */}
+                        <div className="min-h-[100px] flex flex-col justify-start space-y-2">
                           {/* General Services (from sports complex) */}
                           {facility.general_services && facility.general_services.length > 0 && (
                             <div>
