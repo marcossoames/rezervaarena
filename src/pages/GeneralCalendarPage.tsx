@@ -372,12 +372,12 @@ const GeneralCalendarPage = () => {
 
       const facilityIds = facilitiesData.map(f => f.id);
 
-      // Load all bookings for all facilities
+      // Load all bookings for all facilities (include completed and no_show)
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
         .in('facility_id', facilityIds)
-        .in('status', ['confirmed', 'pending']);
+        .in('status', ['confirmed', 'pending', 'completed', 'no_show']);
 
       if (bookingsError) throw bookingsError;
 
