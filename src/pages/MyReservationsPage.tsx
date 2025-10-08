@@ -463,16 +463,16 @@ const MyReservationsPage = () => {
     const now = new Date();
     
     if (activeTab === 'upcoming') {
-      // Future bookings: start_time > now
+      // Future bookings: start_time > now, exclude cancelled
       return bookings.filter(booking => {
         const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
-        return bookingDateTime > now;
+        return bookingDateTime > now && booking.status !== 'cancelled';
       });
     } else {
-      // Past bookings: end_time < now
+      // Past bookings: end_time < now OR cancelled status
       return bookings.filter(booking => {
         const bookingDateTime = new Date(`${booking.booking_date}T${booking.end_time}`);
-        return bookingDateTime <= now;
+        return bookingDateTime <= now || booking.status === 'cancelled';
       });
     }
   };
