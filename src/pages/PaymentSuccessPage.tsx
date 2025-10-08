@@ -13,7 +13,7 @@ const PaymentSuccessPage = () => {
   const { toast } = useToast();
   const sessionId = searchParams.get('session_id');
   
-  const [paymentStatus, setPaymentStatus] = useState<'loading' | 'success' | 'failed'>('loading');
+  const [paymentStatus, setPaymentStatus] = useState<'loading' | 'success' | 'failed' | 'timeout'>('loading');
   const [isLoading, setIsLoading] = useState(true);
   const [bookingId, setBookingId] = useState<string | null>(null);
 
@@ -58,6 +58,13 @@ const PaymentSuccessPage = () => {
           setTimeout(() => {
             window.location.href = `/my-reservations?highlight=${data.bookingId || 'latest'}`;
           }, 2000);
+        } else if (data.status === 'timeout') {
+          setPaymentStatus('timeout');
+          toast({
+            title: "Procesare expirată",
+            description: "Procesarea plății a depășit 10 minute și a fost anulată automat",
+            variant: "destructive"
+          });
         } else {
           setPaymentStatus('failed');
           toast({
@@ -86,6 +93,7 @@ const PaymentSuccessPage = () => {
     switch (paymentStatus) {
       case 'success':
         return <CheckCircle className="h-16 w-16 text-green-500" />;
+      case 'timeout':
       case 'failed':
         return <XCircle className="h-16 w-16 text-red-500" />;
       default:
@@ -97,6 +105,8 @@ const PaymentSuccessPage = () => {
     switch (paymentStatus) {
       case 'success':
         return 'Plată reușită!';
+      case 'timeout':
+        return 'Procesare expirată';
       case 'failed':
         return 'Plată nereușită';
       default:
@@ -108,6 +118,8 @@ const PaymentSuccessPage = () => {
     switch (paymentStatus) {
       case 'success':
         return 'Rezervarea a fost confirmată cu succes. Vă așteptăm la baza sportivă!';
+      case 'timeout':
+        return 'Procesarea plății a depășit 10 minute și rezervarea a fost anulată automat. Calendarul este din nou disponibil. Vă rugăm să încercați din nou.';
       case 'failed':
         return 'Plata nu a putut fi procesată. Vă rugăm să încercați din nou sau să alegeți plata cu numerar.';
       default:
@@ -161,7 +173,7 @@ const PaymentSuccessPage = () => {
                   </Button>
                 </Link>
                 
-                {paymentStatus === 'failed' && (
+                {(paymentStatus === 'failed' || paymentStatus === 'timeout') && (
                   <Link to="/facilities">
                     <Button variant="outline" className="w-full sm:w-auto">
                       Încearcă din nou
