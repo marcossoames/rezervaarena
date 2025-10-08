@@ -45,7 +45,7 @@ interface BookingWithDetails {
   start_time: string;
   end_time: string;
   total_price: number;
-  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show' | 'pending';
   payment_method: string;
   facility_id: string;
   client_id: string;
@@ -231,8 +231,17 @@ const ManageFacilitiesPage = () => {
         const bookingDateTime = new Date(`${booking.booking_date}T${booking.end_time}`);
         return bookingDateTime <= now || booking.status === 'cancelled';
       });
-      // Sort descending (most recent finished first)
+      // Sort: FIRST show unprocessed bookings (confirmed/pending), THEN processed ones (completed/no_show/cancelled)
+      // Within each group, sort descending (most recent first)
       filtered.sort((a, b) => {
+        const aIsUnprocessed = a.status === 'confirmed' || a.status === 'pending';
+        const bIsUnprocessed = b.status === 'confirmed' || b.status === 'pending';
+        
+        // Unprocessed bookings first
+        if (aIsUnprocessed && !bIsUnprocessed) return -1;
+        if (!aIsUnprocessed && bIsUnprocessed) return 1;
+        
+        // Within same group, most recent first
         const aDate = new Date(`${a.booking_date}T${a.end_time}`);
         const bDate = new Date(`${b.booking_date}T${b.end_time}`);
         return bDate.getTime() - aDate.getTime();
@@ -240,6 +249,13 @@ const ManageFacilitiesPage = () => {
     }
     
     setSortedBookings(filtered);
+  };
+
+  // Helper function to check if booking needs attention
+  const needsAttention = (booking: BookingWithDetails) => {
+    const now = new Date();
+    const bookingDateTime = new Date(`${booking.booking_date}T${booking.end_time}`);
+    return bookingDateTime <= now && (booking.status === 'confirmed' || booking.status === 'pending');
   };
 
 
@@ -768,12 +784,24 @@ const ManageFacilitiesPage = () => {
             </Card>
           ) : (
             <div className="grid gap-4">
-              {sortedBookings.map((booking) => (
-                <Card key={booking.id} className="transition-all duration-200 hover:shadow-lg">
+              {sortedBookings.map((booking) => {
+                const requiresAction = needsAttention(booking);
+                return (
+                <Card 
+                  key={booking.id} 
+                  className={`transition-all duration-200 hover:shadow-lg ${requiresAction ? 'border-2 border-amber-500 shadow-md' : ''}`}
+                >
                   <CardHeader className="pb-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-lg mb-2">{booking.facility_name}</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-lg mb-2">{booking.facility_name}</CardTitle>
+                          {requiresAction && (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
+                              Necesită atenție
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex items-center text-muted-foreground mb-1">
                           <MapPin className="h-4 w-4 mr-2" />
                           <span>{booking.facility_address || 'Locație nedisponibilă'}</span>
@@ -874,7 +902,8 @@ const ManageFacilitiesPage = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              );
+              })}
             </div>
           )}
         </TabsContent>
