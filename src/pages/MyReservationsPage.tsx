@@ -482,8 +482,8 @@ const MyReservationsPage = () => {
     const filteredBookings = getFilteredBookings();
     const now = new Date();
     
-    // For regular clients viewing their bookings
-    if (userProfile && !userProfile.user_type_comment?.includes('Proprietar bază sportivă') && userProfile.role !== 'admin') {
+    // For regular clients AND facility owners viewing their bookings (using tabs)
+    if (userProfile && userProfile.role !== 'admin') {
       if (activeTab === 'upcoming') {
         // Upcoming bookings: sort ascending (next ones first)
         return [...filteredBookings].sort((a, b) => {
@@ -501,7 +501,7 @@ const MyReservationsPage = () => {
       }
     }
     
-    // For facility owners and admins, keep the existing sort functionality
+    // For admins, keep the existing sort functionality
     const sortedBookings = [...filteredBookings].sort((a, b) => {
       switch (sortBy) {
         case 'recent':
@@ -795,23 +795,25 @@ const MyReservationsPage = () => {
                   Calendar Facilități
                 </Button>
 
-                {/* Sorting Button */}
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-48">
-                    <div className="flex items-center gap-2">
-                      <ArrowUpDown className="h-4 w-4" />
-                      <SelectValue placeholder="Sortează rezervările" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="upcoming">Cronologic (data urmează)</SelectItem>
-                    <SelectItem value="recent">Data creării (recent)</SelectItem>
-                    <SelectItem value="date_desc">Data rezervării (recent → vechi)</SelectItem>
-                    <SelectItem value="date_asc">Data rezervării (vechi → recent)</SelectItem>
-                    <SelectItem value="price_desc">Preț (mare → mic)</SelectItem>
-                    <SelectItem value="price_asc">Preț (mic → mare)</SelectItem>
-                  </SelectContent>
-                </Select>
+                {/* Sorting Button - only for admins */}
+                {userProfile?.role === 'admin' && (
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-48">
+                      <div className="flex items-center gap-2">
+                        <ArrowUpDown className="h-4 w-4" />
+                        <SelectValue placeholder="Sortează rezervările" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="upcoming">Cronologic (data urmează)</SelectItem>
+                      <SelectItem value="recent">Data creării (recent)</SelectItem>
+                      <SelectItem value="date_desc">Data rezervării (recent → vechi)</SelectItem>
+                      <SelectItem value="date_asc">Data rezervării (vechi → recent)</SelectItem>
+                      <SelectItem value="price_desc">Preț (mare → mic)</SelectItem>
+                      <SelectItem value="price_asc">Preț (mic → mare)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             )}
           </div>
@@ -819,8 +821,8 @@ const MyReservationsPage = () => {
           <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
         </div>
 
-        {/* Tabs for regular clients to switch between upcoming and past bookings */}
-        {userProfile && !userProfile.user_type_comment?.includes('Proprietar bază sportivă') && userProfile.role !== 'admin' ? (
+        {/* Tabs for regular clients and facility owners to switch between upcoming and past bookings */}
+        {userProfile && userProfile.role !== 'admin' ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-6">
               <TabsTrigger value="upcoming">Rezervări Viitoare</TabsTrigger>
@@ -873,7 +875,7 @@ const MyReservationsPage = () => {
             </TabsContent>
           </Tabs>
         ) : (
-          // For facility owners and admins, keep existing layout
+          // For admins, keep existing layout with sorting
           <>
             {(() => {
               const sortedBookings = getSortedBookings();
@@ -882,14 +884,11 @@ const MyReservationsPage = () => {
                   <CardContent>
                     <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-xl font-semibold mb-2">
-                      Nu ai rezervări
+                      Nu există rezervări
                     </h3>
                     <p className="text-muted-foreground mb-6">
-                      Când clienții vor face rezervări pentru facilitățile tale le vei vedea aici.
+                      Rezervările din sistem vor apărea aici.
                     </p>
-                    <Button asChild>
-                      <a href="/facilities">Explorează Terenurile</a>
-                    </Button>
                   </CardContent>
                 </Card>
               ) : (
