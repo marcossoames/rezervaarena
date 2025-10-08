@@ -33,7 +33,6 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
   const [endTime, setEndTime] = useState("");
   const [notes, setNotes] = useState("");
   const [isRecurring, setIsRecurring] = useState(false);
-  const [recurringType, setRecurringType] = useState<'weekly'>('weekly');
   const [recurringEndDate, setRecurringEndDate] = useState<Date>();
   const [isLoading, setIsLoading] = useState(false);
   const [existingBookings, setExistingBookings] = useState<any[]>([]);
@@ -566,24 +565,12 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
               />
               <Label htmlFor="recurring" className="flex items-center gap-2">
                 <Repeat className="h-4 w-4" />
-                Rezervare recurentă
+                Rezervare recurentă săptămânală
               </Label>
             </div>
             
             {isRecurring && (
               <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
-                <div className="space-y-2">
-                  <Label>Tip recurență</Label>
-                  <Select value={recurringType} onValueChange={(value: 'weekly') => setRecurringType(value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekly">Săptămânal</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
                 <div className="space-y-2">
                   <Label>Data de sfârșit</Label>
                   <Calendar
