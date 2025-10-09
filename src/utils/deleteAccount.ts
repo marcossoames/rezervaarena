@@ -244,28 +244,35 @@ export const deleteUserAccount = async () => {
       }
     }
 
-    // Send notifications to facility owners if client deleted their account
+    // Send cancellation emails to facility owners if client deleted their account
     if (facilityOwnerNotifications.length > 0) {
       try {
         for (const ownerData of facilityOwnerNotifications) {
-          const emailResult = await supabase.functions.invoke('send-facility-owner-notification', {
-            body: {
-              ownerEmail: ownerData.ownerEmail,
-              ownerName: ownerData.ownerName,
-              clientName: profile?.full_name || 'Client',
-              reason: 'Clientul și-a șters contul',
-              bookings: ownerData.bookings
+          // Send individual cancellation emails for each booking to facility owner
+          for (const booking of ownerData.bookings) {
+            const emailResult = await supabase.functions.invoke('send-booking-cancellation-email', {
+              body: {
+                clientEmails: [ownerData.ownerEmail],
+                facilityName: booking.facilityName,
+                reason: `Clientul ${profile?.full_name || 'Client'} și-a șters contul`,
+                cancellationSource: 'account_deletion',
+                bookingDetails: {
+                  date: booking.bookingDate,
+                  time: booking.bookingTime,
+                  price: booking.totalPrice
+                }
+              }
+            });
+            
+            if (emailResult.error) {
+              console.error(`Cancellation email error for facility owner ${ownerData.ownerEmail}:`, emailResult.error);
+            } else {
+              console.log(`Cancellation email sent successfully to facility owner ${ownerData.ownerEmail}`);
             }
-          });
-          
-          if (emailResult.error) {
-            console.error(`Facility owner notification error for ${ownerData.ownerEmail}:`, emailResult.error);
-          } else {
-            console.log(`Facility owner notification sent successfully to ${ownerData.ownerEmail}`);
           }
         }
       } catch (emailError) {
-        console.error('Error sending facility owner notifications:', emailError);
+        console.error('Error sending cancellation emails to facility owners:', emailError);
         // Don't fail the deletion if email fails
       }
     }
