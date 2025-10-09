@@ -417,6 +417,58 @@ const deleteBankDetails = async () => {
     setActiveBookingsInfo(activeBookingsData);
     setShowDeleteDialog(true);
   };
+
+  const handleCancelAllBookings = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get all facilities owned by this user
+      const { data: facilities } = await supabase
+        .from('facilities')
+        .select('id')
+        .eq('owner_id', user.id);
+
+      if (!facilities || facilities.length === 0) return;
+
+      const facilityIds = facilities.map(f => f.id);
+
+      // Get all active bookings for these facilities
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('id')
+        .in('facility_id', facilityIds)
+        .gte('booking_date', new Date().toISOString().split('T')[0])
+        .in('status', ['confirmed', 'pending']);
+
+      if (!bookings || bookings.length === 0) return;
+
+      // Cancel all bookings
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .in('id', bookings.map(b => b.id));
+
+      if (error) throw error;
+
+      toast({
+        title: "Rezervări anulate",
+        description: `${bookings.length} rezervări au fost anulate cu succes.`,
+      });
+
+      // Refresh active bookings info
+      const updatedData = await checkOwnerActiveFacilityBookings();
+      setActiveBookingsInfo(updatedData);
+    } catch (error) {
+      console.error("Error cancelling bookings:", error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-au putut anula rezervările.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteAccount = async () => {
     try {
       const result = await deleteUserAccount();
@@ -712,16 +764,41 @@ const deleteBankDetails = async () => {
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirmă ștergerea contului</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {activeBookingsInfo?.activeBookings > 0 ? `Atenție: aveți ${activeBookingsInfo.activeBookings} rezervări viitoare pe facilitățile dvs. Confirmând, toate aceste rezervări vor fi anulate automat înainte de ștergerea contului.` : `Confirmând, contul va fi șters definitiv. Dacă există rezervări viitoare, acestea vor fi anulate automat înainte de ștergere.`}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Renunță</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Da, șterge contul
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
+                   <AlertDialogDescription>
+                     {activeBookingsInfo?.activeBookings > 0 ? (
+                       <div className="space-y-3">
+                         <p className="text-destructive font-semibold">
+                           Atenție: aveți {activeBookingsInfo.activeBookings} rezervări viitoare pe facilitățile dvs.
+                         </p>
+                         <p className="text-sm">
+                           Pentru a șterge contul, trebuie mai întâi să anulați toate rezervările active. Clienții vor primi emailuri de notificare pentru anulare.
+                         </p>
+                       </div>
+                     ) : (
+                       <p>
+                         Această acțiune este ireversibilă. Contul dvs. și toate datele asociate vor fi șterse permanent.
+                       </p>
+                     )}
+                   </AlertDialogDescription>
+                 </AlertDialogHeader>
+                 <AlertDialogFooter>
+                   <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Renunță</AlertDialogCancel>
+                   {activeBookingsInfo?.activeBookings > 0 ? (
+                     <AlertDialogAction 
+                       onClick={handleCancelAllBookings}
+                       className="bg-orange-600 text-white hover:bg-orange-700"
+                     >
+                       Anulează toate rezervările
+                     </AlertDialogAction>
+                   ) : (
+                     <AlertDialogAction 
+                       onClick={handleDeleteAccount} 
+                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                     >
+                       Da, șterge contul
+                     </AlertDialogAction>
+                   )}
+                 </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </CardContent>

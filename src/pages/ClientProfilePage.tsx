@@ -219,6 +219,47 @@ const ClientProfilePage = () => {
     setShowDeleteDialog(true);
   };
 
+  const handleCancelAllBookings = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get all active bookings
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('client_id', user.id)
+        .gte('booking_date', new Date().toISOString().split('T')[0])
+        .in('status', ['confirmed', 'pending']);
+
+      if (!bookings || bookings.length === 0) return;
+
+      // Cancel all bookings
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .in('id', bookings.map(b => b.id));
+
+      if (error) throw error;
+
+      toast({
+        title: "Rezervări anulate",
+        description: `${bookings.length} rezervări au fost anulate cu succes.`,
+      });
+
+      // Refresh active bookings info
+      const updatedData = await checkActiveBookings();
+      setActiveBookingsInfo(updatedData);
+    } catch (error) {
+      console.error("Error cancelling bookings:", error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-au putut anula rezervările.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
@@ -509,7 +550,7 @@ const ClientProfilePage = () => {
                             </ul>
                           </div>
                           <p className="text-sm">
-                            Această acțiune este <strong>ireversibilă</strong>. Contul tău și toate datele asociate vor fi șterse permanent.
+                            Pentru a șterge contul, trebuie mai întâi să anulezi toate rezervările active. Proprietarii bazelor sportive vor primi emailuri de notificare.
                           </p>
                         </div>
                       ) : (
@@ -519,16 +560,25 @@ const ClientProfilePage = () => {
                       )}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Anulează</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={handleDeleteAccount}
-                      disabled={isDeleting}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {isDeleting ? "Se șterge..." : "Da, șterge contul definitiv"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
+                   <AlertDialogFooter>
+                     <AlertDialogCancel>Anulează</AlertDialogCancel>
+                     {activeBookingsInfo?.activeBookings > 0 ? (
+                       <AlertDialogAction 
+                         onClick={handleCancelAllBookings}
+                         className="bg-orange-600 text-white hover:bg-orange-700"
+                       >
+                         Anulează toate rezervările
+                       </AlertDialogAction>
+                     ) : (
+                       <AlertDialogAction 
+                         onClick={handleDeleteAccount}
+                         disabled={isDeleting}
+                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                       >
+                         {isDeleting ? "Se șterge..." : "Da, șterge contul definitiv"}
+                       </AlertDialogAction>
+                     )}
+                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </CardContent>
