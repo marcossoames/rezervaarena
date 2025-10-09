@@ -260,14 +260,18 @@ const FacilityOwnerBookingsPage = () => {
 
         <Tabs value={bookingsSubTab} onValueChange={(value) => setBookingsSubTab(value as 'upcoming' | 'past')}>
           <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="upcoming">Viitoare ({sortedBookings.filter(b => {
-              const bookingDateTime = new Date(`${b.booking_date}T${b.start_time}`);
-              return bookingDateTime > new Date() && b.status !== 'cancelled';
-            }).length})</TabsTrigger>
-            <TabsTrigger value="past">Trecute ({sortedBookings.filter(b => {
-              const bookingDateTime = new Date(`${b.booking_date}T${b.end_time}`);
-              return bookingDateTime <= new Date() || b.status === 'cancelled';
-            }).length})</TabsTrigger>
+            <TabsTrigger value="upcoming">
+              Viitoare ({bookings.filter(b => {
+                const bookingDateTime = new Date(`${b.booking_date}T${b.start_time}`);
+                return bookingDateTime > new Date() && b.status !== 'cancelled';
+              }).length})
+            </TabsTrigger>
+            <TabsTrigger value="past">
+              Trecute ({bookings.filter(b => {
+                const bookingDateTime = new Date(`${b.booking_date}T${b.end_time}`);
+                return bookingDateTime <= new Date() || b.status === 'cancelled';
+              }).length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-4">
@@ -282,13 +286,28 @@ const FacilityOwnerBookingsPage = () => {
               sortedBookings.map((booking) => (
                 <Card key={booking.id} className="overflow-hidden">
                   <CardHeader className="bg-muted/30">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1 flex-1">
                         <CardTitle className="text-lg">{booking.facility_name}</CardTitle>
                         <CardDescription>{booking.facility_address}</CardDescription>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2">
                         {getStatusBadge(booking.status)}
+                        <BookingStatusManager
+                          booking={booking}
+                          onStatusUpdate={async () => {
+                            const { data: { user } } = await supabase.auth.getUser();
+                            if (user) {
+                              const { data: facilities } = await supabase
+                                .from('facilities')
+                                .select('id')
+                                .eq('owner_id', user.id);
+                              if (facilities) {
+                                await loadBookings(facilities.map(f => f.id));
+                              }
+                            }
+                          }}
+                        />
                       </div>
                     </div>
                   </CardHeader>
@@ -316,22 +335,6 @@ const FacilityOwnerBookingsPage = () => {
                         <p className="text-sm capitalize">{booking.payment_method}</p>
                       </div>
                     </div>
-
-                    <BookingStatusManager
-                      booking={booking}
-                      onStatusUpdate={async () => {
-                        const { data: { user } } = await supabase.auth.getUser();
-                        if (user) {
-                          const { data: facilities } = await supabase
-                            .from('facilities')
-                            .select('id')
-                            .eq('owner_id', user.id);
-                          if (facilities) {
-                            await loadBookings(facilities.map(f => f.id));
-                          }
-                        }
-                      }}
-                    />
                   </CardContent>
                 </Card>
               ))
@@ -350,18 +353,33 @@ const FacilityOwnerBookingsPage = () => {
               sortedBookings.map((booking) => (
                 <Card key={booking.id} className="overflow-hidden">
                   <CardHeader className="bg-muted/30">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1 flex-1">
                         <CardTitle className="text-lg">{booking.facility_name}</CardTitle>
                         <CardDescription>{booking.facility_address}</CardDescription>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         {needsAttention(booking) && (
                           <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">
                             Necesită atenție
                           </Badge>
                         )}
                         {getStatusBadge(booking.status)}
+                        <BookingStatusManager
+                          booking={booking}
+                          onStatusUpdate={async () => {
+                            const { data: { user } } = await supabase.auth.getUser();
+                            if (user) {
+                              const { data: facilities } = await supabase
+                                .from('facilities')
+                                .select('id')
+                                .eq('owner_id', user.id);
+                              if (facilities) {
+                                await loadBookings(facilities.map(f => f.id));
+                              }
+                            }
+                          }}
+                        />
                       </div>
                     </div>
                   </CardHeader>
@@ -390,24 +408,8 @@ const FacilityOwnerBookingsPage = () => {
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
-                      <BookingStatusManager
-                        booking={booking}
-                        onStatusUpdate={async () => {
-                          const { data: { user } } = await supabase.auth.getUser();
-                          if (user) {
-                            const { data: facilities } = await supabase
-                              .from('facilities')
-                              .select('id')
-                              .eq('owner_id', user.id);
-                            if (facilities) {
-                              await loadBookings(facilities.map(f => f.id));
-                            }
-                          }
-                        }}
-                      />
-                      
-                      {canDeleteBooking(booking) && (
+                    {canDeleteBooking(booking) && (
+                      <div className="mt-4 pt-4 border-t">
                         <Button
                           variant="destructive"
                           size="sm"
@@ -416,8 +418,8 @@ const FacilityOwnerBookingsPage = () => {
                           <Trash2 className="h-4 w-4 mr-2" />
                           Șterge
                         </Button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))
