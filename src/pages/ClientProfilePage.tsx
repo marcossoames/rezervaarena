@@ -571,10 +571,13 @@ const ClientProfilePage = () => {
                      <AlertDialogCancel>Anulează</AlertDialogCancel>
                      {activeBookingsInfo?.activeBookings > 0 ? (
                        <AlertDialogAction 
-                         onClick={handleCancelAllBookings}
-                         className="bg-orange-600 text-white hover:bg-orange-700"
+                         onClick={() => {
+                           setShowDeleteDialog(false);
+                           navigate("/my-reservations", { state: { fromDeleteAccount: true } });
+                         }}
+                         className="bg-primary text-primary-foreground hover:bg-primary/90"
                        >
-                         Anulează toate rezervările
+                         Mergi la rezervările mele
                        </AlertDialogAction>
                      ) : (
                        <AlertDialogAction 

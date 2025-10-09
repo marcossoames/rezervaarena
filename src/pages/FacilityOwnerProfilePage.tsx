@@ -879,10 +879,13 @@ const FacilityOwnerProfilePage = () => {
                     <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Renunță</AlertDialogCancel>
                     {activeBookingsInfo?.activeBookings > 0 ? (
                       <AlertDialogAction
-                        onClick={handleCancelAllBookings}
-                        className="bg-orange-600 text-white hover:bg-orange-700"
+                        onClick={() => {
+                          setShowDeleteDialog(false);
+                          navigate("/facility-owner-bookings", { state: { fromDeleteAccount: true } });
+                        }}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
                       >
-                        Anulează toate rezervările
+                        Mergi la rezervări
                       </AlertDialogAction>
                     ) : (
                       <AlertDialogAction

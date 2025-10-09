@@ -500,8 +500,25 @@ const MyReservationsPage = () => {
           return aDate.getTime() - bDate.getTime();
         });
       } else {
-        // Past bookings: sort descending (most recent finished first)
+        // Past bookings: apply same ordering as on facility owner page
         return [...filteredBookings].sort((a, b) => {
+          const aIsCancelled = a.status === 'cancelled';
+          const bIsCancelled = b.status === 'cancelled';
+          const aIsUnprocessed = a.status === 'confirmed';
+          const bIsUnprocessed = b.status === 'confirmed';
+
+          // Priority: unprocessed (confirmed/pending) first
+          if (aIsUnprocessed && !bIsUnprocessed) return -1;
+          if (!aIsUnprocessed && bIsUnprocessed) return 1;
+
+          // For cancelled bookings, sort by most recent first (closest to now first)
+          if (aIsCancelled && bIsCancelled) {
+            const aDate = new Date(`${a.booking_date}T${a.start_time}`);
+            const bDate = new Date(`${b.booking_date}T${b.start_time}`);
+            return aDate.getTime() - bDate.getTime();
+          }
+
+          // For other bookings (completed, no_show), sort by most recent first
           const aDate = new Date(`${a.booking_date}T${a.end_time}`);
           const bDate = new Date(`${b.booking_date}T${b.end_time}`);
           return bDate.getTime() - aDate.getTime();
