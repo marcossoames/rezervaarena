@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Mail, Lock, ArrowLeft, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
@@ -130,6 +131,35 @@ const ClientLogin = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth-redirect`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Eroare la autentificare",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Eroare",
+        description: "A apărut o eroare la conectarea cu Google",
+        variant: "destructive"
+      });
     }
   };
 
@@ -292,6 +322,26 @@ const ClientLogin = () => {
                 {isLoading ? "Se conectează..." : "Conectare"}
               </Button>
             </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">sau</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              size="lg"
+              onClick={handleGoogleLogin}
+            >
+              <FcGoogle className="mr-2 h-5 w-5" />
+              Continuă cu Google
+            </Button>
           </CardContent>
         </Card>
       </div>
