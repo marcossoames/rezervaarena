@@ -104,8 +104,8 @@ const FacilityOwnerBookingsPage = () => {
             .eq('id', booking.facility_id)
             .single();
           
-          // Check if this is a manual booking (has client info in facility_name/facility_address fields)
-          const isManualBooking = booking.notes?.includes('Rezervare manuală');
+          // Check if this is a manual booking
+          const isManualBooking = booking.notes?.toUpperCase().includes('REZERVARE MANUALĂ');
           
           let clientName, clientPhone, clientEmail;
           
@@ -113,7 +113,7 @@ const FacilityOwnerBookingsPage = () => {
             // For manual bookings, use the stored client info from facility_name/facility_address
             clientName = booking.facility_name;
             clientPhone = booking.facility_address || 'Telefon neadăugat';
-            clientEmail = 'Email indisponibil (rezervare manuală)';
+            clientEmail = null; // No email for manual bookings
           } else {
             // For regular bookings, get client details from profiles
             const { data: clientProfile } = await supabase
@@ -344,7 +344,9 @@ const FacilityOwnerBookingsPage = () => {
                           {booking.client_name}
                         </p>
                         <p className="text-sm">{booking.client_phone}</p>
-                        <p className="text-sm text-muted-foreground">{booking.client_email}</p>
+                        {booking.client_email && (
+                          <p className="text-sm text-muted-foreground">{booking.client_email}</p>
+                        )}
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">Detalii plată</p>
@@ -425,7 +427,9 @@ const FacilityOwnerBookingsPage = () => {
                           {booking.client_name}
                         </p>
                         <p className="text-sm">{booking.client_phone}</p>
-                        <p className="text-sm text-muted-foreground">{booking.client_email}</p>
+                        {booking.client_email && (
+                          <p className="text-sm text-muted-foreground">{booking.client_email}</p>
+                        )}
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">Detalii plată</p>
