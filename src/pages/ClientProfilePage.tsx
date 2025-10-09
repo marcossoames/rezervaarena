@@ -277,8 +277,8 @@ const ClientProfilePage = () => {
           description: result.error,
           variant: "destructive"
         });
-        // Redirect to reservations page
-        navigate("/my-reservations");
+        // Redirect to reservations page with state
+        navigate("/my-reservations", { state: { fromDeleteAccount: true } });
       } else {
         toast({
           title: "Eroare",

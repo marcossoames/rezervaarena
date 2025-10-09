@@ -59,6 +59,7 @@ const MyReservationsPage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [sortBy, setSortBy] = useState<string>('recent'); // recent, upcoming, date_asc, date_desc, price_asc, price_desc
   const [activeTab, setActiveTab] = useState<string>('upcoming'); // upcoming or past
+  const [showDeleteAccountInfo, setShowDeleteAccountInfo] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,9 +67,17 @@ const MyReservationsPage = () => {
   // Check if user came from manage-facilities
   const cameFromManageFacilities = location.state?.from === 'manage-facilities';
   
+  // Check if user came from delete account attempt
+  const cameFromDeleteAccount = location.state?.fromDeleteAccount === true;
+  
   useEffect(() => {
     loadBookings();
-  }, []);
+    
+    // Show delete account info dialog if coming from delete account attempt
+    if (cameFromDeleteAccount) {
+      setShowDeleteAccountInfo(true);
+    }
+  }, [cameFromDeleteAccount]);
 
   // Handle highlighting specific booking from URL params
   useEffect(() => {
@@ -749,6 +758,27 @@ const MyReservationsPage = () => {
   }
   return <div className="min-h-screen bg-background">
       <Header />
+      
+      {/* Delete Account Information Dialog */}
+      <AlertDialog open={showDeleteAccountInfo} onOpenChange={setShowDeleteAccountInfo}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Anulează rezervările active
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>Pentru a putea șterge contul, trebuie să anulezi toate rezervările active (viitoare).</p>
+              <p className="font-medium">Te rugăm să anulezi fiecare rezervare din tabul "Viitoare" pentru a continua cu ștergerea contului.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowDeleteAccountInfo(false)}>
+              Am înțeles
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
