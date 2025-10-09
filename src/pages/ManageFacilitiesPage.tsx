@@ -415,29 +415,6 @@ const ManageFacilitiesPage = () => {
                  </CardContent>
               </Card>
             ))}
-
-            <Card className="border-dashed border-2 border-muted-foreground/25 hover:border-primary/50 transition-colors">
-              <CardContent className="flex flex-col items-center justify-center py-8">
-                <div className="text-center space-y-4">
-                  <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto">
-                    <Edit className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Setări Bază Sportivă</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Editează numele, adresa și numărul de telefon
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate("/edit-sports-complex-settings")}
-                    className="mt-4"
-                  >
-                    Editează Setările
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         )}
       </div>
