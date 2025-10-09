@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format, addMinutes, startOfDay, parse, isSameMinute } from "date-fns";
 import { ro } from "date-fns/locale";
-import { Clock, MapPin } from "lucide-react";
+import { Clock, MapPin, Ban } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -53,6 +53,7 @@ interface DayScheduleCalendarProps {
   onBookingClick: (bookingId: string) => void;
   blockedDates?: BlockedDate[];
   isGeneralCalendar?: boolean;
+  isFullyBlocked?: boolean;
 }
 
 const DayScheduleCalendar = ({ 
@@ -62,7 +63,8 @@ const DayScheduleCalendar = ({
   selectedFacility,
   onBookingClick,
   blockedDates = [],
-  isGeneralCalendar = false
+  isGeneralCalendar = false,
+  isFullyBlocked = false
 }: DayScheduleCalendarProps) => {
 
   // Get booking color: manual (black) vs website (blue) - single color for general calendar
@@ -243,6 +245,42 @@ const DayScheduleCalendar = ({
   const timeSlots = generateTimeSlots();
   const { start, end } = getOperatingHours();
   const facilityName = selectedFacility === 'all' ? 'Toate facilitățile' : facilities.find(f => f.id === selectedFacility)?.name;
+
+  // If the day is fully blocked, show a simple message instead of the grid
+  if (isFullyBlocked) {
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Calendar Vizual - {format(selectedDate, 'dd MMMM yyyy', { locale: ro })}
+          </CardTitle>
+          <div className="text-sm text-muted-foreground mb-4">
+            {facilityName}
+          </div>
+        </CardHeader>
+        
+        <CardContent className="p-8">
+          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+            <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+              <Ban className="h-10 w-10 text-red-600 dark:text-red-400" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-semibold text-foreground">
+                Zi Complet Blocată
+              </h3>
+              <p className="text-muted-foreground max-w-md">
+                {isGeneralCalendar 
+                  ? "Toate terenurile sunt blocate pentru această zi"
+                  : "Acest teren este blocat pentru toată ziua"
+                }
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="mb-6">
