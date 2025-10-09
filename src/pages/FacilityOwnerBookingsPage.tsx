@@ -181,11 +181,11 @@ const FacilityOwnerBookingsPage = () => {
         if (aIsUnprocessed && !bIsUnprocessed) return -1;
         if (!aIsUnprocessed && bIsUnprocessed) return 1;
         
-        // For cancelled bookings, sort by most recent first (descending)
+        // For cancelled bookings, sort by most recent first (ascending - closest to now first)
         if (aIsCancelled && bIsCancelled) {
           const aDate = new Date(`${a.booking_date}T${a.start_time}`);
           const bDate = new Date(`${b.booking_date}T${b.start_time}`);
-          return bDate.getTime() - aDate.getTime(); // Most recent first
+          return aDate.getTime() - bDate.getTime(); // Closest to now first
         }
         
         // For other bookings (completed, no_show), sort by most recent first
