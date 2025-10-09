@@ -587,6 +587,7 @@ const UniversalCalendarPage = () => {
               }))}
               facilities={selectedFacilityId === "general" ? facilities : (selectedFacility ? [selectedFacility] : [])}
               selectedFacility={selectedFacilityId === "general" ? "all" : selectedFacilityId}
+              isGeneralCalendar={selectedFacilityId === "general"}
               onBookingClick={(bookingId) => {
                 setHighlightedBooking(bookingId);
                 setTimeout(() => {

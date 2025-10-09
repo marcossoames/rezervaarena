@@ -52,6 +52,7 @@ interface DayScheduleCalendarProps {
   selectedFacility: string;
   onBookingClick: (bookingId: string) => void;
   blockedDates?: BlockedDate[];
+  isGeneralCalendar?: boolean;
 }
 
 const DayScheduleCalendar = ({ 
@@ -60,11 +61,16 @@ const DayScheduleCalendar = ({
   facilities, 
   selectedFacility,
   onBookingClick,
-  blockedDates = []
+  blockedDates = [],
+  isGeneralCalendar = false
 }: DayScheduleCalendarProps) => {
 
-  // Get booking color: manual (black) vs website (blue)
+  // Get booking color: manual (black) vs website (blue) - single color for general calendar
   const getBookingColor = (booking: Booking) => {
+    if (isGeneralCalendar) {
+      return 'bg-blue-600'; // Single blue color for general calendar
+    }
+    
     const notes = booking.notes?.toUpperCase() || '';
     const isManual = notes.includes('REZERVARE MANUALĂ') || notes.includes('REZERVARE MANUALA') || notes.includes('BLOCAJ') || notes.includes('BLOCARE');
     
@@ -172,8 +178,9 @@ const DayScheduleCalendar = ({
     return nextSlotMinutes > endMinutes;
   };
 
-  // Check if a time slot is blocked
+  // Check if a time slot is blocked - don't show for general calendar
   const getSlotBlocking = (timeSlot: string) => {
+    if (isGeneralCalendar) return null; // Don't show blocked slots in general calendar
     if (!selectedDate || blockedDates.length === 0) return null;
     
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
