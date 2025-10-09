@@ -109,9 +109,9 @@ const FacilityOwnerBookingsPage = () => {
           
           let clientName, clientPhone, clientEmail;
           
-          if (isManualBooking && booking.facility_name && booking.facility_address) {
+          if (isManualBooking) {
             // For manual bookings, use the stored client info from facility_name/facility_address
-            clientName = booking.facility_name;
+            clientName = booking.facility_name || 'Client (rezervare manuală)';
             clientPhone = booking.facility_address || 'Telefon neadăugat';
             clientEmail = null; // No email for manual bookings
           } else {
