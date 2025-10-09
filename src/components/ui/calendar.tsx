@@ -65,7 +65,7 @@ function Calendar({
         },
       }}
       modifiersClassNames={{
-        past: "opacity-50 text-muted-foreground/70",
+        past: "opacity-40 text-muted-foreground/50",
       }}
       {...props}
     />
