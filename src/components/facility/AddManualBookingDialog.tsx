@@ -264,9 +264,9 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
         facility_owner_amount: calculatedPrice,
         payment_method: 'cash',
         status: 'confirmed' as const,
-        facility_name: clientName, // Store client name in facility_name field (workaround)
-        facility_address: clientPhone || '', // Store client phone in facility_address field (workaround)
-        notes: `REZERVARE MANUALĂ - Client: ${clientName}${clientPhone ? ` (Tel: ${clientPhone})` : ''} | Creat manual de proprietarul facilității${notes ? ` | Note suplimentare: ${notes}` : ''}`
+        facility_name: clientName, // Store client name in facility_name field
+        facility_address: clientPhone || 'Telefon neadăugat', // Store client phone in facility_address field
+        notes: notes ? `REZERVARE MANUALĂ - Note suplimentare: ${notes}` : 'REZERVARE MANUALĂ'
       }));
 
       const { error } = await supabase
