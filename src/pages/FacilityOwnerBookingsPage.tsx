@@ -172,12 +172,23 @@ const FacilityOwnerBookingsPage = () => {
         return bookingDateTime <= now || booking.status === 'cancelled';
       });
       filtered.sort((a, b) => {
+        const aIsCancelled = a.status === 'cancelled';
+        const bIsCancelled = b.status === 'cancelled';
         const aIsUnprocessed = a.status === 'confirmed' || a.status === 'pending';
         const bIsUnprocessed = b.status === 'confirmed' || b.status === 'pending';
         
+        // Priority: unprocessed first, then cancelled (most recent first), then completed
         if (aIsUnprocessed && !bIsUnprocessed) return -1;
         if (!aIsUnprocessed && bIsUnprocessed) return 1;
         
+        // For cancelled bookings, sort by most recent first (descending)
+        if (aIsCancelled && bIsCancelled) {
+          const aDate = new Date(`${a.booking_date}T${a.start_time}`);
+          const bDate = new Date(`${b.booking_date}T${b.start_time}`);
+          return bDate.getTime() - aDate.getTime(); // Most recent first
+        }
+        
+        // For other bookings (completed, no_show), sort by most recent first
         const aDate = new Date(`${a.booking_date}T${a.end_time}`);
         const bDate = new Date(`${b.booking_date}T${b.end_time}`);
         return bDate.getTime() - aDate.getTime();
