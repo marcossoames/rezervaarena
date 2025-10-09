@@ -511,10 +511,15 @@ const FacilityOwnerProfilePage = () => {
           title: "Cont șters",
           description: "Contul a fost șters cu succes.",
         });
-        // Redirect to home page as visitor
-        navigate("/", {
-          replace: true,
+        navigate("/", { replace: true });
+      } else if (result.hasActiveBookings) {
+        toast({
+          title: "Rezervări active găsite",
+          description: result.error,
+          variant: "destructive"
         });
+        // Redirect to facility bookings page
+        navigate("/facility-owner-bookings");
       } else {
         toast({
           title: "Eroare",

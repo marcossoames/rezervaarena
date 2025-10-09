@@ -270,8 +270,15 @@ const ClientProfilePage = () => {
           title: "Cont șters",
           description: "Contul tău a fost șters cu succes",
         });
-        // Redirect will happen automatically due to auth state change
         navigate("/", { replace: true });
+      } else if (result.hasActiveBookings) {
+        toast({
+          title: "Rezervări active găsite",
+          description: result.error,
+          variant: "destructive"
+        });
+        // Redirect to reservations page
+        navigate("/my-reservations");
       } else {
         toast({
           title: "Eroare",
