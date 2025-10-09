@@ -12,6 +12,7 @@ import { ro } from "date-fns/locale";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BookingWithDetails {
   id: string;
@@ -376,9 +377,18 @@ const FacilityOwnerBookingsPage = () => {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {needsAttention(booking) && (
-                          <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">
-                            Necesită atenție
-                          </Badge>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100 cursor-help">
+                                  Necesită atenție
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Rezervarea a trecut și statusul trebuie actualizat (Finalizată sau Lipsă)</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                         {getStatusBadge(booking.status)}
                         <BookingStatusManager
