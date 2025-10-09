@@ -519,75 +519,40 @@ const ClientProfilePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="destructive" 
-                    size="sm"
-                    onClick={handleDeleteClick}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Șterge Contul
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Confirmare Ștergere Cont</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {activeBookingsInfo?.activeBookings > 0 ? (
-                        <div className="space-y-3">
-                          <p className="font-medium text-destructive">
-                            ⚠️ Ai {activeBookingsInfo.activeBookings} rezervări active care vor fi anulate automat!
-                          </p>
-                          <div className="bg-destructive/10 p-3 rounded-lg">
-                            <p className="text-sm mb-2">Rezervările care vor fi anulate:</p>
-                            <ul className="text-sm space-y-1">
-                              {activeBookingsInfo.bookings?.slice(0, 3).map((booking: any) => (
-                                <li key={booking.id} className="flex items-center gap-2">
-                                  <span>📅 {new Date(booking.booking_date).toLocaleDateString('ro-RO')}</span>
-                                  <span>🕐 {booking.start_time}</span>
-                                  <span>🏟️ {booking.facilities?.name}</span>
-                                </li>
-                              ))}
-                              {activeBookingsInfo.bookings?.length > 3 && (
-                                <li className="text-muted-foreground">
-                                  ... și încă {activeBookingsInfo.bookings.length - 3} rezervări
-                                </li>
-                              )}
-                            </ul>
-                          </div>
-                          <p className="text-sm">
-                            Pentru a șterge contul, trebuie mai întâi să anulezi toate rezervările active. Proprietarii bazelor sportive vor primi emailuri de notificare.
-                          </p>
-                        </div>
-                      ) : (
-                        <p>
-                          Această acțiune este ireversibilă. Contul tău și toate datele asociate vor fi șterse permanent.
-                        </p>
-                      )}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                   <AlertDialogFooter>
-                     <AlertDialogCancel>Anulează</AlertDialogCancel>
-                     {activeBookingsInfo?.activeBookings > 0 ? (
-                       <AlertDialogAction 
-                         onClick={handleCancelAllBookings}
-                         className="bg-orange-600 text-white hover:bg-orange-700"
-                       >
-                         Anulează toate rezervările
-                       </AlertDialogAction>
-                     ) : (
-                       <AlertDialogAction 
-                         onClick={handleDeleteAccount}
-                         disabled={isDeleting}
-                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                       >
-                         {isDeleting ? "Se șterge..." : "Da, șterge contul definitiv"}
-                       </AlertDialogAction>
-                     )}
-                   </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+      <AlertDialog open={showActiveBookingsDialog} onOpenChange={setShowActiveBookingsDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rezervări Active Detectate</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ai {activeBookingsCount} rezervare/rezervări active. Pentru a-ți șterge contul, 
+              trebuie mai întâi să anulezi toate rezervările active.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Închide</AlertDialogCancel>
+            <Button onClick={() => navigate("/my-reservations")}>
+              Vezi Rezervările
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ești sigur?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Această acțiune nu poate fi anulată. Contul tău și toate datele asociate vor fi șterse permanent.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Anulează</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
+              {isDeleting ? "Se șterge..." : "Șterge Contul"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
             </CardContent>
           </Card>
         </div>

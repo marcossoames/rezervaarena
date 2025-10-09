@@ -852,49 +852,40 @@ const FacilityOwnerProfilePage = () => {
                 Șterge Contul
               </Button>
 
-              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Confirmă ștergerea contului</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {activeBookingsInfo?.activeBookings > 0 ? (
-                        <div className="space-y-3">
-                          <p className="text-destructive font-semibold">
-                            Atenție: aveți {activeBookingsInfo.activeBookings} rezervări viitoare pe facilitățile dvs.
-                          </p>
-                          <p className="text-sm">
-                            Pentru a șterge contul, trebuie mai întâi să anulați toate rezervările active. Clienții vor
-                            primi emailuri de notificare pentru anulare.
-                          </p>
-                        </div>
-                      ) : (
-                        <p>
-                          Această acțiune este ireversibilă. Contul dvs. și toate datele asociate vor fi șterse
-                          permanent.
-                        </p>
-                      )}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Renunță</AlertDialogCancel>
-                    {activeBookingsInfo?.activeBookings > 0 ? (
-                      <AlertDialogAction
-                        onClick={handleCancelAllBookings}
-                        className="bg-orange-600 text-white hover:bg-orange-700"
-                      >
-                        Anulează toate rezervările
-                      </AlertDialogAction>
-                    ) : (
-                      <AlertDialogAction
-                        onClick={handleDeleteAccount}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Da, șterge contul
-                      </AlertDialogAction>
-                    )}
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+      <AlertDialog open={showActiveBookingsDialog} onOpenChange={setShowActiveBookingsDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rezervări Active pe Bazele Tale</AlertDialogTitle>
+            <AlertDialogDescription>
+              Există {activeBookingsCount} rezervare/rezervări active pe bazele tale sportive. 
+              Pentru a-ți șterge contul, trebuie mai întâi să anulezi toate rezervările active.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Închide</AlertDialogCancel>
+            <Button onClick={() => navigate("/facility-owner-bookings")}>
+              Vezi Rezervările
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ești sigur?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Această acțiune nu poate fi anulată. Contul tău și toate datele asociate (baze sportive, rezervări) vor fi șterse permanent.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Anulează</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
+              {isDeleting ? "Se șterge..." : "Șterge Contul"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
             </CardContent>
           </Card>
         </div>
