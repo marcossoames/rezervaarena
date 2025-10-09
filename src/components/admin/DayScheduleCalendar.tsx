@@ -255,28 +255,30 @@ const DayScheduleCalendar = ({
           {facilityName} • Program: {start} - {end}
         </div>
         
-        {/* Color Legend */}
-        <div className="space-y-2">
-          <div className="text-sm font-medium">Tipuri rezervări:</div>
-          <div className="flex flex-wrap gap-3 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-gray-800 rounded"></div>
-              <span>Manual</span>
+        {/* Color Legend - hide for general calendar */}
+        {!isGeneralCalendar && (
+          <div className="space-y-2">
+            <div className="text-sm font-medium">Tipuri rezervări:</div>
+            <div className="flex flex-wrap gap-3 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-gray-800 rounded"></div>
+                <span>Manual</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-blue-600 rounded"></div>
+                <span>Website</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-600 rounded"></div>
-              <span>Website</span>
+            
+            <div className="text-sm font-medium mt-3">Blocări:</div>
+            <div className="flex flex-wrap gap-3 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+                <span>Blocat</span>
+              </div>
             </div>
           </div>
-          
-          <div className="text-sm font-medium mt-3">Blocări:</div>
-          <div className="flex flex-wrap gap-3 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-              <span>Blocat</span>
-            </div>
-          </div>
-        </div>
+        )}
       </CardHeader>
       
       <CardContent className="p-4">

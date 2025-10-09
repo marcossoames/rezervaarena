@@ -510,6 +510,65 @@ const UniversalCalendarPage = () => {
                   />
                 )}
 
+                {/* Block all facilities - only for general calendar on future dates without bookings */}
+                {selectedFacilityId === "general" && !isBefore(selectedDate, today) && (
+                  <div className="space-y-3">
+                    {getAllBookingsForDate(selectedDate).length === 0 ? (
+                      <Button
+                        variant="destructive"
+                        className="w-full"
+                        onClick={async () => {
+                          if (!confirm(`Ești sigur că vrei să blochezi toate terenurile pentru ${format(selectedDate, 'dd MMMM yyyy', { locale: ro })}?`)) {
+                            return;
+                          }
+
+                          try {
+                            const { data: { user } } = await supabase.auth.getUser();
+                            const dateStr = format(selectedDate, 'yyyy-MM-dd');
+                            
+                            // Block all facilities
+                            const blocksToInsert = facilities.map(facility => ({
+                              facility_id: facility.id,
+                              created_by: user?.id,
+                              blocked_date: dateStr,
+                              reason: 'Baza închisă - blocare completă'
+                            }));
+
+                            const { error } = await supabase
+                              .from('blocked_dates')
+                              .insert(blocksToInsert);
+
+                            if (error) throw error;
+
+                            toast({
+                              title: "Succes",
+                              description: `Toate terenurile au fost blocate pentru ${format(selectedDate, 'dd MMMM yyyy', { locale: ro })}`,
+                            });
+
+                            await refreshData();
+                          } catch (error) {
+                            console.error('Error blocking all facilities:', error);
+                            toast({
+                              title: "Eroare",
+                              description: "Nu s-au putut bloca terenurile",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                      >
+                        <CalendarIcon className="h-4 w-4 mr-2" />
+                        Blochează Toată Baza
+                      </Button>
+                    ) : (
+                      <div className="p-3 bg-muted/50 rounded-lg text-center">
+                        <p className="text-sm text-muted-foreground">
+                          Nu poți bloca baza într-o zi cu rezervări existente
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Blocking Options - only for specific facility and future dates */}
                 {selectedFacilityId !== "general" && !isBefore(selectedDate, today) && (
                   <div className="space-y-3">
