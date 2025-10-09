@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Calendar, User, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -38,8 +39,12 @@ const FacilityOwnerBookingsPage = () => {
   const [sortedBookings, setSortedBookings] = useState<BookingWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [bookingsSubTab, setBookingsSubTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const fromDeleteAccount = location.state?.fromDeleteAccount === true;
 
   useEffect(() => {
     checkAuthAndLoadData();
@@ -50,6 +55,12 @@ const FacilityOwnerBookingsPage = () => {
       applyFilteringAndSorting(bookings);
     }
   }, [bookings, bookingsSubTab]);
+
+  useEffect(() => {
+    if (fromDeleteAccount) {
+      setShowDeleteAccountDialog(true);
+    }
+  }, [fromDeleteAccount]);
 
   const checkAuthAndLoadData = async () => {
     try {
@@ -274,6 +285,24 @@ const FacilityOwnerBookingsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+
+      {/* AlertDialog for delete account notification */}
+      <AlertDialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Anulează rezervările pentru a șterge contul</AlertDialogTitle>
+            <AlertDialogDescription>
+              Pentru a putea șterge contul, trebuie să anulezi toate rezervările active (viitoare) de pe facilitățile tale. 
+              Te rugăm să anulezi manual fiecare rezervare din lista de mai jos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowDeleteAccountDialog(false)}>
+              Am înțeles
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">

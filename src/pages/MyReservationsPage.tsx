@@ -59,16 +59,24 @@ const MyReservationsPage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [sortBy, setSortBy] = useState<string>('recent'); // recent, upcoming, date_asc, date_desc, price_asc, price_desc
   const [activeTab, setActiveTab] = useState<string>('upcoming'); // upcoming or past
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check if user came from manage-facilities
+  // Check if user came from manage-facilities or delete account
   const cameFromManageFacilities = location.state?.from === 'manage-facilities';
+  const fromDeleteAccount = location.state?.fromDeleteAccount === true;
   
   useEffect(() => {
     loadBookings();
   }, []);
+
+  useEffect(() => {
+    if (fromDeleteAccount) {
+      setShowDeleteAccountDialog(true);
+    }
+  }, [fromDeleteAccount]);
 
   // Handle highlighting specific booking from URL params
   useEffect(() => {
