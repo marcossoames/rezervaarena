@@ -266,7 +266,7 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
         status: 'confirmed' as const,
         facility_name: clientName, // Store client name in facility_name field (workaround)
         facility_address: clientPhone || '', // Store client phone in facility_address field (workaround)
-        notes: `Rezervare manuală - Client: ${clientName}${clientPhone ? `, Tel: ${clientPhone}` : ''}${notes ? ` | Note: ${notes}` : ''}`
+        notes: `REZERVARE MANUALĂ - Client: ${clientName}${clientPhone ? ` (Tel: ${clientPhone})` : ''} | Creat manual de proprietarul facilității${notes ? ` | Note suplimentare: ${notes}` : ''}`
       }));
 
       const { error } = await supabase
