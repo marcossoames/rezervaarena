@@ -436,34 +436,15 @@ const UniversalCalendarPage = () => {
             Înapoi
           </Link>
           
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
+          <div className="flex flex-col gap-4">
+            {/* Title and dropdown */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <h1 className="text-3xl font-bold text-foreground">
                 {selectedFacilityId === "general" ? "Calendar General" : selectedFacility?.name}
               </h1>
-              {selectedFacility && (
-                <div className="flex items-center gap-4 text-muted-foreground mt-2">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    {selectedFacility.address}, {selectedFacility.city}
-                  </div>
-                  {selectedFacility.capacity && (
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      Capacitate: {selectedFacility.capacity} {selectedFacility.capacity_max ? `- ${selectedFacility.capacity_max}` : ''} persoane
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {selectedFacility.price_per_hour} RON/oră
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex justify-center w-full">
+              
               <Select value={selectedFacilityId} onValueChange={handleFacilityChange}>
-                <SelectTrigger className="w-full max-w-md h-12 text-base font-medium">
+                <SelectTrigger className="w-full sm:w-auto sm:min-w-[300px] h-12 text-base font-medium">
                   <SelectValue placeholder="Selectează calendarul" />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50">
@@ -477,6 +458,26 @@ const UniversalCalendarPage = () => {
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Facility details */}
+            {selectedFacility && (
+              <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  {selectedFacility.address}, {selectedFacility.city}
+                </div>
+                {selectedFacility.capacity && (
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    Capacitate: {selectedFacility.capacity} {selectedFacility.capacity_max ? `- ${selectedFacility.capacity_max}` : ''} persoane
+                  </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  {selectedFacility.price_per_hour} RON/oră
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
