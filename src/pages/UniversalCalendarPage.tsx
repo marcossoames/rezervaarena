@@ -518,10 +518,6 @@ const UniversalCalendarPage = () => {
                         variant="destructive"
                         className="w-full"
                         onClick={async () => {
-                          if (!confirm(`Ești sigur că vrei să blochezi toate terenurile pentru ${format(selectedDate, 'dd MMMM yyyy', { locale: ro })}?`)) {
-                            return;
-                          }
-
                           try {
                             const { data: { user } } = await supabase.auth.getUser();
                             const dateStr = format(selectedDate, 'yyyy-MM-dd');
