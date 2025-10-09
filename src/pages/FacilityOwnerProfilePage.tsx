@@ -572,7 +572,7 @@ const FacilityOwnerProfilePage = () => {
             <CardHeader className="flex flex-col h-full">
               <CardTitle className="flex items-center gap-2 min-h-[3rem]">
                 <Calendar className="h-5 w-5" />
-                Calendar Terenuri
+                Calendar
               </CardTitle>
               <CardDescription>Vizualizează calendarul și blochează zile / ore specifice</CardDescription>
             </CardHeader>
@@ -600,7 +600,7 @@ const FacilityOwnerProfilePage = () => {
                 <DollarSign className="h-5 w-5" />
                 Venituri
               </CardTitle>
-              <CardDescription>Vizualizează veniturile din rezervări și comisioane</CardDescription>
+              <CardDescription>Vizualizează veniturile din rezervări</CardDescription>
             </CardHeader>
           </Card>
         </div>
