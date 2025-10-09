@@ -253,7 +253,7 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
       const calculatedPrice = calculatePrice();
       
       const bookingsToInsert = datesToBook.map(date => ({
-        client_id: user.id, // Use facility owner as client_id for manual bookings - this will be adjusted by the notes field
+        client_id: user.id, // Use facility owner as client_id for manual bookings
         facility_id: facilityId,
         booking_date: format(date, 'yyyy-MM-dd'),
         start_time: startTime + ':00',
@@ -264,7 +264,9 @@ const AddManualBookingDialog = ({ facilityId, facility, onBookingAdded, selected
         facility_owner_amount: calculatedPrice,
         payment_method: 'cash',
         status: 'confirmed' as const,
-        notes: `Creat manual de proprietarul facilității${notes ? ` | Note suplimentare: ${notes}` : ''}`
+        facility_name: clientName, // Store client name in facility_name field (workaround)
+        facility_address: clientPhone || '', // Store client phone in facility_address field (workaround)
+        notes: `Rezervare manuală - Client: ${clientName}${clientPhone ? `, Tel: ${clientPhone}` : ''}${notes ? ` | Note: ${notes}` : ''}`
       }));
 
       const { error } = await supabase

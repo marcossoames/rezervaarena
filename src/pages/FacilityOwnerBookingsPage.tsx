@@ -103,23 +103,39 @@ const FacilityOwnerBookingsPage = () => {
             .eq('id', booking.facility_id)
             .single();
           
-          const { data: clientProfile } = await supabase
-            .from('profiles')
-            .select('full_name, phone, email')
-            .eq('user_id', booking.client_id)
-            .single();
+          // Check if this is a manual booking (has client info in facility_name/facility_address fields)
+          const isManualBooking = booking.notes?.includes('Rezervare manuală');
+          
+          let clientName, clientPhone, clientEmail;
+          
+          if (isManualBooking && booking.facility_name && booking.facility_address) {
+            // For manual bookings, use the stored client info from facility_name/facility_address
+            clientName = booking.facility_name;
+            clientPhone = booking.facility_address || 'Telefon neadăugat';
+            clientEmail = 'Email indisponibil (rezervare manuală)';
+          } else {
+            // For regular bookings, get client details from profiles
+            const { data: clientProfile } = await supabase
+              .from('profiles')
+              .select('full_name, phone, email')
+              .eq('user_id', booking.client_id)
+              .single();
 
-          const isClientDeleted = !clientProfile;
+            const isClientDeleted = !clientProfile;
+            clientName = isClientDeleted ? 'Nume indisponibil (cont șters)' : (clientProfile?.full_name || 'Nume indisponibil');
+            clientPhone = isClientDeleted ? 'Telefon indisponibil (cont șters)' : (clientProfile?.phone || 'Telefon indisponibil');
+            clientEmail = isClientDeleted ? 'Email indisponibil (cont șters)' : (clientProfile?.email || 'Email indisponibil');
+          }
 
           return {
             ...booking,
             facility_name: facilityData?.name || 'Teren necunoscut',
             facility_address: facilityData ? `${facilityData.city}, ${facilityData.address}` : 'unknown',
             facility_type: facilityData?.facility_type || 'unknown',
-            client_name: isClientDeleted ? 'Nume indisponibil (cont șters)' : (clientProfile?.full_name || 'Nume indisponibil'),
-            client_phone: isClientDeleted ? 'Telefon indisponibil (cont șters)' : (clientProfile?.phone || 'Telefon indisponibil'),
-            client_email: isClientDeleted ? 'Email indisponibil (cont șters)' : (clientProfile?.email || 'Email indisponibil'),
-            status: isClientDeleted ? 'cancelled' : (booking.status === 'pending' ? 'confirmed' : booking.status)
+            client_name: clientName,
+            client_phone: clientPhone,
+            client_email: clientEmail,
+            status: booking.status === 'pending' ? 'confirmed' : booking.status
           } as BookingWithDetails;
         })
       );
