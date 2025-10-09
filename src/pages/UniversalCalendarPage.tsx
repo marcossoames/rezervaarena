@@ -164,14 +164,14 @@ const UniversalCalendarPage = () => {
 
       completeBookings = bookingsData.map((booking: any) => {
         const facilityInfo = facilitiesInfo?.find(f => f.id === booking.facility_id);
-        const isManualBooking = booking.notes?.includes('Rezervare manuală');
+        const isManualBooking = booking.notes?.toUpperCase().includes('REZERVARE MANUALĂ');
         
         let clientInfo = null;
         if (isManualBooking && booking.facility_name && booking.facility_address) {
           clientInfo = {
             full_name: booking.facility_name,
             phone: booking.facility_address || 'Telefon neadăugat',
-            email: 'Email indisponibil (rezervare manuală)'
+            email: null // No email for manual bookings
           };
         } else {
           clientInfo = clientsInfo?.find((c: any) => c.client_id === booking.client_id);
@@ -1028,7 +1028,9 @@ const UniversalCalendarPage = () => {
                                 <div className="font-medium text-foreground">{booking.client_info?.full_name || 'Client neidentificat'}</div>
                                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-1 min-w-0">
                                   <span className="min-w-0 break-words">📞 {booking.client_info?.phone || 'Telefon nedisponibil'}</span>
-                                  <span className="min-w-0 break-words">✉️ {booking.client_info?.email || 'Email nedisponibil'}</span>
+                                  {booking.client_info?.email && (
+                                    <span className="min-w-0 break-words">✉️ {booking.client_info.email}</span>
+                                  )}
                                 </div>
                               </div>
 
