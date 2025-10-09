@@ -431,20 +431,15 @@ const UniversalCalendarPage = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200 mb-4">
-            <ArrowLeft className="h-4 w-4" />
-            Înapoi
-          </Link>
-          
-          <div className="flex flex-col gap-4">
-            {/* Title and dropdown */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h1 className="text-3xl font-bold text-foreground">
-                {selectedFacilityId === "general" ? "Calendar General" : selectedFacility?.name}
-              </h1>
-              
+          <div className="flex items-center justify-between mb-4">
+            <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200">
+              <ArrowLeft className="h-4 w-4" />
+              Înapoi
+            </Link>
+            
+            <div className="flex-1 flex justify-center">
               <Select value={selectedFacilityId} onValueChange={handleFacilityChange}>
-                <SelectTrigger className="w-full sm:w-auto sm:min-w-[300px] h-12 text-base font-medium">
+                <SelectTrigger className="w-full max-w-md h-12 text-base font-medium">
                   <SelectValue placeholder="Selectează calendarul" />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50">
@@ -459,8 +454,21 @@ const UniversalCalendarPage = () => {
               </Select>
             </div>
             
-            {/* Facility details */}
-            {selectedFacility && (
+            <div className="w-[100px]"></div> {/* Spacer for balance */}
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold text-foreground">
+              {selectedFacilityId === "general" ? "Calendar General" : selectedFacility?.name}
+            </h1>
+            
+            {/* Facility details - show only address for general calendar */}
+            {selectedFacilityId === "general" ? (
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                {facilities.length > 0 && `${facilities[0].address}, ${facilities[0].city}`}
+              </div>
+            ) : selectedFacility && (
               <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
