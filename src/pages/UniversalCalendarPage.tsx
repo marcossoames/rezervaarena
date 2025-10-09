@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Calendar as CalendarIcon, Clock, Users, MapPin } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Clock, Users, MapPin, Ban, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, startOfDay, isSameDay, isBefore } from "date-fns";
@@ -332,6 +332,31 @@ const UniversalCalendarPage = () => {
     if (facilityIds.length > 0) {
       await loadBookingsForFacilities(facilityIds);
       await loadBlockedDatesForFacilities(facilityIds);
+    }
+  };
+
+  const handleDeleteBlockedDate = async (blockedDateId: string) => {
+    try {
+      const { error } = await supabase
+        .from('blocked_dates')
+        .delete()
+        .eq('id', blockedDateId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succes",
+        description: "Blocajul a fost șters cu succes"
+      });
+
+      await refreshData();
+    } catch (error) {
+      console.error('Error deleting blocked date:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut șterge blocajul",
+        variant: "destructive"
+      });
     }
   };
 
@@ -933,16 +958,17 @@ const UniversalCalendarPage = () => {
               })) as any}
             />
 
-            {/* Reservations List */}
+            {/* Reservations and Blockings List */}
             <Card className="mt-6" id="reservations-section">
               <CardHeader>
-                <CardTitle>Rezervări pentru {format(selectedDate, 'd MMMM yyyy', { locale: ro })}</CardTitle>
+                <CardTitle>Rezervări și Blocaje pentru {format(selectedDate, 'd MMMM yyyy', { locale: ro })}</CardTitle>
                 <CardDescription>
-                  Toate rezervările {selectedFacilityId === "general" ? "de pe toate terenurile" : ""} pentru data selectată
+                  Toate rezervările și blocajele {selectedFacilityId === "general" ? "de pe toate terenurile" : ""} pentru data selectată
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
+                  {/* Bookings Section */}
                   <div>
                     <h3 className="flex items-center gap-2 font-semibold mb-3">
                       <CalendarIcon className="h-4 w-4" />
@@ -1005,6 +1031,64 @@ const UniversalCalendarPage = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Blocked Slots Section */}
+                  {getBlockedSlotsForDate(selectedDate).length > 0 && (
+                    <div className="border-t pt-6">
+                      <h3 className="flex items-center gap-2 font-semibold mb-3">
+                        <Ban className="h-4 w-4 text-yellow-600" />
+                        Blocaje ({getBlockedSlotsForDate(selectedDate).length})
+                      </h3>
+                      <div className="space-y-3">
+                        {getBlockedSlotsForDate(selectedDate).map((blocked) => {
+                          const facility = facilities.find(f => f.id === blocked.facility_id);
+                          const isFullDayBlock = !blocked.start_time || !blocked.end_time;
+                          
+                          return (
+                            <div 
+                              key={blocked.id}
+                              className="flex flex-wrap items-start justify-between gap-3 p-4 border border-yellow-200 dark:border-yellow-900 rounded-lg bg-yellow-50 dark:bg-yellow-950/20"
+                            >
+                              <div className="min-w-0 flex-1">
+                                {selectedFacilityId === "general" && facility && (
+                                  <div className="flex items-center gap-2 mb-2 text-sm font-medium text-yellow-700 dark:text-yellow-500">
+                                    <MapPin className="h-4 w-4" />
+                                    {facility.name}
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Ban className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+                                  <span className="font-medium text-yellow-900 dark:text-yellow-100">
+                                    {isFullDayBlock ? 'Zi Complet Blocată' : `${blocked.start_time?.slice(0, 5)} - ${blocked.end_time?.slice(0, 5)}`}
+                                  </span>
+                                </div>
+                                {blocked.reason && (
+                                  <div className="text-sm text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded mt-2">
+                                    <span className="font-medium">Motiv:</span> {blocked.reason}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="flex flex-col gap-2">
+                                <Badge variant="outline" className="bg-yellow-500 text-white border-yellow-600">
+                                  BLOCAT
+                                </Badge>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDeleteBlockedDate(blocked.id)}
+                                  className="gap-2"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Șterge
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
