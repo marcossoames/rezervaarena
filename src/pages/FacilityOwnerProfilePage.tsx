@@ -594,7 +594,7 @@ const FacilityOwnerProfilePage = () => {
 
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow h-full"
-            onClick={() => navigate("/manage-facilities?tab=bookings")}
+            onClick={() => navigate("/facility-owner-bookings")}
           >
             <CardHeader className="flex flex-col h-full">
               <CardTitle className="flex items-center gap-2 min-h-[3rem]">
