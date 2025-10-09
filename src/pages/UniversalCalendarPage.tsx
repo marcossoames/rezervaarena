@@ -75,6 +75,7 @@ const UniversalCalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [highlightedBookings, setHighlightedBookings] = useState<string[]>([]);
+  const [highlightedBlockedDates, setHighlightedBlockedDates] = useState<string[]>([]);
   
   // Block specific hours dialog state
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -220,6 +221,7 @@ const UniversalCalendarPage = () => {
   const handleFacilityChange = (value: string) => {
     setSelectedFacilityId(value);
     setHighlightedBookings([]);
+    setHighlightedBlockedDates([]);
   };
 
   const getAllBookingsForDate = (date: Date) => {
@@ -952,6 +954,19 @@ const UniversalCalendarPage = () => {
                 }
               }}
               highlightedBookings={highlightedBookings}
+              onBlockedDateClick={(blockedDateId) => {
+                setHighlightedBlockedDates([blockedDateId]);
+                setTimeout(() => {
+                  const blockedElement = document.getElementById(`blocked-${blockedDateId}`);
+                  if (blockedElement) {
+                    blockedElement.scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'center'
+                    });
+                  }
+                }, 100);
+              }}
+              highlightedBlockedDates={highlightedBlockedDates}
               blockedDates={getBlockedSlotsForDate(selectedDate).map(b => ({ 
                 ...b, 
                 facility_id: b.facility_id 
@@ -1044,11 +1059,14 @@ const UniversalCalendarPage = () => {
                           const facility = facilities.find(f => f.id === blocked.facility_id);
                           const isFullDayBlock = !blocked.start_time || !blocked.end_time;
                           
-                          return (
-                            <div 
-                              key={blocked.id}
-                              className="flex flex-wrap items-start justify-between gap-3 p-4 border border-yellow-200 dark:border-yellow-900 rounded-lg bg-yellow-50 dark:bg-yellow-950/20"
-                            >
+                            return (
+                              <div 
+                                key={blocked.id}
+                                id={`blocked-${blocked.id}`}
+                                className={`flex flex-wrap items-start justify-between gap-3 p-4 border border-yellow-200 dark:border-yellow-900 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 transition-all duration-300 ${
+                                  highlightedBlockedDates.includes(blocked.id) ? 'ring-2 ring-primary ring-offset-2' : ''
+                                }`}
+                              >
                               <div className="min-w-0 flex-1">
                                 {selectedFacilityId === "general" && facility && (
                                   <div className="flex items-center gap-2 mb-2 text-sm font-medium text-yellow-700 dark:text-yellow-500">

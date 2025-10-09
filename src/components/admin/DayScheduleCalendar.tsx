@@ -55,6 +55,8 @@ interface DayScheduleCalendarProps {
   isGeneralCalendar?: boolean;
   isFullyBlocked?: boolean;
   highlightedBookings?: string[];
+  onBlockedDateClick?: (blockedDateId: string) => void;
+  highlightedBlockedDates?: string[];
 }
 
 const DayScheduleCalendar = ({ 
@@ -66,7 +68,9 @@ const DayScheduleCalendar = ({
   blockedDates = [],
   isGeneralCalendar = false,
   isFullyBlocked = false,
-  highlightedBookings = []
+  highlightedBookings = [],
+  onBlockedDateClick,
+  highlightedBlockedDates = []
 }: DayScheduleCalendarProps) => {
 
   // Get booking color: manual (black) vs website (blue) - single color for general calendar
@@ -390,7 +394,7 @@ const DayScheduleCalendar = ({
                       return (
                         <button
                           onClick={() => handleBookingClick(booking.id)}
-                          className={`w-full h-full ${getBookingColor(booking)} cursor-pointer hover:opacity-80 transition-opacity ${isHighlighted ? 'ring-4 ring-yellow-400 ring-inset' : ''}`}
+                          className={`w-full h-full ${getBookingColor(booking)} cursor-pointer hover:opacity-80 transition-opacity ${isHighlighted ? 'ring-4 ring-primary ring-inset' : ''}`}
                           title={`${booking.start_time.substring(0, 5)}-${booking.end_time.substring(0, 5)}`}
                            style={{
                              position: 'relative',
@@ -413,12 +417,13 @@ const DayScheduleCalendar = ({
                       );
                     })()
                   ) : blocking ? (
-                    <div 
-                      className="w-full h-full bg-yellow-500 flex items-center justify-center hover:opacity-90 transition-opacity"
+                    <button 
+                      className={`w-full h-full bg-yellow-500 flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer ${highlightedBlockedDates.includes(blocking.id) ? 'ring-4 ring-primary ring-inset' : ''}`}
                       title={blocking.reason || 'Interval blocat'}
+                      onClick={() => onBlockedDateClick?.(blocking.id)}
                       style={{
                         position: 'relative',
-                        zIndex: 1,
+                        zIndex: highlightedBlockedDates.includes(blocking.id) ? 10 : 1,
                         borderTop: '2px solid rgba(255,255,255,0.25)',
                         borderBottom: '2px solid rgba(255,255,255,0.25)',
                         borderLeft: blockStart ? '2px solid rgba(255,255,255,0.35)' : '0',
@@ -435,7 +440,7 @@ const DayScheduleCalendar = ({
                       }}
                     >
                       <span className="text-xs text-white font-medium">BLOCAT</span>
-                    </div>
+                    </button>
                   ) : isClosingSlot ? (
                     <div className="w-full h-full bg-muted/50 flex items-center justify-center">
                       <span className="text-xs text-muted-foreground">Închidere</span>
