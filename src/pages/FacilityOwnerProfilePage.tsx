@@ -518,8 +518,8 @@ const FacilityOwnerProfilePage = () => {
           description: result.error,
           variant: "destructive"
         });
-        // Redirect to facility bookings page with state
-        navigate("/facility-owner-bookings", { state: { fromDeleteAccount: true } });
+        // Redirect to facility bookings page
+        navigate("/facility-owner-bookings");
       } else {
         toast({
           title: "Eroare",
