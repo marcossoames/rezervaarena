@@ -568,7 +568,7 @@ const FacilityOwnerProfilePage = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow h-full"
-            onClick={() => navigate("/facility-calendar")}
+            onClick={() => navigate("/calendar")}
           >
             <CardHeader className="flex flex-col h-full">
               <CardTitle className="flex items-center gap-2 min-h-[3rem]">

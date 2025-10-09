@@ -389,7 +389,7 @@ const ManageFacilitiesPage = () => {
                     <Button
                       variant="default"
                       size="sm"
-                      onClick={() => navigate(`/facility-calendar/${facility.id}`)}
+                      onClick={() => navigate(`/calendar?facilityId=${facility.id}`)}
                       className="flex-1"
                     >
                       <Clock className="h-3 w-3 mr-1" />
