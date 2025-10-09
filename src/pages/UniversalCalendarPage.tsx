@@ -74,7 +74,7 @@ const UniversalCalendarPage = () => {
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
-  const [highlightedBooking, setHighlightedBooking] = useState<string | null>(null);
+  const [highlightedBookings, setHighlightedBookings] = useState<string[]>([]);
   
   // Block specific hours dialog state
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -219,7 +219,7 @@ const UniversalCalendarPage = () => {
 
   const handleFacilityChange = (value: string) => {
     setSelectedFacilityId(value);
-    setHighlightedBooking(null);
+    setHighlightedBookings([]);
   };
 
   const getAllBookingsForDate = (date: Date) => {
@@ -896,18 +896,37 @@ const UniversalCalendarPage = () => {
               selectedFacility={selectedFacilityId === "general" ? "all" : selectedFacilityId}
               isGeneralCalendar={selectedFacilityId === "general"}
               isFullyBlocked={isDateFullyBlocked(selectedDate)}
-              onBookingClick={(bookingId) => {
-                setHighlightedBooking(bookingId);
-                setTimeout(() => {
-                  const bookingElement = document.getElementById(`booking-${bookingId}`);
-                  if (bookingElement) {
-                    bookingElement.scrollIntoView({ 
-                      behavior: 'smooth',
-                      block: 'center'
-                    });
-                  }
-                }, 100);
+              onBookingClick={(bookingIdsJson) => {
+                try {
+                  const bookingIds = JSON.parse(bookingIdsJson);
+                  setHighlightedBookings(bookingIds);
+                  
+                  setTimeout(() => {
+                    if (bookingIds.length > 0) {
+                      const bookingElement = document.getElementById(`booking-${bookingIds[0]}`);
+                      if (bookingElement) {
+                        bookingElement.scrollIntoView({ 
+                          behavior: 'smooth',
+                          block: 'center'
+                        });
+                      }
+                    }
+                  }, 100);
+                } catch {
+                  // Fallback for single booking ID
+                  setHighlightedBookings([bookingIdsJson]);
+                  setTimeout(() => {
+                    const bookingElement = document.getElementById(`booking-${bookingIdsJson}`);
+                    if (bookingElement) {
+                      bookingElement.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'center'
+                      });
+                    }
+                  }, 100);
+                }
               }}
+              highlightedBookings={highlightedBookings}
               blockedDates={getBlockedSlotsForDate(selectedDate).map(b => ({ 
                 ...b, 
                 facility_id: b.facility_id 
@@ -938,7 +957,7 @@ const UniversalCalendarPage = () => {
                             key={booking.id} 
                             id={`booking-${booking.id}`}
                             className={`flex flex-wrap items-start justify-between gap-3 p-4 border rounded-lg bg-card transition-all duration-300 ${
-                              highlightedBooking === booking.id ? 'ring-2 ring-primary ring-offset-2' : ''
+                              highlightedBookings.includes(booking.id) ? 'ring-2 ring-primary ring-offset-2' : ''
                             }`}
                           >
                             <div className="min-w-0 flex-1">

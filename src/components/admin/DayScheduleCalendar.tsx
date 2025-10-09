@@ -54,6 +54,7 @@ interface DayScheduleCalendarProps {
   blockedDates?: BlockedDate[];
   isGeneralCalendar?: boolean;
   isFullyBlocked?: boolean;
+  highlightedBookings?: string[];
 }
 
 const DayScheduleCalendar = ({ 
@@ -64,7 +65,8 @@ const DayScheduleCalendar = ({
   onBookingClick,
   blockedDates = [],
   isGeneralCalendar = false,
-  isFullyBlocked = false
+  isFullyBlocked = false,
+  highlightedBookings = []
 }: DayScheduleCalendarProps) => {
 
   // Get booking color: manual (black) vs website (blue) - single color for general calendar
@@ -208,9 +210,46 @@ const DayScheduleCalendar = ({
     return hours * 60 + minutes;
   };
 
+  // Get all overlapping bookings for a given time slot
+  const getOverlappingBookings = (timeSlot: string): Booking[] => {
+    const dayBookings = getDayBookings();
+    const slotMinutes = timeToMinutes(timeSlot);
+    
+    return dayBookings.filter(booking => {
+      const startTime = booking.start_time.substring(0, 5);
+      const endTime = booking.end_time.substring(0, 5);
+      const startMinutes = timeToMinutes(startTime);
+      const endMinutes = timeToMinutes(endTime);
+      
+      return slotMinutes >= startMinutes && slotMinutes < endMinutes;
+    });
+  };
+
   // Handle booking click with scroll to reservations section
   const handleBookingClick = (bookingId: string) => {
-    onBookingClick(bookingId);
+    // Get the clicked booking's time range
+    const clickedBooking = bookings.find(b => b.id === bookingId);
+    if (!clickedBooking) {
+      onBookingClick(bookingId);
+      return;
+    }
+    
+    // Find all bookings that overlap with the clicked booking's time range
+    const clickedStartMinutes = timeToMinutes(clickedBooking.start_time.substring(0, 5));
+    const clickedEndMinutes = timeToMinutes(clickedBooking.end_time.substring(0, 5));
+    
+    const dayBookings = getDayBookings();
+    const overlappingIds = dayBookings
+      .filter(booking => {
+        const startMinutes = timeToMinutes(booking.start_time.substring(0, 5));
+        const endMinutes = timeToMinutes(booking.end_time.substring(0, 5));
+        
+        // Check if there's any time overlap
+        return !(endMinutes <= clickedStartMinutes || startMinutes >= clickedEndMinutes);
+      })
+      .map(b => b.id);
+    
+    onBookingClick(JSON.stringify(overlappingIds));
     
     // Scroll to reservations section
     setTimeout(() => {
@@ -346,14 +385,16 @@ const DayScheduleCalendar = ({
                       const isStart = isBookingStart(timeSlot, booking);
                       const isEnd = isBookingEnd(timeSlot, booking);
                       
+                      const isHighlighted = highlightedBookings.includes(booking.id);
+                      
                       return (
                         <button
                           onClick={() => handleBookingClick(booking.id)}
-                          className={`w-full h-full ${getBookingColor(booking)} cursor-pointer hover:opacity-80 transition-opacity`}
+                          className={`w-full h-full ${getBookingColor(booking)} cursor-pointer hover:opacity-80 transition-opacity ${isHighlighted ? 'ring-4 ring-yellow-400 ring-inset' : ''}`}
                           title={`${booking.start_time.substring(0, 5)}-${booking.end_time.substring(0, 5)}`}
                            style={{
                              position: 'relative',
-                             zIndex: 1,
+                             zIndex: isHighlighted ? 10 : 1,
                              borderTop: '2px solid rgba(255,255,255,0.25)',
                              borderBottom: '2px solid rgba(255,255,255,0.25)',
                              borderLeft: isStart ? '2px solid rgba(255,255,255,0.35)' : '0',
