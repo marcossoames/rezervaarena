@@ -42,11 +42,13 @@ const CompleteProfile = () => {
       // Check if profile already exists and is complete
       const { data: profile } = await supabase
         .from('profiles')
-        .select('phone')
+        .select('phone, full_name')
         .eq('user_id', session.user.id)
         .single();
 
-      if (profile?.phone) {
+      // If profile exists and has a valid phone number, redirect to home
+      if (profile?.phone && profile.phone !== 'Telefon necompletat') {
+        console.log('Profile already complete, redirecting to home');
         navigate('/', { replace: true });
       }
     };

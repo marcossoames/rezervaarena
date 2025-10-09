@@ -20,22 +20,25 @@ const AuthRedirect = () => {
         return;
       }
 
-      // Check if user is authenticated (Google OAuth)
+      // Check if user is authenticated (Google OAuth or other auth)
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        // Check if user has a complete profile
-        const { data: profile } = await supabase
+        // Check if user has a complete profile with phone number
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('phone')
+          .select('phone, full_name')
           .eq('user_id', session.user.id)
           .single();
 
-        // If no profile or missing phone, redirect to complete profile
-        if (!profile || !profile.phone) {
+        // If no profile or missing phone number, redirect to complete profile
+        if (profileError || !profile || !profile.phone || profile.phone === 'Telefon necompletat') {
+          console.log('Redirecting to complete profile - missing phone');
           navigate('/complete-profile', { replace: true });
           return;
         }
+
+        console.log('User has complete profile, redirecting to home');
       }
 
       // Default: go home
