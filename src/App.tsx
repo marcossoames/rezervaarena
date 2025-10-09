@@ -41,7 +41,6 @@ const ArticlesPage = lazy(() => import("./pages/ArticlesPage"));
 const PaymentSuccessPage = lazy(() => import("./pages/PaymentSuccessPage"));
 const PlatformPaymentsPage = lazy(() => import("./pages/PlatformPaymentsPage"));
 const FacilityOwnerIncomePage = lazy(() => import("./pages/FacilityOwnerIncomePage"));
-const FacilityOwnerBookingsPage = lazy(() => import("./pages/FacilityOwnerBookingsPage"));
 const GeneralCalendarPage = lazy(() => import("./pages/GeneralCalendarPage"));
 
 const queryClient = new QueryClient();
@@ -120,7 +119,6 @@ const App = () => (
             <Route path="/payment-success" element={<PaymentSuccessPage />} />
             <Route path="/platform-payments" element={<PlatformPaymentsPage />} />
             <Route path="/facility-owner-income" element={<FacilityOwnerIncomePage />} />
-            <Route path="/facility-owner-bookings" element={<FacilityOwnerBookingsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

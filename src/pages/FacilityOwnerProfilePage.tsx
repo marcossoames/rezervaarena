@@ -594,7 +594,16 @@ const FacilityOwnerProfilePage = () => {
 
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow h-full"
-            onClick={() => navigate("/facility-owner-bookings")}
+            onClick={() => {
+              navigate("/manage-facilities");
+              // Set active tab to bookings after navigation
+              setTimeout(() => {
+                const bookingsTab = document.querySelector('[value="bookings"]');
+                if (bookingsTab instanceof HTMLElement) {
+                  bookingsTab.click();
+                }
+              }, 100);
+            }}
           >
             <CardHeader className="flex flex-col h-full">
               <CardTitle className="flex items-center gap-2 min-h-[3rem]">
