@@ -72,7 +72,7 @@ const FacilityCalendarPage = () => {
   const [facility, setFacility] = useState<Facility | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
   const [blockStartTime, setBlockStartTime] = useState("");
   const [blockEndTime, setBlockEndTime] = useState("");
