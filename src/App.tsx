@@ -14,6 +14,7 @@ const AuthRedirect = lazy(() => import("./pages/AuthRedirect"));
 const ClientLogin = lazy(() => import("./pages/ClientLogin"));
 const SportsFacilityLogin = lazy(() => import("./pages/SportsFacilityLogin"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
 const FacilitiesPage = lazy(() => import("./pages/FacilitiesPage"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/client/login" element={<ClientLogin />} />
             <Route path="/client/register" element={<ClientRegister />} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
             <Route path="/facility/login" element={<SportsFacilityLogin />} />
             <Route path="/facility/register" element={<FacilityRegister />} />
             <Route path="/add-facility" element={<AddFacilityPage />} />
