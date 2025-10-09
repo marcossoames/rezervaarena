@@ -116,11 +116,15 @@ const FacilityOwnerBookingsPage = () => {
             clientEmail = null; // No email for manual bookings
           } else {
             // For regular bookings, get client details from profiles
-            const { data: clientProfile } = await supabase
+            const { data: clientProfile, error: profileError } = await supabase
               .from('profiles')
               .select('full_name, phone, email')
               .eq('user_id', booking.client_id)
-              .single();
+              .maybeSingle();
+
+            if (profileError) {
+              console.error('Error fetching client profile:', profileError);
+            }
 
             const isClientDeleted = !clientProfile;
             clientName = isClientDeleted ? 'Nume indisponibil (cont șters)' : (clientProfile?.full_name || 'Nume indisponibil');
