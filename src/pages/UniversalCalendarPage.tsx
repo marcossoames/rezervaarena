@@ -273,7 +273,19 @@ const UniversalCalendarPage = () => {
     const dateStr = format(date, 'yyyy-MM-dd');
     
     if (selectedFacilityId === "general") {
-      return false;
+      // For general calendar, check if ALL facilities are blocked for this date
+      if (facilities.length === 0) return false;
+      
+      const blockedFacilitiesCount = facilities.filter(facility =>
+        blockedDates.some(blocked =>
+          blocked.blocked_date === dateStr &&
+          blocked.facility_id === facility.id &&
+          !blocked.start_time && 
+          !blocked.end_time
+        )
+      ).length;
+      
+      return blockedFacilitiesCount === facilities.length;
     }
     
     return blockedDates.some(blocked => 
@@ -458,7 +470,12 @@ const UniversalCalendarPage = () => {
                   <div className="w-4 h-4 rounded border" style={{ backgroundColor: '#3b82f6' }}></div>
                   <span>Zile cu rezervări</span>
                 </div>
-                {selectedFacilityId !== "general" && (
+                {selectedFacilityId === "general" ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded border" style={{ backgroundColor: '#ef4444' }}></div>
+                    <span>Toată baza blocată</span>
+                  </div>
+                ) : (
                   <>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 rounded border" style={{ backgroundColor: '#eab308' }}></div>
@@ -510,10 +527,47 @@ const UniversalCalendarPage = () => {
                   />
                 )}
 
-                {/* Block all facilities - only for general calendar on future dates without bookings */}
+                {/* Block/Unblock all facilities - only for general calendar on future dates */}
                 {selectedFacilityId === "general" && !isBefore(selectedDate, today) && (
                   <div className="space-y-3">
-                    {getActiveBookingsForDate(selectedDate).length === 0 ? (
+                    {isDateFullyBlocked(selectedDate) ? (
+                      <Button
+                        variant="outline"
+                        className="w-full border-green-500 text-green-700 hover:bg-green-50"
+                        onClick={async () => {
+                          try {
+                            const dateStr = format(selectedDate, 'yyyy-MM-dd');
+                            
+                            // Unblock all facilities for this date
+                            const { error } = await supabase
+                              .from('blocked_dates')
+                              .delete()
+                              .eq('blocked_date', dateStr)
+                              .is('start_time', null)
+                              .is('end_time', null);
+
+                            if (error) throw error;
+
+                            toast({
+                              title: "Succes",
+                              description: `Toate terenurile au fost deblocate pentru ${format(selectedDate, 'dd MMMM yyyy', { locale: ro })}`,
+                            });
+
+                            await refreshData();
+                          } catch (error) {
+                            console.error('Error unblocking all facilities:', error);
+                            toast({
+                              title: "Eroare",
+                              description: "Nu s-au putut debloca terenurile",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                      >
+                        <CalendarIcon className="h-4 w-4 mr-2" />
+                        Deblochează Toată Baza
+                      </Button>
+                    ) : getActiveBookingsForDate(selectedDate).length === 0 ? (
                       <Button
                         variant="destructive"
                         className="w-full"
