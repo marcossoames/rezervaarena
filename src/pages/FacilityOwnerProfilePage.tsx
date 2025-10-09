@@ -29,6 +29,7 @@ import {
   Edit,
   Plus,
   DollarSign,
+  CalendarCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -564,7 +565,7 @@ const FacilityOwnerProfilePage = () => {
         </div>
 
         {/* Navigation Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow h-full"
             onClick={() => navigate("/facility-calendar")}
@@ -588,6 +589,19 @@ const FacilityOwnerProfilePage = () => {
                 Terenuri
               </CardTitle>
               <CardDescription>Adaugă, editează sau șterge facilitățile sportive</CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow h-full"
+            onClick={() => navigate("/facility-owner-bookings")}
+          >
+            <CardHeader className="flex flex-col h-full">
+              <CardTitle className="flex items-center gap-2 min-h-[3rem]">
+                <CalendarCheck className="h-5 w-5" />
+                Rezervări
+              </CardTitle>
+              <CardDescription>Vezi toate rezervările (trecute și viitoare)</CardDescription>
             </CardHeader>
           </Card>
 
