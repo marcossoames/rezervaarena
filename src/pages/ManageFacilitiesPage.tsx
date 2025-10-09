@@ -68,6 +68,15 @@ const ManageFacilitiesPage = () => {
   const [bookingsSubTab, setBookingsSubTab] = useState<'upcoming' | 'past'>('upcoming');
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Check URL params for initial tab
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam === 'bookings') {
+      setActiveTab('bookings');
+    }
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
