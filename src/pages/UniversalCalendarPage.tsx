@@ -513,7 +513,7 @@ const UniversalCalendarPage = () => {
                 {/* Block all facilities - only for general calendar on future dates without bookings */}
                 {selectedFacilityId === "general" && !isBefore(selectedDate, today) && (
                   <div className="space-y-3">
-                    {getAllBookingsForDate(selectedDate).length === 0 ? (
+                    {getActiveBookingsForDate(selectedDate).length === 0 ? (
                       <Button
                         variant="destructive"
                         className="w-full"
