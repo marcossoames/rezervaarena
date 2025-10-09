@@ -461,20 +461,22 @@ const UniversalCalendarPage = () => {
               )}
             </div>
             
-            <Select value={selectedFacilityId} onValueChange={handleFacilityChange}>
-              <SelectTrigger className="w-[280px]">
-                <SelectValue placeholder="Selectează calendarul" />
-              </SelectTrigger>
-              <SelectContent className="bg-background z-50">
-                <SelectItem value="general">📅 Calendar General</SelectItem>
-                {facilities.map(facility => (
-                  <SelectItem key={facility.id} value={facility.id}>
-                    {facility.name}
-                  </SelectItem>
-                ))
-                }
-              </SelectContent>
-            </Select>
+            <div className="flex justify-center w-full">
+              <Select value={selectedFacilityId} onValueChange={handleFacilityChange}>
+                <SelectTrigger className="w-full max-w-md h-12 text-base font-medium">
+                  <SelectValue placeholder="Selectează calendarul" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="general">📅 Calendar General</SelectItem>
+                  {facilities.map(facility => (
+                    <SelectItem key={facility.id} value={facility.id}>
+                      {facility.name}
+                    </SelectItem>
+                  ))
+                  }
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
