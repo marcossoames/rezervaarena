@@ -112,6 +112,7 @@ const App = () => (
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
+            <Route path="/auth-redirect" element={<AuthRedirect />} />
             <Route path="/verify" element={<AuthRedirect />} />
             <Route path="/auth/*" element={<AuthRedirect />} />
             <Route path="/auth/v1/verify" element={<AuthRedirect />} />
