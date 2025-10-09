@@ -42,7 +42,7 @@ function Calendar({
         day_range_end: "day-range-end",
         day_selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        day_today: "bg-accent text-accent-foreground",
+        day_today: "bg-muted text-muted-foreground font-medium border border-border aria-selected:bg-primary aria-selected:text-primary-foreground aria-selected:border-primary",
         day_outside:
           "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
         day_disabled: "text-muted-foreground opacity-50",
@@ -54,6 +54,18 @@ function Calendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+      }}
+      modifiers={{
+        past: (date) => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const compareDate = new Date(date);
+          compareDate.setHours(0, 0, 0, 0);
+          return compareDate < today;
+        },
+      }}
+      modifiersClassNames={{
+        past: "opacity-50 text-muted-foreground/70",
       }}
       {...props}
     />
