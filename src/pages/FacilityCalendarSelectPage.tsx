@@ -110,44 +110,42 @@ const FacilityCalendarSelectPage = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => {
-              if (userProfile?.role === 'admin') {
-                navigate('/admin-dashboard');
-              } else {
-                navigate('/facility-owner-profile');
-              }
-            }}
-            className="mb-4 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Înapoi
-          </Button>
-          
-          <div className="mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Calendar Facilități</h1>
-              <p className="text-muted-foreground">
-                Selectează facilitatea pentru a vedea calendarul și a gestiona rezervările
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                if (userProfile?.role === 'admin') {
+                  navigate('/admin-dashboard');
+                } else {
+                  navigate('/facility-owner-profile');
+                }
+              }}
+              className="hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Înapoi
+            </Button>
             
-            {/* Calendar General Button - aligned right on mobile, wider */}
-            <div className="flex justify-end mt-4">
-              <Button 
-                variant="outline"
-                onClick={() => navigate('/general-calendar', { 
-                  state: { 
-                    from: 'facility-calendar-select'
-                  }
-                })}
-                className="flex items-center gap-2 w-full sm:w-auto"
-              >
-                <CalendarDays className="h-4 w-4" />
-                Calendar General
-              </Button>
-            </div>
+            {/* Calendar General Button - aligned right on same row */}
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/general-calendar', { 
+                state: { 
+                  from: 'facility-calendar-select'
+                }
+              })}
+              className="flex items-center gap-2 flex-1 sm:flex-initial"
+            >
+              <CalendarDays className="h-4 w-4" />
+              Calendar General
+            </Button>
+          </div>
+          
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Calendar Facilități</h1>
+            <p className="text-muted-foreground">
+              Selectează facilitatea pentru a vedea calendarul și a gestiona rezervările
+            </p>
           </div>
         </div>
 
