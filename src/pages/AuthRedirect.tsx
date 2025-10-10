@@ -29,11 +29,16 @@ const AuthRedirect = () => {
           .from('profiles')
           .select('phone, full_name')
           .eq('user_id', session.user.id)
-          .single();
+          .maybeSingle();
 
-        // If no profile or missing phone number, redirect to complete profile
-        if (profileError || !profile || !profile.phone || profile.phone === 'Telefon necompletat') {
-          console.log('Redirecting to complete profile - missing phone');
+        // CRITICAL: Always redirect to complete-profile if phone is missing or invalid
+        // This includes: new users, deleted accounts that were recreated, or incomplete profiles
+        const hasValidPhone = profile?.phone && 
+                            profile.phone !== 'Telefon necompletat' && 
+                            profile.phone.trim() !== '';
+
+        if (!hasValidPhone) {
+          console.log('Redirecting to complete profile - phone missing or invalid');
           navigate('/complete-profile', { replace: true });
           return;
         }

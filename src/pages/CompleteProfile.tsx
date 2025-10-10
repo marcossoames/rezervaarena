@@ -44,10 +44,14 @@ const CompleteProfile = () => {
         .from('profiles')
         .select('phone, full_name')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
-      // If profile exists and has a valid phone number, redirect to home
-      if (profile?.phone && profile.phone !== 'Telefon necompletat') {
+      // If profile exists and has a valid phone number (not empty, not placeholder), redirect to home
+      const hasValidPhone = profile?.phone && 
+                           profile.phone !== 'Telefon necompletat' && 
+                           profile.phone.trim() !== '';
+      
+      if (hasValidPhone) {
         console.log('Profile already complete, redirecting to home');
         navigate('/', { replace: true });
       }
