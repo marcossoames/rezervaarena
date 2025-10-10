@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,6 +84,7 @@ const getSportColor = (facilityType: string) => {
 };
 
 const GeneralCalendarPage = () => {
+  const calendarSectionRef = useRef<HTMLDivElement>(null);
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
@@ -969,7 +970,18 @@ const GeneralCalendarPage = () => {
                   <Calendar
                     mode="single"
                     selected={selectedDate}
-                    onSelect={(date) => date && setSelectedDate(date)}
+                    onSelect={(date) => {
+                      if (date) {
+                        setSelectedDate(date);
+                        // Scroll to calendar section on mobile
+                        setTimeout(() => {
+                          calendarSectionRef.current?.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start' 
+                          });
+                        }, 100);
+                      }
+                    }}
                     modifiers={{
                       hasBookings: (date) => hasBookingsOnDate(date) && !hasBlockedDatesOnDate(date),
                       hasBlocked: (date) => hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date) && getBlockedDatesForDate(date).some(blocked => !blocked.start_time && !blocked.end_time),
@@ -1309,7 +1321,7 @@ const GeneralCalendarPage = () => {
             </div>
 
             {/* Daily view */}
-            <div className="lg:col-span-8">
+            <div className="lg:col-span-8" ref={calendarSectionRef}>
               <Card>
                 <CardHeader>
                   <CardTitle>Programul zilei</CardTitle>

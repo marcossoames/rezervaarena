@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,6 +68,7 @@ const FacilityCalendarPage = () => {
   const { facilityId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const calendarSectionRef = useRef<HTMLDivElement>(null);
   
   const [facility, setFacility] = useState<Facility | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -701,7 +702,18 @@ const FacilityCalendarPage = () => {
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={setSelectedDate}
+                onSelect={(date) => {
+                  setSelectedDate(date);
+                  // Scroll to calendar section on mobile
+                  if (date && calendarSectionRef.current) {
+                    setTimeout(() => {
+                      calendarSectionRef.current?.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                      });
+                    }, 100);
+                  }
+                }}
                 locale={ro}
                 className="rounded-md border"
                 modifiers={{
@@ -758,7 +770,7 @@ const FacilityCalendarPage = () => {
           </Card>
 
           {/* Selected Date Details */}
-          <Card>
+          <Card ref={calendarSectionRef}>
             <CardHeader>
               <CardTitle>
                 {selectedDate ? format(selectedDate, 'EEEE, d MMMM yyyy', { locale: ro }) : 'Selectează o dată'}
