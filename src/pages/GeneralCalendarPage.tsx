@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ArrowLeft, Calendar as CalendarIcon, Edit, Clock, Ban, Plus, X, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format, isSameDay } from "date-fns";
+import { format, isSameDay, isBefore, startOfDay } from "date-fns";
 import { ro } from "date-fns/locale";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
@@ -986,33 +986,43 @@ const GeneralCalendarPage = () => {
                       }
                     }}
                     modifiers={{
+                      past: (date) => isBefore(date, startOfDay(new Date())),
                       hasBookings: (date) => hasBookingsOnDate(date) && !hasBlockedDatesOnDate(date),
                       hasBlocked: (date) => hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date) && getBlockedDatesForDate(date).some(blocked => !blocked.start_time && !blocked.end_time),
                       hasOnlyPartialBlocks: (date) => hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date) && !getBlockedDatesForDate(date).some(blocked => !blocked.start_time && !blocked.end_time),
                       hasPartialBlock: (date) => hasPartialBlockOnDate(date)
                     }}
                     modifiersStyles={{
+                      past: {
+                        opacity: '0.4',
+                        color: 'hsl(var(--muted-foreground))',
+                        fontWeight: 'normal'
+                      },
                       hasBookings: { 
                         backgroundColor: '#3b82f6', 
                         color: 'white',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
+                        opacity: '1'
                       },
                       hasBlocked: { 
                         backgroundColor: '#ef4444', 
                         color: 'white',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
+                        opacity: '1'
                       },
                       hasOnlyPartialBlocks: {
                         backgroundColor: '#eab308',
                         color: 'white',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
+                        opacity: '1'
                       },
                       hasPartialBlock: {
                         backgroundColor: '#3b82f6',
                         color: 'white',
                         fontWeight: 'bold',
                         border: '2px solid #eab308',
-                        borderRadius: '6px'
+                        borderRadius: '6px',
+                        opacity: '1'
                       }
                     }}
                     locale={ro}

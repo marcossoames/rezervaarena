@@ -387,6 +387,7 @@ const UniversalCalendarPage = () => {
   const hasExistingBookingsForDate = getActiveBookingsForDate(selectedDate).length > 0;
 
   const calendarModifiers = {
+    past: (date: Date) => isBefore(date, today),
     hasBookings: (date: Date) => {
       if (selectedFacilityId === "general") {
         return getAllBookingsForDate(date).length > 0;
@@ -399,27 +400,36 @@ const UniversalCalendarPage = () => {
   };
 
   const calendarModifierStyles = {
+    past: {
+      opacity: '0.4',
+      color: 'hsl(var(--muted-foreground))',
+      fontWeight: 'normal'
+    },
     hasBookings: { 
       backgroundColor: '#3b82f6', 
       color: 'white',
-      fontWeight: 'bold'
+      fontWeight: 'bold',
+      opacity: '1'
     },
     partiallyBlocked: { 
       backgroundColor: '#eab308', 
       color: 'white',
-      fontWeight: 'bold'
+      fontWeight: 'bold',
+      opacity: '1'
     },
     fullyBlocked: { 
       backgroundColor: '#ef4444', 
       color: 'white',
-      fontWeight: 'bold'
+      fontWeight: 'bold',
+      opacity: '1'
     },
     hasBookingsAndPartialBlocks: {
       backgroundColor: '#3b82f6',
       color: 'white',
       fontWeight: 'bold',
       border: '2px solid #eab308',
-      borderRadius: '6px'
+      borderRadius: '6px',
+      opacity: '1'
     }
   };
 

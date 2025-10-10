@@ -720,33 +720,43 @@ const FacilityCalendarPage = () => {
                 locale={ro}
                 className="rounded-md border"
                 modifiers={{
+                  past: (date) => isBefore(date, startOfDay(new Date())),
                   hasBookings: (date) => getActiveBookingsForDate(date).length > 0 && !hasPartialBlockings(date) && !isDateFullyBlocked(date),
                   partiallyBlocked: (date) => hasPartialBlockings(date) && getActiveBookingsForDate(date).length === 0,
                   fullyBlocked: (date) => isDateFullyBlocked(date),
                   hasBookingsAndPartialBlocks: (date) => getActiveBookingsForDate(date).length > 0 && hasPartialBlockings(date)
                 }}
                 modifiersStyles={{
+                  past: {
+                    opacity: '0.4',
+                    color: 'hsl(var(--muted-foreground))',
+                    fontWeight: 'normal'
+                  },
                   hasBookings: { 
                     backgroundColor: '#3b82f6', 
                     color: 'white',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    opacity: '1'
                   },
                   partiallyBlocked: { 
                     backgroundColor: '#eab308', 
                     color: 'white',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    opacity: '1'
                   },
                   fullyBlocked: { 
                     backgroundColor: '#ef4444', 
                     color: 'white',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    opacity: '1'
                   },
                   hasBookingsAndPartialBlocks: {
                     backgroundColor: '#3b82f6',
                     color: 'white',
                     fontWeight: 'bold',
                     border: '2px solid #eab308',
-                    borderRadius: '6px'
+                    borderRadius: '6px',
+                    opacity: '1'
                   }
                 }}
                 disabled={(date) => isBefore(date, startOfDay(new Date()))}
