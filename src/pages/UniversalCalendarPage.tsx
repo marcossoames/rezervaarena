@@ -480,15 +480,15 @@ const UniversalCalendarPage = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200">
+          <div className="flex items-center gap-2 md:gap-4 mb-4">
+            <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200 flex-shrink-0">
               <ArrowLeft className="h-4 w-4" />
-              Înapoi
+              <span className="hidden md:inline">Înapoi</span>
             </Link>
             
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 min-w-0">
               <Select value={selectedFacilityId} onValueChange={handleFacilityChange}>
-                <SelectTrigger className="w-full max-w-md h-12 text-base font-medium">
+                <SelectTrigger className="w-full h-12 text-base font-medium">
                   <SelectValue placeholder="Selectează calendarul" />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50">
@@ -502,8 +502,6 @@ const UniversalCalendarPage = () => {
                 </SelectContent>
               </Select>
             </div>
-            
-            <div className="w-[100px]"></div> {/* Spacer for balance */}
           </div>
           
           <div className="flex flex-col gap-2">

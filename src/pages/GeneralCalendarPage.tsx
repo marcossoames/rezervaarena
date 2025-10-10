@@ -923,10 +923,11 @@ const GeneralCalendarPage = () => {
           <Button 
             variant="ghost" 
             onClick={getBackButtonAction()}
-            className="mb-4 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
+            className="mb-4 hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200 flex-shrink-0"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {getBackButtonText()}
+            <span className="hidden md:inline">{getBackButtonText()}</span>
+            <span className="md:hidden">Înapoi</span>
           </Button>
           
           <div>
