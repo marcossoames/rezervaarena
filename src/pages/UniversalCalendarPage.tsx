@@ -83,6 +83,7 @@ const UniversalCalendarPage = () => {
   const [blockEndTime, setBlockEndTime] = useState("");
   const [blockReason, setBlockReason] = useState("");
 
+  const visualCalendarRef = useRef<HTMLDivElement>(null);
   const today = startOfDay(new Date());
 
   useEffect(() => {
@@ -506,7 +507,23 @@ const UniversalCalendarPage = () => {
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(date);
+                    // Smooth scroll to visual calendar section after render
+                    requestAnimationFrame(() => {
+                      requestAnimationFrame(() => {
+                        const el = document.getElementById('visual-calendar-section') || visualCalendarRef.current;
+                        const found = !!el;
+                        console.info('Calendar onSelect -> scroll', { found, date: date.toISOString() });
+                        if (el) {
+                          const y = el.getBoundingClientRect().top + window.scrollY - 80;
+                          window.scrollTo({ top: y, behavior: 'smooth' });
+                        }
+                      });
+                    });
+                  }
+                }}
                 locale={ro}
                 className="rounded-md border"
                 modifiers={calendarModifiers}
@@ -918,7 +935,7 @@ const UniversalCalendarPage = () => {
 
         {/* Day Schedule Calendar */}
         {selectedDate && (
-          <>
+          <div id="visual-calendar-section" ref={visualCalendarRef}>
             <DayScheduleCalendar
               selectedDate={selectedDate}
               bookings={getAllBookingsForDate(selectedDate).map(booking => ({
@@ -938,7 +955,6 @@ const UniversalCalendarPage = () => {
                 try {
                   const bookingIds = JSON.parse(bookingIdsJson);
                   setHighlightedBookings(bookingIds);
-                  
                   setTimeout(() => {
                     if (bookingIds.length > 0) {
                       const bookingElement = document.getElementById(`booking-${bookingIds[0]}`);
@@ -1123,7 +1139,7 @@ const UniversalCalendarPage = () => {
                 </div>
               </CardContent>
             </Card>
-          </>
+          </div>
         )}
       </div>
     </div>
