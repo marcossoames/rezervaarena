@@ -125,7 +125,7 @@ const FacilityCalendarSelectPage = () => {
             Înapoi
           </Button>
           
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+          <div className="mb-6">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">Calendar Facilități</h1>
               <p className="text-muted-foreground">
@@ -133,19 +133,21 @@ const FacilityCalendarSelectPage = () => {
               </p>
             </div>
             
-            {/* Calendar General Button */}
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/general-calendar', { 
-                state: { 
-                  from: 'facility-calendar-select'
-                }
-              })}
-              className="flex items-center gap-2 sm:flex-shrink-0"
-            >
-              <CalendarDays className="h-4 w-4" />
-              Calendar General
-            </Button>
+            {/* Calendar General Button - aligned right on mobile, wider */}
+            <div className="flex justify-end mt-4">
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/general-calendar', { 
+                  state: { 
+                    from: 'facility-calendar-select'
+                  }
+                })}
+                className="flex items-center gap-2 w-full sm:w-auto"
+              >
+                <CalendarDays className="h-4 w-4" />
+                Calendar General
+              </Button>
+            </div>
           </div>
         </div>
 
