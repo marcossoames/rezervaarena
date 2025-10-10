@@ -973,13 +973,13 @@ const GeneralCalendarPage = () => {
                     onSelect={(date) => {
                       if (date) {
                         setSelectedDate(date);
-                        // Scroll to calendar section on mobile
+                        // Scroll to calendar section
                         setTimeout(() => {
                           calendarSectionRef.current?.scrollIntoView({ 
                             behavior: 'smooth', 
-                            block: 'start' 
+                            block: 'center' 
                           });
-                        }, 100);
+                        }, 200);
                       }
                     }}
                     modifiers={{

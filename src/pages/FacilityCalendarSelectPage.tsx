@@ -134,7 +134,7 @@ const FacilityCalendarSelectPage = () => {
                   from: 'facility-calendar-select'
                 }
               })}
-              className="flex items-center gap-2 flex-1 sm:flex-initial"
+              className="flex items-center gap-2 ml-auto"
             >
               <CalendarDays className="h-4 w-4" />
               Calendar General

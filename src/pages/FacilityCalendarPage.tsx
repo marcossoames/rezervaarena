@@ -704,14 +704,14 @@ const FacilityCalendarPage = () => {
                 selected={selectedDate}
                 onSelect={(date) => {
                   setSelectedDate(date);
-                  // Scroll to calendar section on mobile
+                  // Scroll to calendar section
                   if (date && calendarSectionRef.current) {
                     setTimeout(() => {
                       calendarSectionRef.current?.scrollIntoView({ 
                         behavior: 'smooth', 
-                        block: 'start' 
+                        block: 'center' 
                       });
-                    }, 100);
+                    }, 200);
                   }
                 }}
                 locale={ro}
