@@ -419,7 +419,7 @@ const ClientProfilePage = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Tip Utilizator</label>
-                  <p className="text-lg">{userProfile.role === 'client' ? 'Client' : userProfile.role}</p>
+                  <p className="text-lg">Client</p>
                 </div>
                 {isEditMode && (
                   <div className="flex gap-2 pt-4">
@@ -544,7 +544,7 @@ const ClientProfilePage = () => {
                       {activeBookingsInfo?.activeBookings > 0 ? (
                         <div className="space-y-3">
                           <p className="font-medium text-destructive">
-                            ⚠️ Ai {activeBookingsInfo.activeBookings} rezervări active care vor fi anulate automat!
+                            ⚠️ Ai {activeBookingsInfo.activeBookings} rezervări active!
                           </p>
                           <div className="bg-destructive/10 p-3 rounded-lg">
                             <p className="text-sm mb-2">Rezervările care vor fi anulate:</p>
