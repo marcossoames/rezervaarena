@@ -724,7 +724,12 @@ const FacilityCalendarPage = () => {
                   hasBookings: (date) => getActiveBookingsForDate(date).length > 0 && !hasPartialBlockings(date) && !isDateFullyBlocked(date),
                   partiallyBlocked: (date) => hasPartialBlockings(date) && getActiveBookingsForDate(date).length === 0,
                   fullyBlocked: (date) => isDateFullyBlocked(date),
-                  hasBookingsAndPartialBlocks: (date) => getActiveBookingsForDate(date).length > 0 && hasPartialBlockings(date)
+                  hasBookingsAndPartialBlocks: (date) => getActiveBookingsForDate(date).length > 0 && hasPartialBlockings(date),
+                  // Past + state combinations
+                  pastWithBookings: (date) => isBefore(date, startOfDay(new Date())) && getActiveBookingsForDate(date).length > 0 && !hasPartialBlockings(date) && !isDateFullyBlocked(date),
+                  pastPartiallyBlocked: (date) => isBefore(date, startOfDay(new Date())) && hasPartialBlockings(date) && getActiveBookingsForDate(date).length === 0,
+                  pastFullyBlocked: (date) => isBefore(date, startOfDay(new Date())) && isDateFullyBlocked(date),
+                  pastBookingsAndPartialBlocks: (date) => isBefore(date, startOfDay(new Date())) && getActiveBookingsForDate(date).length > 0 && hasPartialBlockings(date)
                 }}
                 modifiersStyles={{
                   past: {
@@ -757,6 +762,33 @@ const FacilityCalendarPage = () => {
                     border: '2px solid #eab308',
                     borderRadius: '6px',
                     opacity: '1'
+                  },
+                  // Past versions with faded opacity
+                  pastWithBookings: {
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    opacity: '0.4'
+                  },
+                  pastPartiallyBlocked: {
+                    backgroundColor: '#eab308',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    opacity: '0.4'
+                  },
+                  pastFullyBlocked: {
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    opacity: '0.4'
+                  },
+                  pastBookingsAndPartialBlocks: {
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    border: '2px solid #eab308',
+                    borderRadius: '6px',
+                    opacity: '0.4'
                   }
                 }}
                 disabled={(date) => isBefore(date, startOfDay(new Date()))}

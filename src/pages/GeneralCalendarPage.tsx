@@ -990,7 +990,12 @@ const GeneralCalendarPage = () => {
                       hasBookings: (date) => hasBookingsOnDate(date) && !hasBlockedDatesOnDate(date),
                       hasBlocked: (date) => hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date) && getBlockedDatesForDate(date).some(blocked => !blocked.start_time && !blocked.end_time),
                       hasOnlyPartialBlocks: (date) => hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date) && !getBlockedDatesForDate(date).some(blocked => !blocked.start_time && !blocked.end_time),
-                      hasPartialBlock: (date) => hasPartialBlockOnDate(date)
+                      hasPartialBlock: (date) => hasPartialBlockOnDate(date),
+                      // Past + state combinations
+                      pastWithBookings: (date) => isBefore(date, startOfDay(new Date())) && hasBookingsOnDate(date) && !hasBlockedDatesOnDate(date),
+                      pastBlocked: (date) => isBefore(date, startOfDay(new Date())) && hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date) && getBlockedDatesForDate(date).some(blocked => !blocked.start_time && !blocked.end_time),
+                      pastPartialBlocks: (date) => isBefore(date, startOfDay(new Date())) && hasBlockedDatesOnDate(date) && !hasBookingsOnDate(date) && !getBlockedDatesForDate(date).some(blocked => !blocked.start_time && !blocked.end_time),
+                      pastWithPartialBlock: (date) => isBefore(date, startOfDay(new Date())) && hasPartialBlockOnDate(date)
                     }}
                     modifiersStyles={{
                       past: {
@@ -1023,6 +1028,33 @@ const GeneralCalendarPage = () => {
                         border: '2px solid #eab308',
                         borderRadius: '6px',
                         opacity: '1'
+                      },
+                      // Past versions with faded opacity
+                      pastWithBookings: {
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        opacity: '0.4'
+                      },
+                      pastBlocked: {
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        opacity: '0.4'
+                      },
+                      pastPartialBlocks: {
+                        backgroundColor: '#eab308',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        opacity: '0.4'
+                      },
+                      pastWithPartialBlock: {
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        border: '2px solid #eab308',
+                        borderRadius: '6px',
+                        opacity: '0.4'
                       }
                     }}
                     locale={ro}

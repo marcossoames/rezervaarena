@@ -396,7 +396,18 @@ const UniversalCalendarPage = () => {
     },
     partiallyBlocked: (date: Date) => hasPartialBlockings(date) && getActiveBookingsForDate(date).length === 0,
     fullyBlocked: (date: Date) => isDateFullyBlocked(date),
-    hasBookingsAndPartialBlocks: (date: Date) => getActiveBookingsForDate(date).length > 0 && hasPartialBlockings(date)
+    hasBookingsAndPartialBlocks: (date: Date) => getActiveBookingsForDate(date).length > 0 && hasPartialBlockings(date),
+    // Past + state combinations
+    pastWithBookings: (date: Date) => {
+      const isPast = isBefore(date, today);
+      if (selectedFacilityId === "general") {
+        return isPast && getAllBookingsForDate(date).length > 0;
+      }
+      return isPast && getActiveBookingsForDate(date).length > 0 && !hasPartialBlockings(date) && !isDateFullyBlocked(date);
+    },
+    pastPartiallyBlocked: (date: Date) => isBefore(date, today) && hasPartialBlockings(date) && getActiveBookingsForDate(date).length === 0,
+    pastFullyBlocked: (date: Date) => isBefore(date, today) && isDateFullyBlocked(date),
+    pastBookingsAndPartialBlocks: (date: Date) => isBefore(date, today) && getActiveBookingsForDate(date).length > 0 && hasPartialBlockings(date)
   };
 
   const calendarModifierStyles = {
@@ -430,6 +441,33 @@ const UniversalCalendarPage = () => {
       border: '2px solid #eab308',
       borderRadius: '6px',
       opacity: '1'
+    },
+    // Past versions with faded opacity
+    pastWithBookings: {
+      backgroundColor: '#3b82f6',
+      color: 'white',
+      fontWeight: 'bold',
+      opacity: '0.4'
+    },
+    pastPartiallyBlocked: {
+      backgroundColor: '#eab308',
+      color: 'white',
+      fontWeight: 'bold',
+      opacity: '0.4'
+    },
+    pastFullyBlocked: {
+      backgroundColor: '#ef4444',
+      color: 'white',
+      fontWeight: 'bold',
+      opacity: '0.4'
+    },
+    pastBookingsAndPartialBlocks: {
+      backgroundColor: '#3b82f6',
+      color: 'white',
+      fontWeight: 'bold',
+      border: '2px solid #eab308',
+      borderRadius: '6px',
+      opacity: '0.4'
     }
   };
 
