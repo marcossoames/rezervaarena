@@ -188,7 +188,7 @@ const CompleteProfile = () => {
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="+40712345678"
+                    placeholder="0712345678 sau +40712345678"
                     className="pl-10"
                     {...register("phone", {
                       required: "Numărul de telefon este obligatoriu"
@@ -200,18 +200,31 @@ const CompleteProfile = () => {
                   <p className="text-sm text-destructive">{errors.phone.message}</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Format: +40712345678 (obligatoriu cu +40)
+                  Format: 0712345678 sau +40712345678
                 </p>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                size="lg"
-                disabled={isLoading}
-              >
-                {isLoading ? "Se salvează..." : "Finalizează Înregistrarea"}
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    navigate('/', { replace: true });
+                  }}
+                >
+                  Anulează
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  size="lg"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Se salvează..." : "Finalizează Înregistrarea"}
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
