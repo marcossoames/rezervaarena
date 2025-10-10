@@ -704,14 +704,17 @@ const FacilityCalendarPage = () => {
                 selected={selectedDate}
                 onSelect={(date) => {
                   setSelectedDate(date);
-                  // Scroll to calendar section
-                  if (date && calendarSectionRef.current) {
-                    setTimeout(() => {
-                      calendarSectionRef.current?.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'center' 
+                  if (date) {
+                    // Smooth scroll to visual calendar section after state/render
+                    requestAnimationFrame(() => {
+                      requestAnimationFrame(() => {
+                        const el = document.getElementById('visual-calendar-section') || calendarSectionRef.current;
+                        if (el) {
+                          const y = el.getBoundingClientRect().top + window.scrollY - 80;
+                          window.scrollTo({ top: y, behavior: 'smooth' });
+                        }
                       });
-                    }, 200);
+                    });
                   }
                 }}
                 locale={ro}
@@ -770,7 +773,7 @@ const FacilityCalendarPage = () => {
           </Card>
 
           {/* Selected Date Details */}
-          <Card ref={calendarSectionRef}>
+          <Card ref={calendarSectionRef} id="visual-calendar-section">
             <CardHeader>
               <CardTitle>
                 {selectedDate ? format(selectedDate, 'EEEE, d MMMM yyyy', { locale: ro }) : 'Selectează o dată'}

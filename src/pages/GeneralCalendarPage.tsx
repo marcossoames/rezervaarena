@@ -973,13 +973,16 @@ const GeneralCalendarPage = () => {
                     onSelect={(date) => {
                       if (date) {
                         setSelectedDate(date);
-                        // Scroll to calendar section
-                        setTimeout(() => {
-                          calendarSectionRef.current?.scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'center' 
+                        // Smooth scroll to visual calendar section after state/render
+                        requestAnimationFrame(() => {
+                          requestAnimationFrame(() => {
+                            const el = document.getElementById('visual-calendar-section') || calendarSectionRef.current;
+                            if (el) {
+                              const y = el.getBoundingClientRect().top + window.scrollY - 80;
+                              window.scrollTo({ top: y, behavior: 'smooth' });
+                            }
                           });
-                        }, 200);
+                        });
                       }
                     }}
                     modifiers={{
@@ -1321,7 +1324,7 @@ const GeneralCalendarPage = () => {
             </div>
 
             {/* Daily view */}
-            <div className="lg:col-span-8" ref={calendarSectionRef}>
+            <div id="visual-calendar-section" className="lg:col-span-8" ref={calendarSectionRef}>
               <Card>
                 <CardHeader>
                   <CardTitle>Programul zilei</CardTitle>
