@@ -54,23 +54,24 @@ const PageLoader = () => (
   </div>
  );
  
-// Redirect auth tokens in hash or query to proper routes
+// Redirect auth tokens in hash or query to proper routes (email links only, not OAuth)
 const AuthHashRedirect = () => {
   const navigate = useNavigate();
   useEffect(() => {
     const { hash, search, pathname } = window.location;
 
     const hasRecoveryParams = /type=recovery|token_hash=/.test(hash) || /type=recovery|token_hash=/.test(search);
-    const hasSignupParams = /(type=signup|access_token=|code=|token_hash=)/.test(hash) || /(type=signup|code=|token_hash=)/.test(search);
+    // Only treat as email confirmation when explicit signup params exist (avoid catching OAuth access_token)
+    const hasEmailSignupParams = /(type=signup|code=|token_hash=)/.test(hash) || /(type=signup|code=|token_hash=)/.test(search);
 
-    // Password recovery -> Reset Password page
+    const isAuthRedirectPath = pathname.startsWith('/auth-redirect') || pathname.startsWith('/auth/') || pathname.startsWith('/auth/v1');
+
     if (hasRecoveryParams && pathname !== '/reset-password') {
       navigate('/reset-password' + (search || '') + (hash || ''), { replace: true });
       return;
     }
 
-    // Email confirmation -> Email Confirmation page
-    if (hasSignupParams && pathname !== '/email-confirmation') {
+    if (hasEmailSignupParams && pathname !== '/email-confirmation' && !isAuthRedirectPath) {
       navigate('/email-confirmation' + (search || '') + (hash || ''), { replace: true });
     }
   }, [navigate]);

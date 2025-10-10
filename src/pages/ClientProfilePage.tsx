@@ -38,7 +38,14 @@ const ClientProfilePage = () => {
           .from('profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
+
+        // If missing or invalid phone, force completion flow
+        const hasValidPhone = profile?.phone && profile.phone !== 'Telefon necompletat' && profile.phone.trim() !== '';
+        if (!hasValidPhone) {
+          navigate('/complete-profile', { replace: true });
+          return;
+        }
 
         if (profile) {
           setUserProfile(profile);

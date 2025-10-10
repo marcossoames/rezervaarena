@@ -70,14 +70,27 @@ const Header = () => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
-      
-      if (!error) {
+        .maybeSingle();
+
+      if (data) {
         setUserProfile(data);
+        const hasValidPhone = data.phone && data.phone !== 'Telefon necompletat' && data.phone.trim() !== '';
+        const onCompleteProfile = location.pathname === '/complete-profile';
+        const onAuthRedirect = location.pathname.startsWith('/auth-redirect') || location.pathname.startsWith('/auth/');
+        if (!hasValidPhone && !onCompleteProfile && !onAuthRedirect) {
+          navigate('/complete-profile', { replace: true });
+        }
+      } else {
+        // No profile row yet -> force completion
+        const onCompleteProfile = location.pathname === '/complete-profile';
+        const onAuthRedirect = location.pathname.startsWith('/auth-redirect') || location.pathname.startsWith('/auth/');
+        if (!onCompleteProfile && !onAuthRedirect) {
+          navigate('/complete-profile', { replace: true });
+        }
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
