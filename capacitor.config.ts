@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.947ae49fe8d5428395f7ef683f84f2b9',
+  appId: 'com.rezervaarena.app',
   appName: 'RezervaArena',
   webDir: 'dist',
   server: {
