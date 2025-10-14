@@ -3,42 +3,35 @@ import type { Config } from "tailwindcss";
 export default {
 	darkMode: ["class"],
 	content: [
+		"./index.html",
 		"./pages/**/*.{ts,tsx}",
 		"./components/**/*.{ts,tsx}",
 		"./app/**/*.{ts,tsx}",
-		"./src/**/*.{ts,tsx}",
+		"./src/**/*.{ts,tsx,js,jsx}",
 	],
-	// Enable CSS purging for production builds
-	purge: {
-		enabled: process.env.NODE_ENV === 'production',
-		content: [
-			"./index.html",
-			"./src/**/*.{ts,tsx,js,jsx}",
-		],
-		// Safelist critical classes that might be used dynamically
-		safelist: [
-			'animate-spin',
-			'border-primary',
-			'bg-primary',
-			'text-primary',
-			'bg-card',
-			'text-foreground',
-			'text-muted-foreground',
-			'hover:bg-primary',
-			'hover:text-primary-foreground',
-			'transition-all',
-			'duration-300',
-			// Keep essential responsive classes
-			'container',
-			'mx-auto',
-			'px-4',
-			'py-8',
-			'grid',
-			'md:grid-cols-2',
-			'lg:grid-cols-3',
-			'gap-8'
-		]
-	},
+	// Safelist critical classes that might be used dynamically
+	safelist: [
+		'animate-spin',
+		'border-primary',
+		'bg-primary',
+		'text-primary',
+		'bg-card',
+		'text-foreground',
+		'text-muted-foreground',
+		'hover:bg-primary',
+		'hover:text-primary-foreground',
+		'transition-all',
+		'duration-300',
+		// Keep essential responsive classes
+		'container',
+		'mx-auto',
+		'px-4',
+		'py-8',
+		'grid',
+		'md:grid-cols-2',
+		'lg:grid-cols-3',
+		'gap-8'
+	],
 	prefix: "",
 	theme: {
 		container: {
