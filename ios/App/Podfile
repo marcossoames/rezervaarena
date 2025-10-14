@@ -21,4 +21,16 @@ end
 
 post_install do |installer|
   assertDeploymentTarget(installer)
+  
+  # Disable User Script Sandboxing to fix Xcode 15+ build warnings
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+    end
+  end
+  
+  # Also apply to the project level
+  installer.pods_project.build_configurations.each do |config|
+    config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+  end
 end
