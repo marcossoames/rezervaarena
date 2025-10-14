@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { Suspense, lazy, useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import LoadingScreen from "@/components/LoadingScreen";
 
 // Critical pages loaded immediately
@@ -80,16 +81,19 @@ const AuthHashRedirect = () => {
 };
 
 const App = () => {
-  const [isAppReady, setIsAppReady] = useState(false);
+  const isNative = Capacitor.isNativePlatform();
+  const [isAppReady, setIsAppReady] = useState(!isNative); // Web starts ready, native needs loading
 
   useEffect(() => {
-    // Simulate app initialization
-    const timer = setTimeout(() => {
-      setIsAppReady(true);
-    }, 1500); // Minimum loading time for smooth transition
-
-    return () => clearTimeout(timer);
-  }, []);
+    // Only show loading screen for native apps
+    if (isNative) {
+      const timer = setTimeout(() => {
+        setIsAppReady(true);
+      }, 1500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isNative]);
 
   if (!isAppReady) {
     return <LoadingScreen />;
