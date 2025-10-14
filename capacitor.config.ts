@@ -12,8 +12,24 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 2000,
       backgroundColor: '#001d3d',
-      showSpinner: false
+      showSpinner: false,
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      splashFullScreen: true,
+      splashImmersive: true
+    },
+    StatusBar: {
+      style: 'dark',
+      backgroundColor: '#001d3d'
+    },
+    Keyboard: {
+      resize: 'body',
+      style: 'dark',
+      resizeOnFullScreen: true
     }
+  },
+  ios: {
+    contentInset: 'always'
   }
 };
 

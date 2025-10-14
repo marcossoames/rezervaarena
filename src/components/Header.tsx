@@ -126,8 +126,8 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
-      <div className="relative w-full py-2 sm:py-3">
+    <header className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50 pt-[env(safe-area-inset-top)] px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+      <div className="relative w-full py-3 sm:py-3">
         {/* Full width flex container */}
         <div className="flex items-center justify-between w-full px-2 sm:px-4">
           {/* Left side - Logo */}
