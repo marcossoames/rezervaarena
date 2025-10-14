@@ -8,6 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { processPendingImages } from "@/utils/pendingImagesHandler";
+import { translateError } from "@/utils/errorTranslations";
 
 const SportsFacilityLogin = () => {
   const [email, setEmail] = useState("");
@@ -87,7 +88,7 @@ const SportsFacilityLogin = () => {
       console.error('Login error:', error);
       toast({
         title: "Eroare la autentificare",
-        description: error.message || "Email sau parolă incorectă",
+        description: translateError(error.message) || "Email sau parolă incorectă",
         variant: "destructive"
       });
     } finally {

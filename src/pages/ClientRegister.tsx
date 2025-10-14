@@ -12,6 +12,7 @@ import { cleanupAuthState } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
 import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 import { validatePhone } from "@/utils/inputValidation";
+import { translateError } from "@/utils/errorTranslations";
 
 interface ClientFormData {
   email: string;
@@ -50,7 +51,7 @@ const ClientRegister = () => {
       if (error) {
         toast({
           title: "Eroare la înregistrare",
-          description: error.message,
+          description: translateError(error.message),
           variant: "destructive"
         });
       }
@@ -118,7 +119,7 @@ const ClientRegister = () => {
       console.error('Error creating account:', error);
       toast({
         title: "Eroare la înregistrare",
-        description: error.message || "A apărut o eroare la crearea contului",
+        description: translateError(error.message) || "A apărut o eroare la crearea contului",
         variant: "destructive"
       });
     } finally {

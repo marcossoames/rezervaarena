@@ -12,6 +12,7 @@ import { cleanupAuthState } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
+import { translateError } from "@/utils/errorTranslations";
 
 interface LoginFormData {
   email: string;
@@ -47,7 +48,7 @@ const ClientLogin = () => {
         } else {
           toast({
             title: "Eroare la autentificare",
-            description: error.message || "Credențiale incorecte",
+            description: translateError(error.message) || "Credențiale incorecte",
             variant: "destructive"
           });
         }
@@ -150,7 +151,7 @@ const ClientLogin = () => {
       if (error) {
         toast({
           title: "Eroare la autentificare",
-          description: error.message,
+          description: translateError(error.message),
           variant: "destructive"
         });
       }
@@ -195,7 +196,7 @@ const ClientLogin = () => {
     } catch (error: any) {
       toast({
         title: "Eroare",
-        description: error.message || "Nu s-a putut retrimite emailul de confirmare",
+        description: translateError(error.message) || "Nu s-a putut retrimite emailul de confirmare",
         variant: "destructive"
       });
     }
