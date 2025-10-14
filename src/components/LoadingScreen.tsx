@@ -22,19 +22,8 @@ const LoadingScreen = () => {
 
   return (
     <div className="fixed inset-0 z-[9999] bg-gradient-hero flex flex-col items-center justify-center">
-      {/* Logo Container */}
-      <div className="mb-8 animate-fade-in">
-        <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-elegant bg-card flex items-center justify-center">
-          <img 
-            src="/logo-rezervaarena.png" 
-            alt="RezervaArena" 
-            className="w-20 h-20 object-contain"
-          />
-        </div>
-      </div>
-
       {/* App Name */}
-      <h1 className="text-3xl font-bold text-primary-foreground mb-8 animate-fade-in">
+      <h1 className="text-5xl font-bold text-primary-foreground mb-8 animate-fade-in tracking-tight">
         RezervaArena
       </h1>
 
