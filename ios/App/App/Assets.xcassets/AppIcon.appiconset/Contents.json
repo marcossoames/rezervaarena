@@ -49,7 +49,6 @@
       "size" : "60x60"
     },
     {
-<<<<<<< HEAD
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "20x20"
@@ -77,10 +76,6 @@
       "size" : "83.5x83.5"
     },
     {
-=======
-      "size" : "1024x1024",
-      "idiom" : "ios-marketing",
->>>>>>> 74cfbd2bf05391fcffa439bb427523a4029ac8be
       "filename" : "Icon-1024.png",
       "idiom" : "ios-marketing",
       "scale" : "1x",
