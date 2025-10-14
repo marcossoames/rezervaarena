@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
+import logo from '@/assets/logo-rezervaarena-colorful.png';
 
 const LoadingScreen = () => {
   const [progress, setProgress] = useState(0);
@@ -22,10 +23,12 @@ const LoadingScreen = () => {
 
   return (
     <div className="fixed inset-0 z-[9999] bg-gradient-hero flex flex-col items-center justify-center">
-      {/* App Name */}
-      <h1 className="text-5xl font-bold text-primary-foreground mb-8 animate-fade-in tracking-tight">
-        RezervaArena
-      </h1>
+      {/* Logo */}
+      <img 
+        src={logo} 
+        alt="RezervaArena" 
+        className="w-64 h-64 mb-8 animate-fade-in object-contain"
+      />
 
       {/* Progress Bar */}
       <div className="w-64 px-4 animate-fade-in">
