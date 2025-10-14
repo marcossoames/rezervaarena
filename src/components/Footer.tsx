@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { openExternal } from "@/utils/openExternal";
 const Footer = () => {
   return <footer className="bg-card border-t border-border pb-[env(safe-area-inset-bottom)]">
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-8">
           <div className="lg:max-w-md">
             <div className="flex items-center space-x-2 mb-4">

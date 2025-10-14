@@ -3,7 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
+import LoadingScreen from "@/components/LoadingScreen";
 
 // Critical pages loaded immediately
 import Index from "./pages/Index";
@@ -77,61 +78,77 @@ const AuthHashRedirect = () => {
   }, [navigate]);
   return null;
 };
- 
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-<AuthHashRedirect />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/client/login" element={<ClientLogin />} />
-            <Route path="/client/register" element={<ClientRegister />} />
-            <Route path="/complete-profile" element={<CompleteProfile />} />
-            <Route path="/facility/login" element={<SportsFacilityLogin />} />
-            <Route path="/facility/register" element={<FacilityRegister />} />
-            <Route path="/add-facility" element={<AddFacilityPage />} />
-            <Route path="/edit-facility/:id" element={<EditFacilityPage />} />
-            <Route path="/admin/edit-sports-complex/:ownerId" element={<AdminEditSportsComplexPage />} />
-            <Route path="/edit-sports-complex-settings" element={<EditSportsComplexSettingsPage />} />
-            <Route path="/manage-facilities" element={<ManageFacilitiesPage />} />
-            <Route path="/calendar" element={<UniversalCalendarPage />} />
-            <Route path="/facility-calendar" element={<FacilityCalendarSelectPage />} />
-            <Route path="/general-calendar" element={<GeneralCalendarPage />} />
-            <Route path="/facility-calendar/:facilityId" element={<FacilityCalendarPage />} />
-            <Route path="/facility-owner-profile" element={<FacilityOwnerProfilePage />} />
-            <Route path="/client-profile" element={<ClientProfilePage />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/facilities" element={<FacilitiesPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/articles" element={<ArticlesPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
-            <Route path="/auth-redirect" element={<AuthRedirect />} />
-            <Route path="/verify" element={<AuthRedirect />} />
-            <Route path="/auth/*" element={<AuthRedirect />} />
-            <Route path="/auth/v1/verify" element={<AuthRedirect />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/my-reservations" element={<MyReservationsPage />} />
-            <Route path="/booking/:facilityId" element={<BookingPage />} />
-            <Route path="/payment/:facilityId" element={<PaymentPage />} />
-            <Route path="/payment-success" element={<PaymentSuccessPage />} />
-            <Route path="/platform-payments" element={<PlatformPaymentsPage />} />
-            <Route path="/facility-owner-income" element={<FacilityOwnerIncomePage />} />
-            <Route path="/facility-owner-bookings" element={<FacilityOwnerBookingsPage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [isAppReady, setIsAppReady] = useState(false);
+
+  useEffect(() => {
+    // Simulate app initialization
+    const timer = setTimeout(() => {
+      setIsAppReady(true);
+    }, 1500); // Minimum loading time for smooth transition
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isAppReady) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <AuthHashRedirect />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/client/login" element={<ClientLogin />} />
+              <Route path="/client/register" element={<ClientRegister />} />
+              <Route path="/complete-profile" element={<CompleteProfile />} />
+              <Route path="/facility/login" element={<SportsFacilityLogin />} />
+              <Route path="/facility/register" element={<FacilityRegister />} />
+              <Route path="/add-facility" element={<AddFacilityPage />} />
+              <Route path="/edit-facility/:id" element={<EditFacilityPage />} />
+              <Route path="/admin/edit-sports-complex/:ownerId" element={<AdminEditSportsComplexPage />} />
+              <Route path="/edit-sports-complex-settings" element={<EditSportsComplexSettingsPage />} />
+              <Route path="/manage-facilities" element={<ManageFacilitiesPage />} />
+              <Route path="/calendar" element={<UniversalCalendarPage />} />
+              <Route path="/facility-calendar" element={<FacilityCalendarSelectPage />} />
+              <Route path="/general-calendar" element={<GeneralCalendarPage />} />
+              <Route path="/facility-calendar/:facilityId" element={<FacilityCalendarPage />} />
+              <Route path="/facility-owner-profile" element={<FacilityOwnerProfilePage />} />
+              <Route path="/client-profile" element={<ClientProfilePage />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/facilities" element={<FacilitiesPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/articles" element={<ArticlesPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
+              <Route path="/auth-redirect" element={<AuthRedirect />} />
+              <Route path="/verify" element={<AuthRedirect />} />
+              <Route path="/auth/*" element={<AuthRedirect />} />
+              <Route path="/auth/v1/verify" element={<AuthRedirect />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/my-reservations" element={<MyReservationsPage />} />
+              <Route path="/booking/:facilityId" element={<BookingPage />} />
+              <Route path="/payment/:facilityId" element={<PaymentPage />} />
+              <Route path="/payment-success" element={<PaymentSuccessPage />} />
+              <Route path="/platform-payments" element={<PlatformPaymentsPage />} />
+              <Route path="/facility-owner-income" element={<FacilityOwnerIncomePage />} />
+              <Route path="/facility-owner-bookings" element={<FacilityOwnerBookingsPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
