@@ -126,7 +126,8 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50 pt-[env(safe-area-inset-top)] px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+    <>
+      <header className="fixed inset-x-0 top-0 z-50 bg-card/80 backdrop-blur-sm border-b border-border pt-[env(safe-area-inset-top)] px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <div className="relative w-full py-3 sm:py-4">
         {/* Full width flex container */}
         <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8">
@@ -245,6 +246,8 @@ const Header = () => {
         )}
       </div>
     </header>
+    <div aria-hidden className="h-14 sm:h-16" />
+    </>
   );
 };
 
