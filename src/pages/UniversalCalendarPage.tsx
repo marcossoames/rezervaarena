@@ -532,7 +532,7 @@ const UniversalCalendarPage = () => {
             <div></div>
           </div>
           
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-6 md:mt-0">
             <h1 className="text-3xl font-bold text-foreground">
               {selectedFacilityId === "general" ? "Calendar General" : selectedFacility?.name}
             </h1>
