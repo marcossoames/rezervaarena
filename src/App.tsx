@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import LoadingScreen from "@/components/LoadingScreen";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // Critical pages loaded immediately
 import Index from "./pages/Index";
@@ -105,6 +106,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Suspense fallback={<PageLoader />}>
             <AuthHashRedirect />
             <Routes>
