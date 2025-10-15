@@ -480,13 +480,14 @@ const UniversalCalendarPage = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 md:gap-4 mb-4">
-            <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200 flex-shrink-0">
+          {/* Mobile layout - full width dropdown */}
+          <div className="md:hidden">
+            <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200 mb-4">
               <ArrowLeft className="h-4 w-4" />
-              <span className="hidden md:inline">Înapoi</span>
+              Înapoi
             </Link>
             
-            <div className="flex-1 min-w-0">
+            <div className="w-full">
               <Select value={selectedFacilityId} onValueChange={handleFacilityChange}>
                 <SelectTrigger className="w-full h-12 text-base font-medium">
                   <SelectValue placeholder="Selectează calendarul" />
@@ -497,8 +498,31 @@ const UniversalCalendarPage = () => {
                     <SelectItem key={facility.id} value={facility.id}>
                       {facility.name}
                     </SelectItem>
-                  ))
-                  }
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Desktop layout - centered dropdown next to back button */}
+          <div className="hidden md:flex items-center justify-center gap-4 mb-4">
+            <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200">
+              <ArrowLeft className="h-4 w-4" />
+              Înapoi
+            </Link>
+            
+            <div className="w-full max-w-md">
+              <Select value={selectedFacilityId} onValueChange={handleFacilityChange}>
+                <SelectTrigger className="w-full h-12 text-base font-medium">
+                  <SelectValue placeholder="Selectează calendarul" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="general">📅 Calendar General</SelectItem>
+                  {facilities.map(facility => (
+                    <SelectItem key={facility.id} value={facility.id}>
+                      {facility.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
