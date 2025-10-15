@@ -504,16 +504,18 @@ const UniversalCalendarPage = () => {
             </div>
           </div>
 
-          {/* Desktop layout - back button on left, dropdown on right */}
-          <div className="hidden md:flex items-start gap-4 mb-4">
-            <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200">
-              <ArrowLeft className="h-4 w-4" />
-              Înapoi
-            </Link>
+          {/* Desktop layout - back button on left, dropdown centered */}
+          <div className="hidden md:grid md:grid-cols-3 gap-4 mb-4">
+            <div className="flex items-start">
+              <Link to="/facility-owner-profile" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border-2 border-primary/20 hover:border-primary rounded-md px-3 py-2 transition-all duration-200">
+                <ArrowLeft className="h-4 w-4" />
+                Înapoi
+              </Link>
+            </div>
             
-            <div className="flex-1 max-w-md">
+            <div className="flex justify-center">
               <Select value={selectedFacilityId} onValueChange={handleFacilityChange}>
-                <SelectTrigger className="w-full h-12 text-base font-medium">
+                <SelectTrigger className="w-full max-w-sm h-12 text-base font-medium">
                   <SelectValue placeholder="Selectează calendarul" />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50">
@@ -526,6 +528,8 @@ const UniversalCalendarPage = () => {
                 </SelectContent>
               </Select>
             </div>
+            
+            <div></div>
           </div>
           
           <div className="flex flex-col gap-2">
