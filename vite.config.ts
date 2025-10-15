@@ -71,14 +71,9 @@ export default defineConfig(({ mode }) => ({
     // Ensure source maps are generated for debugging but not in production bundle
     sourcemap: false
   },
-  // CSS preprocessing optimization
+  // CSS optimization
   css: {
-    devSourcemap: false,
-    preprocessorOptions: {
-      css: {
-        charset: false // Remove charset to reduce bundle size
-      }
-    }
+    devSourcemap: false
   },
   // Optimize dependencies
   optimizeDeps: {
