@@ -14,6 +14,12 @@ import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import ImageCarousel from "@/components/ImageCarousel";
 import BookingStatusManager from "@/components/booking/BookingStatusManager";
 import { processPendingImages } from "@/utils/pendingImagesHandler";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Facility {
   id: string;
@@ -62,6 +68,8 @@ const ManageFacilitiesPage = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [showAllAmenities, setShowAllAmenities] = useState<string | null>(null);
+  const [showAllServices, setShowAllServices] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -353,7 +361,11 @@ const ManageFacilitiesPage = () => {
                                 </Badge>
                               ))}
                               {facility.general_services.length > 2 && (
-                                <Badge variant="outline" className="text-xs">
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs cursor-pointer hover:bg-primary/10"
+                                  onClick={() => setShowAllServices(facility.id)}
+                                >
                                   +{facility.general_services.length - 2}
                                 </Badge>
                               )}
@@ -371,7 +383,11 @@ const ManageFacilitiesPage = () => {
                                 </Badge>
                               ))}
                               {facility.amenities.length > 2 && (
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge 
+                                  variant="secondary" 
+                                  className="text-xs cursor-pointer hover:bg-primary/10"
+                                  onClick={() => setShowAllAmenities(facility.id)}
+                                >
                                   +{facility.amenities.length - 2}
                                 </Badge>
                               )}
@@ -417,6 +433,38 @@ const ManageFacilitiesPage = () => {
             ))}
           </div>
         )}
+
+        {/* Dialog for all amenities */}
+        <Dialog open={!!showAllAmenities} onOpenChange={() => setShowAllAmenities(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Toate dotările terenului</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-wrap gap-2 mt-4">
+              {facilities.find(f => f.id === showAllAmenities)?.amenities.map((amenity) => (
+                <Badge key={amenity} variant="secondary">
+                  {amenity}
+                </Badge>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog for all services */}
+        <Dialog open={!!showAllServices} onOpenChange={() => setShowAllServices(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Toate serviciile generale</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-wrap gap-2 mt-4">
+              {facilities.find(f => f.id === showAllServices)?.general_services.map((service) => (
+                <Badge key={service} variant="outline">
+                  {service}
+                </Badge>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
