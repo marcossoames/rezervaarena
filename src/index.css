@@ -194,6 +194,18 @@ All colors MUST be HSL.
     }
   }
 
+  /* Toast swipe support for mobile */
+  [data-sonner-toast] {
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  [data-sonner-toast][data-swiping="true"] {
+    transition: none;
+  }
+
+
   /* Prevent text size adjustment on iOS */
   input, textarea, select {
     font-size: 16px !important; /* Prevents iOS auto-zoom */
