@@ -129,10 +129,6 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  html {
-    @apply bg-background;
-  }
-
   body {
     @apply bg-background text-foreground;
   }
@@ -187,42 +183,16 @@ All colors MUST be HSL.
   /* Safe area support */
   @supports (padding: env(safe-area-inset-top)) {
     body {
-      /* Top handled by fixed header to avoid double spacing */
+      padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
       padding-left: env(safe-area-inset-left);
       padding-right: env(safe-area-inset-right);
     }
   }
 
-  /* Toast swipe support for mobile */
-  [data-sonner-toast] {
-    touch-action: pan-y;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  [data-sonner-toast][data-swiping="true"] {
-    transition: none;
-  }
-
-
   /* Prevent text size adjustment on iOS */
   input, textarea, select {
     font-size: 16px !important; /* Prevents iOS auto-zoom */
   }
-
-  /* Hide iOS keyboard accessory bar (navigation toolbar) */
-  input, textarea, select {
-    -webkit-user-select: text;
-  }
-
-  @supports (-webkit-touch-callout: none) {
-    input::before, 
-    textarea::before,
-    select::before {
-      content: none;
-    }
-  }
-
 
 }
