@@ -246,7 +246,7 @@ const Header = () => {
         )}
       </div>
     </header>
-    <div aria-hidden className="h-14 sm:h-16" />
+    <div aria-hidden className="sm:h-16" style={{ height: 'calc(56px + env(safe-area-inset-top))' }} />
     </>
   );
 };
