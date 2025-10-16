@@ -127,7 +127,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 bg-card border-b border-border transform-gpu pt-[env(safe-area-inset-top)]">
+      <header className="fixed inset-x-0 top-0 z-50 bg-background border-b border-border transform-gpu pt-[env(safe-area-inset-top)]">
       <div className="relative w-full py-3 sm:py-4">
         {/* Full width flex container */}
         <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8">

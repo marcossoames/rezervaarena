@@ -3,7 +3,7 @@ import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Youtube } from "luci
 import { Link } from "react-router-dom";
 import { openExternal } from "@/utils/openExternal";
 const Footer = () => {
-  return <footer className="bg-card border-t border-border">
+  return <footer className="bg-card border-t border-border pb-[env(safe-area-inset-bottom)]">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-8">
           <div className="lg:max-w-md">
@@ -64,9 +64,8 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-border mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-center w-full">
             <p className="text-muted-foreground text-sm">© 2025 RezervaArena. Toate drepturile rezervate.</p>
-            
           </div>
         </div>
       </div>
