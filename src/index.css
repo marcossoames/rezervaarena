@@ -199,4 +199,18 @@ All colors MUST be HSL.
     font-size: 16px !important; /* Prevents iOS auto-zoom */
   }
 
+  /* Hide iOS keyboard accessory bar (navigation toolbar) */
+  input, textarea, select {
+    -webkit-user-select: text;
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    input::before, 
+    textarea::before,
+    select::before {
+      content: none;
+    }
+  }
+
+
 }
