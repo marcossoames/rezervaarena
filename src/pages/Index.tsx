@@ -1,3 +1,4 @@
+import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import { 
   LazySearchSection, 
@@ -9,6 +10,7 @@ import {
 const Index = () => {
   return (
     <div className="min-h-screen">
+      <Header />
       <main>
         {/* Above-the-fold content loaded immediately */}
         <HeroSection />
