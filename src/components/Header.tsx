@@ -16,7 +16,6 @@ const Header = () => {
   const location = useLocation();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const overlayHero = location.pathname === "/";
 
   // Helper function to check if current route is active
   const isActiveRoute = (path: string) => {
@@ -128,10 +127,9 @@ const Header = () => {
 
   return (
     <>
-      <header className={`fixed inset-x-0 top-0 z-50 ${overlayHero ? 'bg-transparent border-b-0' : 'bg-background border-b border-border'} transform-gpu`}>
-      {/* Safe-area filler to keep Dynamic Island area white */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[env(safe-area-inset-top)] bg-background" />
-      <div className="relative w-full pt-[env(safe-area-inset-top)] py-3 sm:py-4">
+      <header className="fixed inset-x-0 top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border pt-[env(safe-area-inset-top)] px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] transform-gpu">
+      <div className="relative w-full py-3 sm:py-4">
+        {/* Full width flex container */}
         <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8">
           {/* Left side - Logo */}
           <div className="flex items-center space-x-1 sm:space-x-2">
@@ -248,10 +246,7 @@ const Header = () => {
         )}
       </div>
     </header>
-    {!overlayHero && (
-      <div aria-hidden className="sm:h-16" style={{ height: 'calc(56px + env(safe-area-inset-top))' }} />
-    )}
-
+    <div aria-hidden className="h-14 sm:h-16" />
     </>
   );
 };

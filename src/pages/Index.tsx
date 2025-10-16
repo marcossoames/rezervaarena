@@ -9,9 +9,9 @@ import {
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen">
       <Header />
-      <main className="flex-1">
+      <main>
         {/* Above-the-fold content loaded immediately */}
         <HeroSection />
         

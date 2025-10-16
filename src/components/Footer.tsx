@@ -64,8 +64,9 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-border mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center w-full">
+          <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-muted-foreground text-sm">© 2025 RezervaArena. Toate drepturile rezervate.</p>
+            
           </div>
         </div>
       </div>
