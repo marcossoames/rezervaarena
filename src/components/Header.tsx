@@ -128,10 +128,10 @@ const Header = () => {
 
   return (
     <>
-      <header className={`fixed inset-x-0 top-0 z-50 ${overlayHero ? 'bg-transparent border-b-0' : 'bg-background border-b border-border'} transform-gpu pt-[env(safe-area-inset-top)]`}>
+      <header className={`fixed inset-x-0 top-0 z-50 ${overlayHero ? 'bg-transparent border-b-0' : 'bg-background border-b border-border'} transform-gpu`}>
       {/* Safe-area filler to keep Dynamic Island area white */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[env(safe-area-inset-top)] bg-background" />
-      <div className="relative w-full py-3 sm:py-4">
+      <div className="relative w-full pt-[env(safe-area-inset-top)] py-3 sm:py-4">
         <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8">
           {/* Left side - Logo */}
           <div className="flex items-center space-x-1 sm:space-x-2">

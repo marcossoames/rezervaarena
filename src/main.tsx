@@ -16,11 +16,23 @@ const initializePrefetch = () =>
 setTimeout(initializePrefetch, 100);
 
 // iOS: hide the keyboard accessory bar (arrows/check) in Capacitor app
-try {
-  if (Capacitor.getPlatform() === 'ios') {
-    Keyboard.setAccessoryBarVisible({ isVisible: false }).catch(() => {});
-  }
-} catch {}
+const setupIOSKeyboard = async () => {
+  if (Capacitor.getPlatform() !== 'ios') return;
+  try {
+    await Keyboard.setAccessoryBarVisible({ isVisible: false });
+    // Avoid layout jumps when keyboard opens
+    // Capacitor v7: ensure no auto-resize of the webview
+    // @ts-ignore - union types may vary across versions
+    await Keyboard.setResizeMode({ mode: 'none' });
+  } catch {}
+  // Re-apply on each show (iOS can recreate the accessory view)
+  Keyboard.addListener?.('keyboardWillShow', async () => {
+    try { await Keyboard.setAccessoryBarVisible({ isVisible: false }); } catch {}
+  });
+};
+
+// Run after mount to ensure WebView is ready
+setTimeout(setupIOSKeyboard, 0);
 
 
 createRoot(document.getElementById("root")!).render(
