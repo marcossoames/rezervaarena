@@ -183,10 +183,16 @@ All colors MUST be HSL.
   /* Safe area support */
   @supports (padding: env(safe-area-inset-top)) {
     body {
-      padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
-      padding-left: env(safe-area-inset-left);
-      padding-right: env(safe-area-inset-right);
+    }
+  }
+  
+  /* Mobile content padding to prevent content overflow */
+  @media (max-width: 640px) {
+    main > section,
+    main > div {
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
     }
   }
 
