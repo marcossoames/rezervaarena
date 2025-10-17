@@ -180,13 +180,10 @@ All colors MUST be HSL.
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Safe area support */
-  @supports (padding: env(safe-area-inset-top)) {
+  /* Safe area support - only bottom padding to avoid conflicts with fixed header */
+  @supports (padding: env(safe-area-inset-bottom)) {
     body {
-      padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
-      padding-left: env(safe-area-inset-left);
-      padding-right: env(safe-area-inset-right);
     }
   }
 
