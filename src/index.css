@@ -131,7 +131,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    padding-top: calc(4rem + env(safe-area-inset-top));
+    padding-top: var(--header-height, 64px);
   }
 
   /* Image optimization for better performance */

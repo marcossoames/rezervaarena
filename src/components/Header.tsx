@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { User, Building2, Shield, LogOut, Menu, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { secureSignOut } from "@/utils/authCleanup";
@@ -16,6 +16,24 @@ const Header = () => {
   const location = useLocation();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      const el = headerRef.current;
+      if (el) {
+        const h = el.offsetHeight;
+        document.documentElement.style.setProperty('--header-height', `${h}px`);
+      }
+    };
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    window.addEventListener('orientationchange', updateHeaderHeight);
+    return () => {
+      window.removeEventListener('resize', updateHeaderHeight);
+      window.removeEventListener('orientationchange', updateHeaderHeight);
+    };
+  }, [isMobile, isMobileMenuOpen]);
 
   // Helper function to check if current route is active
   const isActiveRoute = (path: string) => {
@@ -126,7 +144,7 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border pt-[env(safe-area-inset-top)] px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]" style={{ WebkitTransform: 'translate3d(0,0,0)', transform: 'translate3d(0,0,0)' }}>
+    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 bg-card/95 backdrop-blur-md pt-[env(safe-area-inset-top)] px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]" style={{ WebkitTransform: 'translate3d(0,0,0)', transform: 'translate3d(0,0,0)', willChange: 'transform' }}>
       <div className="relative w-full py-3">
         {/* Full width flex container */}
         <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8">
