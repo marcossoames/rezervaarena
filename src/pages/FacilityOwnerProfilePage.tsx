@@ -627,15 +627,17 @@ const FacilityOwnerProfilePage = () => {
         <div className="grid gap-6">
           {/* Profile Info */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Informații Profil
-              </CardTitle>
-              <Button variant="outline" size="sm" onClick={() => navigate("/edit-sports-complex-settings")}>
-                <Settings className="h-4 w-4 mr-2" />
-                Editează Setări
-              </Button>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Informații Profil
+                </CardTitle>
+                <Button variant="outline" size="sm" onClick={() => navigate("/edit-sports-complex-settings")} className="w-full sm:w-auto">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Editează Setări
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-6">

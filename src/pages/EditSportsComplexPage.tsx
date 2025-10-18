@@ -365,15 +365,16 @@ const EditSportsComplexPage = () => {
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-end gap-4 pt-6 border-t">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => navigate('/admin/dashboard')}
+                  className="w-full sm:w-auto"
                 >
                   Anulează
                 </Button>
-                <Button type="submit" disabled={isSaving}>
+                <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
                   <Save className="h-4 w-4 mr-2" />
                   {isSaving ? "Se salvează..." : "Salvează Modificările"}
                 </Button>

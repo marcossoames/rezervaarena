@@ -325,15 +325,17 @@ const FacilityManagement = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-6 w-6" />
-            Baze Sportive ({sportsComplexes.length}) - Total Facilități ({getTotalFacilitiesCount()})
-          </CardTitle>
-          <Button onClick={() => navigate('/add-facility')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Adaugă Facilitate
-          </Button>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-6 w-6" />
+              Baze Sportive ({sportsComplexes.length}) - Total Facilități ({getTotalFacilitiesCount()})
+            </CardTitle>
+            <Button onClick={() => navigate('/add-facility')} className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Adaugă Facilitate
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {sportsComplexes.length === 0 ? (

@@ -268,98 +268,39 @@ const BankDetailsManagement = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Landmark className="h-6 w-6" />
-            Detalii Bancare ({bankDetails.length})
-          </CardTitle>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={openAddDialog}>
-                <Plus className="h-4 w-4 mr-2" />
-                Adaugă Detalii Bancare
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingBank ? 'Editează Detalii Bancare' : 'Adaugă Detalii Bancare'}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {!editingBank && (
-                  <div className="space-y-2">
-                    <Label htmlFor="owner">Proprietar Bază Sportivă</Label>
-                    <select
-                      id="owner"
-                      value={selectedOwnerId}
-                      onChange={(e) => setSelectedOwnerId(e.target.value)}
-                      className="w-full p-2 border border-border rounded-md bg-background"
-                      required
-                    >
-                      <option value="">Selectează proprietarul</option>
-                      {facilityOwners.map((owner) => (
-                        <option key={owner.user_id} value={owner.user_id}>
-                          {owner.full_name} ({owner.email})
-                        </option>
-                      ))}
-                    </select>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2">
+              <Landmark className="h-6 w-6" />
+              Detalii Bancare ({bankDetails.length})
+            </CardTitle>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={openAddDialog} className="w-full sm:w-auto">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adaugă Detalii Bancare
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingBank ? 'Editează Detalii Bancare' : 'Adaugă Detalii Bancare'}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+...
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
+                      Anulează
+                    </Button>
+                    <Button type="submit" className="flex-1">
+                      {editingBank ? 'Actualizează' : 'Adaugă'}
+                    </Button>
                   </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="account_holder_name">Numele Titularului</Label>
-                  <Input
-                    id="account_holder_name"
-                    {...register("account_holder_name", { required: "Numele titularului este obligatoriu" })}
-                    placeholder="ex: SC SportComplex SRL"
-                  />
-                  {errors.account_holder_name && (
-                    <p className="text-sm text-destructive">{errors.account_holder_name.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bank_name">Numele Băncii</Label>
-                  <Input
-                    id="bank_name"
-                    {...register("bank_name", { required: "Numele băncii este obligatoriu" })}
-                    placeholder="ex: Banca Transilvania"
-                  />
-                  {errors.bank_name && (
-                    <p className="text-sm text-destructive">{errors.bank_name.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="iban">IBAN</Label>
-                  <Input
-                    id="iban"
-                    {...register("iban", { 
-                      required: "IBAN-ul este obligatoriu",
-                      pattern: {
-                        value: /^RO\d{2}[A-Z]{4}\d{16}$/,
-                        message: "IBAN-ul trebuie să fie în formatul: RO12ABCD1234567890123456"
-                      }
-                    })}
-                    placeholder="ex: RO12ABCD1234567890123456"
-                  />
-                  {errors.iban && (
-                    <p className="text-sm text-destructive">{errors.iban.message}</p>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
-                    Anulează
-                  </Button>
-                  <Button type="submit" className="flex-1">
-                    {editingBank ? 'Actualizează' : 'Adaugă'}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           {bankDetails.length === 0 ? (
