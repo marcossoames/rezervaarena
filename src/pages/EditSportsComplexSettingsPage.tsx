@@ -363,16 +363,16 @@ const EditSportsComplexSettingsPage = () => {
               </div>
 
               {/* Submit Button */}
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => navigate("/facility-owner-profile")}
-                  className="flex-1"
+                  className="flex-1 w-full"
                 >
                   Anulează
                 </Button>
-                <Button type="submit" disabled={isSaving} className="flex-1">
+                <Button type="submit" disabled={isSaving} className="flex-1 w-full">
                   <Save className="mr-2 h-4 w-4" />
                   {isSaving ? "Se salvează..." : "Salvează Modificările"}
                 </Button>

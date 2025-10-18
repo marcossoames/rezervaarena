@@ -727,28 +727,30 @@ const FacilityOwnerProfilePage = () => {
 
           {/* Bank Account Details Section */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-6 w-6" />
-                Detalii Bancare
-              </CardTitle>
-              {bankDetails ? (
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => openBankDialog(true)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editează
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-6 w-6" />
+                  Detalii Bancare
+                </CardTitle>
+                {bankDetails ? (
+                  <div className="flex gap-2 flex-wrap">
+                    <Button variant="outline" size="sm" onClick={() => openBankDialog(true)} className="flex-1 sm:flex-none min-w-[120px]">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editează
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={deleteBankDetails} className="flex-1 sm:flex-none min-w-[120px]">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Șterge
+                    </Button>
+                  </div>
+                ) : (
+                  <Button onClick={() => openBankDialog(false)} className="w-full sm:w-auto">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adaugă Cont Bancar
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={deleteBankDetails}>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Șterge
-                  </Button>
-                </div>
-              ) : (
-                <Button onClick={() => openBankDialog(false)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adaugă Cont Bancar
-                </Button>
-              )}
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {bankDetails ? (
