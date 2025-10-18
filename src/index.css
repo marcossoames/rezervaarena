@@ -165,10 +165,9 @@ All colors MUST be HSL.
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: none;
+    /* Ensure fixed header remains visible on iOS Safari */
+    overscroll-behavior: auto;
   }
-
   /* Prevent iOS bounce scroll */
   html, body {
     position: relative;
