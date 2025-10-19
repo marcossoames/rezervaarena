@@ -27,11 +27,15 @@ const Header = () => {
       }
     };
     updateHeaderHeight();
+    // Mark document as having a fixed header so body can offset correctly
+    document.documentElement.classList.add('has-header');
     window.addEventListener('resize', updateHeaderHeight);
     window.addEventListener('orientationchange', updateHeaderHeight);
     return () => {
       window.removeEventListener('resize', updateHeaderHeight);
       window.removeEventListener('orientationchange', updateHeaderHeight);
+      document.documentElement.classList.remove('has-header');
+      document.documentElement.style.removeProperty('--header-height');
     };
   }, [isMobile, isMobileMenuOpen]);
 

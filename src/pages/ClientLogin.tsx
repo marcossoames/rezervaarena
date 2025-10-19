@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 import { translateError } from "@/utils/errorTranslations";
+import { useBodyClass } from "@/hooks/useBodyClass";
 
 interface LoginFormData {
   email: string;
@@ -20,6 +21,7 @@ interface LoginFormData {
 }
 
 const ClientLogin = () => {
+  useBodyClass('bg-gradient-hero');
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [showEmailVerificationDialog, setShowEmailVerificationDialog] = useState(false);

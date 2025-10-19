@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 import { validatePhone } from "@/utils/inputValidation";
 import { translateError } from "@/utils/errorTranslations";
+import { useBodyClass } from "@/hooks/useBodyClass";
 
 interface ClientFormData {
   email: string;
@@ -23,6 +24,7 @@ interface ClientFormData {
 }
 
 const ClientRegister = () => {
+  useBodyClass('bg-gradient-hero');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
