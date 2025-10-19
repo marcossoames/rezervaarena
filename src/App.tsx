@@ -7,6 +7,7 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import LoadingScreen from "@/components/LoadingScreen";
 import ScrollToTop from "@/components/ScrollToTop";
+import { NetworkStatusMonitor } from "@/components/NetworkStatusMonitor";
 
 // Critical pages loaded immediately
 import Index from "./pages/Index";
@@ -105,6 +106,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <NetworkStatusMonitor />
         <BrowserRouter>
           <ScrollToTop />
           <Suspense fallback={<PageLoader />}>
