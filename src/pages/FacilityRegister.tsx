@@ -1088,7 +1088,7 @@ const FacilityRegister = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 overflow-auto">
       <EmailVerificationDialog
         isOpen={showEmailVerification}
         onClose={() => {

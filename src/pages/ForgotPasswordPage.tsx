@@ -101,7 +101,7 @@ const ForgotPasswordPage = () => {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10 p-4">
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10 p-4 overflow-auto">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
