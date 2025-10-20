@@ -807,6 +807,17 @@ applyFilters();
       setSearchParams(rest);
     }
   };
+
+  // Helper to update a single URL param while preserving others
+  const updateParam = (key: string, value?: string) => {
+    const currentParams = Object.fromEntries(searchParams.entries());
+    if (value && value.trim() !== '') {
+      setSearchParams({ ...currentParams, [key]: value });
+    } else {
+      const { [key]: _omit, ...rest } = currentParams as Record<string, string>;
+      setSearchParams(rest);
+    }
+  };
   if (loading || !authChecked || session && !userProfile) {
     return <div className="min-h-screen bg-background">
         <Header />
@@ -904,6 +915,7 @@ applyFilters();
                       onChange={(e) => {
                         const value = e.target.value;
                         setSearchTerm(value);
+                        updateParam('search', value);
                         
                         // Filter sports complexes based on search term
                         if (value.trim()) {
@@ -952,6 +964,7 @@ applyFilters();
                               className="px-4 py-2 hover:bg-primary/10 cursor-pointer transition-colors text-foreground"
                               onClick={() => {
                                 setSearchTerm(name);
+                                updateParam('search', name);
                                 setShowSportsComplexDropdown(false);
                               }}
                             >
