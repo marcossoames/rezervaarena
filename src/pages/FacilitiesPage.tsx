@@ -789,12 +789,19 @@ applyFilters();
   };
   const handleTypeFilter = (type: string | null) => {
     setSelectedType(type);
+    
+    // Preserve existing search params
+    const currentParams = Object.fromEntries(searchParams.entries());
+    
     if (type) {
       setSearchParams({
+        ...currentParams,
         type
       });
     } else {
-      setSearchParams({});
+      // Remove type param but keep others
+      const { type: _, ...rest } = currentParams;
+      setSearchParams(rest);
     }
   };
   if (loading || !authChecked || session && !userProfile) {
