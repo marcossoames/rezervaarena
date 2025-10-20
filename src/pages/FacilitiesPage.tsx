@@ -236,11 +236,14 @@ const FacilitiesPage = () => {
     const searchParam = searchParams.get('search');
     const startTimeParam = searchParams.get('startTime');
     const durationParam = searchParams.get('duration');
-    setSelectedType(typeParam);
-    setLocationFilter(locationParam || '');
-    setSearchTerm(searchParam || '');
-    setStartTime(startTimeParam || '');
-    setDuration(durationParam || '');
+
+    // Only update state if the param exists to avoid clearing manual inputs
+    if (typeParam !== null) setSelectedType(typeParam);
+    if (locationParam !== null) setLocationFilter(locationParam);
+    if (searchParam !== null) setSearchTerm(searchParam);
+    if (startTimeParam !== null) setStartTime(startTimeParam);
+    if (durationParam !== null) setDuration(durationParam);
+
     // Handle date parameter - only override default if provided in URL
     if (dateParam) {
       const date = new Date(dateParam);
