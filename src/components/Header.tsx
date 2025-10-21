@@ -148,8 +148,11 @@ const Header = () => {
   };
 
   return (
-    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 bg-card/95 backdrop-blur-md pt-[env(safe-area-inset-top)] px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
-      <div className="relative w-full py-3">
+    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 bg-card/95 backdrop-blur-md">
+      {/* Safe area spacer - keeps header below Dynamic Island */}
+      <div className="w-full h-[env(safe-area-inset-top)] bg-card/95" />
+      
+      <div className="relative w-full py-3 px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
         {/* Full width flex container */}
         <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8">
           {/* Left side - Logo */}

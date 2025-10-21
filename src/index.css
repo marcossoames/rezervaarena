@@ -135,7 +135,8 @@ All colors MUST be HSL.
   }
 
   html.has-header body {
-    padding-top: var(--header-height, 64px);
+    /* Include both header height and iOS safe area */
+    padding-top: calc(var(--header-height, 64px) + env(safe-area-inset-top, 0px));
   }
 
   /* Image optimization for better performance */
