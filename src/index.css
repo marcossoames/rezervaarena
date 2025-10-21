@@ -200,4 +200,21 @@ All colors MUST be HSL.
     font-size: 16px !important; /* Prevents iOS auto-zoom */
   }
 
+  /* Lock body scroll; use app-scroll container instead */
+  html, body {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    background-color: hsl(var(--card));
+  }
+
+  /* Scroll container that prevents top bounce */
+  .app-scroll {
+    height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    background-color: hsl(var(--card));
+}
+
 }

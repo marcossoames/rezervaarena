@@ -107,10 +107,11 @@ const App = () => {
         <Toaster />
         <Sonner />
         <NetworkStatusMonitor />
-        <BrowserRouter>
-          <ScrollToTop />
-          <Suspense fallback={<PageLoader />}>
-            <AuthHashRedirect />
+          <div className="app-scroll">
+            <BrowserRouter>
+              <ScrollToTop />
+              <Suspense fallback={<PageLoader />}>
+                <AuthHashRedirect />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/client/login" element={<ClientLogin />} />
@@ -152,10 +153,11 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+            </Suspense>
+          </BrowserRouter>
+          </div>
+        </TooltipProvider>
+      </QueryClientProvider>
   );
 };
 
