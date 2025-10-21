@@ -129,15 +129,17 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
-    padding-top: 0;
+  html {
+    background-color: hsl(var(--card));
   }
 
-  html.has-header body {
-    /* Include both header height and iOS safe area */
-    padding-top: calc(var(--header-height, 64px) + env(safe-area-inset-top, 0px));
+  body {
+    @apply text-foreground;
+    background-color: hsl(var(--card));
+    padding-top: 0; /* sticky header stays in flow */
   }
+
+  /* No extra padding for sticky header */
 
   /* Image optimization for better performance */
   img {
@@ -189,6 +191,7 @@ All colors MUST be HSL.
   @supports (padding: env(safe-area-inset-bottom)) {
     body {
       padding-bottom: env(safe-area-inset-bottom);
+      /* Safe area overlay to match header color on top */
     }
   }
 

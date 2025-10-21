@@ -19,25 +19,10 @@ const Header = () => {
   const headerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const updateHeaderHeight = () => {
-      const el = headerRef.current;
-      if (el) {
-        const h = el.offsetHeight;
-        document.documentElement.style.setProperty('--header-height', `${h}px`);
-      }
-    };
-    updateHeaderHeight();
-    // Mark document as having a fixed header so body can offset correctly
-    document.documentElement.classList.add('has-header');
-    window.addEventListener('resize', updateHeaderHeight);
-    window.addEventListener('orientationchange', updateHeaderHeight);
-    return () => {
-      window.removeEventListener('resize', updateHeaderHeight);
-      window.removeEventListener('orientationchange', updateHeaderHeight);
-      document.documentElement.classList.remove('has-header');
-      document.documentElement.style.removeProperty('--header-height');
-    };
-  }, [isMobile, isMobileMenuOpen]);
+    // Sticky header: no body offset needed. Ensure previous flags are cleared.
+    document.documentElement.classList.remove('has-header');
+    document.documentElement.style.removeProperty('--header-height');
+  }, []);
 
   // Helper function to check if current route is active
   const isActiveRoute = (path: string) => {
@@ -148,17 +133,17 @@ const Header = () => {
   };
 
   return (
-    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 bg-card/95 backdrop-blur-md">
-      {/* Safe area spacer - keeps header below Dynamic Island */}
-      <div className="w-full h-[env(safe-area-inset-top)] bg-card/95" />
-      
-      <div className="relative w-full py-3 px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+    <>
+      {/* iOS overlay to cover the safe area during overscroll */}
+      <div className="pointer-events-none fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-card z-[60]" />
+      <header ref={headerRef} className="sticky top-0 z-50 bg-card/95 backdrop-blur-md pt-[env(safe-area-inset-top)]">
+        <div className="relative w-full py-3 px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
         {/* Full width flex container */}
         <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8">
           {/* Left side - Logo */}
           <div className="flex items-center space-x-1 sm:space-x-2">
             <Link to="/" className="flex items-center space-x-1 sm:space-x-2">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center overflow-hidden">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center overflow-hidden bg-card">
                 <img src="/logo-rezervaarena.png" alt="RezervaArena" className="w-full h-full object-cover" />
               </div>
               <h1 className="text-lg sm:text-xl font-bold text-foreground">RezervaArena</h1>
@@ -234,7 +219,7 @@ const Header = () => {
               className="fixed inset-0 z-40" 
               onClick={() => setIsMobileMenuOpen(false)}
             />
-            <div className="md:hidden absolute top-full left-0 right-0 bg-card/95 backdrop-blur-sm border-b border-border shadow-lg z-50">
+            <div className="md:hidden absolute top-full left-0 right-0 bg-card/95 backdrop-blur-sm border-b border-border shadow-lg z-[55]">
               <nav className="px-4 py-3 space-y-2 text-center">
                 <Link 
                   to="/facilities" 
@@ -270,6 +255,9 @@ const Header = () => {
         )}
       </div>
     </header>
+      {/* Fallback overlay for older iOS browsers where sticky may reveal white bounce */}
+      <div className="pointer-events-none fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-card z-[40]" />
+    </>
   );
 };
 
