@@ -19,6 +19,7 @@ import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { getImagePublicUrl } from "@/utils/imageUtils";
 import ImageCarousel from "@/components/ImageCarousel";
 import { openExternal } from "@/utils/openExternal";
+import { FormattedDescription } from "@/components/ui/formatted-description";
 
 interface Facility {
   id: string;
@@ -498,9 +499,10 @@ const BookingPage = () => {
                     ))}
                   </div>
                   
-                  <p className="text-muted-foreground">
-                    {facility.description}
-                  </p>
+                  <FormattedDescription 
+                    text={facility.description}
+                    className="mt-4"
+                  />
                 </div>
               </CardContent>
             </Card>
