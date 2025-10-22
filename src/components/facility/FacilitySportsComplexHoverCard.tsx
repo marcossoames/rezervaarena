@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   HoverCard,
   HoverCardContent,
@@ -67,13 +67,6 @@ export const FacilitySportsComplexHoverCard = ({
                 <h3 className="font-bold text-lg text-foreground leading-tight">
                   {sportsComplexName}
                 </h3>
-                {sportsComplexDescription && (
-                  <FormattedDescription 
-                    text={sportsComplexDescription}
-                    maxLength={150}
-                    className="mt-2"
-                  />
-                )}
                 {sportsComplexAddress && (
                   <a
                     href={getMapsOpenUrl()}
@@ -89,6 +82,13 @@ export const FacilitySportsComplexHoverCard = ({
                     <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <span className="text-left hover:underline">{sportsComplexAddress}</span>
                   </a>
+                )}
+                {sportsComplexDescription && (
+                  <FormattedDescription 
+                    text={sportsComplexDescription}
+                    maxLength={150}
+                    className="mt-2"
+                  />
                 )}
               </div>
             </div>
