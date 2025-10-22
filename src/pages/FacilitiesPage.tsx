@@ -12,7 +12,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { FacilityCardCarousel } from "@/components/FacilityCardCarousel";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EnhancedCalendar } from "@/components/ui/enhanced-calendar";
 import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -114,16 +114,12 @@ const FacilitiesPage = () => {
     setDescDialogOpen(true);
     setDescLoading(true);
     try {
-      // Direct access to facilities table for description
-      const { data, error } = await supabase
-        .from('facilities')
-        .select('description')
-        .eq('id', facility.id)
-        .eq('is_active', true)
-        .single();
-      
+      // Use public RPC to bypass RLS and fetch full description safely
+      const { data, error } = await (supabase as any)
+        .rpc('get_facility_public_details' as any, { facility_id_param: facility.id });
       if (error) throw error;
-      setFullDescription(data?.description || facility.description || '');
+      const row = Array.isArray(data) ? data[0] : data;
+      setFullDescription(row?.description || facility.description || '');
     } catch (e) {
       console.error('Failed to load full description', e);
       setFullDescription(facility.description || '');
@@ -1454,9 +1450,11 @@ applyFilters();
               {descLoading ? (
                 <p className="text-muted-foreground">Se încarcă...</p>
               ) : (
-                <div className="text-sm text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">
-                  {fullDescription}
-                </div>
+                <DialogDescription asChild>
+                  <div className="text-sm text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">
+                    {fullDescription}
+                  </div>
+                </DialogDescription>
               )}
             </div>
           </DialogContent>
