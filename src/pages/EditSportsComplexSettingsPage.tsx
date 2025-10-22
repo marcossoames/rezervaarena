@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,7 @@ interface FormData {
   phone: string;
   description: string;
   generalServices: string[];
+  isActive: boolean;
 }
 
 const EditSportsComplexSettingsPage = () => {
@@ -115,9 +117,20 @@ const EditSportsComplexSettingsPage = () => {
           console.error('Sports complex error:', sportsComplexError);
         }
 
+        // Get is_active status from facilities
+        const { data: facilitiesData } = await supabase
+          .from('facilities')
+          .select('is_active')
+          .eq('owner_id', user.id)
+          .limit(1)
+          .maybeSingle();
+
+        console.log('Facilities is_active:', facilitiesData?.is_active);
+
         // Set form values with sports complex data
         console.log('Setting form values...');
         setValue("phone", profile.phone || "");
+        setValue("isActive", facilitiesData?.is_active ?? true);
         
         // Use sports complex data if it exists, otherwise use extracted name
         if (sportsComplexData) {
@@ -212,6 +225,17 @@ const EditSportsComplexSettingsPage = () => {
       if (sportsComplexError) {
         console.error('Error updating sports complex:', sportsComplexError);
         throw sportsComplexError;
+      }
+
+      // Update is_active status for all facilities owned by this user
+      const { error: facilitiesError } = await supabase
+        .from('facilities')
+        .update({ is_active: data.isActive })
+        .eq('owner_id', user.id);
+
+      if (facilitiesError) {
+        console.error('Error updating facilities status:', facilitiesError);
+        throw facilitiesError;
       }
 
       toast({
@@ -360,6 +384,23 @@ const EditSportsComplexSettingsPage = () => {
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Facility Active Status */}
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="space-y-1">
+                  <Label htmlFor="isActive" className="text-base font-semibold">
+                    Bază Sportivă Activă
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Când este dezactivată, baza sportivă nu va mai fi vizibilă pentru clienți, dar datele rămân salvate
+                  </p>
+                </div>
+                <Switch
+                  id="isActive"
+                  checked={watch("isActive")}
+                  onCheckedChange={(checked) => setValue("isActive", checked)}
+                />
               </div>
 
               {/* Submit Button */}
