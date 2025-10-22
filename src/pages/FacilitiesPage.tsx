@@ -1254,7 +1254,7 @@ applyFilters();
                         />
                     </div>
                     
-                    <div className="md:w-2/3 p-6 flex flex-col flex-1">
+                    <div className="md:w-2/3 p-6 flex flex-col">
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           {/* Show sports complex name first with hover card */}
@@ -1310,58 +1310,56 @@ applyFilters();
                         </div>
                       </div>
                       
-                      <div className="flex-1 flex flex-col">
-                        {/* Facility-specific description - fixed height area */}
-                        <div className="min-h-[4rem] mb-5">
-                          {facility.description && (
-                            <FormattedDescription 
-                              text={facility.description}
-                              maxLength={120}
-                              onExpandRequested={() => openFullDescription(facility)}
-                            />
-                          )}
-                        </div>
+                      {/* Facility-specific description - fixed height area */}
+                      <div className="h-[5rem] mb-5 overflow-hidden">
+                        {facility.description && (
+                          <FormattedDescription 
+                            text={facility.description}
+                            maxLength={120}
+                            onExpandRequested={() => openFullDescription(facility)}
+                          />
+                        )}
+                      </div>
+                      
+                      {/* Services and amenities - always at consistent position */}
+                      <div className="space-y-4 mb-5">
+                        {/* General Services (from sports complex) */}
+                        {facility.general_services && facility.general_services.length > 0 && (
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium mb-2">Servicii generale:</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {facility.general_services.map((service) => (
+                                <Badge key={service} variant="outline" className="text-xs">
+                                  {service}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         
-                        {/* Services and amenities - always at consistent position */}
-                        <div className="space-y-4">
-                          {/* General Services (from sports complex) */}
-                          {facility.general_services && facility.general_services.length > 0 && (
-                            <div className="min-h-[3.5rem]">
-                              <p className="text-xs text-muted-foreground font-medium mb-2">Servicii generale:</p>
-                              <div className="flex flex-wrap gap-1.5">
-                                {facility.general_services.map((service) => (
-                                  <Badge key={service} variant="outline" className="text-xs">
-                                    {service}
-                                  </Badge>
-                                ))}
-                              </div>
+                        {/* Facility amenities */}
+                        {(facility.amenities || facility.available_amenities) && (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && (
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium mb-2">Dotări teren:</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {(facility.amenities || facility.available_amenities)?.map(amenity => (
+                                <Badge key={amenity} variant="secondary" className="text-xs">
+                                  {amenity}
+                                </Badge>
+                              ))}
                             </div>
-                          )}
-                          
-                          {/* Facility amenities */}
-                          {(facility.amenities || facility.available_amenities) && (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && (
-                            <div className="min-h-[3.5rem]">
-                              <p className="text-xs text-muted-foreground font-medium mb-2">Dotări teren:</p>
-                              <div className="flex flex-wrap gap-1.5">
-                                {(facility.amenities || facility.available_amenities)?.map(amenity => (
-                                  <Badge key={amenity} variant="secondary" className="text-xs">
-                                    {amenity}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        
-                          {/* Placeholder when neither general services nor amenities exist */}
-                          {(!facility.general_services || facility.general_services.length === 0) && 
-                           (!facility.amenities || facility.amenities.length === 0) && 
-                           (!facility.available_amenities || facility.available_amenities.length === 0) && (
-                            <div className="min-h-[3.5rem]">
-                              <p className="text-xs text-muted-foreground font-medium mb-1">Servicii și dotări:</p>
-                              <p className="text-xs text-muted-foreground">Detalii în curs de actualizare</p>
-                            </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
+                      
+                        {/* Placeholder when neither general services nor amenities exist */}
+                        {(!facility.general_services || facility.general_services.length === 0) && 
+                         (!facility.amenities || facility.amenities.length === 0) && 
+                         (!facility.available_amenities || facility.available_amenities.length === 0) && (
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium mb-1">Servicii și dotări:</p>
+                            <p className="text-xs text-muted-foreground">Detalii în curs de actualizare</p>
+                          </div>
+                        )}
                       </div>
                        
                       <div className="mt-auto">
