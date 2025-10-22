@@ -91,6 +91,14 @@ const FacilitiesPage = () => {
   const [descFacility, setDescFacility] = useState<{ id: string; name: string } | null>(null);
   const [fullDescription, setFullDescription] = useState<string>("");
 
+  // Services/amenities dialog state
+  const [servicesDialogOpen, setServicesDialogOpen] = useState(false);
+  const [selectedServices, setSelectedServices] = useState<{
+    facilityName: string;
+    generalServices?: string[];
+    amenities?: string[];
+  } | null>(null);
+
   // Helper functions for Google Maps
   const buildLocationQuery = (address: string | undefined, city: string): string => {
     if (!address) return city;
@@ -126,6 +134,16 @@ const FacilitiesPage = () => {
     } finally {
       setDescLoading(false);
     }
+  };
+
+  // Open services/amenities dialog
+  const openServicesDialog = (facility: Facility) => {
+    setSelectedServices({
+      facilityName: facility.name,
+      generalServices: facility.general_services,
+      amenities: facility.amenities || facility.available_amenities,
+    });
+    setServicesDialogOpen(true);
   };
 
   const calculateBlockedDatesForVisibleFacilities = async () => {
@@ -1340,7 +1358,11 @@ applyFilters();
                                     </Badge>
                                   ))}
                                   {facility.general_services.length > 3 && (
-                                    <Badge variant="outline" className="text-xs font-semibold">
+                                    <Badge 
+                                      variant="outline" 
+                                      className="text-xs font-semibold cursor-pointer hover:bg-primary/10 transition-colors"
+                                      onClick={() => openServicesDialog(facility)}
+                                    >
                                       +{facility.general_services.length - 3}
                                     </Badge>
                                   )}
@@ -1365,7 +1387,11 @@ applyFilters();
                                     </Badge>
                                   ))}
                                   {(facility.amenities || facility.available_amenities)?.length > 3 && (
-                                    <Badge variant="secondary" className="text-xs font-semibold">
+                                    <Badge 
+                                      variant="secondary" 
+                                      className="text-xs font-semibold cursor-pointer hover:bg-secondary/80 transition-colors"
+                                      onClick={() => openServicesDialog(facility)}
+                                    >
                                       +{(facility.amenities || facility.available_amenities).length - 3}
                                     </Badge>
                                   )}
@@ -1473,6 +1499,50 @@ applyFilters();
                     {fullDescription}
                   </div>
                 </DialogDescription>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={servicesDialogOpen} onOpenChange={setServicesDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">
+                {selectedServices?.facilityName} - Servicii și Dotări
+              </DialogTitle>
+            </DialogHeader>
+            <div className="overflow-y-auto flex-1 pr-2 space-y-6">
+              {selectedServices?.generalServices && selectedServices.generalServices.length > 0 && (
+                <div>
+                  <h3 className="text-base font-semibold mb-3 text-foreground">Servicii generale:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedServices.generalServices.map((service) => (
+                      <Badge key={service} variant="outline" className="text-sm py-1 px-3">
+                        {service}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {selectedServices?.amenities && selectedServices.amenities.length > 0 && (
+                <div>
+                  <h3 className="text-base font-semibold mb-3 text-foreground">Dotări teren:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedServices.amenities.map((amenity) => (
+                      <Badge key={amenity} variant="secondary" className="text-sm py-1 px-3">
+                        {amenity}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(!selectedServices?.generalServices || selectedServices.generalServices.length === 0) &&
+               (!selectedServices?.amenities || selectedServices.amenities.length === 0) && (
+                <p className="text-muted-foreground text-center py-8">
+                  Nu există servicii sau dotări disponibile.
+                </p>
               )}
             </div>
           </DialogContent>
