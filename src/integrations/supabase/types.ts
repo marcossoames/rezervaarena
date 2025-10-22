@@ -523,6 +523,45 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          metadata: Json | null
+          read: boolean
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          metadata?: Json | null
+          read?: boolean
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          metadata?: Json | null
+          read?: boolean
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pending_cancellation_emails: {
         Row: {
           booking_ids: string[] | null
@@ -800,6 +839,17 @@ export type Database = {
           p_end_time: string
           p_facility_id: string
           p_start_time: string
+        }
+        Returns: string
+      }
+      create_notification: {
+        Args: {
+          p_link?: string
+          p_message: string
+          p_metadata?: Json
+          p_title: string
+          p_type: string
+          p_user_id: string
         }
         Returns: string
       }
