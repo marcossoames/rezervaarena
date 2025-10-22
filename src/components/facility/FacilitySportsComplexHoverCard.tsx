@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Building2, Dumbbell } from "lucide-react";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { openExternal } from "@/utils/openExternal";
+import { FormattedDescription } from "@/components/ui/formatted-description";
 
 interface FacilitySportsComplexHoverCardProps {
   children: React.ReactNode;
@@ -67,9 +68,11 @@ export const FacilitySportsComplexHoverCard = ({
                   {sportsComplexName}
                 </h3>
                 {sportsComplexDescription && (
-                  <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                    {sportsComplexDescription}
-                  </p>
+                  <FormattedDescription 
+                    text={sportsComplexDescription}
+                    maxLength={150}
+                    className="mt-2"
+                  />
                 )}
                 {sportsComplexAddress && (
                   <a
