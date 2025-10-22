@@ -1362,10 +1362,10 @@ applyFilters();
                       </div>
                        
                       <div className="mt-auto">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Users className="h-4 w-4 mr-1" />
-                            <span>
+                        <div className="flex items-center justify-between gap-6 mb-4 py-2">
+                          <div className="flex items-center gap-2 text-base text-muted-foreground">
+                            <Users className="h-5 w-5 flex-shrink-0" />
+                            <span className="font-medium">
                               {facility.capacity && facility.capacity_max 
                                 ? `${facility.capacity}-${facility.capacity_max} persoane`
                                 : facility.capacity 
@@ -1374,7 +1374,7 @@ applyFilters();
                               }
                             </span>
                           </div>
-                          <div className="text-lg font-bold text-primary">
+                          <div className="text-xl font-bold text-primary whitespace-nowrap">
                             {facility.price_per_hour ? `${facility.price_per_hour} RON/oră` : facility.price_range || facility.base_price_info || 'Preț la cerere'}
                           </div>
                         </div>
