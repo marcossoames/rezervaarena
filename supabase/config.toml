@@ -70,6 +70,9 @@ verify_jwt = false
 [functions.delete-user-account]
 verify_jwt = false
 
+[functions.send-booking-reminders]
+verify_jwt = false
+
 [realtime]
 enabled = true
 port = 54323
