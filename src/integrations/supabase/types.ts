@@ -956,6 +956,14 @@ export type Database = {
         }[]
       }
       get_facility_owner_id: { Args: { _facility_id: string }; Returns: string }
+      get_facility_public_details: {
+        Args: { facility_id_param: string }
+        Returns: {
+          description: string
+          id: string
+          name: string
+        }[]
+      }
       get_facility_stats_by_type: {
         Args: never
         Returns: {

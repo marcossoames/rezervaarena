@@ -114,11 +114,16 @@ const FacilitiesPage = () => {
     setDescDialogOpen(true);
     setDescLoading(true);
     try {
+      // Direct access to facilities table for description
       const { data, error } = await supabase
-        .rpc('get_facility_public_details', { facility_id_param: facility.id });
+        .from('facilities')
+        .select('description')
+        .eq('id', facility.id)
+        .eq('is_active', true)
+        .single();
+      
       if (error) throw error;
-      const desc = (Array.isArray(data) ? data[0]?.description : (data as any)?.description) || facility.description || '';
-      setFullDescription(desc);
+      setFullDescription(data?.description || facility.description || '');
     } catch (e) {
       console.error('Failed to load full description', e);
       setFullDescription(facility.description || '');
