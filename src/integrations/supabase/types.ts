@@ -881,7 +881,8 @@ export type Database = {
         Returns: {
           amenities: string[]
           area_info: string
-          capacity_range: string
+          capacity: number
+          capacity_max: number
           city: string
           description: string
           facility_type: Database["public"]["Enums"]["facility_type"]
@@ -890,7 +891,7 @@ export type Database = {
           images: string[]
           main_image_url: string
           name: string
-          price_range: string
+          price_per_hour: number
           sports_complex_address: string
           sports_complex_description: string
           sports_complex_name: string
