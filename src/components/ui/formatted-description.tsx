@@ -24,7 +24,7 @@ export const FormattedDescription = ({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+      <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
         {displayText}
       </p>
       {shouldTruncate && (
@@ -32,7 +32,7 @@ export const FormattedDescription = ({
           variant="ghost"
           size="sm"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="h-auto p-0 text-primary hover:text-primary/80 font-normal"
+          className="h-auto p-0 text-primary hover:text-primary/80 font-normal underline-offset-2 hover:underline"
         >
           {isExpanded ? "Citește mai puțin" : "Citește mai mult"}
         </Button>
