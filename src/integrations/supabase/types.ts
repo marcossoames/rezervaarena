@@ -120,7 +120,7 @@ export type Database = {
           bank_details_id: string | null
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_data: Json | null
           old_data: Json | null
           target_user_id: string
@@ -132,7 +132,7 @@ export type Database = {
           bank_details_id?: string | null
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
           target_user_id: string
@@ -144,7 +144,7 @@ export type Database = {
           bank_details_id?: string | null
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
           target_user_id?: string
@@ -157,7 +157,7 @@ export type Database = {
           created_at: string | null
           error_message: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           operation: string
           status: string
           user_agent: string | null
@@ -167,7 +167,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           operation: string
           status: string
           user_agent?: string | null
@@ -177,7 +177,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           operation?: string
           status?: string
           user_agent?: string | null
@@ -661,21 +661,21 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           operation: string
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           operation: string
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           operation?: string
           user_id?: string
         }
@@ -803,10 +803,7 @@ export type Database = {
         }
         Returns: string
       }
-      delete_current_user_account: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      delete_current_user_account: { Args: never; Returns: Json }
       delete_user_account_admin: {
         Args: { user_id_param: string }
         Returns: boolean
@@ -815,10 +812,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
-      demote_admin_to_client: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      demote_admin_to_client: { Args: { _user_id: string }; Returns: boolean }
       demote_admin_to_client_v2: {
         Args: { _caller_user_id: string; _target_user_id: string }
         Returns: boolean
@@ -837,11 +831,11 @@ export type Database = {
         }[]
       }
       get_current_user_role: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
       get_facilities_for_authenticated_users: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           address: string
           allowed_durations: number[]
@@ -867,7 +861,7 @@ export type Database = {
         }[]
       }
       get_facilities_for_booking: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           amenities: string[]
           area_info: string
@@ -883,7 +877,7 @@ export type Database = {
         }[]
       }
       get_facilities_for_public_browsing_safe: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           address: string
           allowed_durations: number[]
@@ -918,7 +912,7 @@ export type Database = {
         }[]
       }
       get_facility_booking_counts: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           booking_count: number
           facility_id: string
@@ -967,12 +961,9 @@ export type Database = {
           owner_id: string
         }[]
       }
-      get_facility_owner_id: {
-        Args: { _facility_id: string }
-        Returns: string
-      }
+      get_facility_owner_id: { Args: { _facility_id: string }; Returns: string }
       get_facility_stats_by_type: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           facility_count: number
           facility_type: Database["public"]["Enums"]["facility_type"]
@@ -1007,7 +998,7 @@ export type Database = {
         }[]
       }
       get_owner_facility_details: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           amenities: string[]
           city: string
@@ -1032,8 +1023,30 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_promotion_facility_details: {
+        Args: { facility_id_param: string }
+        Returns: {
+          address: string
+          amenities: string[]
+          capacity: number
+          capacity_max: number
+          city: string
+          description: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
+          general_services: string[]
+          id: string
+          images: string[]
+          main_image_url: string
+          name: string
+          operating_hours_end: string
+          operating_hours_start: string
+          owner_phone: string
+          price_per_hour: number
+          sports_complex_name: string
+        }[]
+      }
       get_public_facilities: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           address: string
           amenities: string[]
@@ -1072,12 +1085,19 @@ export type Database = {
           price_per_hour: number
         }[]
       }
-      has_role: {
-        Args:
-          | { _role: Database["public"]["Enums"]["user_role"] }
-          | { _role: string }
-        Returns: boolean
-      }
+      has_role:
+        | {
+            Args: { _role: Database["public"]["Enums"]["user_role"] }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.has_role(_role => text), public.has_role(_role => user_role). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { _role: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.has_role(_role => text), public.has_role(_role => user_role). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
       has_role_v2: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1085,18 +1105,12 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_super_admin: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       log_banking_data_access: {
         Args: { operation_type: string }
         Returns: undefined
       }
-      mask_iban: {
-        Args: { iban_value: string }
-        Returns: string
-      }
+      mask_iban: { Args: { iban_value: string }; Returns: string }
       promote_user_to_admin_secure: {
         Args: { _user_id: string }
         Returns: boolean
@@ -1117,9 +1131,9 @@ export type Database = {
         Args: { _caller_user_id: string; _target_user_id: string }
         Returns: boolean
       }
-      register_facility_with_profile_secure: {
-        Args:
-          | {
+      register_facility_with_profile_secure:
+        | {
+            Args: {
               p_address: string
               p_amenities: string[]
               p_capacity: number
@@ -1133,7 +1147,10 @@ export type Database = {
               p_phone: string
               p_price_per_hour: number
             }
-          | {
+            Returns: string
+          }
+        | {
+            Args: {
               p_address: string
               p_amenities: string[]
               p_capacity: number
@@ -1146,12 +1163,9 @@ export type Database = {
               p_phone: string
               p_price_per_hour: number
             }
-        Returns: string
-      }
-      sanitize_text: {
-        Args: { _input: string }
-        Returns: string
-      }
+            Returns: string
+          }
+      sanitize_text: { Args: { _input: string }; Returns: string }
       update_booking_status_owner: {
         Args: {
           p_booking_id: string
@@ -1160,10 +1174,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      validate_romanian_iban: {
-        Args: { _iban: string }
-        Returns: boolean
-      }
+      validate_romanian_iban: { Args: { _iban: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "facility_owner" | "client" | "super_admin"

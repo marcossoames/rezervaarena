@@ -40,29 +40,10 @@ export default function FacilityPromotionPage() {
       if (!id) return;
 
       try {
-        // Fetch facility details with owner phone
+        // Use RPC function for public access to promotion facilities
         const { data: facilityData, error: facilityError } = await supabase
-          .from("facilities")
-          .select("*")
-          .eq("id", id)
-          .eq("promotion_only", true)
+          .rpc('get_promotion_facility_details', { facility_id_param: id })
           .single();
-
-        if (facilityError) throw facilityError;
-
-        // Fetch owner profile
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("phone")
-          .eq("user_id", facilityData.owner_id)
-          .single();
-
-        // Fetch sports complex info
-        const { data: sportsComplexData } = await supabase
-          .from("sports_complexes")
-          .select("name, general_services")
-          .eq("owner_id", facilityData.owner_id)
-          .maybeSingle();
 
         if (facilityError) throw facilityError;
 
@@ -72,12 +53,7 @@ export default function FacilityPromotionPage() {
           return;
         }
 
-        setFacility({
-          ...facilityData,
-          owner_phone: profileData?.phone || "",
-          sports_complex_name: sportsComplexData?.name || "Baza Sportivă",
-          general_services: sportsComplexData?.general_services || [],
-        });
+        setFacility(facilityData);
       } catch (error) {
         console.error("Error fetching facility:", error);
         toast.error("Eroare la încărcarea datelor");
