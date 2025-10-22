@@ -456,7 +456,7 @@ const BookingPage = () => {
             <ChevronLeft className="h-4 w-4 mr-1" />
             Înapoi la facilități
           </Link>
-          <h1 className="text-3xl font-bold text-foreground">Rezervare Teren</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Rezervare Teren</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

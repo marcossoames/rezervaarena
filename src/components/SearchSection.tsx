@@ -75,18 +75,18 @@ const SearchSection = () => {
       handleSearch();
     }
   };
-  return <section className="py-16 pb-8 bg-gradient-to-br from-primary/8 via-background to-secondary/5 relative overflow-hidden">
+  return <section className="py-12 sm:py-16 pb-6 sm:pb-8 bg-gradient-to-br from-primary/8 via-background to-secondary/5 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       <div className="absolute top-10 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
       
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 sm:mb-6 leading-tight px-2">
             Găsește <span className="text-primary bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Terenul Perfect</span>
           </h2>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
             Caută și rezervă cele mai bune terenuri sportive din România în câțiva pași simpli
           </p>
         </div>

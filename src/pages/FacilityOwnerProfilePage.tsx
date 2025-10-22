@@ -565,7 +565,7 @@ const FacilityOwnerProfilePage = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Înapoi la pagina principală
           </Button>
-          <h1 className="text-3xl font-bold text-foreground">Profil Proprietar de Bază Sportivă</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Profil Proprietar de Bază Sportivă</h1>
           <p className="text-muted-foreground mt-2">Gestionează-ți profilul și facilitățile sportive</p>
         </div>
 

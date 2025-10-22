@@ -120,7 +120,7 @@ serve(async (req) => {
       const title = type === '24h' ? 'Rezervare mâine' : 'Rezervare în curând';
       const message = `Ai o rezervare la ${booking.facility_name} ${type === '24h' ? 'mâine' : 'peste o oră'}, pe ${bookingDateFormatted} la ora ${booking.start_time}.`;
 
-      // Create in-app notification
+      // Create in-app notification (for both 24h and 1h reminders)
       const { error: notifError } = await supabase
         .from('notifications')
         .insert({
@@ -141,7 +141,7 @@ serve(async (req) => {
         console.error('Error creating notification:', notifError);
       } else {
         sentCount++;
-        console.log(`Created notification for booking ${booking.id}`);
+        console.log(`Created in-app notification for booking ${booking.id}`);
       }
 
       // Send email if Resend is configured

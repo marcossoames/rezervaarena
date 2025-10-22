@@ -151,13 +151,15 @@ const SportsSection = () => {
     
     fetchSportsData();
   }, []);
-  return <section id="terenuri" className="pt-8 pb-16 bg-gradient-to-br from-secondary/10 via-background to-primary/5">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-6">
-          <h2 className="text-4xl font-bold text-foreground mb-3">
+  return <section id="terenuri" className="pt-6 sm:pt-8 pb-12 sm:pb-16 bg-gradient-to-br from-secondary/10 via-background to-primary/5">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="text-center mb-4 sm:mb-6">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-3">
             Tipuri de <span className="text-primary">Terenuri Sportive</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Descoperă varietatea de facilități sportive disponibile pentru rezervare pe site-ul nostru!</p>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
+            Descoperă varietatea de facilități sportive disponibile pentru rezervare pe site-ul nostru!
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

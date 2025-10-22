@@ -359,7 +359,7 @@ const ClientProfilePage = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Profilul meu</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Profilul meu</h1>
           
           <div className="grid gap-6 md:grid-cols-2">
             {/* User Info Card */}

@@ -315,7 +315,7 @@ const FacilityOwnerBookingsPage = () => {
             Înapoi la profil
           </Button>
           
-          <h1 className="text-3xl font-bold text-foreground">Rezervările Mele</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Rezervările Mele</h1>
           <p className="text-muted-foreground mt-2">Gestionează toate rezervările pentru facilitățile tale</p>
         </div>
 

@@ -842,7 +842,7 @@ const MyReservationsPage = () => {
               </div>
             )}
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Rezervările Mele</h1>
           <p className="text-muted-foreground">Gestionează-ți rezervările de terenuri sportive</p>
         </div>
 

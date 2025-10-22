@@ -883,7 +883,7 @@ applyFilters();
         
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-foreground mb-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4">
               Facilități <span className="text-primary">Sportive</span>
             </h1>
             <p className="text-xl text-muted-foreground">Descoperă cele mai bune baze sportive din apropiere și rezervă acum</p>
