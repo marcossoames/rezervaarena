@@ -885,6 +885,7 @@ export type Database = {
           city: string
           description: string
           facility_type: Database["public"]["Enums"]["facility_type"]
+          general_services: string[]
           id: string
           images: string[]
           main_image_url: string
