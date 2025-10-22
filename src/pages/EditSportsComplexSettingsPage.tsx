@@ -10,7 +10,6 @@ import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
-
 interface FormData {
   sportsComplexName: string;
   address: string;
@@ -21,51 +20,53 @@ interface FormData {
   isActive: boolean;
   promotionOnly: boolean;
 }
-
 const EditSportsComplexSettingsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [newService, setNewService] = useState("");
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>();
-  const { toast } = useToast();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: {
+      errors
+    }
+  } = useForm<FormData>();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-
   const generalServices = watch("generalServices") || [];
-
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: {
+            user
+          }
+        } = await supabase.auth.getUser();
         if (!user) {
           navigate("/facility/login");
           return;
         }
-
         console.log('Loading data for user:', user.id);
 
         // Get user profile
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
+        const {
+          data: profile,
+          error: profileError
+        } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
         console.log('Profile data:', profile, 'Error:', profileError);
-
         if (profileError) {
           console.error('Profile error:', profileError);
           throw profileError;
         }
-
         const isAdmin = profile && profile.role === 'admin';
-        const isFacilityOwner = profile && (
-          profile.role === 'facility_owner' || 
-          (profile.user_type_comment && profile.user_type_comment.includes('Proprietar bază sportivă'))
-        );
-
-        if (!profile || (!isAdmin && !isFacilityOwner)) {
+        const isFacilityOwner = profile && (profile.role === 'facility_owner' || profile.user_type_comment && profile.user_type_comment.includes('Proprietar bază sportivă'));
+        if (!profile || !isAdmin && !isFacilityOwner) {
           toast({
             title: "Acces restricționat",
             description: "Doar proprietarii de baze sportive pot edita setările",
@@ -85,47 +86,35 @@ const EditSportsComplexSettingsPage = () => {
           navigate("/admin/dashboard");
           return;
         }
-
         setUserProfile(profile);
 
         // Extract sports complex name from user_type_comment
         let sportsComplexName = profile.full_name || "";
         if (profile.user_type_comment) {
           // Remove system registration text
-          let cleanName = profile.user_type_comment
-            .replace(' - înregistrat prin sistem', '')
-            .replace(' - Proprietar bază sportivă', '')
-            .replace('Proprietar bază sportivă - ', '');
-          
+          let cleanName = profile.user_type_comment.replace(' - înregistrat prin sistem', '').replace(' - Proprietar bază sportivă', '').replace('Proprietar bază sportivă - ', '');
+
           // If we end up with just "Proprietar bază sportivă" or similar, use full_name
           if (cleanName !== 'Proprietar bază sportivă' && cleanName.trim() !== '') {
             sportsComplexName = cleanName;
           }
         }
-
         console.log('Sports complex name extracted:', sportsComplexName);
 
         // Get sports complex data from the new sports_complexes table
-        const { data: sportsComplexData, error: sportsComplexError } = await supabase
-          .from('sports_complexes')
-          .select('*')
-          .eq('owner_id', user.id)
-          .maybeSingle();
-
+        const {
+          data: sportsComplexData,
+          error: sportsComplexError
+        } = await supabase.from('sports_complexes').select('*').eq('owner_id', user.id).maybeSingle();
         console.log('Sports complex data:', sportsComplexData, 'Error:', sportsComplexError);
-
         if (sportsComplexError) {
           console.error('Sports complex error:', sportsComplexError);
         }
 
         // Get is_active and promotion_only status from facilities
-        const { data: facilitiesData } = await supabase
-          .from('facilities')
-          .select('is_active, promotion_only')
-          .eq('owner_id', user.id)
-          .limit(1)
-          .maybeSingle();
-
+        const {
+          data: facilitiesData
+        } = await supabase.from('facilities').select('is_active, promotion_only').eq('owner_id', user.id).limit(1).maybeSingle();
         console.log('Facilities is_active:', facilitiesData?.is_active);
         console.log('Facilities promotion_only:', facilitiesData?.promotion_only);
 
@@ -134,7 +123,7 @@ const EditSportsComplexSettingsPage = () => {
         setValue("phone", profile.phone || "");
         setValue("isActive", facilitiesData?.is_active ?? true);
         setValue("promotionOnly", facilitiesData?.promotion_only ?? false);
-        
+
         // Use sports complex data if it exists, otherwise use extracted name
         if (sportsComplexData) {
           setValue("sportsComplexName", sportsComplexData.name || sportsComplexName);
@@ -150,9 +139,7 @@ const EditSportsComplexSettingsPage = () => {
           setValue("description", "");
           setValue("generalServices", []);
         }
-
         console.log('Form values set successfully');
-
       } catch (error) {
         console.error('Error loading data:', error);
         toast({
@@ -164,10 +151,8 @@ const EditSportsComplexSettingsPage = () => {
         setIsLoading(false);
       }
     };
-
     loadData();
   }, []);
-
   const addGeneralService = () => {
     if (newService.trim()) {
       const currentServices = generalServices || [];
@@ -175,31 +160,28 @@ const EditSportsComplexSettingsPage = () => {
       setNewService("");
     }
   };
-
   const removeGeneralService = (index: number) => {
     const currentServices = generalServices || [];
     setValue("generalServices", currentServices.filter((_, i) => i !== index));
   };
-
   const onSubmit = async (data: FormData) => {
     setIsSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Update profile with new information
-      const userTypeComment = data.sportsComplexName ? 
-        `${data.sportsComplexName} - Proprietar bază sportivă` : 
-        'Proprietar bază sportivă';
-
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          phone: data.phone,
-          user_type_comment: userTypeComment
-        })
-        .eq('user_id', user.id);
-
+      const userTypeComment = data.sportsComplexName ? `${data.sportsComplexName} - Proprietar bază sportivă` : 'Proprietar bază sportivă';
+      const {
+        error: profileError
+      } = await supabase.from('profiles').update({
+        phone: data.phone,
+        user_type_comment: userTypeComment
+      }).eq('user_id', user.id);
       if (profileError) {
         throw profileError;
       }
@@ -212,43 +194,36 @@ const EditSportsComplexSettingsPage = () => {
         city: data.city,
         general_services: data.generalServices || []
       };
-
       console.log('Saving sports complex data:', sportsComplexData);
       console.log('General services to save:', data.generalServices);
-
-      const { error: sportsComplexError } = await supabase
-        .from('sports_complexes')
-        .upsert({
-          owner_id: user.id,
-          ...sportsComplexData
-        }, {
-          onConflict: 'owner_id'
-        });
-
+      const {
+        error: sportsComplexError
+      } = await supabase.from('sports_complexes').upsert({
+        owner_id: user.id,
+        ...sportsComplexData
+      }, {
+        onConflict: 'owner_id'
+      });
       if (sportsComplexError) {
         console.error('Error updating sports complex:', sportsComplexError);
         throw sportsComplexError;
       }
 
       // Update is_active and promotion_only status for all facilities owned by this user
-      const { error: facilitiesError } = await supabase
-        .from('facilities')
-        .update({ 
-          is_active: data.isActive,
-          promotion_only: data.promotionOnly 
-        })
-        .eq('owner_id', user.id);
-
+      const {
+        error: facilitiesError
+      } = await supabase.from('facilities').update({
+        is_active: data.isActive,
+        promotion_only: data.promotionOnly
+      }).eq('owner_id', user.id);
       if (facilitiesError) {
         console.error('Error updating facilities status:', facilitiesError);
         throw facilitiesError;
       }
-
       toast({
         title: "Succes",
-        description: "Setările au fost salvate cu succes",
+        description: "Setările au fost salvate cu succes"
       });
-
       navigate("/facility-owner-profile");
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -261,27 +236,18 @@ const EditSportsComplexSettingsPage = () => {
       setIsSaving(false);
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+    return <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 p-4">
         <div className="container mx-auto max-w-2xl">
           <div className="text-center py-8">Încărcare...</div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+  return <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 p-4">
       <div className="container mx-auto max-w-2xl">
         <div className="mb-6">
           <div className="flex justify-center mb-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/facility-owner-profile")}
-              className="hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200"
-            >
+            <Button variant="ghost" onClick={() => navigate("/facility-owner-profile")} className="hover:bg-primary/5 border-2 border-primary/20 hover:border-primary hover:text-primary transition-all duration-200">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Înapoi la Profil
             </Button>
@@ -298,98 +264,63 @@ const EditSportsComplexSettingsPage = () => {
               {/* Sports Complex Name */}
               <div className="space-y-2">
                 <Label htmlFor="sportsComplexName">Numele Bazei Sportive</Label>
-                <Input
-                  id="sportsComplexName"
-                  {...register("sportsComplexName", { required: "Numele bazei sportive este obligatoriu" })}
-                  placeholder="ex: Arena Sport Center"
-                />
-                {errors.sportsComplexName && (
-                  <p className="text-sm text-destructive">{errors.sportsComplexName.message}</p>
-                )}
+                <Input id="sportsComplexName" {...register("sportsComplexName", {
+                required: "Numele bazei sportive este obligatoriu"
+              })} placeholder="ex: Arena Sport Center" />
+                {errors.sportsComplexName && <p className="text-sm text-destructive">{errors.sportsComplexName.message}</p>}
               </div>
 
               {/* Phone */}
               <div className="space-y-2">
                 <Label htmlFor="phone">Numărul de Telefon</Label>
-                <Input
-                  id="phone"
-                  {...register("phone", { required: "Numărul de telefon este obligatoriu" })}
-                  placeholder="ex: 0721234567"
-                />
-                {errors.phone && (
-                  <p className="text-sm text-destructive">{errors.phone.message}</p>
-                )}
+                <Input id="phone" {...register("phone", {
+                required: "Numărul de telefon este obligatoriu"
+              })} placeholder="ex: 0721234567" />
+                {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
               </div>
 
               {/* Address */}
               <div className="space-y-2">
                 <Label htmlFor="address">Adresa</Label>
-                <Input
-                  id="address"
-                  {...register("address", { required: "Adresa este obligatorie" })}
-                  placeholder="ex: Strada Sportului, nr. 10"
-                />
-                {errors.address && (
-                  <p className="text-sm text-destructive">{errors.address.message}</p>
-                )}
+                <Input id="address" {...register("address", {
+                required: "Adresa este obligatorie"
+              })} placeholder="ex: Strada Sportului, nr. 10" />
+                {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
               </div>
 
               {/* City */}
               <div className="space-y-2">
                 <Label htmlFor="city">Orașul / Comuna / Satul</Label>
-                <Input
-                  id="city"
-                  {...register("city", { required: "Orașul este obligatoriu" })}
-                  placeholder="ex: București, Comuna Voluntari, Satul Mogoșoaia"
-                />
-                {errors.city && (
-                  <p className="text-sm text-destructive">{errors.city.message}</p>
-                )}
+                <Input id="city" {...register("city", {
+                required: "Orașul este obligatoriu"
+              })} placeholder="ex: București, Comuna Voluntari, Satul Mogoșoaia" />
+                {errors.city && <p className="text-sm text-destructive">{errors.city.message}</p>}
               </div>
 
               {/* Description */}
               <div className="space-y-2">
                 <Label htmlFor="description">Descrierea Bazei Sportive</Label>
-                <Textarea
-                  id="description"
-                  {...register("description")}
-                  placeholder="Descrieți baza sportivă..."
-                  rows={4}
-                />
+                <Textarea id="description" {...register("description")} placeholder="Descrieți baza sportivă..." rows={4} />
               </div>
 
               {/* General Services */}
               <div className="space-y-2">
                 <Label>Servicii Generale</Label>
                 <div className="flex gap-2">
-                  <Input
-                    value={newService}
-                    onChange={(e) => setNewService(e.target.value)}
-                    placeholder="Adaugă un serviciu general"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addGeneralService())}
-                  />
+                  <Input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Adaugă un serviciu general" onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addGeneralService())} />
                   <Button type="button" onClick={addGeneralService} size="sm">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
                 
-                {generalServices.length > 0 && (
-                  <div className="space-y-2">
-                    {generalServices.map((service, index) => (
-                      <div key={index} className="flex items-center justify-between bg-muted p-2 rounded">
+                {generalServices.length > 0 && <div className="space-y-2">
+                    {generalServices.map((service, index) => <div key={index} className="flex items-center justify-between bg-muted p-2 rounded">
                         <span>{service}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeGeneralService(index)}
-                        >
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeGeneralService(index)}>
                           <X className="h-4 w-4" />
                         </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
               </div>
 
               {/* Facility Active Status */}
@@ -402,11 +333,7 @@ const EditSportsComplexSettingsPage = () => {
                     Când este dezactivată, baza sportivă nu va mai fi vizibilă pentru clienți, dar datele rămân salvate
                   </p>
                 </div>
-                <Switch
-                  id="isActive"
-                  checked={watch("isActive")}
-                  onCheckedChange={(checked) => setValue("isActive", checked)}
-                />
+                <Switch id="isActive" checked={watch("isActive")} onCheckedChange={checked => setValue("isActive", checked)} />
               </div>
 
               {/* Promotion Only Mode */}
@@ -415,25 +342,14 @@ const EditSportsComplexSettingsPage = () => {
                   <Label htmlFor="promotionOnly" className="text-base font-semibold">
                     Doar promovare (fără rezervări online)
                   </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Baza va fi vizibilă, dar clienții nu pot rezerva online - vor fi redirecționați să vă sune
-                  </p>
+                  <p className="text-sm text-muted-foreground">Baza va fi vizibilă, dar clienții nu pot rezerva online - vor fi redirecționați către numărul de telefon</p>
                 </div>
-                <Switch
-                  id="promotionOnly"
-                  checked={watch("promotionOnly")}
-                  onCheckedChange={(checked) => setValue("promotionOnly", checked)}
-                />
+                <Switch id="promotionOnly" checked={watch("promotionOnly")} onCheckedChange={checked => setValue("promotionOnly", checked)} />
               </div>
 
               {/* Submit Button */}
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate("/facility-owner-profile")}
-                  className="flex-1 w-full"
-                >
+                <Button type="button" variant="outline" onClick={() => navigate("/facility-owner-profile")} className="flex-1 w-full">
                   Anulează
                 </Button>
                 <Button type="submit" disabled={isSaving} className="flex-1 w-full">
@@ -445,8 +361,6 @@ const EditSportsComplexSettingsPage = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default EditSportsComplexSettingsPage;
