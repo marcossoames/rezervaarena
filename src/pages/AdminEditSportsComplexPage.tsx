@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 
 interface FormData {
   sportsComplexName: string;
@@ -246,6 +247,66 @@ const AdminEditSportsComplexPage = () => {
     }
   };
 
+  const toggleAllFacilitiesStatus = async (activate: boolean) => {
+    try {
+      if (!ownerId) return;
+
+      const { error } = await supabase
+        .from('facilities')
+        .update({ is_active: activate })
+        .eq('owner_id', ownerId);
+
+      if (error) throw error;
+
+      // Update local state
+      setFacilities(prevFacilities =>
+        prevFacilities.map(f => ({ ...f, is_active: activate }))
+      );
+
+      toast({
+        title: "Succes",
+        description: `Toate facilitățile au fost ${activate ? 'activate' : 'dezactivate'}`,
+      });
+    } catch (error) {
+      console.error('Error toggling all facilities status:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut actualiza statusul facilităților",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleAllPromotionMode = async (activate: boolean) => {
+    try {
+      if (!ownerId) return;
+
+      const { error } = await supabase
+        .from('facilities')
+        .update({ promotion_only: activate })
+        .eq('owner_id', ownerId);
+
+      if (error) throw error;
+
+      // Update local state
+      setFacilities(prevFacilities =>
+        prevFacilities.map(f => ({ ...f, promotion_only: activate }))
+      );
+
+      toast({
+        title: "Succes",
+        description: `Modul promovare a fost ${activate ? 'activat' : 'dezactivat'} pentru toate facilitățile`,
+      });
+    } catch (error) {
+      console.error('Error toggling all promotion mode:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut actualiza modul de promovare",
+        variant: "destructive"
+      });
+    }
+  };
+
   const onSubmit = async (data: FormData) => {
     setIsSaving(true);
     try {
@@ -469,12 +530,59 @@ const AdminEditSportsComplexPage = () => {
             >
               <CollapsibleTrigger asChild>
                 <CardHeader className="cursor-pointer hover:bg-muted/50">
-                  <div className="flex items-center gap-3">
-                    {facilitiesExpanded ? 
-                      <ChevronDown className="h-5 w-5" /> : 
-                      <ChevronRight className="h-5 w-5" />
-                    }
-                    <CardTitle>Gestionare Facilități ({facilities.length})</CardTitle>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      {facilitiesExpanded ? 
+                        <ChevronDown className="h-5 w-5" /> : 
+                        <ChevronRight className="h-5 w-5" />
+                      }
+                      <CardTitle>Gestionare Facilități ({facilities.length})</CardTitle>
+                    </div>
+                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-muted-foreground">Doar Promovare (Toate)</Label>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleAllPromotionMode(true)}
+                            className="h-8"
+                          >
+                            Activează
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleAllPromotionMode(false)}
+                            className="h-8"
+                          >
+                            Dezactivează
+                          </Button>
+                        </div>
+                      </div>
+                      <Separator orientation="vertical" className="h-8" />
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-muted-foreground">Status (Toate)</Label>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleAllFacilitiesStatus(true)}
+                            className="h-8"
+                          >
+                            Activează Tot
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleAllFacilitiesStatus(false)}
+                            className="h-8"
+                          >
+                            Dezactivează Tot
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardHeader>
               </CollapsibleTrigger>
