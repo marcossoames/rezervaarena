@@ -7,6 +7,7 @@ import { Phone, MapPin, Clock, Users, Info } from "lucide-react";
 import { toast } from "sonner";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import LoadingScreen from "@/components/LoadingScreen";
+import { openExternal } from "@/utils/openExternal";
 
 interface FacilityData {
   id: string;
@@ -97,6 +98,19 @@ export default function FacilityPromotionPage() {
     }
   };
 
+  const handleOpenMaps = () => {
+    if (facility) {
+      const query = encodeURIComponent(`${facility.address}, ${facility.city}`);
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+      openExternal(mapsUrl);
+    }
+  };
+
+  const formatTime = (time: string) => {
+    // Remove seconds from time string (e.g., "09:00:00" -> "09:00")
+    return time.split(':').slice(0, 2).join(':');
+  };
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -161,9 +175,14 @@ export default function FacilityPromotionPage() {
                 {/* Location */}
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">Locație</p>
-                    <p className="text-sm text-muted-foreground">{facility.address}, {facility.city}</p>
+                    <button
+                      onClick={handleOpenMaps}
+                      className="text-sm text-primary hover:underline text-left"
+                    >
+                      {facility.address}, {facility.city}
+                    </button>
                   </div>
                 </div>
 
@@ -173,7 +192,7 @@ export default function FacilityPromotionPage() {
                   <div>
                     <p className="font-medium">Program</p>
                     <p className="text-sm text-muted-foreground">
-                      {facility.operating_hours_start} - {facility.operating_hours_end}
+                      {formatTime(facility.operating_hours_start)} - {formatTime(facility.operating_hours_end)}
                     </p>
                   </div>
                 </div>
