@@ -5,12 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Plus, X } from "lucide-react";
+import { ArrowLeft, Save, Plus, X, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface FormData {
   sportsComplexName: string;
@@ -35,6 +36,7 @@ const AdminEditSportsComplexPage = () => {
   const [targetUserProfile, setTargetUserProfile] = useState<any>(null);
   const [newService, setNewService] = useState("");
   const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [facilitiesExpanded, setFacilitiesExpanded] = useState(false);
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -461,12 +463,25 @@ const AdminEditSportsComplexPage = () => {
         {/* Facilities Management Section */}
         {facilities.length > 0 && (
           <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Gestionare Facilități</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {facilities.map((facility) => (
+            <Collapsible 
+              open={facilitiesExpanded}
+              onOpenChange={setFacilitiesExpanded}
+            >
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50">
+                  <div className="flex items-center gap-3">
+                    {facilitiesExpanded ? 
+                      <ChevronDown className="h-5 w-5" /> : 
+                      <ChevronRight className="h-5 w-5" />
+                    }
+                    <CardTitle>Gestionare Facilități ({facilities.length})</CardTitle>
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
+                  <div className="space-y-4">
+                    {facilities.map((facility) => (
                   <div key={facility.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <h3 className="font-medium">{facility.name}</h3>
@@ -503,9 +518,11 @@ const AdminEditSportsComplexPage = () => {
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
+                    ))}
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
           </Card>
         )}
       </div>
