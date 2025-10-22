@@ -879,23 +879,19 @@ export type Database = {
       get_facilities_for_public_browsing_safe: {
         Args: never
         Returns: {
-          address: string
           amenities: string[]
-          capacity: number
-          capacity_max: number
+          area_info: string
+          capacity_range: string
           city: string
-          created_at: string
           description: string
           facility_type: Database["public"]["Enums"]["facility_type"]
-          general_services: string[]
           id: string
           images: string[]
           main_image_url: string
           name: string
-          operating_hours_end: string
-          operating_hours_start: string
-          price_per_hour: number
+          price_range: string
           sports_complex_address: string
+          sports_complex_description: string
           sports_complex_name: string
         }[]
       }
