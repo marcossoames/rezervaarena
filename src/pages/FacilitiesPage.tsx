@@ -21,7 +21,6 @@ import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
 import { FacilitySportsComplexHoverCard } from "@/components/facility/FacilitySportsComplexHoverCard";
 import { openExternal } from "@/utils/openExternal";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { FormattedDescription } from "@/components/ui/formatted-description";
 
 interface Facility {
   id: string;
