@@ -1375,7 +1375,11 @@ applyFilters();
                               <Button 
                                 variant="outline" 
                                 onClick={() => {
-                                  sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+                                  // Store the booking page URL that user would go to after login
+                                  const bookingUrl = facility.promotion_only 
+                                    ? `/facility-promotion/${facility.id}`
+                                    : `/booking/${facility.id}${selectedDate ? `?date=${format(selectedDate, 'yyyy-MM-dd')}` : ''}`;
+                                  sessionStorage.setItem('redirectAfterLogin', bookingUrl);
                                   navigate('/client/login');
                                 }} 
                                 className="w-full text-sm justify-center"

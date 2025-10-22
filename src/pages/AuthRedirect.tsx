@@ -44,6 +44,14 @@ const AuthRedirect = () => {
         }
 
         console.log('User has complete profile, redirecting to home');
+        
+        // Check if there's a redirect location stored
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+        if (redirectPath) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate(redirectPath, { replace: true });
+          return;
+        }
       }
 
       // Default: go home

@@ -139,6 +139,9 @@ const ClientLogin = () => {
 
   const handleGoogleLogin = async () => {
     try {
+      // Preserve redirect path for OAuth flow
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -157,6 +160,8 @@ const ClientLogin = () => {
           variant: "destructive"
         });
       }
+      
+      // Note: redirectAfterLogin will be preserved in sessionStorage through the OAuth flow
     } catch (error: any) {
       toast({
         title: "Eroare",
