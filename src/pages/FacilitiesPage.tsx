@@ -12,7 +12,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { FacilityCardCarousel } from "@/components/FacilityCardCarousel";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EnhancedCalendar } from "@/components/ui/enhanced-calendar";
 import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -85,6 +85,12 @@ const FacilitiesPage = () => {
   const isMobile = useIsMobile();
   const facilitiesRef = useRef<HTMLDivElement>(null);
 
+  // Full description dialog state
+  const [descDialogOpen, setDescDialogOpen] = useState(false);
+  const [descLoading, setDescLoading] = useState(false);
+  const [descFacility, setDescFacility] = useState<{ id: string; name: string } | null>(null);
+  const [fullDescription, setFullDescription] = useState<string>("");
+
   // Helper functions for Google Maps
   const buildLocationQuery = (address: string | undefined, city: string): string => {
     if (!address) return city;
@@ -101,6 +107,26 @@ const FacilitiesPage = () => {
     const q = encodeURIComponent(query);
     return `https://www.google.com/maps/search/?api=1&query=${q}`;
   };
+
+  // Open dialog and ensure full description is loaded from DB
+  const openFullDescription = async (facility: Facility) => {
+    setDescFacility({ id: facility.id, name: facility.name });
+    setDescDialogOpen(true);
+    setDescLoading(true);
+    try {
+      const { data, error } = await supabase
+        .rpc('get_facility_public_details', { facility_id_param: facility.id });
+      if (error) throw error;
+      const desc = (Array.isArray(data) ? data[0]?.description : (data as any)?.description) || facility.description || '';
+      setFullDescription(desc);
+    } catch (e) {
+      console.error('Failed to load full description', e);
+      setFullDescription(facility.description || '');
+    } finally {
+      setDescLoading(false);
+    }
+  };
+
   const calculateBlockedDatesForVisibleFacilities = async () => {
     if (!allFacilities.length) return { fullyBlocked: new Set(), partiallyBlocked: new Set() };
     
@@ -1289,6 +1315,7 @@ applyFilters();
                           <FormattedDescription 
                             text={facility.description}
                             maxLength={120}
+                            onExpandRequested={() => openFullDescription(facility)}
                           />
                         )}
                         
@@ -1412,6 +1439,17 @@ applyFilters();
               </Card>)}
           </div>}
         </div>
+
+        <Dialog open={descDialogOpen} onOpenChange={setDescDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{descFacility?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
+              {descLoading ? 'Se încarcă...' : fullDescription}
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
       
       <Footer />

@@ -6,12 +6,14 @@ interface FormattedDescriptionProps {
   text: string;
   maxLength?: number;
   className?: string;
+  onExpandRequested?: () => void;
 }
 
 export const FormattedDescription = ({ 
   text, 
   maxLength = 200,
-  className 
+  className,
+  onExpandRequested,
 }: FormattedDescriptionProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -31,7 +33,13 @@ export const FormattedDescription = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => {
+            if (onExpandRequested) {
+              onExpandRequested();
+            } else {
+              setIsExpanded(!isExpanded);
+            }
+          }}
           className="h-auto p-0 text-primary hover:text-primary/80 font-normal underline-offset-2 hover:underline"
         >
           {isExpanded ? "Citește mai puțin" : "Citește mai mult"}
