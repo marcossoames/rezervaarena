@@ -1284,14 +1284,6 @@ applyFilters();
                       </div>
                       
                       <div className="flex-1 space-y-5">
-                        {/* Facility-specific description */}
-                        {facility.description && (
-                          <FormattedDescription 
-                            text={facility.description}
-                            maxLength={200}
-                          />
-                        )}
-                        
                          <div className="space-y-4 min-h-[3rem]">
                            {/* General Services (from sports complex) */}
                            {facility.general_services && facility.general_services.length > 0 && (
