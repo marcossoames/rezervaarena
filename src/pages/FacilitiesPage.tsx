@@ -1310,8 +1310,8 @@ applyFilters();
                         </div>
                       </div>
                       
-                      {/* Facility-specific description - fixed height area */}
-                      <div className="h-[5rem] mb-5 overflow-hidden">
+                      {/* Facility-specific description - min height to keep alignment */}
+                      <div className="min-h-[5rem] mb-5">
                         {facility.description && (
                           <FormattedDescription 
                             text={facility.description}
