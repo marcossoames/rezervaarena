@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 import { saveFacilitiesForUser } from "@/utils/facilityRegistration";
 import { TimePicker } from "@/components/ui/time-picker";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface AccountFormData {
   email: string;
@@ -27,6 +28,7 @@ interface AccountFormData {
   city: string;
   numberOfFacilities: number;
   generalServices: string[];
+  acceptGdpr: boolean;
 }
 
 interface FacilityInfo {
@@ -57,6 +59,7 @@ const FacilityRegister = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [acceptGdpr, setAcceptGdpr] = useState(false);
 
   const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<AccountFormData>({
     defaultValues: accountData || {}
@@ -250,6 +253,15 @@ const FacilityRegister = () => {
       toast({
         title: "Eroare",
         description: "Parolele nu se potrivesc",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!acceptGdpr) {
+      toast({
+        title: "Acceptare GDPR necesară",
+        description: "Trebuie să accepți politica de confidențialitate pentru a continua",
         variant: "destructive"
       });
       return;
@@ -728,9 +740,36 @@ const FacilityRegister = () => {
         </div>
       </div>
 
+      {/* GDPR Acceptance */}
+      <div className="flex items-start space-x-3 p-4 bg-secondary/30 rounded-lg border border-border">
+        <Checkbox 
+          id="acceptGdpr" 
+          checked={acceptGdpr}
+          onCheckedChange={(checked) => setAcceptGdpr(checked as boolean)}
+          className="mt-1"
+        />
+        <div className="flex-1">
+          <label 
+            htmlFor="acceptGdpr" 
+            className="text-sm leading-relaxed text-muted-foreground cursor-pointer"
+          >
+            Am citit și sunt de acord cu{" "}
+            <Link 
+              to="/privacy-policy" 
+              className="text-primary hover:underline font-medium"
+              target="_blank"
+            >
+              Politica de confidențialitate (GDPR)
+            </Link>
+            {" "}a RezervaArena *
+          </label>
+        </div>
+      </div>
+
       <Button 
         type="submit" 
         className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+        disabled={!acceptGdpr}
       >
         Continuă cu Facilitățile
         <ArrowRight className="h-4 w-4 ml-2" />

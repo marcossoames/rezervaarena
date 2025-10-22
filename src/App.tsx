@@ -49,6 +49,7 @@ const FacilityOwnerIncomePage = lazy(() => import("./pages/FacilityOwnerIncomePa
 const FacilityOwnerBookingsPage = lazy(() => import("./pages/FacilityOwnerBookingsPage"));
 const GeneralCalendarPage = lazy(() => import("./pages/GeneralCalendarPage"));
 const UniversalCalendarPage = lazy(() => import("./pages/UniversalCalendarPage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 
 const queryClient = new QueryClient();
 
@@ -152,6 +153,7 @@ const App = () => {
               <Route path="/platform-payments" element={<PlatformPaymentsPage />} />
               <Route path="/facility-owner-income" element={<FacilityOwnerIncomePage />} />
               <Route path="/facility-owner-bookings" element={<FacilityOwnerBookingsPage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

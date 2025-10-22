@@ -14,6 +14,7 @@ import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 import { validatePhone } from "@/utils/inputValidation";
 import { translateError } from "@/utils/errorTranslations";
 import { useBodyClass } from "@/hooks/useBodyClass";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ClientFormData {
   email: string;
@@ -21,6 +22,7 @@ interface ClientFormData {
   confirmPassword: string;
   fullName: string;
   phone: string;
+  acceptGdpr: boolean;
 }
 
 const ClientRegister = () => {
@@ -30,6 +32,7 @@ const ClientRegister = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [acceptGdpr, setAcceptGdpr] = useState(false);
   const { register, handleSubmit, watch, formState: { errors } } = useForm<ClientFormData>();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -71,6 +74,15 @@ const ClientRegister = () => {
       toast({
         title: "Eroare",
         description: "Parolele nu se potrivesc",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!acceptGdpr) {
+      toast({
+        title: "Acceptare GDPR necesară",
+        description: "Trebuie să accepți politica de confidențialitate pentru a continua",
         variant: "destructive"
       });
       return;
@@ -292,16 +304,42 @@ const ClientRegister = () => {
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {errors.confirmPassword && (
+              {errors.confirmPassword && (
                   <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
                 )}
+              </div>
+
+              {/* GDPR Acceptance */}
+              <div className="flex items-start space-x-3 p-4 bg-secondary/30 rounded-lg border border-border">
+                <Checkbox 
+                  id="acceptGdpr" 
+                  checked={acceptGdpr}
+                  onCheckedChange={(checked) => setAcceptGdpr(checked as boolean)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <label 
+                    htmlFor="acceptGdpr" 
+                    className="text-sm leading-relaxed text-muted-foreground cursor-pointer"
+                  >
+                    Am citit și sunt de acord cu{" "}
+                    <Link 
+                      to="/privacy-policy" 
+                      className="text-primary hover:underline font-medium"
+                      target="_blank"
+                    >
+                      Politica de confidențialitate (GDPR)
+                    </Link>
+                    {" "}a RezervaArena *
+                  </label>
+                </div>
               </div>
 
               <Button 
                 type="submit" 
                 className="w-full" 
                 size="lg"
-                disabled={isLoading}
+                disabled={isLoading || !acceptGdpr}
               >
                 {isLoading ? "Se creează contul..." : "Creează Cont"}
               </Button>

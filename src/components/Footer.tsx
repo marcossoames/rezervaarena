@@ -63,12 +63,16 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-border mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-muted-foreground text-sm">© 2025 RezervaArena. Toate drepturile rezervate.</p>
-            
+      <div className="border-t border-border mt-12 pt-8">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-muted-foreground text-sm">© 2025 RezervaArena. Toate drepturile rezervate.</p>
+          <div className="flex gap-4">
+            <Link to="/privacy-policy" className="text-muted-foreground text-sm hover:text-primary transition-smooth">
+              Politică de confidențialitate (GDPR)
+            </Link>
           </div>
         </div>
+      </div>
       </div>
     </footer>;
 };
