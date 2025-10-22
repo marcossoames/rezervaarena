@@ -21,6 +21,7 @@ import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
 import { FacilitySportsComplexHoverCard } from "@/components/facility/FacilitySportsComplexHoverCard";
 import { openExternal } from "@/utils/openExternal";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { FormattedDescription } from "@/components/ui/formatted-description";
 
 interface Facility {
   id: string;
@@ -1283,6 +1284,14 @@ applyFilters();
                       </div>
                       
                       <div className="flex-1 space-y-5">
+                        {/* Facility-specific description */}
+                        {facility.description && (
+                          <FormattedDescription 
+                            text={facility.description}
+                            maxLength={200}
+                          />
+                        )}
+                        
                          <div className="space-y-4 min-h-[3rem]">
                            {/* General Services (from sports complex) */}
                            {facility.general_services && facility.general_services.length > 0 && (
