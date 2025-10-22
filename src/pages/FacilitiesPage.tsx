@@ -1446,12 +1446,18 @@ applyFilters();
         </div>
 
         <Dialog open={descDialogOpen} onOpenChange={setDescDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
             <DialogHeader>
-              <DialogTitle>{descFacility?.name}</DialogTitle>
+              <DialogTitle className="text-xl font-bold">{descFacility?.name}</DialogTitle>
             </DialogHeader>
-            <div className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
-              {descLoading ? 'Se încarcă...' : fullDescription}
+            <div className="overflow-y-auto flex-1 pr-2">
+              {descLoading ? (
+                <p className="text-muted-foreground">Se încarcă...</p>
+              ) : (
+                <div className="text-sm text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">
+                  {fullDescription}
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
