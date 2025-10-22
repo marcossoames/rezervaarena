@@ -674,6 +674,44 @@ const navigate = useNavigate();
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog for all services */}
+      <Dialog open={!!showAllServices} onOpenChange={() => setShowAllServices(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Toate serviciile generale</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-wrap gap-2 mt-4">
+            {sportsComplexes
+              .flatMap(c => c.facilities)
+              .find(f => f.id === showAllServices)
+              ?.general_services?.map((service) => (
+                <Badge key={service} variant="outline">
+                  {service}
+                </Badge>
+              ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for all amenities */}
+      <Dialog open={!!showAllAmenities} onOpenChange={() => setShowAllAmenities(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Toate dotările terenului</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-wrap gap-2 mt-4">
+            {sportsComplexes
+              .flatMap(c => c.facilities)
+              .find(f => f.id === showAllAmenities)
+              ?.amenities?.map((amenity) => (
+                <Badge key={amenity} variant="secondary">
+                  {amenity}
+                </Badge>
+              ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

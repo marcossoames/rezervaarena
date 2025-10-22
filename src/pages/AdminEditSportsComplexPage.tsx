@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +38,8 @@ const AdminEditSportsComplexPage = () => {
   const [newService, setNewService] = useState("");
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [facilitiesExpanded, setFacilitiesExpanded] = useState(false);
+  const [allFacilitiesActive, setAllFacilitiesActive] = useState(true);
+  const [allPromotionOnly, setAllPromotionOnly] = useState(false);
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -159,6 +161,14 @@ const AdminEditSportsComplexPage = () => {
           setFacilities(facilitiesData || []);
         }
 
+        // Calculate initial toggle states based on facilities
+        if (facilitiesData && facilitiesData.length > 0) {
+          const allActive = facilitiesData.every(f => f.is_active);
+          const allPromo = facilitiesData.every(f => f.promotion_only);
+          setAllFacilitiesActive(allActive);
+          setAllPromotionOnly(allPromo);
+        }
+
       } catch (error) {
         console.error('Error loading data:', error);
         toast({
@@ -262,6 +272,8 @@ const AdminEditSportsComplexPage = () => {
       setFacilities(prevFacilities =>
         prevFacilities.map(f => ({ ...f, is_active: activate }))
       );
+      
+      setAllFacilitiesActive(activate);
 
       toast({
         title: "Succes",
@@ -292,6 +304,8 @@ const AdminEditSportsComplexPage = () => {
       setFacilities(prevFacilities =>
         prevFacilities.map(f => ({ ...f, promotion_only: activate }))
       );
+      
+      setAllPromotionOnly(activate);
 
       toast({
         title: "Succes",
@@ -521,6 +535,49 @@ const AdminEditSportsComplexPage = () => {
           </CardContent>
         </Card>
 
+        {/* Global Settings Cards */}
+        {facilities.length > 0 && (
+          <>
+            {/* Bază Sportivă Activă Card */}
+            <Card className="mt-6">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-2">Bază Sportivă Activă</h3>
+                    <CardDescription>
+                      Când este dezactivată, baza sportivă nu va mai fi vizibilă pentru clienți, dar datele rămân salvate
+                    </CardDescription>
+                  </div>
+                  <Switch
+                    checked={allFacilitiesActive}
+                    onCheckedChange={toggleAllFacilitiesStatus}
+                    className="ml-4"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Doar Promovare Card */}
+            <Card className="mt-6">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-2">Doar promovare (fără rezervări online)</h3>
+                    <CardDescription>
+                      Baza va fi vizibilă, dar clienții nu pot rezerva online - vor fi redirecționați către numărul de telefon
+                    </CardDescription>
+                  </div>
+                  <Switch
+                    checked={allPromotionOnly}
+                    onCheckedChange={toggleAllPromotionMode}
+                    className="ml-4"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
+
         {/* Facilities Management Section */}
         {facilities.length > 0 && (
           <Card className="mt-6">
@@ -537,51 +594,6 @@ const AdminEditSportsComplexPage = () => {
                         <ChevronRight className="h-5 w-5" />
                       }
                       <CardTitle>Gestionare Facilități ({facilities.length})</CardTitle>
-                    </div>
-                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-2">
-                        <Label className="text-sm text-muted-foreground">Doar Promovare (Toate)</Label>
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => toggleAllPromotionMode(true)}
-                            className="h-8"
-                          >
-                            Activează
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => toggleAllPromotionMode(false)}
-                            className="h-8"
-                          >
-                            Dezactivează
-                          </Button>
-                        </div>
-                      </div>
-                      <Separator orientation="vertical" className="h-8" />
-                      <div className="flex items-center gap-2">
-                        <Label className="text-sm text-muted-foreground">Status (Toate)</Label>
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => toggleAllFacilitiesStatus(true)}
-                            className="h-8"
-                          >
-                            Activează Tot
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => toggleAllFacilitiesStatus(false)}
-                            className="h-8"
-                          >
-                            Dezactivează Tot
-                          </Button>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </CardHeader>
