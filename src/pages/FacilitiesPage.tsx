@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, Filter, Search, LogIn, CalendarIcon, Users, ArrowUpDown, ChevronDown, CircleDot } from "lucide-react";
+import { Calendar, MapPin, Clock, Filter, Search, LogIn, CalendarIcon, Users, ArrowUpDown, ChevronDown, CircleDot, Phone } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -1372,21 +1372,35 @@ applyFilters();
                             )
                           ) : (
                             <div className="flex-1">
-                              <Button 
-                                variant="outline" 
-                                onClick={() => {
-                                  // Store the booking page URL that user would go to after login
-                                  const bookingUrl = facility.promotion_only 
-                                    ? `/facility-promotion/${facility.id}`
-                                    : `/booking/${facility.id}${selectedDate ? `?date=${format(selectedDate, 'yyyy-MM-dd')}` : ''}`;
-                                  sessionStorage.setItem('redirectAfterLogin', bookingUrl);
-                                  navigate('/client/login');
-                                }} 
-                                className="w-full text-sm justify-center"
-                              >
-                                <LogIn className="h-4 w-4 mr-2" />
-                                Autentifică-te pentru rezervare
-                              </Button>
+                              {facility.promotion_only ? (
+                                // For promotion-only facilities, show call button for unauthenticated users
+                                <Button 
+                                  variant="sport" 
+                                  onClick={() => {
+                                    // Redirect to promotion page where phone number will be visible and callable
+                                    navigate(`/facility-promotion/${facility.id}`);
+                                  }} 
+                                  className="w-full text-sm justify-center"
+                                >
+                                  <Phone className="h-4 w-4 mr-2" />
+                                  Sună pentru rezervare
+                                </Button>
+                              ) : (
+                                // For regular facilities, show login button
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => {
+                                    // Store the booking page URL that user would go to after login
+                                    const bookingUrl = `/booking/${facility.id}${selectedDate ? `?date=${format(selectedDate, 'yyyy-MM-dd')}` : ''}`;
+                                    sessionStorage.setItem('redirectAfterLogin', bookingUrl);
+                                    navigate('/client/login');
+                                  }} 
+                                  className="w-full text-sm justify-center"
+                                >
+                                  <LogIn className="h-4 w-4 mr-2" />
+                                  Autentifică-te pentru rezervare
+                                </Button>
+                              )}
                             </div>
                           )}
                         </div>
