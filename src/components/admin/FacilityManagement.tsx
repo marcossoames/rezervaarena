@@ -23,6 +23,7 @@ interface Facility {
   general_services?: string[];
   images: string[];
   is_active: boolean;
+  promotion_only: boolean;
   created_at: string;
   owner_id: string;
 }
@@ -197,6 +198,39 @@ const FacilityManagement = () => {
       toast({
         title: "Eroare",
         description: "Nu s-a putut actualiza statusul facilității",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const togglePromotionMode = async (facilityId: string, currentMode: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('facilities')
+        .update({ promotion_only: !currentMode })
+        .eq('id', facilityId);
+
+      if (error) throw error;
+
+      // Update the facility in the sports complexes state
+      setSportsComplexes(prev => prev.map(complex => ({
+        ...complex,
+        facilities: complex.facilities.map(facility => 
+          facility.id === facilityId 
+            ? { ...facility, promotion_only: !currentMode }
+            : facility
+        )
+      })));
+
+      toast({
+        title: "Succes",
+        description: `Modul de promovare a fost ${!currentMode ? 'activat' : 'dezactivat'}`,
+      });
+    } catch (error) {
+      console.error('Error toggling promotion mode:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut actualiza modul de promovare",
         variant: "destructive"
       });
     }
@@ -467,14 +501,23 @@ const FacilityManagement = () => {
                                                <p className="text-sm">Nicio imagine</p>
                                              </div>
                                            </div>
-                                         )}
-                                         <Badge 
-                                           variant={facility.is_active ? "default" : "secondary"}
-                                           className="absolute top-3 right-3 z-10"
-                                         >
-                                           {facility.is_active ? "Activ" : "Inactiv"}
-                                         </Badge>
-                                       </div>
+                                          )}
+                                          <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
+                                            <Badge 
+                                              variant={facility.is_active ? "default" : "secondary"}
+                                            >
+                                              {facility.is_active ? "Activ" : "Inactiv"}
+                                            </Badge>
+                                            {facility.promotion_only && (
+                                              <Badge 
+                                                variant="outline"
+                                                className="bg-amber-500/90 text-white border-amber-600"
+                                              >
+                                                Doar Promovare
+                                              </Badge>
+                                            )}
+                                          </div>
+                                        </div>
                                        
                                        {/* Content Section with strict grid layout */}
                                        <CardContent className="p-4">
@@ -562,39 +605,48 @@ const FacilityManagement = () => {
                                              </div>
                                            </div>
 
-                                           {/* Row 5: Actions Section - Flexible space */}
-                                           <div className="flex flex-col justify-end gap-2">
-                                             <div className="grid grid-cols-2 gap-2">
-                                               <Button
-                                                 variant="outline"
-                                                 size="sm"
-                                                 onClick={() => navigate(`/edit-facility/${facility.id}`)}
-                                                 className="text-xs h-8"
-                                               >
-                                                 <Edit className="h-3 w-3 mr-1" />
-                                                 Editează
-                                               </Button>
-                                               
-                                               <Button
-                                                 variant={facility.is_active ? "secondary" : "default"}
-                                                 size="sm"
-                                                 onClick={() => toggleFacilityStatus(facility.id, facility.is_active)}
-                                                 className="text-xs h-8"
-                                               >
-                                                 {facility.is_active ? "Dezactivează" : "Activează"}
-                                               </Button>
-                                             </div>
-                                             
-                                             <Button
-                                               variant="destructive"
-                                               size="sm"
-                                               onClick={() => deleteFacility(facility.id, facility.name)}
-                                               className="w-full text-xs h-8"
-                                             >
-                                               <Trash2 className="h-3 w-3 mr-1" />
-                                               Șterge
-                                             </Button>
-                                           </div>
+                                            {/* Row 5: Actions Section - Flexible space */}
+                                            <div className="flex flex-col justify-end gap-2">
+                                              <div className="grid grid-cols-2 gap-2">
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => navigate(`/edit-facility/${facility.id}`)}
+                                                  className="text-xs h-8"
+                                                >
+                                                  <Edit className="h-3 w-3 mr-1" />
+                                                  Editează
+                                                </Button>
+                                                
+                                                <Button
+                                                  variant={facility.is_active ? "secondary" : "default"}
+                                                  size="sm"
+                                                  onClick={() => toggleFacilityStatus(facility.id, facility.is_active)}
+                                                  className="text-xs h-8"
+                                                >
+                                                  {facility.is_active ? "Dezactivează" : "Activează"}
+                                                </Button>
+                                              </div>
+                                              
+                                              <Button
+                                                variant={facility.promotion_only ? "secondary" : "outline"}
+                                                size="sm"
+                                                onClick={() => togglePromotionMode(facility.id, facility.promotion_only)}
+                                                className="w-full text-xs h-8"
+                                              >
+                                                {facility.promotion_only ? "Dezactivează Promovare" : "Activează Promovare"}
+                                              </Button>
+                                              
+                                              <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={() => deleteFacility(facility.id, facility.name)}
+                                                className="w-full text-xs h-8"
+                                              >
+                                                <Trash2 className="h-3 w-3 mr-1" />
+                                                Șterge
+                                              </Button>
+                                            </div>
                                          </div>
                                        </CardContent>
                                      </div>
