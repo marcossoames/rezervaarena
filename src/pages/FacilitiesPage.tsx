@@ -1372,18 +1372,29 @@ applyFilters();
                             )
                           ) : (
                             <div className="flex-1">
-                              {facility.promotion_only ? (
-                                // For promotion-only facilities, show call button for unauthenticated users
+                              {facility.promotion_only && facility.phone_number ? (
+                                // For promotion-only facilities with phone number, call directly
                                 <Button 
                                   variant="sport" 
                                   onClick={() => {
-                                    // Redirect to promotion page where phone number will be visible and callable
-                                    navigate(`/facility-promotion/${facility.id}`);
+                                    window.location.href = `tel:${facility.phone_number}`;
                                   }} 
                                   className="w-full text-sm justify-center"
                                 >
                                   <Phone className="h-4 w-4 mr-2" />
                                   Sună pentru rezervare
+                                </Button>
+                              ) : facility.promotion_only ? (
+                                // Fallback: redirect to promotion page if no phone number
+                                <Button 
+                                  variant="sport" 
+                                  onClick={() => {
+                                    navigate(`/facility-promotion/${facility.id}`);
+                                  }} 
+                                  className="w-full text-sm justify-center"
+                                >
+                                  <Phone className="h-4 w-4 mr-2" />
+                                  Vezi detalii & Sună
                                 </Button>
                               ) : (
                                 // For regular facilities, show login button

@@ -901,6 +901,7 @@ export type Database = {
           name: string
           operating_hours_end: string
           operating_hours_start: string
+          phone_number: string
           price_per_hour: number
           promotion_only: boolean
           sports_complex_address: string
