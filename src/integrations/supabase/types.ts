@@ -886,7 +886,7 @@ export type Database = {
           city: string
           created_at: string
           description: string
-          facility_type: string
+          facility_type: Database["public"]["Enums"]["facility_type"]
           general_services: string[]
           id: string
           images: string[]
@@ -896,7 +896,6 @@ export type Database = {
           operating_hours_start: string
           price_per_hour: number
           sports_complex_address: string
-          sports_complex_description: string
           sports_complex_name: string
         }[]
       }

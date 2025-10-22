@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   HoverCard,
   HoverCardContent,
@@ -46,7 +46,7 @@ export const FacilitySportsComplexHoverCard = ({
     return `https://www.google.com/maps/search/?api=1&query=${q}`;
   };
   return (
-    <HoverCard open={open} onOpenChange={setOpen} openDelay={200} closeDelay={300}>
+    <HoverCard open={open} onOpenChange={setOpen} openDelay={100} closeDelay={700}>
       <HoverCardTrigger asChild onClick={(e) => {
         e.stopPropagation();
         setOpen(!open);
@@ -54,9 +54,9 @@ export const FacilitySportsComplexHoverCard = ({
         {children}
       </HoverCardTrigger>
       <HoverCardContent 
-        className="w-[375px] p-0 z-[10000] pointer-events-auto bg-popover" 
+        className="w-[375px] p-0 z-[1000] pointer-events-auto" 
         align="start"
-        sideOffset={5}
+        sideOffset={2}
       >
         <div className="space-y-4">
           {/* Header */}
@@ -67,6 +67,13 @@ export const FacilitySportsComplexHoverCard = ({
                 <h3 className="font-bold text-lg text-foreground leading-tight">
                   {sportsComplexName}
                 </h3>
+                {sportsComplexDescription && (
+                  <FormattedDescription 
+                    text={sportsComplexDescription}
+                    maxLength={150}
+                    className="mt-2"
+                  />
+                )}
                 {sportsComplexAddress && (
                   <a
                     href={getMapsOpenUrl()}
@@ -82,13 +89,6 @@ export const FacilitySportsComplexHoverCard = ({
                     <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <span className="text-left hover:underline">{sportsComplexAddress}</span>
                   </a>
-                )}
-                {sportsComplexDescription && (
-                  <FormattedDescription 
-                    text={sportsComplexDescription}
-                    maxLength={150}
-                    className="mt-2"
-                  />
                 )}
               </div>
             </div>
