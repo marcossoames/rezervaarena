@@ -351,6 +351,7 @@ export type Database = {
           operating_hours_start: string | null
           owner_id: string
           price_per_hour: number
+          promotion_only: boolean
           updated_at: string
         }
         Insert: {
@@ -373,6 +374,7 @@ export type Database = {
           operating_hours_start?: string | null
           owner_id: string
           price_per_hour: number
+          promotion_only?: boolean
           updated_at?: string
         }
         Update: {
@@ -395,6 +397,7 @@ export type Database = {
           operating_hours_start?: string | null
           owner_id?: string
           price_per_hour?: number
+          promotion_only?: boolean
           updated_at?: string
         }
         Relationships: [

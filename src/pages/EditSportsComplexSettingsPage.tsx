@@ -19,6 +19,7 @@ interface FormData {
   description: string;
   generalServices: string[];
   isActive: boolean;
+  promotionOnly: boolean;
 }
 
 const EditSportsComplexSettingsPage = () => {
@@ -117,20 +118,22 @@ const EditSportsComplexSettingsPage = () => {
           console.error('Sports complex error:', sportsComplexError);
         }
 
-        // Get is_active status from facilities
+        // Get is_active and promotion_only status from facilities
         const { data: facilitiesData } = await supabase
           .from('facilities')
-          .select('is_active')
+          .select('is_active, promotion_only')
           .eq('owner_id', user.id)
           .limit(1)
           .maybeSingle();
 
         console.log('Facilities is_active:', facilitiesData?.is_active);
+        console.log('Facilities promotion_only:', facilitiesData?.promotion_only);
 
         // Set form values with sports complex data
         console.log('Setting form values...');
         setValue("phone", profile.phone || "");
         setValue("isActive", facilitiesData?.is_active ?? true);
+        setValue("promotionOnly", facilitiesData?.promotion_only ?? false);
         
         // Use sports complex data if it exists, otherwise use extracted name
         if (sportsComplexData) {
@@ -227,10 +230,13 @@ const EditSportsComplexSettingsPage = () => {
         throw sportsComplexError;
       }
 
-      // Update is_active status for all facilities owned by this user
+      // Update is_active and promotion_only status for all facilities owned by this user
       const { error: facilitiesError } = await supabase
         .from('facilities')
-        .update({ is_active: data.isActive })
+        .update({ 
+          is_active: data.isActive,
+          promotion_only: data.promotionOnly 
+        })
         .eq('owner_id', user.id);
 
       if (facilitiesError) {
@@ -400,6 +406,23 @@ const EditSportsComplexSettingsPage = () => {
                   id="isActive"
                   checked={watch("isActive")}
                   onCheckedChange={(checked) => setValue("isActive", checked)}
+                />
+              </div>
+
+              {/* Promotion Only Mode */}
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="space-y-1">
+                  <Label htmlFor="promotionOnly" className="text-base font-semibold">
+                    Doar promovare (fără rezervări online)
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Baza va fi vizibilă, dar clienții nu pot rezerva online - vor fi redirecționați să vă sune
+                  </p>
+                </div>
+                <Switch
+                  id="promotionOnly"
+                  checked={watch("promotionOnly")}
+                  onCheckedChange={(checked) => setValue("promotionOnly", checked)}
                 />
               </div>
 

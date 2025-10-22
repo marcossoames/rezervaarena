@@ -27,6 +27,7 @@ const AddFacilityPage = lazy(() => import("./pages/AddFacilityPage"));
 const EditFacilityPage = lazy(() => import("./pages/EditFacilityPage"));
 const EditSportsComplexPage = lazy(() => import("./pages/EditSportsComplexPage"));
 const AdminEditSportsComplexPage = lazy(() => import("./pages/AdminEditSportsComplexPage"));
+const FacilityPromotionPage = lazy(() => import("./pages/FacilityPromotionPage"));
 const EditSportsComplexSettingsPage = lazy(() => import("./pages/EditSportsComplexSettingsPage"));
 const ManageFacilitiesPage = lazy(() => import("./pages/ManageFacilitiesPage"));
 const ClientRegister = lazy(() => import("./pages/ClientRegister"));
@@ -123,6 +124,7 @@ const App = () => {
               <Route path="/edit-facility/:id" element={<EditFacilityPage />} />
               <Route path="/admin/edit-sports-complex/:ownerId" element={<AdminEditSportsComplexPage />} />
               <Route path="/edit-sports-complex-settings" element={<EditSportsComplexSettingsPage />} />
+              <Route path="/facility-promotion/:id" element={<FacilityPromotionPage />} />
               <Route path="/manage-facilities" element={<ManageFacilitiesPage />} />
               <Route path="/calendar" element={<UniversalCalendarPage />} />
               <Route path="/facility-calendar" element={<FacilityCalendarSelectPage />} />
