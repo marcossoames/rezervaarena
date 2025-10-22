@@ -9,6 +9,8 @@ import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 
 interface FormData {
   sportsComplexName: string;
@@ -19,11 +21,20 @@ interface FormData {
   generalServices: string[];
 }
 
+interface Facility {
+  id: string;
+  name: string;
+  facility_type: string;
+  is_active: boolean;
+  promotion_only: boolean;
+}
+
 const AdminEditSportsComplexPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [targetUserProfile, setTargetUserProfile] = useState<any>(null);
   const [newService, setNewService] = useState("");
+  const [facilities, setFacilities] = useState<Facility[]>([]);
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -132,6 +143,19 @@ const AdminEditSportsComplexPage = () => {
           setValue("generalServices", []);
         }
 
+        // Load facilities for this owner
+        const { data: facilitiesData, error: facilitiesError } = await supabase
+          .from('facilities')
+          .select('id, name, facility_type, is_active, promotion_only')
+          .eq('owner_id', ownerId)
+          .order('created_at', { ascending: false });
+
+        if (facilitiesError) {
+          console.error('Error loading facilities:', facilitiesError);
+        } else {
+          setFacilities(facilitiesData || []);
+        }
+
       } catch (error) {
         console.error('Error loading data:', error);
         toast({
@@ -158,6 +182,66 @@ const AdminEditSportsComplexPage = () => {
   const removeGeneralService = (index: number) => {
     const currentServices = generalServices || [];
     setValue("generalServices", currentServices.filter((_, i) => i !== index));
+  };
+
+  const toggleFacilityStatus = async (facilityId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('facilities')
+        .update({ is_active: !currentStatus })
+        .eq('id', facilityId);
+
+      if (error) throw error;
+
+      // Update local state
+      setFacilities(prevFacilities =>
+        prevFacilities.map(f =>
+          f.id === facilityId ? { ...f, is_active: !currentStatus } : f
+        )
+      );
+
+      toast({
+        title: "Succes",
+        description: `Facilitatea a fost ${!currentStatus ? 'activată' : 'dezactivată'}`,
+      });
+    } catch (error) {
+      console.error('Error toggling facility status:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut actualiza statusul facilității",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const togglePromotionMode = async (facilityId: string, currentMode: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('facilities')
+        .update({ promotion_only: !currentMode })
+        .eq('id', facilityId);
+
+      if (error) throw error;
+
+      // Update local state
+      setFacilities(prevFacilities =>
+        prevFacilities.map(f =>
+          f.id === facilityId ? { ...f, promotion_only: !currentMode } : f
+        )
+      );
+
+      toast({
+        title: "Succes",
+        description: `Modul promovare a fost ${!currentMode ? 'activat' : 'dezactivat'}`,
+      });
+    } catch (error) {
+      console.error('Error toggling promotion mode:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut actualiza modul de promovare",
+        variant: "destructive"
+      });
+    }
   };
 
   const onSubmit = async (data: FormData) => {
@@ -373,6 +457,57 @@ const AdminEditSportsComplexPage = () => {
             </form>
           </CardContent>
         </Card>
+
+        {/* Facilities Management Section */}
+        {facilities.length > 0 && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Gestionare Facilități</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {facilities.map((facility) => (
+                  <div key={facility.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <h3 className="font-medium">{facility.name}</h3>
+                      <p className="text-sm text-muted-foreground">{facility.facility_type}</p>
+                      <div className="flex gap-2 mt-2">
+                        {facility.promotion_only && (
+                          <Badge variant="secondary">Doar Promovare</Badge>
+                        )}
+                        {!facility.is_active && (
+                          <Badge variant="outline">Dezactivat</Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 ml-4">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor={`active-${facility.id}`} className="text-sm">
+                          {facility.is_active ? "Activat" : "Dezactivat"}
+                        </Label>
+                        <Switch
+                          id={`active-${facility.id}`}
+                          checked={facility.is_active}
+                          onCheckedChange={() => toggleFacilityStatus(facility.id, facility.is_active)}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor={`promo-${facility.id}`} className="text-sm">
+                          Doar Promovare
+                        </Label>
+                        <Switch
+                          id={`promo-${facility.id}`}
+                          checked={facility.promotion_only}
+                          onCheckedChange={() => togglePromotionMode(facility.id, facility.promotion_only)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

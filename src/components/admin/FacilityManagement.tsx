@@ -167,75 +167,6 @@ const FacilityManagement = () => {
     }
   };
 
-  const toggleFacilityStatus = async (facilityId: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('facilities')
-        .update({ is_active: !currentStatus })
-        .eq('id', facilityId);
-
-      if (error) throw error;
-
-      // Update the facility in the sports complexes state
-      setSportsComplexes(prev => prev.map(complex => ({
-        ...complex,
-        facilities: complex.facilities.map(facility => 
-          facility.id === facilityId 
-            ? { ...facility, is_active: !currentStatus }
-            : facility
-        ),
-        active_facilities: complex.facilities.filter(f => 
-          f.id === facilityId ? !currentStatus : f.is_active
-        ).length
-      })));
-
-      toast({
-        title: "Succes",
-        description: `Facilitatea a fost ${!currentStatus ? 'activată' : 'dezactivată'}`,
-      });
-    } catch (error) {
-      console.error('Error toggling facility status:', error);
-      toast({
-        title: "Eroare",
-        description: "Nu s-a putut actualiza statusul facilității",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const togglePromotionMode = async (facilityId: string, currentMode: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('facilities')
-        .update({ promotion_only: !currentMode })
-        .eq('id', facilityId);
-
-      if (error) throw error;
-
-      // Update the facility in the sports complexes state
-      setSportsComplexes(prev => prev.map(complex => ({
-        ...complex,
-        facilities: complex.facilities.map(facility => 
-          facility.id === facilityId 
-            ? { ...facility, promotion_only: !currentMode }
-            : facility
-        )
-      })));
-
-      toast({
-        title: "Succes",
-        description: `Modul de promovare a fost ${!currentMode ? 'activat' : 'dezactivat'}`,
-      });
-    } catch (error) {
-      console.error('Error toggling promotion mode:', error);
-      toast({
-        title: "Eroare",
-        description: "Nu s-a putut actualiza modul de promovare",
-        variant: "destructive"
-      });
-    }
-  };
-
   const deleteFacility = async (facilityId: string, facilityName: string) => {
     if (!confirm(`Ești sigur că vrei să ștergi facilitatea "${facilityName}"? Această acțiune nu poate fi anulată.`)) {
       return;
@@ -605,48 +536,30 @@ const FacilityManagement = () => {
                                              </div>
                                            </div>
 
-                                            {/* Row 5: Actions Section - Flexible space */}
-                                            <div className="flex flex-col justify-end gap-2">
-                                              <div className="grid grid-cols-2 gap-2">
-                                                <Button
-                                                  variant="outline"
-                                                  size="sm"
-                                                  onClick={() => navigate(`/edit-facility/${facility.id}`)}
-                                                  className="text-xs h-8"
-                                                >
-                                                  <Edit className="h-3 w-3 mr-1" />
-                                                  Editează
-                                                </Button>
-                                                
-                                                <Button
-                                                  variant={facility.is_active ? "secondary" : "default"}
-                                                  size="sm"
-                                                  onClick={() => toggleFacilityStatus(facility.id, facility.is_active)}
-                                                  className="text-xs h-8"
-                                                >
-                                                  {facility.is_active ? "Dezactivează" : "Activează"}
-                                                </Button>
-                                              </div>
-                                              
-                                              <Button
-                                                variant={facility.promotion_only ? "secondary" : "outline"}
-                                                size="sm"
-                                                onClick={() => togglePromotionMode(facility.id, facility.promotion_only)}
-                                                className="w-full text-xs h-8"
-                                              >
-                                                {facility.promotion_only ? "Dezactivează Promovare" : "Activează Promovare"}
-                                              </Button>
-                                              
-                                              <Button
-                                                variant="destructive"
-                                                size="sm"
-                                                onClick={() => deleteFacility(facility.id, facility.name)}
-                                                className="w-full text-xs h-8"
-                                              >
-                                                <Trash2 className="h-3 w-3 mr-1" />
-                                                Șterge
-                                              </Button>
-                                            </div>
+                                             {/* Row 5: Actions Section - Flexible space */}
+                                             <div className="flex flex-col justify-end gap-2">
+                                               <div className="grid grid-cols-2 gap-2">
+                                                 <Button
+                                                   variant="outline"
+                                                   size="sm"
+                                                   onClick={() => navigate(`/edit-facility/${facility.id}`)}
+                                                   className="text-xs h-8"
+                                                 >
+                                                   <Edit className="h-3 w-3 mr-1" />
+                                                   Editează
+                                                 </Button>
+                                                 
+                                                 <Button
+                                                   variant="destructive"
+                                                   size="sm"
+                                                   onClick={() => deleteFacility(facility.id, facility.name)}
+                                                   className="text-xs h-8"
+                                                 >
+                                                   <Trash2 className="h-3 w-3 mr-1" />
+                                                   Șterge
+                                                 </Button>
+                                               </div>
+                                             </div>
                                          </div>
                                        </CardContent>
                                      </div>
