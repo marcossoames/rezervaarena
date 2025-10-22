@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { User, Phone } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { validatePhone } from "@/utils/inputValidation";
@@ -18,6 +20,7 @@ interface CompleteProfileFormData {
 const CompleteProfile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [acceptGdpr, setAcceptGdpr] = useState(false);
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<CompleteProfileFormData>();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -64,6 +67,17 @@ const CompleteProfile = () => {
     setIsLoading(true);
 
     try {
+      // Validate GDPR acceptance
+      if (!acceptGdpr) {
+        toast({
+          title: "Politica de confidențialitate",
+          description: "Trebuie să accepți Politica de confidențialitate pentru a continua",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
       // Validate phone
       const phoneValidation = validatePhone(data.phone);
       if (!phoneValidation.isValid) {
@@ -204,6 +218,27 @@ const CompleteProfile = () => {
                 </p>
               </div>
 
+              <div className="flex items-start space-x-2 pb-4">
+                <Checkbox 
+                  id="gdpr" 
+                  checked={acceptGdpr}
+                  onCheckedChange={(checked) => setAcceptGdpr(checked as boolean)}
+                />
+                <label
+                  htmlFor="gdpr"
+                  className="text-sm leading-relaxed cursor-pointer"
+                >
+                  Am citit și sunt de acord cu{" "}
+                  <Link 
+                    to="/privacy-policy" 
+                    target="_blank"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Politica de confidențialitate (GDPR)
+                  </Link>
+                </label>
+              </div>
+
               <div className="flex gap-3">
                 <Button
                   type="button"
@@ -220,7 +255,7 @@ const CompleteProfile = () => {
                   type="submit"
                   className="flex-1"
                   size="lg"
-                  disabled={isLoading}
+                  disabled={isLoading || !acceptGdpr}
                 >
                   {isLoading ? "Se salvează..." : "Finalizează Înregistrarea"}
                 </Button>
