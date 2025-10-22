@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, MapPin, Clock, Users, Info } from "lucide-react";
+import { Phone, MapPin, Clock, Users, Info, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -122,6 +122,16 @@ export default function FacilityPromotionPage() {
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="container mx-auto max-w-4xl">
+        {/* Back Button */}
+        <Button
+          variant="outline"
+          onClick={() => navigate("/facilities")}
+          className="mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Înapoi la terenuri
+        </Button>
+
         <Card>
           <CardHeader>
             <div className="flex items-start justify-between">
@@ -282,15 +292,6 @@ export default function FacilityPromotionPage() {
                 </div>
               </div>
             )}
-
-            {/* Back Button */}
-            <Button
-              variant="outline"
-              onClick={() => navigate("/facilities")}
-              className="w-full"
-            >
-              Înapoi la facilități
-            </Button>
           </CardContent>
         </Card>
       </div>
