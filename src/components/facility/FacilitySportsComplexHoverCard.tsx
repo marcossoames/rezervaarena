@@ -46,7 +46,7 @@ export const FacilitySportsComplexHoverCard = ({
     return `https://www.google.com/maps/search/?api=1&query=${q}`;
   };
   return (
-    <HoverCard open={open} onOpenChange={setOpen} openDelay={100} closeDelay={700}>
+    <HoverCard open={open} onOpenChange={setOpen} openDelay={200} closeDelay={300}>
       <HoverCardTrigger asChild onClick={(e) => {
         e.stopPropagation();
         setOpen(!open);
@@ -54,9 +54,9 @@ export const FacilitySportsComplexHoverCard = ({
         {children}
       </HoverCardTrigger>
       <HoverCardContent 
-        className="w-[375px] p-0 z-[1000] pointer-events-auto" 
+        className="w-[375px] p-0 z-[10000] pointer-events-auto bg-popover" 
         align="start"
-        sideOffset={2}
+        sideOffset={5}
       >
         <div className="space-y-4">
           {/* Header */}
