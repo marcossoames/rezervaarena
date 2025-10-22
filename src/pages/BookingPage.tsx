@@ -156,10 +156,10 @@ const BookingPage = () => {
       }
 
       try {
-        // Get facility data directly to include allowed_durations
+        // Get facility data directly to include allowed_durations and promotion_only
         const { data: facilityData, error: facilityError } = await supabase
           .from('facilities')
-          .select('*, allowed_durations')
+          .select('*, allowed_durations, promotion_only')
           .eq('id', facilityId)
           .eq('is_active', true)
           .single();
@@ -170,6 +170,16 @@ const BookingPage = () => {
             description: "Facilitatea nu a fost găsită",
             variant: "destructive"
           });
+          return;
+        }
+
+        // Redirect to promotion page if facility is promotion-only
+        if (facilityData.promotion_only) {
+          toast({
+            title: "Rezervări doar telefonic",
+            description: "Această facilitate acceptă doar rezervări telefonice. Vei fi redirecționat către pagina cu detalii de contact."
+          });
+          navigate(`/facility-promotion/${facilityId}`);
           return;
         }
 
