@@ -12,14 +12,14 @@ const ScrollToTop = () => {
   }, []);
 
   useEffect(() => {
-    // Don't scroll if there's a hash (anchor link)
-    if (hash) {
-      return;
+    // Force scroll to top on every route change
+    const container = document.querySelector('.app-scroll') as HTMLElement | null;
+    if (container && typeof container.scrollTo === 'function') {
+      container.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
-
-    // Force scroll to top on route change
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [pathname, hash, key]);
+  }, [pathname]);
 
   return null;
 };
