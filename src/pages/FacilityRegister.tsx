@@ -451,8 +451,7 @@ const FacilityRegister = () => {
 
       toast({
         title: "Cont creat cu succes!",
-        description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul. După confirmarea emailului, facilitățile vor fi create automat.",
-        duration: 10000
+        description: "Verifică-ți emailul și dă click pe linkul de confirmare pentru a-ți activa contul. După confirmarea emailului, facilitățile vor fi create automat."
       });
     } catch (error: any) {
       console.error('Registration error:', error);

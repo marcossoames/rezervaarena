@@ -81,8 +81,7 @@ export const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = (
       setTimeElapsed(0);
       toast({
         title: "Email retrimis cu succes!",
-        description: "Am retrimis emailul de confirmare. Verifică-ți inbox-ul și folderul spam.",
-        duration: 5000
+        description: "Am retrimis emailul de confirmare. Verifică-ți inbox-ul și folderul spam."
       });
     } catch (error: any) {
       console.error('Resend error:', error);

@@ -28,8 +28,7 @@ export const NetworkStatusMonitor = () => {
         toast({
           title: "Fără conexiune la internet",
           description: "Nu ai conexiune la internet. Operațiunile nu vor fi salvate până când te reconectezi.",
-          variant: "destructive",
-          duration: 5000,
+          variant: "destructive"
         });
         hasShownOfflineToast = true;
       }
@@ -49,16 +48,14 @@ export const NetworkStatusMonitor = () => {
         toast({
           title: "Conexiune pierdută",
           description: "Nu ai conexiune la internet. Operațiunile nu vor fi salvate până când te reconectezi.",
-          variant: "destructive",
-          duration: 5000,
+          variant: "destructive"
         });
         hasShownOfflineToast = true;
       } else if (hasShownOfflineToast) {
         // Show reconnection toast only if we previously showed offline toast
         toast({
           title: "Reconectat la internet",
-          description: "Conexiunea a fost restabilită. Acum poți efectua operațiuni.",
-          duration: 3000,
+          description: "Conexiunea a fost restabilită. Acum poți efectua operațiuni."
         });
         hasShownOfflineToast = false;
       }
