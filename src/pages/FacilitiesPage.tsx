@@ -1271,6 +1271,13 @@ applyFilters();
                                   : facility.city}
                               </a>
                             </div>
+                            {facility.sports_complex_description && (
+                              <FormattedDescription 
+                                text={facility.sports_complex_description}
+                                maxLength={200}
+                                className="mt-2"
+                              />
+                            )}
                             {/* Operating Hours */}
                             {(facility.operating_hours_start && facility.operating_hours_end) && (
                               <div className="flex items-center text-muted-foreground text-sm mb-1">
