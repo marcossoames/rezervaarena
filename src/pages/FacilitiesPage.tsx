@@ -1310,8 +1310,8 @@ applyFilters();
                         </div>
                       </div>
                       
-                      {/* Facility-specific description - min height to keep alignment */}
-                      <div className="min-h-[5rem] mb-5">
+                      {/* Facility-specific description - flexible height */}
+                      <div className="mb-4">
                         {facility.description && (
                           <FormattedDescription 
                             text={facility.description}
@@ -1321,48 +1321,53 @@ applyFilters();
                         )}
                       </div>
                       
-                      {/* Services and amenities - always at consistent position */}
-                      <div className="space-y-4 mb-5">
-                        {/* General Services (from sports complex) */}
-                        {facility.general_services && facility.general_services.length > 0 && (
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium mb-2">Servicii generale:</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {facility.general_services.map((service) => (
-                                <Badge key={service} variant="outline" className="text-xs">
-                                  {service}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Facility amenities */}
-                        {(facility.amenities || facility.available_amenities) && (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && (
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium mb-2">Dotări teren:</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {(facility.amenities || facility.available_amenities)?.map(amenity => (
-                                <Badge key={amenity} variant="secondary" className="text-xs">
-                                  {amenity}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                      {/* Spacer to push services and price to bottom */}
+                      <div className="flex-grow"></div>
                       
-                        {/* Placeholder when neither general services nor amenities exist */}
-                        {(!facility.general_services || facility.general_services.length === 0) && 
-                         (!facility.amenities || facility.amenities.length === 0) && 
-                         (!facility.available_amenities || facility.available_amenities.length === 0) && (
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium mb-1">Servicii și dotări:</p>
-                            <p className="text-xs text-muted-foreground">Detalii în curs de actualizare</p>
-                          </div>
-                        )}
-                      </div>
-                       
+                      {/* Services, amenities, and price section - always at bottom, aligned */}
                       <div className="mt-auto">
+                        {/* Services and amenities */}
+                        <div className="space-y-4 mb-5">
+                          {/* General Services (from sports complex) */}
+                          {facility.general_services && facility.general_services.length > 0 && (
+                            <div>
+                              <p className="text-xs text-muted-foreground font-medium mb-2">Servicii generale:</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {facility.general_services.map((service) => (
+                                  <Badge key={service} variant="outline" className="text-xs">
+                                    {service}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Facility amenities */}
+                          {(facility.amenities || facility.available_amenities) && (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && (
+                            <div>
+                              <p className="text-xs text-muted-foreground font-medium mb-2">Dotări teren:</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {(facility.amenities || facility.available_amenities)?.map(amenity => (
+                                  <Badge key={amenity} variant="secondary" className="text-xs">
+                                    {amenity}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        
+                          {/* Placeholder when neither general services nor amenities exist */}
+                          {(!facility.general_services || facility.general_services.length === 0) && 
+                           (!facility.amenities || facility.amenities.length === 0) && 
+                           (!facility.available_amenities || facility.available_amenities.length === 0) && (
+                            <div>
+                              <p className="text-xs text-muted-foreground font-medium mb-1">Servicii și dotări:</p>
+                              <p className="text-xs text-muted-foreground">Detalii în curs de actualizare</p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Price and booking section */}
                         <div className="flex items-center justify-between gap-6 mb-4 py-2">
                           <div className="flex items-center gap-2 text-base text-muted-foreground">
                             <Users className="h-5 w-5 flex-shrink-0" />
