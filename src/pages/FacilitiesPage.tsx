@@ -1283,41 +1283,41 @@ applyFilters();
                         </div>
                       </div>
                       
-                      <div className="flex-1 space-y-4">
+                      <div className="flex-1 space-y-5">
                         {(facility.description || facility.basic_description) && (
                           <FormattedDescription 
                             text={facility.description || facility.basic_description || ""}
                           />
                         )}
                         
-                         <div className="space-y-2 min-h-[3rem]">
+                         <div className="space-y-4 min-h-[3rem]">
                            {/* General Services (from sports complex) */}
                            {facility.general_services && facility.general_services.length > 0 && (
-                             <div>
-                               <p className="text-xs text-muted-foreground font-medium mb-1">Servicii generale:</p>
-                               <div className="flex flex-wrap gap-1">
-                                 {facility.general_services.map((service) => (
-                                   <Badge key={service} variant="outline" className="text-xs">
-                                     {service}
-                                   </Badge>
-                                 ))}
-                               </div>
-                             </div>
-                           )}
-                           
-                           {/* Facility amenities */}
-                           {(facility.amenities || facility.available_amenities) && (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && (
-                             <div>
-                               <p className="text-xs text-muted-foreground font-medium mb-1">Dotări teren:</p>
-                               <div className="flex flex-wrap gap-1">
-                                 {(facility.amenities || facility.available_amenities)?.map(amenity => (
-                                   <Badge key={amenity} variant="secondary" className="text-xs">
-                                     {amenity}
-                                   </Badge>
-                                 ))}
-                               </div>
-                             </div>
-                           )}
+                              <div>
+                                <p className="text-xs text-muted-foreground font-medium mb-2">Servicii generale:</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {facility.general_services.map((service) => (
+                                    <Badge key={service} variant="outline" className="text-xs">
+                                      {service}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Facility amenities */}
+                            {(facility.amenities || facility.available_amenities) && (facility.amenities?.length > 0 || facility.available_amenities?.length > 0) && (
+                              <div>
+                                <p className="text-xs text-muted-foreground font-medium mb-2">Dotări teren:</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {(facility.amenities || facility.available_amenities)?.map(amenity => (
+                                    <Badge key={amenity} variant="secondary" className="text-xs">
+                                      {amenity}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           
                           {/* Placeholder when neither general services nor amenities exist */}
                           {(!facility.general_services || facility.general_services.length === 0) && 
