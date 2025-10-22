@@ -1284,12 +1284,6 @@ applyFilters();
                       </div>
                       
                       <div className="flex-1 space-y-5">
-                        {(facility.description || facility.basic_description) && (
-                          <FormattedDescription 
-                            text={facility.description || facility.basic_description || ""}
-                          />
-                        )}
-                        
                          <div className="space-y-4 min-h-[3rem]">
                            {/* General Services (from sports complex) */}
                            {facility.general_services && facility.general_services.length > 0 && (
