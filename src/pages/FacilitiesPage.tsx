@@ -55,6 +55,7 @@ interface Facility {
   operating_hours_end?: string;
   allowed_durations?: number[]; // Array of allowed booking durations in minutes
   booking_count?: number; // Number of bookings for popularity sorting
+  promotion_only?: boolean; // If true, facility is visible but clients must call to book
 }
 interface UserProfile {
   role: string | null;
@@ -1350,14 +1351,25 @@ applyFilters();
                        
                         <div className="flex gap-3">
                           {session ? (
-                            <Button variant="sport" asChild className="flex-1 justify-center">
-                              <Link 
-                                to={`/booking/${facility.id}${selectedDate ? `?date=${format(selectedDate, 'yyyy-MM-dd')}` : ''}`} 
-                                className="text-center"
-                              >
-                                Rezervă Acum
-                              </Link>
-                            </Button>
+                            facility.promotion_only ? (
+                              <Button variant="sport" asChild className="flex-1 justify-center">
+                                <Link 
+                                  to={`/facility-promotion/${facility.id}`} 
+                                  className="text-center"
+                                >
+                                  Vezi Detalii & Sună
+                                </Link>
+                              </Button>
+                            ) : (
+                              <Button variant="sport" asChild className="flex-1 justify-center">
+                                <Link 
+                                  to={`/booking/${facility.id}${selectedDate ? `?date=${format(selectedDate, 'yyyy-MM-dd')}` : ''}`} 
+                                  className="text-center"
+                                >
+                                  Rezervă Acum
+                                </Link>
+                              </Button>
+                            )
                           ) : (
                             <div className="flex-1">
                               <Button 

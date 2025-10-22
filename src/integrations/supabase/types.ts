@@ -860,6 +860,7 @@ export type Database = {
           operating_hours_end: string
           operating_hours_start: string
           price_per_hour: number
+          promotion_only: boolean
           sports_complex_address: string
           sports_complex_description: string
           sports_complex_name: string
@@ -901,6 +902,7 @@ export type Database = {
           operating_hours_end: string
           operating_hours_start: string
           price_per_hour: number
+          promotion_only: boolean
           sports_complex_address: string
           sports_complex_description: string
           sports_complex_name: string
