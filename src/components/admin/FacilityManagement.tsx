@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, MapPin, Edit, Trash2, Plus, Users, DollarSign, ChevronDown, ChevronRight, CreditCard, Phone, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Facility {
   id: string;
@@ -50,7 +51,9 @@ const FacilityManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedComplexes, setExpandedComplexes] = useState<Set<string>>(new Set());
   const { toast } = useToast();
-  const navigate = useNavigate();
+const navigate = useNavigate();
+  const [showAllAmenities, setShowAllAmenities] = useState<string | null>(null);
+  const [showAllServices, setShowAllServices] = useState<string | null>(null);
 
   useEffect(() => {
     loadSportsComplexes();
@@ -503,11 +506,15 @@ const FacilityManagement = () => {
                                                        {service}
                                                      </Badge>
                                                    ))}
-                                                   {facility.general_services.length > 2 && (
-                                                     <Badge variant="outline" className="text-xs h-5">
-                                                       +{facility.general_services.length - 2}
-                                                     </Badge>
-                                                   )}
+{facility.general_services.length > 2 && (
+                                                      <Badge 
+                                                        variant="outline" 
+                                                        className="text-xs h-5 cursor-pointer hover:bg-primary/10"
+                                                        onClick={() => setShowAllServices(facility.id)}
+                                                      >
+                                                        +{facility.general_services.length - 2}
+                                                      </Badge>
+                                                    )}
                                                  </div>
                                                ) : (
                                                  <p className="text-xs text-muted-foreground italic">Fără servicii generale</p>
@@ -524,11 +531,15 @@ const FacilityManagement = () => {
                                                        {amenity}
                                                      </Badge>
                                                    ))}
-                                                   {facility.amenities.length > 2 && (
-                                                     <Badge variant="secondary" className="text-xs h-5">
-                                                       +{facility.amenities.length - 2}
-                                                     </Badge>
-                                                   )}
+{facility.amenities.length > 2 && (
+                                                      <Badge 
+                                                        variant="secondary" 
+                                                        className="text-xs h-5 cursor-pointer hover:bg-primary/10"
+                                                        onClick={() => setShowAllAmenities(facility.id)}
+                                                      >
+                                                        +{facility.amenities.length - 2}
+                                                      </Badge>
+                                                    )}
                                                  </div>
                                                ) : (
                                                  <p className="text-xs text-muted-foreground italic">Fără dotări suplimentare pentru teren</p>
