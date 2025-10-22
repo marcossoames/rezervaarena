@@ -1288,7 +1288,7 @@ applyFilters();
                         {facility.description && (
                           <FormattedDescription 
                             text={facility.description}
-                            maxLength={200}
+                            maxLength={120}
                           />
                         )}
                         
