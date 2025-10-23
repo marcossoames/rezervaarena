@@ -143,7 +143,7 @@ const CompleteProfile = () => {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 overflow-auto">
+    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 pt-[calc(env(safe-area-inset-top)+1rem)] px-4 pb-4 overflow-auto">
       <div className="w-full max-w-md">
         <Card className="shadow-xl border-primary/10">
           <CardHeader className="space-y-1 text-center">

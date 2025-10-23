@@ -78,7 +78,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="h-screen bg-gradient-hero flex items-center justify-center p-4 overflow-auto">
+    <div className="h-screen bg-gradient-hero flex items-center justify-center pt-[calc(env(safe-area-inset-top)+1rem)] px-4 pb-4 overflow-auto">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center text-primary-foreground hover:text-primary-foreground/80 hover:border-primary-foreground border border-transparent rounded-md px-2 py-1 transition-smooth">
