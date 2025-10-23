@@ -14,7 +14,7 @@ import { FacilityCardCarousel } from "@/components/FacilityCardCarousel";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EnhancedCalendar } from "@/components/ui/enhanced-calendar";
-import { format, isSameDay } from "date-fns";
+import { format, isSameDay, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
@@ -715,9 +715,34 @@ const FacilitiesPage = () => {
                 ? Math.min(...facility.allowed_durations) 
                 : 60;
               
+              // Special check for today: if current time + min duration exceeds closing time, hide facility
+              if (isToday(selectedDate)) {
+                const now = new Date();
+                const currentTimeMinutes = now.getHours() * 60 + now.getMinutes();
+                const earliestBookingEnd = currentTimeMinutes + minDuration;
+                
+                // If we can't even fit the minimum duration before closing, hide this facility
+                if (earliestBookingEnd > operatingEndMinutes) {
+                  unavailableFacilities.add(facility.id);
+                  return;
+                }
+              }
+              
               let hasAnyAvailableSlot = false;
               
-              for (let checkStartMinutes = operatingStartMinutes; checkStartMinutes + minDuration <= operatingEndMinutes; checkStartMinutes += 30) {
+              // For today, start checking from current time (rounded to next 30-min slot)
+              let startCheckingFrom = operatingStartMinutes;
+              if (isToday(selectedDate)) {
+                const now = new Date();
+                const currentTimeMinutes = now.getHours() * 60 + now.getMinutes();
+                // Round up to next 30-minute slot
+                startCheckingFrom = Math.max(
+                  operatingStartMinutes,
+                  Math.ceil(currentTimeMinutes / 30) * 30
+                );
+              }
+              
+              for (let checkStartMinutes = startCheckingFrom; checkStartMinutes + minDuration <= operatingEndMinutes; checkStartMinutes += 30) {
                 const checkStartTime = `${Math.floor(checkStartMinutes / 60).toString().padStart(2, '0')}:${(checkStartMinutes % 60).toString().padStart(2, '0')}`;
                 const checkEndMinutes = checkStartMinutes + minDuration;
                 const checkEndTime = `${Math.floor(checkEndMinutes / 60).toString().padStart(2, '0')}:${(checkEndMinutes % 60).toString().padStart(2, '0')}`;
