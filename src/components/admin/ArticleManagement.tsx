@@ -244,7 +244,71 @@ const ArticleManagement = () => {
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
-...
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Titlu</Label>
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Titlul articolului"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="content">Conținut</Label>
+                    <Textarea
+                      id="content"
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder="Conținutul articolului..."
+                      rows={8}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Imagini</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {images.map((image, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={image}
+                            alt={`Preview ${index + 1}`}
+                            className="w-24 h-24 object-cover rounded-md"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                            onClick={() => removeImage(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageUpload}
+                        disabled={uploading}
+                        className="hidden"
+                        id="image-upload"
+                      />
+                      <Label
+                        htmlFor="image-upload"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90"
+                      >
+                        <Upload className="h-4 w-4" />
+                        {uploading ? 'Se încarcă...' : 'Încarcă Imagini'}
+                      </Label>
+                    </div>
+                  </div>
+
                   <div className="flex gap-2 pt-4">
                     <Button type="submit">
                       {editingArticle ? 'Actualizează' : 'Creează'} Articol
