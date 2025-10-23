@@ -7,7 +7,7 @@ import { Session } from "@supabase/supabase-js";
 import { secureSignOut } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { NotificationsDropdown } from "@/components/NotificationsDropdown";
+import { useNativeNotifications } from "@/hooks/useNativeNotifications";
 
 const Header = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -18,6 +18,9 @@ const Header = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const headerRef = useRef<HTMLElement | null>(null);
+  
+  // Setup native notifications
+  useNativeNotifications();
 
   useEffect(() => {
     // Sticky header: no body offset needed. Ensure previous flags are cleared.
@@ -170,7 +173,6 @@ const Header = () => {
             
             {session ? (
               <>
-                <NotificationsDropdown />
                 <Button onClick={handleClientClick} variant="ghost" size={isMobile ? "sm" : "sm"} className={isMobile ? "px-2" : ""}>
                   <User className="h-4 w-4" />
                   {!isMobile && (userProfile?.role === 'admin' ? 'Dashboard' : 'Profil')}
