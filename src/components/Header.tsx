@@ -137,7 +137,7 @@ const Header = () => {
     <>
       {/* iOS overlay to cover the safe area during overscroll */}
       <div className="pointer-events-none fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-card z-[60]" />
-      <header ref={headerRef} className="sticky top-0 z-50 bg-card/95 backdrop-blur-md pt-[env(safe-area-inset-top)]">
+      <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md pt-[env(safe-area-inset-top)]">
         <div className="relative w-full py-3 px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
         {/* Full width flex container */}
         <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8">
