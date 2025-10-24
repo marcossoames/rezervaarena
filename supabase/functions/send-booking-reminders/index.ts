@@ -15,6 +15,14 @@ interface Booking {
   start_time: string;
   end_time: string;
   facility_name: string;
+  total_price: number;
+  payment_method: string;
+  facilities: {
+    sports_complexes: {
+      name: string;
+      location: string;
+    };
+  };
 }
 
 interface Profile {
@@ -63,7 +71,23 @@ serve(async (req) => {
     // Get bookings that match the reminder time
     const { data: bookings, error: bookingsError } = await supabase
       .from('bookings')
-      .select('id, client_id, facility_id, booking_date, start_time, end_time, facility_name')
+      .select(`
+        id, 
+        client_id, 
+        facility_id, 
+        booking_date, 
+        start_time, 
+        end_time, 
+        facility_name,
+        total_price,
+        payment_method,
+        facilities!inner(
+          sports_complexes!inner(
+            name,
+            location
+          )
+        )
+      `)
       .eq('status', 'confirmed')
       .eq('booking_date', targetDate)
       .gte('start_time', targetTime)
@@ -116,9 +140,20 @@ serve(async (req) => {
         year: 'numeric'
       });
 
+      // Format time without seconds (HH:MM)
+      const startTimeFormatted = booking.start_time.substring(0, 5);
+      const endTimeFormatted = booking.end_time.substring(0, 5);
+
       const reminderTime = type === '24h' ? '24 de ore' : '1 oră';
       const title = type === '24h' ? 'Rezervare mâine' : 'Rezervare în curând';
-      const message = `Ai o rezervare la ${booking.facility_name} ${type === '24h' ? 'mâine' : 'peste o oră'}, pe ${bookingDateFormatted} la ora ${booking.start_time}.`;
+      const sportsComplexName = booking.facilities?.sports_complexes?.name || booking.facility_name;
+      const sportsComplexLocation = booking.facilities?.sports_complexes?.location || '';
+      const message = `Ai o rezervare la ${sportsComplexName} ${type === '24h' ? 'mâine' : 'peste o oră'}, pe ${bookingDateFormatted} la ora ${startTimeFormatted}.`;
+      
+      // Format payment method
+      const paymentMethodDisplay = booking.payment_method === 'card' ? 'Card' : 
+                                   booking.payment_method === 'cash' ? 'Numerar' : 
+                                   booking.payment_method;
 
       // Create in-app notification (for both 24h and 1h reminders)
       const { error: notifError } = await supabase
@@ -152,17 +187,167 @@ serve(async (req) => {
             to: [profile.email],
             subject: `Reminder: Rezervare ${reminderTime}`,
             html: `
-              <h1>${title}</h1>
-              <p>Bună ${profile.full_name},</p>
-              <p>${message}</p>
-              <p><strong>Detalii rezervare:</strong></p>
-              <ul>
-                <li>Locație: ${booking.facility_name}</li>
-                <li>Data: ${bookingDateFormatted}</li>
-                <li>Ora: ${booking.start_time} - ${booking.end_time}</li>
-              </ul>
-              <p>Ne vedem în curând!</p>
-              <p>Echipa RezervaArena</p>
+              <!DOCTYPE html>
+              <html lang="ro">
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                  body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                    background-color: #f5f5f5;
+                    margin: 0;
+                    padding: 0;
+                  }
+                  .container {
+                    max-width: 600px;
+                    margin: 0 auto;
+                    background-color: #ffffff;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                  }
+                  .header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 30px 20px;
+                    text-align: center;
+                  }
+                  .header h1 {
+                    margin: 0;
+                    font-size: 24px;
+                    font-weight: 600;
+                  }
+                  .content {
+                    padding: 30px 20px;
+                  }
+                  .greeting {
+                    font-size: 18px;
+                    margin-bottom: 20px;
+                    color: #333;
+                  }
+                  .alert-box {
+                    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+                    border-left: 4px solid #667eea;
+                    padding: 15px;
+                    margin: 20px 0;
+                    border-radius: 4px;
+                  }
+                  .alert-box p {
+                    margin: 0;
+                    font-size: 16px;
+                    color: #555;
+                  }
+                  .details-card {
+                    background-color: #f9fafb;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    padding: 20px;
+                    margin: 20px 0;
+                  }
+                  .details-title {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #667eea;
+                    margin-bottom: 15px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                  }
+                  .detail-item {
+                    display: flex;
+                    padding: 10px 0;
+                    border-bottom: 1px solid #e5e7eb;
+                  }
+                  .detail-item:last-child {
+                    border-bottom: none;
+                  }
+                  .detail-label {
+                    font-weight: 600;
+                    color: #4b5563;
+                    min-width: 140px;
+                  }
+                  .detail-value {
+                    color: #1f2937;
+                    flex: 1;
+                  }
+                  .footer {
+                    background-color: #f9fafb;
+                    padding: 20px;
+                    text-align: center;
+                    color: #6b7280;
+                    font-size: 14px;
+                    border-top: 1px solid #e5e7eb;
+                  }
+                  .logo {
+                    font-weight: 700;
+                    color: #667eea;
+                  }
+                  .price-highlight {
+                    font-size: 24px;
+                    font-weight: 700;
+                    color: #667eea;
+                  }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <div class="header">
+                    <h1>🔔 ${title}</h1>
+                  </div>
+                  
+                  <div class="content">
+                    <p class="greeting">Bună ${profile.full_name},</p>
+                    
+                    <div class="alert-box">
+                      <p><strong>${message}</strong></p>
+                    </div>
+                    
+                    <div class="details-card">
+                      <div class="details-title">📋 Detalii Rezervare</div>
+                      
+                      <div class="detail-item">
+                        <div class="detail-label">📍 Locație:</div>
+                        <div class="detail-value"><strong>${sportsComplexName}</strong>${sportsComplexLocation ? `<br><small style="color: #6b7280;">${sportsComplexLocation}</small>` : ''}</div>
+                      </div>
+                      
+                      <div class="detail-item">
+                        <div class="detail-label">🏟️ Teren:</div>
+                        <div class="detail-value">${booking.facility_name}</div>
+                      </div>
+                      
+                      <div class="detail-item">
+                        <div class="detail-label">📅 Data:</div>
+                        <div class="detail-value">${bookingDateFormatted}</div>
+                      </div>
+                      
+                      <div class="detail-item">
+                        <div class="detail-label">🕐 Interval orar:</div>
+                        <div class="detail-value"><strong>${startTimeFormatted} - ${endTimeFormatted}</strong></div>
+                      </div>
+                      
+                      <div class="detail-item">
+                        <div class="detail-label">💰 Cost:</div>
+                        <div class="detail-value"><span class="price-highlight">${booking.total_price} RON</span></div>
+                      </div>
+                      
+                      <div class="detail-item">
+                        <div class="detail-label">💳 Metodă plată:</div>
+                        <div class="detail-value">${paymentMethodDisplay}</div>
+                      </div>
+                    </div>
+                    
+                    <p style="color: #4b5563; margin-top: 20px;">Ne vedem în curând! 🎾</p>
+                  </div>
+                  
+                  <div class="footer">
+                    <p style="margin: 0 0 5px 0;"><span class="logo">RezervaArena</span></p>
+                    <p style="margin: 0; font-size: 12px;">Platforma ta pentru rezervări sportive</p>
+                  </div>
+                </div>
+              </body>
+              </html>
             `,
           });
           emailsSent++;
