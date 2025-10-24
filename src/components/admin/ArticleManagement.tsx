@@ -225,11 +225,11 @@ const ArticleManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
+    <div className="space-y-4 md:space-y-6 w-full overflow-x-hidden">
+      <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
+        <CardHeader className="px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <CardTitle>Gestionare Articole</CardTitle>
+            <CardTitle className="text-xl md:text-2xl break-words">Gestionare Articole</CardTitle>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => setIsDialogOpen(true)} className="w-full sm:w-auto">
@@ -237,7 +237,7 @@ const ArticleManagement = () => {
                   Adaugă Articol
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-auto w-[calc(100vw-2rem)] sm:w-full">
                 <DialogHeader>
                   <DialogTitle>
                     {editingArticle ? 'Editează Articol' : 'Adaugă Articol Nou'}
@@ -322,50 +322,54 @@ const ArticleManagement = () => {
             </Dialog>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           {articles.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Nu există articole create încă.</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {articles.map((article) => (
-                <Card key={article.id} className="border">
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-2">{article.title}</h3>
-                        <p className="text-muted-foreground mb-4 line-clamp-3">
-                          {article.content}
-                        </p>
-                        <div className="text-sm text-muted-foreground">
-                          Creat la: {new Date(article.created_at).toLocaleDateString('ro-RO')}
+                <Card key={article.id} className="border overflow-hidden">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col gap-3 mb-4">
+                      <div className="flex justify-between items-start gap-2">
+                        <h3 className="text-base sm:text-lg font-semibold break-words flex-1">{article.title}</h3>
+                        <div className="flex gap-1 sm:gap-2 shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(article)}
+                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                          >
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(article.id)}
+                            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex gap-2 ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(article)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(article.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <div>
+                        <p className="text-sm sm:text-base text-muted-foreground mb-3 line-clamp-3 break-words">
+                          {article.content}
+                        </p>
+                        <div className="text-xs sm:text-sm text-muted-foreground">
+                          Creat la: {new Date(article.created_at).toLocaleDateString('ro-RO')}
+                        </div>
                       </div>
                     </div>
                     
                     {article.images && article.images.length > 0 && (
-                      <div className="mt-4">
+                      <div className="mt-3 sm:mt-4">
                         <ImageCarousel
                           images={article.images}
                           facilityName={article.title}
-                          className="max-w-md"
+                          className="max-w-full sm:max-w-md"
                         />
                       </div>
                     )}

@@ -153,7 +153,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 overflow-x-hidden">
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -193,7 +193,7 @@ const AdminDashboard = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 sm:px-4 md:px-6 py-6 md:py-8 max-w-full overflow-x-hidden">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-foreground mb-2">Bun venit în panoul de administrare</h2>
           <p className="text-muted-foreground">Gestionați platforma RezervaArena din acest panou central</p>
