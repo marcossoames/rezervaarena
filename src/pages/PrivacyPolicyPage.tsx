@@ -8,7 +8,7 @@ const PrivacyPolicyPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
+      <main className="container mx-auto px-4 py-12 max-w-4xl pt-[calc(env(safe-area-inset-top)+4rem+3rem)]">
         <h1 className="text-4xl font-bold text-foreground mb-8 text-center">
           Politica de confidențialitate (GDPR)
         </h1>
