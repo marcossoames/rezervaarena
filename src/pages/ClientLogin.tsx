@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 import { translateError } from "@/utils/errorTranslations";
 import { useBodyClass } from "@/hooks/useBodyClass";
+import { signInWithGoogle } from "@/utils/googleAuth";
 
 interface LoginFormData {
   email: string;
@@ -139,26 +140,69 @@ const ClientLogin = () => {
 
   const handleGoogleLogin = async () => {
     try {
+      setIsLoading(true);
+      
       // Preserve redirect path for OAuth flow
       const redirectPath = sessionStorage.getItem('redirectAfterLogin');
       
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth-redirect`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        }
-      });
+      // Use unified Google sign-in (works on both web and mobile)
+      const { data, error } = await signInWithGoogle();
 
       if (error) {
         toast({
           title: "Eroare la autentificare",
-          description: translateError(error.message),
+          description: translateError(error),
           variant: "destructive"
         });
+        setIsLoading(false);
+        return;
+      }
+      
+      // For web OAuth, the page will redirect, so we don't set loading to false
+      // For native, we need to check the user and redirect
+      if (data?.user) {
+        // Native flow - user is authenticated immediately
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id);
+
+        const isFacilityOwner = userRoles?.some(ur => ur.role === 'facility_owner');
+        const isAdmin = userRoles?.some(ur => ur.role === 'admin' || ur.role === 'super_admin');
+
+        if (isFacilityOwner) {
+          toast({
+            title: "Acces restricționat",
+            description: "Proprietarii de baze sportive trebuie să se autentifice prin pagina dedicată.",
+            variant: "destructive"
+          });
+          await supabase.auth.signOut();
+          navigate('/facility/login');
+          return;
+        }
+
+        if (isAdmin) {
+          toast({
+            title: "Acces restricționat",
+            description: "Administratorii trebuie să se autentifice prin pagina de admin.",
+            variant: "destructive"
+          });
+          await supabase.auth.signOut();
+          navigate('/admin/login');
+          return;
+        }
+
+        toast({
+          title: "Conectare reușită!",
+          description: "Te-ai conectat cu succes."
+        });
+        
+        if (redirectPath) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate(redirectPath);
+        } else {
+          navigate("/");
+        }
       }
       
       // Note: redirectAfterLogin will be preserved in sessionStorage through the OAuth flow
@@ -168,6 +212,7 @@ const ClientLogin = () => {
         description: "A apărut o eroare la conectarea cu Google",
         variant: "destructive"
       });
+      setIsLoading(false);
     }
   };
 

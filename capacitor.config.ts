@@ -31,6 +31,11 @@ const config: CapacitorConfig = {
       smallIcon: 'ic_stat_icon_config_sample',
       iconColor: '#488AFF',
       sound: 'beep.wav'
+    },
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      serverClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com', // Replace with your Web Client ID
+      forceCodeForRefreshToken: true
     }
   },
   ios: {

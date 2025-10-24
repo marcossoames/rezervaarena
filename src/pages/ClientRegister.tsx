@@ -15,6 +15,7 @@ import { validatePhone } from "@/utils/inputValidation";
 import { translateError } from "@/utils/errorTranslations";
 import { useBodyClass } from "@/hooks/useBodyClass";
 import { Checkbox } from "@/components/ui/checkbox";
+import { signInWithGoogle } from "@/utils/googleAuth";
 
 interface ClientFormData {
   email: string;
@@ -40,32 +41,55 @@ const ClientRegister = () => {
   const password = watch("password");
 
   const handleGoogleSignup = async () => {
-    try {
-      sessionStorage.setItem('registrationFlow', 'client');
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth-redirect`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        }
+    if (!acceptGdpr) {
+      toast({
+        title: "Atenție",
+        description: "Trebuie să accepți termenii și condițiile pentru a continua.",
+        variant: "destructive"
       });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      sessionStorage.setItem('registrationFlow', 'client');
+      
+      // Use unified Google sign-in (works on both web and mobile)
+      const { data, error } = await signInWithGoogle();
 
       if (error) {
         toast({
           title: "Eroare la înregistrare",
-          description: translateError(error.message),
+          description: translateError(error),
           variant: "destructive"
         });
+        setIsLoading(false);
+        return;
       }
+      
+      // For native, handle the authenticated user immediately
+      if (data?.user) {
+        toast({
+          title: "Înregistrare reușită!",
+          description: "Te-ai înregistrat și conectat cu succes!",
+        });
+        
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+        if (redirectPath) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate(redirectPath);
+        } else {
+          navigate("/");
+        }
+      }
+      // For web OAuth, the page will redirect automatically
     } catch (error: any) {
       toast({
         title: "Eroare",
         description: "A apărut o eroare la înregistrarea cu Google",
         variant: "destructive"
       });
+      setIsLoading(false);
     }
   };
 
@@ -360,6 +384,7 @@ const ClientRegister = () => {
               className="w-full"
               size="lg"
               onClick={handleGoogleSignup}
+              disabled={isLoading || !acceptGdpr}
             >
               <FcGoogle className="mr-2 h-5 w-5" />
               Continuă cu Google
