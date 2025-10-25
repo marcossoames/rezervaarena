@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 // Initialize Google Auth for native platforms
 if (Capacitor.isNativePlatform()) {
   GoogleAuth.initialize({
-    clientId: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // Replace with your actual Client ID
+    clientId: '556634083767-6e4o5otsascaohj7uu1ldgeguh9j7ljl.apps.googleusercontent.com',
     scopes: ['profile', 'email'],
     grantOfflineAccess: true,
   });
