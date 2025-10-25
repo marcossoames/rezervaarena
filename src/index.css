@@ -175,6 +175,20 @@ All colors MUST be HSL.
     /* Ensure fixed header remains visible on iOS Safari */
     overscroll-behavior: auto;
   }
+
+  /* Black bar for Dynamic Island area - better visibility for system info */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: max(env(safe-area-inset-top, 0px), 50px);
+    background: #000000;
+    z-index: 9998;
+    pointer-events: none;
+  }
+
   /* Prevent iOS bounce scroll */
   html, body {
     position: relative;
