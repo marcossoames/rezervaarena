@@ -176,8 +176,8 @@ All colors MUST be HSL.
     overscroll-behavior: auto;
   }
 
-  /* Black bar for Dynamic Island area - better visibility for system info */
-  body::before {
+  /* Black bar for Dynamic Island area - only on native app for better visibility of system info */
+  body.native-platform::before {
     content: '';
     position: fixed;
     top: 0;

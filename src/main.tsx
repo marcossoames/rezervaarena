@@ -18,6 +18,9 @@ setTimeout(initializePrefetch, 100);
 // iOS: hide keyboard accessory bar and prevent header jump
 try {
   if (Capacitor.isNativePlatform()) {
+    // Add native platform class for platform-specific styling
+    document.body.classList.add('native-platform');
+    
     Keyboard.setAccessoryBarVisible({ isVisible: false });
     // Prevent viewport resizing that can push fixed header down
     // @ts-ignore - mode type available on native
