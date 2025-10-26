@@ -20,28 +20,43 @@ export const signInWithGoogle = async () => {
     
     if (isNative) {
       // Native mobile flow using SocialLogin plugin
+      console.log('Starting native Google login...');
+      
       const response = await SocialLogin.login({
         provider: 'google',
-        options: {}
+        options: {
+          scopes: ['profile', 'email']
+        }
       });
       
+      console.log('Google login response:', response);
+      
       if (!response || response.provider !== 'google') {
-        throw new Error('Google authentication failed');
+        throw new Error('Google authentication failed - invalid response');
       }
 
-      // Check if we have idToken (online mode)
+      // Check if we have idToken
       const result = response.result as any;
-      if (!result.idToken) {
-        throw new Error('ID token not available');
+      console.log('Has idToken:', !!result?.idToken);
+      
+      if (!result?.idToken) {
+        console.error('Missing idToken in response:', result);
+        throw new Error('Google authentication failed - no ID token received. Please try again.');
       }
 
       // Sign in to Supabase with the Google ID token
+      console.log('Signing in to Supabase with Google token...');
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token: result.idToken,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase sign in error:', error);
+        throw error;
+      }
+      
+      console.log('Google sign in successful!');
       return { data, error: null };
       
     } else {
