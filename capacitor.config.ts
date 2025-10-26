@@ -32,10 +32,11 @@ const config: CapacitorConfig = {
       iconColor: '#488AFF',
       sound: 'beep.wav'
     },
-    GoogleAuth: {
-      scopes: ['profile', 'email'],
-      serverClientId: '556634083767-6e4o5otsascaohj7uu1ldgeguh9j7ljl.apps.googleusercontent.com',
-      forceCodeForRefreshToken: true
+    CapacitorSocialLogin: {
+      google: {
+        webClientId: '556634083767-6e4o5otsascaohj7uu1ldgeguh9j7ljl.apps.googleusercontent.com',
+        scopes: ['profile', 'email']
+      }
     }
   },
   ios: {

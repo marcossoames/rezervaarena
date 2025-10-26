@@ -1,13 +1,13 @@
 import { Capacitor } from '@capacitor/core';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { SocialLogin } from '@capgo/capacitor-social-login';
 import { supabase } from '@/integrations/supabase/client';
 
 // Initialize Google Auth for native platforms
 if (Capacitor.isNativePlatform()) {
-  GoogleAuth.initialize({
-    clientId: '556634083767-6e4o5otsascaohj7uu1ldgeguh9j7ljl.apps.googleusercontent.com',
-    scopes: ['profile', 'email'],
-    grantOfflineAccess: true,
+  SocialLogin.initialize({
+    google: {
+      webClientId: '556634083767-6e4o5otsascaohj7uu1ldgeguh9j7ljl.apps.googleusercontent.com',
+    }
   });
 }
 
@@ -19,17 +19,26 @@ export const signInWithGoogle = async () => {
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {
-      // Native mobile flow using GoogleAuth plugin
-      const googleUser = await GoogleAuth.signIn();
+      // Native mobile flow using SocialLogin plugin
+      const response = await SocialLogin.login({
+        provider: 'google',
+        options: {}
+      });
       
-      if (!googleUser || !googleUser.authentication) {
+      if (!response || response.provider !== 'google') {
         throw new Error('Google authentication failed');
+      }
+
+      // Check if we have idToken (online mode)
+      const result = response.result as any;
+      if (!result.idToken) {
+        throw new Error('ID token not available');
       }
 
       // Sign in to Supabase with the Google ID token
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
-        token: googleUser.authentication.idToken,
+        token: result.idToken,
       });
 
       if (error) throw error;
@@ -68,7 +77,7 @@ export const signOutFromGoogle = async () => {
     const isNative = Capacitor.isNativePlatform();
     
     if (isNative) {
-      await GoogleAuth.signOut();
+      await SocialLogin.logout({ provider: 'google' });
     }
     
     // Always sign out from Supabase
