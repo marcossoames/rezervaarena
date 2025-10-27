@@ -183,7 +183,7 @@ All colors MUST be HSL.
     top: 0;
     left: 0;
     right: 0;
-    height: max(env(safe-area-inset-top, 0px), 50px);
+    height: env(safe-area-inset-top, 0px);
     background: #000000;
     z-index: 9998;
     pointer-events: none;
@@ -204,7 +204,7 @@ All colors MUST be HSL.
   /* Safe area support - only bottom padding to avoid conflicts with fixed header */
   @supports (padding: env(safe-area-inset-bottom)) {
     body {
-      padding-bottom: env(safe-area-inset-bottom);
+      padding-bottom: 0;
       /* Safe area overlay to match header color on top */
     }
   }
