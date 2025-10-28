@@ -24,7 +24,17 @@ const AuthRedirect = () => {
         return;
       }
 
-      // Check if user is authenticated (Google OAuth or other auth)
+      // Handle OAuth code exchange (e.g., Apple PKCE flow)
+      const hasOAuthCode = /[?&]code=/.test(search) || /code=/.test(hash);
+      if (hasOAuthCode) {
+        try {
+          await supabase.auth.exchangeCodeForSession(window.location.href);
+        } catch (e) {
+          console.error('OAuth code exchange failed:', e);
+        }
+      }
+
+      // Check if user is authenticated (Google/Apple OAuth or other auth)
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
