@@ -8,8 +8,12 @@ const AuthRedirect = () => {
   useEffect(() => {
     const handleRedirect = async () => {
       const { hash, search } = window.location;
-      const hasRecoveryParams = /type=recovery|token_hash=|access_token=|refresh_token=/.test(hash) || /type=recovery|token_hash=|access_token=|refresh_token=/.test(search);
-      const hasSignupParams = /(type=signup|code=|token_hash=|access_token=)/.test(hash) || /(type=signup|code=|token_hash=|access_token=)/.test(search);
+      
+      // Check for password recovery FIRST (must have type=recovery)
+      const hasRecoveryParams = /type=recovery/.test(hash) || /type=recovery/.test(search);
+      
+      // Check for email confirmation (type=signup)
+      const hasSignupParams = /type=signup/.test(hash) || /type=signup/.test(search);
 
       if (hasRecoveryParams) {
         navigate('/reset-password' + (search || '') + (hash || ''), { replace: true });
