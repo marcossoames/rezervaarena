@@ -18,6 +18,7 @@ import { format, isSameDay, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getFacilityTypeLabel } from "@/utils/facilityTypes";
 import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
+import { getInitialSearchDate } from "@/utils/dateSelection";
 import { FacilitySportsComplexHoverCard } from "@/components/facility/FacilitySportsComplexHoverCard";
 import { openExternal } from "@/utils/openExternal";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -66,7 +67,7 @@ const FacilitiesPage = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [locationFilter, setLocationFilter] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Set today as default
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(getInitialSearchDate()); // Auto-select tomorrow if past booking hours
   const [startTime, setStartTime] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
   const [allFacilities, setAllFacilities] = useState<Facility[]>([]);

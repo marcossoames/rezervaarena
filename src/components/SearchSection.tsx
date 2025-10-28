@@ -12,9 +12,11 @@ import { ro } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { facilityTypeOptions } from "@/utils/facilityTypes";
 import { isBookingTimeAllowed } from "@/utils/dateTimeValidation";
+import { getInitialSearchDate } from "@/utils/dateSelection";
+
 const SearchSection = () => {
   const [location, setLocation] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(getInitialSearchDate()); // Auto-select tomorrow if past booking hours
   const [facilityType, setFacilityType] = useState("");
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState<"60" | "90" | "">("");
