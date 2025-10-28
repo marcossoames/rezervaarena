@@ -322,7 +322,7 @@ const ClientProfilePage = () => {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 flex items-center justify-center pt-24">
+        <main className="flex-1 flex items-center justify-center pt-32">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p>Se încarcă profilul...</p>
@@ -337,7 +337,7 @@ const ClientProfilePage = () => {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 flex items-center justify-center pt-24">
+        <main className="flex-1 flex items-center justify-center pt-32">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-4">Profil nedisponibil</h2>
             <p className="text-muted-foreground mb-4">
@@ -357,7 +357,7 @@ const ClientProfilePage = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 pt-24 pb-8">
+      <main className="container mx-auto px-4 pt-32 pb-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Profilul meu</h1>
           
