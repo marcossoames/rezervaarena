@@ -149,9 +149,24 @@ const ClientLogin = () => {
       const { data, error } = await signInWithGoogle();
 
       if (error) {
+        const isConfigError = error.includes('configurare') || error.includes('Redirect URI') || error.includes('Client ID');
+        
         toast({
-          title: "Eroare la autentificare",
-          description: translateError(error),
+          title: "Eroare la autentificare Google",
+          description: (
+            <div className="space-y-2">
+              <p>{translateError(error)}</p>
+              {isConfigError && (
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto text-xs"
+                  onClick={() => window.open('/auth-diagnostics', '_blank')}
+                >
+                  Deschide pagina de diagnostic →
+                </Button>
+              )}
+            </div>
+          ),
           variant: "destructive"
         });
         setIsLoading(false);

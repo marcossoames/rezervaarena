@@ -77,9 +77,25 @@ export const signInWithGoogle = async () => {
     }
   } catch (error: any) {
     console.error('Google sign in error:', error);
+    
+    let errorMessage = 'Autentificarea cu Google a eșuat';
+    
+    // Detect specific error types
+    const errorString = error.message || error.error_description || JSON.stringify(error);
+    
+    if (errorString.includes('redirect_uri_mismatch')) {
+      errorMessage = '❌ Eroare de configurare Google Cloud: Redirect URI invalid. Verifică pagina /auth-diagnostics pentru detalii.';
+    } else if (errorString.includes('id_token') && errorString.includes('aud')) {
+      errorMessage = '❌ Eroare de configurare Supabase: Client ID necorespunzător. Verifică pagina /auth-diagnostics pentru detalii.';
+    } else if (errorString.includes('idToken') || errorString.includes('id_token')) {
+      errorMessage = '❌ Token ID lipsă sau invalid. Încearcă din nou sau verifică configurarea.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     return { 
       data: null, 
-      error: error.message || 'Failed to sign in with Google' 
+      error: errorMessage
     };
   }
 };
