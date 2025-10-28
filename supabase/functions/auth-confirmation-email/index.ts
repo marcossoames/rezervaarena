@@ -60,7 +60,7 @@ serve(async (req) => {
     const baseOrigin = siteOrigin || (redirect_to?.includes('localhost') ? 'http://localhost:3000' : 'https://rezervaarena.com');
     
     const finalRedirect = `${baseOrigin}/email-confirmation`;
-    const confirmationUrl = `${SUPABASE_URL}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(finalRedirect)}`;
+    const confirmationUrl = `${SUPABASE_URL}/auth/v1/verify?token_hash=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(finalRedirect)}`;
 
     console.log("Sending confirmation email via Resend to:", user.email);
     console.log("Final redirect URL:", finalRedirect);
