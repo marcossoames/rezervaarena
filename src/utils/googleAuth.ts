@@ -101,6 +101,89 @@ export const signInWithGoogle = async () => {
 };
 
 /**
+ * Sign in with Apple - handles both web and native platforms
+ */
+export const signInWithApple = async () => {
+  try {
+    const isNative = Capacitor.isNativePlatform();
+    
+    if (isNative) {
+      // Native mobile flow using SocialLogin plugin
+      console.log('Starting native Apple login...');
+      
+      const response = await SocialLogin.login({
+        provider: 'apple',
+        options: {
+          scopes: ['email', 'name']
+        }
+      });
+      
+      console.log('Apple login response:', response);
+      
+      if (!response || response.provider !== 'apple') {
+        throw new Error('Apple authentication failed - invalid response');
+      }
+
+      const result = response.result as any;
+      console.log('Has idToken:', !!result?.idToken);
+      
+      if (!result?.idToken) {
+        console.error('Missing idToken in response:', result);
+        throw new Error('Apple authentication failed - no ID token received. Please try again.');
+      }
+
+      // Sign in to Supabase with the Apple ID token
+      console.log('Signing in to Supabase with Apple token...');
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: result.idToken,
+      });
+
+      if (error) {
+        console.error('Supabase sign in error:', error);
+        throw error;
+      }
+      
+      console.log('Apple sign in successful!');
+      return { data, error: null };
+      
+    } else {
+      // Web flow using standard OAuth
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: `${window.location.origin}/auth-redirect`,
+        }
+      });
+
+      if (error) throw error;
+      return { data, error: null };
+    }
+  } catch (error: any) {
+    console.error('Apple sign in error:', error);
+    
+    let errorMessage = 'Autentificarea cu Apple a eșuat';
+    
+    const errorString = error.message || error.error_description || JSON.stringify(error);
+    
+    if (errorString.includes('redirect_uri_mismatch')) {
+      errorMessage = '❌ Eroare de configurare Apple: Redirect URI invalid. Verifică configurarea în Supabase Dashboard.';
+    } else if (errorString.includes('id_token') && errorString.includes('aud')) {
+      errorMessage = '❌ Eroare de configurare Supabase: Client ID Apple necorespunzător.';
+    } else if (errorString.includes('idToken') || errorString.includes('id_token')) {
+      errorMessage = '❌ Token ID lipsă sau invalid. Încearcă din nou sau verifică configurarea.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return { 
+      data: null, 
+      error: errorMessage
+    };
+  }
+};
+
+/**
  * Sign out from Google
  */
 export const signOutFromGoogle = async () => {

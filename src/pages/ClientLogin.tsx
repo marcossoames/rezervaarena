@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Mail, Lock, ArrowLeft, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { FaApple } from "react-icons/fa";
 import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/utils/authCleanup";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EmailVerificationDialog } from "@/components/EmailVerificationDialog";
 import { translateError } from "@/utils/errorTranslations";
 import { useBodyClass } from "@/hooks/useBodyClass";
-import { signInWithGoogle } from "@/utils/googleAuth";
+import { signInWithGoogle, signInWithApple } from "@/utils/googleAuth";
 
 interface LoginFormData {
   email: string;
@@ -231,6 +232,92 @@ const ClientLogin = () => {
     }
   };
 
+  const handleAppleLogin = async () => {
+    try {
+      setIsLoading(true);
+      
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+      
+      const { data, error } = await signInWithApple();
+
+      if (error) {
+        const isConfigError = error.includes('configurare') || error.includes('redirect_uri_mismatch');
+        
+        toast({
+          title: "Eroare la autentificare Apple",
+          description: (
+            <div className="space-y-2">
+              <p>{translateError(error)}</p>
+              {isConfigError && (
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto text-xs"
+                  onClick={() => window.open('/auth-diagnostics', '_blank')}
+                >
+                  Deschide pagina de diagnostic →
+                </Button>
+              )}
+            </div>
+          ),
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      if (data?.user) {
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id);
+
+        const isFacilityOwner = userRoles?.some(ur => ur.role === 'facility_owner');
+        const isAdmin = userRoles?.some(ur => ur.role === 'admin' || ur.role === 'super_admin');
+
+        if (isFacilityOwner) {
+          toast({
+            title: "Acces restricționat",
+            description: "Proprietarii de baze sportive trebuie să se autentifice prin pagina dedicată.",
+            variant: "destructive"
+          });
+          await supabase.auth.signOut();
+          navigate('/facility/login');
+          return;
+        }
+
+        if (isAdmin) {
+          toast({
+            title: "Acces restricționat",
+            description: "Administratorii trebuie să se autentifice prin pagina de admin.",
+            variant: "destructive"
+          });
+          await supabase.auth.signOut();
+          navigate('/admin/login');
+          return;
+        }
+
+        toast({
+          title: "Conectare reușită!",
+          description: "Te-ai conectat cu succes."
+        });
+        
+        if (redirectPath) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate(redirectPath);
+        } else {
+          navigate("/");
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Eroare",
+        description: "A apărut o eroare la conectarea cu Apple",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+    }
+  };
+
   const resendConfirmation = async () => {
     const email = (document.getElementById('email') as HTMLInputElement)?.value;
     
@@ -406,9 +493,22 @@ const ClientLogin = () => {
               className="w-full"
               size="lg"
               onClick={handleGoogleLogin}
+              disabled={isLoading}
             >
               <FcGoogle className="mr-2 h-5 w-5" />
               Continuă cu Google
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              size="lg"
+              onClick={handleAppleLogin}
+              disabled={isLoading}
+            >
+              <FaApple className="mr-2 h-5 w-5" />
+              Continuă cu Apple
             </Button>
           </CardContent>
         </Card>
