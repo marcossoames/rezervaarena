@@ -26,8 +26,8 @@ const EmailConfirmationPage = () => {
         const type = searchParams.get('type') || hashParams.get('type');
         const errorCode = searchParams.get('error_code') || searchParams.get('error') || hashParams.get('error_code') || hashParams.get('error');
         
-        // Support both 'code' (PKCE) and access/refresh tokens in URL
-        const code = searchParams.get('code') || hashParams.get('code') || searchParams.get('token_hash') || hashParams.get('token_hash');
+        // Support PKCE OAuth 'code' only – do NOT treat token_hash as code
+        const code = searchParams.get('code') || hashParams.get('code');
 
         if (!errorCode && code) {
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
