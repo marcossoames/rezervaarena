@@ -6,7 +6,7 @@ const AboutPage = () => {
   return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Header />
       
-      <main className="w-full px-4 pt-[calc(env(safe-area-inset-top)+5rem)] pb-16">
+      <main className="w-full px-4 pt-[calc(env(safe-area-inset-top)+6rem)] pb-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">

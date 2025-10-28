@@ -894,7 +894,7 @@ applyFilters();
   if (loading || !authChecked || session && !userProfile) {
     return <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 pt-[calc(env(safe-area-inset-top)+5rem)] pb-8">
+        <main className="container mx-auto px-4 pt-[calc(env(safe-area-inset-top)+6rem)] pb-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-lg text-muted-foreground">Se încarcă...</p>
@@ -906,7 +906,7 @@ applyFilters();
   return <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 pt-[calc(env(safe-area-inset-top)+5rem)] pb-8">
+      <main className="container mx-auto px-4 pt-[calc(env(safe-area-inset-top)+6rem)] pb-8">
         {/* Highlight banner when coming from homepage */}
         {fromHome && (
           <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-lg">
