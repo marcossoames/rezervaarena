@@ -236,6 +236,7 @@ const ClientLogin = () => {
     try {
       setIsLoading(true);
       
+      // Preserve redirect path for OAuth flow
       const redirectPath = sessionStorage.getItem('redirectAfterLogin');
       
       const { data, error } = await signInWithApple();
@@ -265,7 +266,10 @@ const ClientLogin = () => {
         return;
       }
       
+      // For web OAuth, the page will redirect to Apple and then back to /auth-redirect
+      // For native, we need to check the user and redirect
       if (data?.user) {
+        // Native flow - user is authenticated immediately
         const { data: userRoles } = await supabase
           .from('user_roles')
           .select('role')
@@ -308,6 +312,9 @@ const ClientLogin = () => {
           navigate("/");
         }
       }
+      
+      // Note: redirectAfterLogin will be preserved in sessionStorage through the OAuth flow
+      // For web OAuth, don't set isLoading to false here as the page will redirect
     } catch (error: any) {
       toast({
         title: "Eroare",
