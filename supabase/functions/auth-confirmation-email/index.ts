@@ -52,15 +52,15 @@ serve(async (req) => {
     const fullName = user.user_metadata?.full_name || user.email.split("@")[0] || "Utilizator";
 
     // Build the standard Supabase verification link with proper redirect
-    const supabaseUrl = site_url?.replace(/\/$/, "") || "https://ukopxkymzywfpobpcana.supabase.co";
-    
-    // Use the origin from the site_url or window origin for production/preview
-    const baseOrigin = supabaseUrl.includes('supabase.co') ? 
-      (redirect_to?.includes('localhost') ? 'http://localhost:3000' : 'https://rezervaarena.com') : 
-      redirect_to || `${supabaseUrl}`;
+    // Always call Supabase's verify endpoint on the project domain
+    const SUPABASE_URL = "https://ukopxkymzywfpobpcana.supabase.co";
+
+    // Build redirect origin: prefer configured Site URL from GoTrue webhook
+    const siteOrigin = site_url?.replace(/\/$/, "");
+    const baseOrigin = siteOrigin || (redirect_to?.includes('localhost') ? 'http://localhost:3000' : 'https://rezervaarena.com');
     
     const finalRedirect = `${baseOrigin}/email-confirmation`;
-    const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(finalRedirect)}`;
+    const confirmationUrl = `${SUPABASE_URL}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(finalRedirect)}`;
 
     console.log("Sending confirmation email via Resend to:", user.email);
     console.log("Final redirect URL:", finalRedirect);
