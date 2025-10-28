@@ -1,9 +1,5 @@
 project_id = "ukopxkymzywfpobpcana"
 
-[auth]
-enable_signup = true
-enable_confirmations = true
-
 [api]
 enabled = true
 port = 54321
@@ -14,8 +10,8 @@ max_rows = 1000
 [auth]
 enabled = true
 port = 54324
-site_url = "https://947ae49f-e8d5-4283-95f7-ef683f84f2b9.lovableproject.com"
-additional_redirect_urls = ["https://947ae49f-e8d5-4283-95f7-ef683f84f2b9.lovableproject.com"]
+site_url = "https://rezervaarena.com"
+additional_redirect_urls = ["https://947ae49f-e8d5-4283-95f7-ef683f84f2b9.lovableproject.com", "https://rezervaarena.com"]
 jwt_expiry = 3600
 refresh_token_rotation_enabled = true
 refresh_token_reuse_interval = 10
