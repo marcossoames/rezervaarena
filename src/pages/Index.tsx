@@ -11,7 +11,7 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="pt-[calc(env(safe-area-inset-top)+4rem)]">
+      <main className="pt-[calc(env(safe-area-inset-top)+6rem)]">
         {/* Above-the-fold content loaded immediately */}
         <HeroSection />
         
