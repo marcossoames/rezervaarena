@@ -125,18 +125,21 @@ export const signInWithApple = async () => {
       }
 
       const result = response.result as any;
-      console.log('Has idToken:', !!result?.idToken);
+      const idToken = result?.idToken || result?.identityToken || result?.token || result?.credential?.idToken;
+      console.log('Apple token present:', !!idToken);
       
-      if (!result?.idToken) {
-        console.error('Missing idToken in response:', result);
+      if (!idToken) {
+        console.error('Missing Apple idToken in response:', result);
         throw new Error('Apple authentication failed - no ID token received. Please try again.');
       }
 
       // Sign in to Supabase with the Apple ID token
+      const nonce = result?.nonce || result?.state;
       console.log('Signing in to Supabase with Apple token...');
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
-        token: result.idToken,
+        token: idToken,
+        nonce
       });
 
       if (error) {
@@ -172,6 +175,12 @@ export const signInWithApple = async () => {
     
     if (errorString.includes('redirect_uri_mismatch')) {
       errorMessage = '❌ Eroare de configurare Apple: Redirect URI invalid. Verifică configurarea în Supabase Dashboard.';
+    } else if (errorString.includes('ASAuthorizationError') || errorString.includes('AuthorizationError')) {
+      if (/1001/.test(errorString) || /canceled/i.test(errorString)) {
+        errorMessage = 'Ai anulat autentificarea cu Apple.';
+      } else if (/1000/.test(errorString)) {
+        errorMessage = 'Eroare Apple necunoscută (1000). Verifică să fii autentificat în iCloud și că „Sign in with Apple” este activ pe dispozitiv.';
+      }
     } else if (errorString.includes('id_token') && errorString.includes('aud')) {
       errorMessage = '❌ Eroare de configurare Supabase: Client ID Apple necorespunzător.';
     } else if (errorString.includes('idToken') || errorString.includes('id_token')) {
