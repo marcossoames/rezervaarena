@@ -24,23 +24,32 @@ const AuthRedirect = () => {
         return;
       }
 
-      // Handle OAuth code exchange (e.g., Apple PKCE flow)
+      // Handle OAuth code exchange (Apple PKCE flow or other OAuth flows)
       const hasOAuthCode = /[?&]code=/.test(search) || /code=/.test(hash);
       if (hasOAuthCode) {
         try {
+          console.log('Processing OAuth code exchange...');
           await supabase.auth.exchangeCodeForSession(window.location.href);
+          console.log('OAuth code exchange completed');
         } catch (e) {
           console.error('OAuth code exchange failed:', e);
         }
       }
 
+      // Wait longer for OAuth code exchange to complete before checking session
+      if (hasOAuthCode) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
       // Check if user is authenticated (Google/Apple OAuth or other auth)
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('Session after redirect:', !!session?.user);
       
       // CRITICAL: Give the session time to persist properly before checking profile
       if (session?.user) {
+        console.log('User authenticated, processing profile check...');
         // Wait a moment for session to fully persist in localStorage
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 800));
         // Check if user has a complete profile with phone number
         const { data: profile, error: profileError } = await supabase
           .from('profiles')

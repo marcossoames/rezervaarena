@@ -153,6 +153,10 @@ export const signInWithApple = async () => {
         provider: 'apple',
         options: {
           redirectTo: `${window.location.origin}/auth-redirect`,
+          queryParams: {
+            // Ensure the authorization code is returned in the query string
+            response_mode: 'query'
+          },
         }
       });
 
