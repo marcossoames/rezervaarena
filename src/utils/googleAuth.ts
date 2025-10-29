@@ -4,11 +4,17 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Initialize Google Auth for native platforms
 if (Capacitor.isNativePlatform()) {
-  SocialLogin.initialize({
-    google: {
-      webClientId: '556634083767-6e4o5otsascaohj7uu1ldgeguh9j7ljl.apps.googleusercontent.com',
-    }
-  });
+  console.log('Initializing SocialLogin for native platform...');
+  try {
+    SocialLogin.initialize({
+      google: {
+        webClientId: '556634083767-6e4o5otsascaohj7uu1ldgeguh9j7ljl.apps.googleusercontent.com'
+      }
+    });
+    console.log('SocialLogin initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize SocialLogin:', error);
+  }
 }
 
 /**
@@ -21,43 +27,56 @@ export const signInWithGoogle = async () => {
     if (isNative) {
       // Native mobile flow using SocialLogin plugin
       console.log('Starting native Google login...');
+      console.log('Platform info:', Capacitor.getPlatform());
       
-      const response = await SocialLogin.login({
-        provider: 'google',
-        options: {
-          scopes: ['profile', 'email']
+      try {
+        const response = await SocialLogin.login({
+          provider: 'google',
+          options: {
+            scopes: ['profile', 'email']
+          }
+        });
+        
+        console.log('Google login response received:', JSON.stringify(response, null, 2));
+        
+        if (!response || response.provider !== 'google') {
+          throw new Error('Google authentication failed - invalid response from plugin');
         }
-      });
-      
-      console.log('Google login response:', response);
-      
-      if (!response || response.provider !== 'google') {
-        throw new Error('Google authentication failed - invalid response');
-      }
 
-      // Check if we have idToken
-      const result = response.result as any;
-      console.log('Has idToken:', !!result?.idToken);
-      
-      if (!result?.idToken) {
-        console.error('Missing idToken in response:', result);
-        throw new Error('Google authentication failed - no ID token received. Please try again.');
-      }
+        // Check if we have idToken
+        const result = response.result as any;
+        console.log('Response result keys:', Object.keys(result || {}));
+        console.log('Has idToken:', !!result?.idToken);
+        
+        if (!result?.idToken) {
+          console.error('Missing idToken in response. Full result:', JSON.stringify(result, null, 2));
+          throw new Error('Google authentication failed - no ID token received. Verifică configurarea Google OAuth în Supabase Dashboard.');
+        }
 
-      // Sign in to Supabase with the Google ID token
-      console.log('Signing in to Supabase with Google token...');
-      const { data, error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: result.idToken,
-      });
+        // Sign in to Supabase with the Google ID token
+        console.log('Signing in to Supabase with Google token...');
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: result.idToken,
+        });
 
-      if (error) {
-        console.error('Supabase sign in error:', error);
-        throw error;
+        if (error) {
+          console.error('Supabase sign in error:', error);
+          throw error;
+        }
+        
+        console.log('Google sign in successful!');
+        return { data, error: null };
+      } catch (pluginError: any) {
+        console.error('SocialLogin plugin error:', pluginError);
+        console.error('Error details:', JSON.stringify(pluginError, null, 2));
+        
+        // Re-throw with more context
+        if (pluginError.message?.includes('Load failed')) {
+          throw new Error('Eroare la încărcarea Google Sign In. Verifică conexiunea la internet și configurarea aplicației.');
+        }
+        throw pluginError;
       }
-      
-      console.log('Google sign in successful!');
-      return { data, error: null };
       
     } else {
       // Web flow using standard OAuth
@@ -77,18 +96,24 @@ export const signInWithGoogle = async () => {
     }
   } catch (error: any) {
     console.error('Google sign in error:', error);
+    console.error('Error type:', typeof error);
+    console.error('Error stack:', error.stack);
     
     let errorMessage = 'Autentificarea cu Google a eșuat';
     
     // Detect specific error types
     const errorString = error.message || error.error_description || JSON.stringify(error);
     
-    if (errorString.includes('redirect_uri_mismatch')) {
+    if (errorString.includes('Load failed') || errorString.includes('încărcare')) {
+      errorMessage = '❌ Eroare la încărcarea Google Sign In. Asigură-te că:\n1. Ai conexiune la internet\n2. Google Client ID este corect configurat în Supabase\n3. Aplicația are permisiunile necesare';
+    } else if (errorString.includes('redirect_uri_mismatch')) {
       errorMessage = '❌ Eroare de configurare Google Cloud: Redirect URI invalid. Verifică pagina /auth-diagnostics pentru detalii.';
     } else if (errorString.includes('id_token') && errorString.includes('aud')) {
       errorMessage = '❌ Eroare de configurare Supabase: Client ID necorespunzător. Verifică pagina /auth-diagnostics pentru detalii.';
     } else if (errorString.includes('idToken') || errorString.includes('id_token')) {
       errorMessage = '❌ Token ID lipsă sau invalid. Încearcă din nou sau verifică configurarea.';
+    } else if (errorString.includes('canceled') || errorString.includes('cancelled')) {
+      errorMessage = 'Ai anulat autentificarea cu Google.';
     } else if (error.message) {
       errorMessage = error.message;
     }
