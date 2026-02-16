@@ -24,7 +24,7 @@ const Footer = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-primary" />
-                <a href="mailto:rezervaarena@gmail.com" className="text-muted-foreground hover:text-primary transition-smooth">
+                <a href="mailto:rezervaarena@gmail.com" className="text-muted-foreground hover:text-primary transition-smooth link-underline">
                   rezervaarena@gmail.com
                 </a>
               </div>
@@ -63,11 +63,11 @@ const Footer = () => {
           </div>
         </div>
 
-      <div className="border-t border-border mt-12 pt-8">
+      <div className="border-t border-border/50 mt-12 pt-8 bg-gradient-to-r from-transparent via-border/20 to-transparent">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-sm">© 2025 RezervaArena. Toate drepturile rezervate.</p>
           <div className="flex gap-4">
-            <Link to="/privacy-policy" className="text-muted-foreground text-sm hover:text-primary transition-smooth">
+            <Link to="/privacy-policy" className="text-muted-foreground text-sm hover:text-primary transition-smooth link-underline">
               Politică de confidențialitate (GDPR)
             </Link>
           </div>

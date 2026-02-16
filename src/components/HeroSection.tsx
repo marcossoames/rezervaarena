@@ -23,27 +23,26 @@ const HeroSection = () => {
       
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-primary-foreground mb-4 sm:mb-6 px-2">
+          <h1 className="hero-stagger-1 text-4xl sm:text-5xl md:text-6xl font-bold text-primary-foreground mb-4 sm:mb-6 px-2">
             Rezervă-ți terenul <br />
             <span className="text-primary-foreground">perfect</span> pentru sport
           </h1>
           
-          <p className="text-lg sm:text-xl text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
+          <p className="hero-stagger-2 text-lg sm:text-xl text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
             Găsește și rezervă cele mai bune facilități sportive din orașul tău. 
             Tenis, fotbal, padel, squash, ping pong și multe altele.
           </p>
 
-
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+          <div className="hero-stagger-3 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
             <Link to="/facilities?from=home" className="w-full sm:w-auto">
-              <Button variant="hero" size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 min-h-[48px]">
+              <Button variant="hero" size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 min-h-[48px] transition-transform duration-200 hover:-translate-y-0.5">
                 Explorează Terenurile
               </Button>
             </Link>
             <Link to="/facility/login" className="w-full sm:w-auto">
-            <Button variant="hero" size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 min-h-[48px]">
-              Adaugă Baza Ta Sportivă
-            </Button>
+              <Button variant="hero" size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 min-h-[48px] transition-transform duration-200 hover:-translate-y-0.5">
+                Adaugă Baza Ta Sportivă
+              </Button>
             </Link>
           </div>
         </div>

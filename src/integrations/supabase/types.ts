@@ -1139,13 +1139,13 @@ export type Database = {
       }
       has_role:
         | {
-            Args: { _role: Database["public"]["Enums"]["user_role"] }
+            Args: { _role: string }
             Returns: {
               error: true
             } & "Could not choose the best candidate function between: public.has_role(_role => text), public.has_role(_role => user_role). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
           }
         | {
-            Args: { _role: string }
+            Args: { _role: Database["public"]["Enums"]["user_role"] }
             Returns: {
               error: true
             } & "Could not choose the best candidate function between: public.has_role(_role => text), public.has_role(_role => user_role). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
@@ -1189,7 +1189,6 @@ export type Database = {
               p_address: string
               p_amenities: string[]
               p_capacity: number
-              p_capacity_max?: number
               p_city: string
               p_description: string
               p_email: string
@@ -1206,6 +1205,7 @@ export type Database = {
               p_address: string
               p_amenities: string[]
               p_capacity: number
+              p_capacity_max?: number
               p_city: string
               p_description: string
               p_email: string
