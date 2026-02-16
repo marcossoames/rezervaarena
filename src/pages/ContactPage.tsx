@@ -1,130 +1,123 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone, MapPin, Clock, Instagram, Youtube } from "lucide-react";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
+import { Mail, Phone, Instagram, Youtube } from "lucide-react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { openExternal } from "@/utils/openExternal";
+import { lazy, Suspense } from "react";
+
+const FloatingShape = lazy(() => import("@/components/FloatingShape"));
+
+const contactMethods = [
+  {
+    icon: Mail,
+    title: "Email",
+    items: [
+      { label: "rezervaarena@gmail.com", href: "mailto:rezervaarena@gmail.com" },
+      { label: "soamespaul@gmail.com", href: "mailto:soamespaul@gmail.com" },
+      { label: "efleihraian@gmail.com", href: "mailto:efleihraian@gmail.com" },
+    ],
+  },
+  {
+    icon: Phone,
+    title: "Telefon",
+    items: [
+      { label: "+40720059535", href: "tel:+40720059535" },
+      { label: "+40733535450", href: "tel:+40733535450" },
+    ],
+  },
+  {
+    icon: Instagram,
+    title: "Instagram",
+    items: [
+      { label: "@rezervaarena", action: () => openExternal("https://www.instagram.com/rezervaarena/") },
+    ],
+  },
+  {
+    icon: Youtube,
+    title: "YouTube",
+    items: [
+      { label: "RezervaArena", action: () => openExternal("https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew") },
+    ],
+  },
+];
+
 const ContactPage = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const {
-    toast
-  } = useToast();
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const { ref: cardsRef, isVisible: cardsVisible } = useScrollAnimation(0.1);
 
-    // Simulate form submission
-    setTimeout(() => {
-      toast({
-        title: "Mesaj trimis cu succes!",
-        description: "Vă vom răspunde în cel mai scurt timp posibil."
-      });
-      setIsLoading(false);
-    }, 1000);
-  };
-  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+  return (
+    <div className="min-h-screen bg-background">
       <Header />
-      
-      <main className="container mx-auto px-4 pt-20 pb-16">
-        {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Contact
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Aveți întrebări? Suntem aici să vă ajutăm! Contactați-ne prin oricare dintre metodele de mai jos.
-          </p>
-        </div>
 
-        <div className="max-w-2xl mx-auto">
-          {/* Contact Information */}
-          <div className="space-y-8">
-            <Card className="border-0 shadow-card bg-card/50 backdrop-blur-sm">
-              
-              <CardContent className="space-y-6">
-                <div className="flex flex-col items-center text-center space-y-6">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Mail className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-lg">Email</h3>
-                      <div className="space-y-1">
-                        <a href="mailto:rezervaarena@gmail.com" className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          rezervaarena@gmail.com
-                        </a>
-                        <a href="mailto:soamespaul@gmail.com" className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          soamespaul@gmail.com
-                        </a>
-                        <a href="mailto:efleihraian@gmail.com" className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          efleihraian@gmail.com
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+      <main className="w-full pt-20 pb-16">
+        {/* Hero Section with 3D */}
+        <section className="relative min-h-[40vh] flex items-center justify-center overflow-hidden px-4">
+          <Suspense fallback={null}>
+            <FloatingShape />
+          </Suspense>
 
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Phone className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-lg">Telefon</h3>
-                      <div className="space-y-1">
-                        <a href="tel:+40720059535" className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          +40720059535
-                        </a>
-                        <a href="tel:+40733535450" className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          +40733535450
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Instagram className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-lg">Instagram</h3>
-                      <button 
-                        className="text-muted-foreground hover:text-primary transition-colors cursor-pointer bg-transparent border-none underline"
-                        onClick={() => openExternal('https://www.instagram.com/rezervaarena/')}
-                      >
-                        @rezervaarena
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Youtube className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-lg">YouTube</h3>
-                      <button 
-                        className="text-muted-foreground hover:text-primary transition-colors cursor-pointer bg-transparent border-none underline"
-                        onClick={() => openExternal('https://www.youtube.com/channel/UCnbtd7RGoe_BTRGmDcQkQew')}
-                      >
-                        RezervaArena
-                      </button>
-                    </div>
-                  </div>
-
-                </div>
-              </CardContent>
-            </Card>
-
-            
+          <div className="relative z-10 text-center max-w-3xl mx-auto">
+            <h1 className="hero-stagger-1 text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
+              <span className="text-primary">Contact</span>
+            </h1>
+            <p className="hero-stagger-2 text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+              Aveți întrebări? Suntem aici să vă ajutăm! Contactați-ne prin oricare dintre metodele de mai jos.
+            </p>
           </div>
-        </div>
+        </section>
+
+        {/* Contact Cards */}
+        <section className="py-16 px-4" ref={cardsRef}>
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {contactMethods.map((method, index) => (
+                <Card
+                  key={index}
+                  className={`group hover-lift border-border/30 bg-card/80 backdrop-blur-sm animate-on-scroll ${cardsVisible ? 'visible' : ''} stagger-${index + 1}`}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-300">
+                        <method.icon className="h-6 w-6 text-primary group-hover-rotate" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground">{method.title}</h3>
+                    </div>
+
+                    <div className="space-y-2 pl-16">
+                      {method.items.map((item, i) => {
+                        if ('href' in item) {
+                          return (
+                            <a
+                              key={i}
+                              href={item.href}
+                              className="block text-muted-foreground hover:text-primary transition-colors duration-200 link-underline text-sm"
+                            >
+                              {item.label}
+                            </a>
+                          );
+                        }
+                        return (
+                          <button
+                            key={i}
+                            onClick={item.action}
+                            className="block text-muted-foreground hover:text-primary transition-colors duration-200 bg-transparent border-none cursor-pointer link-underline text-sm"
+                          >
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
       </main>
 
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default ContactPage;
