@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { supabase } from "@/integrations/supabase/client";
 import footballFieldSyntetic from "@/assets/football-field-synthetic-indoor.jpg";
 
@@ -96,6 +97,7 @@ const initialSportsData = [{
 }];
 const SportsSection = () => {
   const [sportsData, setSportsData] = useState<SportData[]>(initialSportsData);
+  const { ref: sectionRef, isVisible } = useScrollAnimation(0.05);
   
   useEffect(() => {
     const fetchSportsData = async () => {
@@ -152,7 +154,7 @@ const SportsSection = () => {
     fetchSportsData();
   }, []);
   return <section id="terenuri" className="pt-6 sm:pt-8 pb-12 sm:pb-16 bg-gradient-to-br from-secondary/10 via-background to-primary/5">
-      <div className="container mx-auto px-4 sm:px-6">
+      <div className="container mx-auto px-4 sm:px-6" ref={sectionRef}>
         <div className="text-center mb-4 sm:mb-6">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-3">
             Tipuri de <span className="text-primary">Terenuri Sportive</span>
@@ -163,7 +165,7 @@ const SportsSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sportsData.map(sport => <Card key={sport.id} className="group hover:shadow-elegant transition-all duration-300 transform hover:scale-[1.02] bg-gradient-card border-none flex flex-col h-full overflow-hidden">
+          {sportsData.map((sport, index) => <Card key={sport.id} className={`group hover-lift bg-gradient-card border-none flex flex-col h-full overflow-hidden animate-on-scroll ${isVisible ? 'visible' : ''} stagger-${index + 1}`}>
               <CardContent className="p-0 flex flex-col h-full">
                 <div className="relative overflow-hidden bg-muted">
                   <OptimizedImage 

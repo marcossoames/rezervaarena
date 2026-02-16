@@ -140,7 +140,7 @@ const Header = () => {
     <>
       {/* iOS overlay to cover the safe area during overscroll */}
       <div className="pointer-events-none fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-card z-[60]" />
-      <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md pt-[env(safe-area-inset-top)]">
+      <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border/50 pt-[env(safe-area-inset-top)]">
         <div className="relative w-full py-3 px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
         {/* Full width flex container */}
         <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8">
@@ -223,7 +223,7 @@ const Header = () => {
               className="fixed inset-0 z-40" 
               onClick={() => setIsMobileMenuOpen(false)}
             />
-            <div className="md:hidden absolute top-full left-0 right-0 bg-card/95 backdrop-blur-sm border-b border-border shadow-lg z-[55]">
+            <div className="md:hidden absolute top-full left-0 right-0 bg-card/95 backdrop-blur-sm border-b border-border shadow-lg z-[55] animate-slide-down">
               <nav className="px-4 py-3 space-y-2 text-center">
                 <Link 
                   to="/facilities" 
