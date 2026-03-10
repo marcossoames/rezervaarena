@@ -1,6 +1,5 @@
-// Utility function to translate facility types from English to Romanian
 export const getFacilityTypeLabel = (facilityType: string): string => {
-  const facilityTypeLabels: Record<string, string> = {
+  const labels: Record<string, string> = {
     'football': 'Fotbal',
     'tennis': 'Tenis',
     'padel': 'Padel',
@@ -10,11 +9,9 @@ export const getFacilityTypeLabel = (facilityType: string): string => {
     'foot_tennis': 'Tenis de Picior',
     'ping_pong': 'Ping Pong'
   };
-
-  return facilityTypeLabels[facilityType] || facilityType;
+  return labels[facilityType] || facilityType;
 };
 
-// Array of facility types with Romanian labels for dropdowns and filters
 export const facilityTypeOptions = [
   { value: "football", label: "Fotbal" },
   { value: "tennis", label: "Tenis" },
