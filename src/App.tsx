@@ -8,13 +8,10 @@ import { Capacitor } from "@capacitor/core";
 import LoadingScreen from "@/components/LoadingScreen";
 import ScrollToTop from "@/components/ScrollToTop";
 import { NetworkStatusMonitor } from "@/components/NetworkStatusMonitor";
-
-// Critical pages loaded immediately
 import Index from "./pages/Index";
+
 const EmailConfirmationPage = lazy(() => import("./pages/EmailConfirmationPage"));
 const AuthRedirect = lazy(() => import("./pages/AuthRedirect"));
-
-// Non-critical pages loaded lazily
 const ClientLogin = lazy(() => import("./pages/ClientLogin"));
 const SportsFacilityLogin = lazy(() => import("./pages/SportsFacilityLogin"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
@@ -54,24 +51,20 @@ const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 
 const queryClient = new QueryClient();
 
-// Loading component for lazy loaded pages
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
   </div>
- );
- 
-// Redirect auth tokens in hash or query to proper routes (email links only, not OAuth)
+);
+
 const AuthHashRedirect = () => {
   const navigate = useNavigate();
   useEffect(() => {
     const { hash, search, pathname } = window.location;
 
     const hasRecoveryParams = /type=recovery|token_hash=/.test(hash) || /type=recovery|token_hash=/.test(search);
-    // Only treat as email confirmation when explicit signup params exist (avoid catching OAuth access_token)
     const hasEmailSignupParams = /(type=signup|code=|token_hash=)/.test(hash) || /(type=signup|code=|token_hash=)/.test(search);
-
-    const isAuthRedirectPath = pathname.startsWith('/auth-redirect') || pathname.startsWith('/auth/') || pathname.startsWith('/auth/v1');
+    const isAuthRedirectPath = pathname.startsWith('/auth-redirect') || pathname.startsWith('/auth/');
 
     if (hasRecoveryParams && pathname !== '/reset-password') {
       navigate('/reset-password' + (search || '') + (hash || ''), { replace: true });
@@ -87,15 +80,11 @@ const AuthHashRedirect = () => {
 
 const App = () => {
   const isNative = Capacitor.isNativePlatform();
-  const [isAppReady, setIsAppReady] = useState(!isNative); // Web starts ready, native needs loading
+  const [isAppReady, setIsAppReady] = useState(!isNative);
 
   useEffect(() => {
-    // Only show loading screen for native apps
     if (isNative) {
-      const timer = setTimeout(() => {
-        setIsAppReady(true);
-      }, 1500);
-      
+      const timer = setTimeout(() => setIsAppReady(true), 1500);
       return () => clearTimeout(timer);
     }
   }, [isNative]);
@@ -110,60 +99,59 @@ const App = () => {
         <Toaster />
         <Sonner />
         <NetworkStatusMonitor />
-          <div className="app-scroll">
-            <BrowserRouter>
-              <ScrollToTop />
-              <Suspense fallback={<PageLoader />}>
-                <AuthHashRedirect />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/client/login" element={<ClientLogin />} />
-              <Route path="/client/register" element={<ClientRegister />} />
-              <Route path="/complete-profile" element={<CompleteProfile />} />
-              <Route path="/facility/login" element={<SportsFacilityLogin />} />
-              <Route path="/facility/register" element={<FacilityRegister />} />
-              <Route path="/add-facility" element={<AddFacilityPage />} />
-              <Route path="/edit-facility/:id" element={<EditFacilityPage />} />
-              <Route path="/admin/edit-sports-complex/:ownerId" element={<AdminEditSportsComplexPage />} />
-              <Route path="/edit-sports-complex-settings" element={<EditSportsComplexSettingsPage />} />
-              <Route path="/facility-promotion/:id" element={<FacilityPromotionPage />} />
-              <Route path="/manage-facilities" element={<ManageFacilitiesPage />} />
-              <Route path="/calendar" element={<UniversalCalendarPage />} />
-              <Route path="/facility-calendar" element={<FacilityCalendarSelectPage />} />
-              <Route path="/general-calendar" element={<GeneralCalendarPage />} />
-              <Route path="/facility-calendar/:facilityId" element={<FacilityCalendarPage />} />
-              <Route path="/facility-owner-profile" element={<FacilityOwnerProfilePage />} />
-              <Route path="/client-profile" element={<ClientProfilePage />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/facilities" element={<FacilitiesPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/articles" element={<ArticlesPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
-              <Route path="/auth-diagnostics" element={<AuthDiagnosticsPage />} />
-              <Route path="/auth-redirect" element={<AuthRedirect />} />
-              <Route path="/verify" element={<AuthRedirect />} />
-              <Route path="/auth/*" element={<AuthRedirect />} />
-              <Route path="/auth/v1/verify" element={<AuthRedirect />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/my-reservations" element={<MyReservationsPage />} />
-              <Route path="/booking/:facilityId" element={<BookingPage />} />
-              <Route path="/payment/:facilityId" element={<PaymentPage />} />
-              <Route path="/payment-success" element={<PaymentSuccessPage />} />
-              <Route path="/platform-payments" element={<PlatformPaymentsPage />} />
-              <Route path="/facility-owner-income" element={<FacilityOwnerIncomePage />} />
-              <Route path="/facility-owner-bookings" element={<FacilityOwnerBookingsPage />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+        <div className="app-scroll">
+          <BrowserRouter>
+            <ScrollToTop />
+            <Suspense fallback={<PageLoader />}>
+              <AuthHashRedirect />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/client/login" element={<ClientLogin />} />
+                <Route path="/client/register" element={<ClientRegister />} />
+                <Route path="/complete-profile" element={<CompleteProfile />} />
+                <Route path="/facility/login" element={<SportsFacilityLogin />} />
+                <Route path="/facility/register" element={<FacilityRegister />} />
+                <Route path="/add-facility" element={<AddFacilityPage />} />
+                <Route path="/edit-facility/:id" element={<EditFacilityPage />} />
+                <Route path="/admin/edit-sports-complex/:ownerId" element={<AdminEditSportsComplexPage />} />
+                <Route path="/edit-sports-complex-settings" element={<EditSportsComplexSettingsPage />} />
+                <Route path="/facility-promotion/:id" element={<FacilityPromotionPage />} />
+                <Route path="/manage-facilities" element={<ManageFacilitiesPage />} />
+                <Route path="/calendar" element={<UniversalCalendarPage />} />
+                <Route path="/facility-calendar" element={<FacilityCalendarSelectPage />} />
+                <Route path="/general-calendar" element={<GeneralCalendarPage />} />
+                <Route path="/facility-calendar/:facilityId" element={<FacilityCalendarPage />} />
+                <Route path="/facility-owner-profile" element={<FacilityOwnerProfilePage />} />
+                <Route path="/client-profile" element={<ClientProfilePage />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/facilities" element={<FacilitiesPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/articles" element={<ArticlesPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
+                <Route path="/auth-diagnostics" element={<AuthDiagnosticsPage />} />
+                <Route path="/auth-redirect" element={<AuthRedirect />} />
+                <Route path="/verify" element={<AuthRedirect />} />
+                <Route path="/auth/*" element={<AuthRedirect />} />
+                <Route path="/auth/v1/verify" element={<AuthRedirect />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/my-reservations" element={<MyReservationsPage />} />
+                <Route path="/booking/:facilityId" element={<BookingPage />} />
+                <Route path="/payment/:facilityId" element={<PaymentPage />} />
+                <Route path="/payment-success" element={<PaymentSuccessPage />} />
+                <Route path="/platform-payments" element={<PlatformPaymentsPage />} />
+                <Route path="/facility-owner-income" element={<FacilityOwnerIncomePage />} />
+                <Route path="/facility-owner-bookings" element={<FacilityOwnerBookingsPage />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
             </Suspense>
           </BrowserRouter>
-          </div>
-        </TooltipProvider>
-      </QueryClientProvider>
+        </div>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 

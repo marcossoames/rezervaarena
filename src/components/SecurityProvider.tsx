@@ -1,6 +1,3 @@
-/**
- * Security Provider component for enhanced application security
- */
 import { createContext, useContext, useEffect, ReactNode } from 'react';
 import { applySecurityMeta, validateSecureSession } from '@/utils/securityHeaders';
 import { useToast } from '@/hooks/use-toast';
@@ -9,25 +6,17 @@ interface SecurityContextType {
   isSecure: boolean;
 }
 
-const SecurityContext = createContext<SecurityContextType>({
-  isSecure: false
-});
+const SecurityContext = createContext<SecurityContextType>({ isSecure: false });
 
 export const useSecurityContext = () => useContext(SecurityContext);
 
-interface SecurityProviderProps {
-  children: ReactNode;
-}
-
-export const SecurityProvider = ({ children }: SecurityProviderProps) => {
+export const SecurityProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const isSecure = validateSecureSession();
 
   useEffect(() => {
-    // Apply security headers on mount
     applySecurityMeta();
     
-    // Validate secure session
     if (!isSecure) {
       toast({
         title: "Avertisment de Securitate",
@@ -36,11 +25,8 @@ export const SecurityProvider = ({ children }: SecurityProviderProps) => {
       });
     }
     
-    // Enhanced security measures in production
-    if (process.env.NODE_ENV === 'production') {
-      // Disable developer tools shortcuts (less intrusive approach)
+    if (import.meta.env.PROD) {
       const handleKeyDown = (e: KeyboardEvent) => {
-        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U for financial pages only
         const isFinancialPage = window.location.pathname.includes('payment') || 
                                window.location.pathname.includes('bank') ||
                                window.location.pathname.includes('admin');
@@ -55,18 +41,13 @@ export const SecurityProvider = ({ children }: SecurityProviderProps) => {
         }
       };
       document.addEventListener('keydown', handleKeyDown);
-      
-      return () => {
-        document.removeEventListener('keydown', handleKeyDown);
-      };
+      return () => document.removeEventListener('keydown', handleKeyDown);
     }
   }, [isSecure, toast]);
 
-  // Monitor for potential security threats
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Clear sensitive data when tab is hidden
         const sensitiveInputs = document.querySelectorAll('input[type="password"], input[data-sensitive="true"]');
         sensitiveInputs.forEach(input => {
           if (input instanceof HTMLInputElement) {
@@ -77,10 +58,7 @@ export const SecurityProvider = ({ children }: SecurityProviderProps) => {
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   return (
