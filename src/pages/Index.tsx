@@ -12,10 +12,7 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       <main>
-        {/* Above-the-fold content loaded immediately */}
         <HeroSection />
-        
-        {/* Below-the-fold content loaded lazily to reduce initial bundle */}
         <LazySearchSection />
         <LazySportsSection />
         <LazyFeaturesSection />

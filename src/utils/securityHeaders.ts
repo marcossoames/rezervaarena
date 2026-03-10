@@ -1,9 +1,4 @@
-/**
- * Security headers and CSP configuration for enhanced application security
- */
-
-// Enhanced Content Security Policy configuration
-export const getCSPHeader = () => {
+const getCSPHeader = () => {
   const cspDirectives = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com",
@@ -26,8 +21,7 @@ export const getCSPHeader = () => {
   return cspDirectives.join('; ');
 };
 
-// Enhanced security headers configuration
-export const getSecurityHeaders = () => ({
+const getSecurityHeaders = () => ({
   'Content-Security-Policy': getCSPHeader(),
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
@@ -40,7 +34,6 @@ export const getSecurityHeaders = () => ({
   'Cross-Origin-Resource-Policy': 'same-origin'
 });
 
-// Apply security headers to HTML meta tags
 export const applySecurityMeta = () => {
   const headers = getSecurityHeaders();
   
@@ -57,17 +50,11 @@ export const applySecurityMeta = () => {
   });
 };
 
-// Validate and sanitize user inputs
 export const sanitizeInput = (input: string, maxLength: number = 1000): string => {
   if (typeof input !== 'string') return '';
-  
-  return input
-    .slice(0, maxLength)
-    .replace(/[<>]/g, '') // Remove potential XSS vectors
-    .trim();
+  return input.slice(0, maxLength).replace(/[<>]/g, '').trim();
 };
 
-// Rate limiting helper for client-side
 let requestCounts: Record<string, { count: number; timestamp: number }> = {};
 
 export const checkClientRateLimit = (
@@ -78,7 +65,6 @@ export const checkClientRateLimit = (
   const now = Date.now();
   const key = `${operation}_${Math.floor(now / windowMs)}`;
   
-  // Clean old entries
   Object.keys(requestCounts).forEach(k => {
     if (now - requestCounts[k].timestamp > windowMs) {
       delete requestCounts[k];
@@ -93,20 +79,15 @@ export const checkClientRateLimit = (
   return requestCounts[key].count <= maxRequests;
 };
 
-// Secure session validation
 export const validateSecureSession = (): boolean => {
-  // Check if we're on HTTPS in production
   if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-    console.warn('Insecure connection detected');
     return false;
   }
   
-  // Check for secure storage availability
   try {
     localStorage.setItem('security_test', 'test');
     localStorage.removeItem('security_test');
   } catch {
-    console.warn('Secure storage not available');
     return false;
   }
   

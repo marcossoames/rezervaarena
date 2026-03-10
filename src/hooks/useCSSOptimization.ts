@@ -1,36 +1,18 @@
 import { useEffect } from 'react';
 
-/**
- * Simple hook to optimize CSS loading
- */
 export const useCSSOptimization = () => {
   useEffect(() => {
-    // Defer non-critical CSS loading using requestIdleCallback
-    const deferCSS = () => {
-      // Use requestIdleCallback for non-blocking CSS operations
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => {
-          // Mark CSS as loaded to prevent FOUC
-          document.body.classList.add('css-optimized');
-        });
-      } else {
-        // Fallback for browsers without requestIdleCallback
-        setTimeout(() => {
-          document.body.classList.add('css-optimized');
-        }, 100);
-      }
-    };
+    const apply = () => document.body.classList.add('css-optimized');
 
-    // Start CSS optimization
-    deferCSS();
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(apply);
+    } else {
+      setTimeout(apply, 100);
+    }
   }, []);
 };
 
-/**
- * Articles page critical CSS - only styles needed above the fold
- */
 export const articlesCriticalCSS = `
-/* Articles page critical above-the-fold styles */
 .articles-hero {
   text-align: center;
   margin-bottom: 3rem;
@@ -53,14 +35,6 @@ export const articlesCriticalCSS = `
   margin: 0 auto;
 }
 
-.articles-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 0;
-  text-align: center;
-}
-
 .articles-grid {
   display: grid;
   gap: 2rem;
@@ -75,7 +49,6 @@ export const articlesCriticalCSS = `
   .articles-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-/* Essential card styles for initial render */
 .article-card {
   border-radius: 0.5rem;
   background-color: hsl(0 0% 100% / 0.5);
