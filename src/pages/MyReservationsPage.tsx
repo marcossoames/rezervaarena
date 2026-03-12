@@ -311,7 +311,7 @@ const MyReservationsPage = () => {
           console.error('Error fetching bookings:', bookingsError);
           throw bookingsError;
         }
-        console.log('User bookings:', userBookings);
+        
         if (!userBookings || userBookings.length === 0) {
           setBookings([]);
           return;
