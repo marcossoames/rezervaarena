@@ -41,33 +41,21 @@ const uploadImage = async (file: File, facilityId: string): Promise<string> => {
 
 export const processPendingImages = async () => {
   try {
-    console.log('Checking for pending images...');
     const pendingImagesData = localStorage.getItem('pendingFacilityImages');
     const pendingUserEmail = localStorage.getItem('pendingUserEmail');
     
-    console.log('Pending images data exists:', !!pendingImagesData);
-    console.log('Pending user email:', pendingUserEmail);
-    
-    if (!pendingImagesData || !pendingUserEmail) {
-      console.log('No pending images or email found');
-      return false;
-    }
+    if (!pendingImagesData || !pendingUserEmail) return false;
 
     const { data: { user } } = await supabase.auth.getUser();
-    console.log('Current user:', user?.email);
-    console.log('Expected email:', pendingUserEmail);
     
     if (!user || user.email !== pendingUserEmail) {
-      console.log('User mismatch - clearing pending data');
       localStorage.removeItem('pendingFacilityImages');
       localStorage.removeItem('pendingUserEmail');
       return false;
     }
 
     const facilitiesData: PendingFacilityData[] = JSON.parse(pendingImagesData);
-    console.log('Parsed facilities data:', facilitiesData.length, 'facilities');
     
-    // Get user's facilities
     const { data: facilities, error: facilitiesError } = await supabase
       .from('facilities')
       .select('id, name')
@@ -78,34 +66,23 @@ export const processPendingImages = async () => {
       return false;
     }
 
-    console.log('User facilities found:', facilities?.length || 0);
-
-    // Process images for each facility
     for (const facilityData of facilitiesData) {
-      console.log('Processing facility:', facilityData.name);
       const facility = facilities?.find(f => f.name === facilityData.name);
-      if (!facility) {
-        console.log('No matching facility found for:', facilityData.name);
-        continue;
-      }
+      if (!facility) continue;
 
       if (facilityData.images.length > 0) {
-        console.log('Processing', facilityData.images.length, 'images for', facility.name);
         const imageUrls: string[] = [];
         
         for (let i = 0; i < facilityData.images.length; i++) {
-          const base64Image = facilityData.images[i];
           try {
-            const file = base64ToFile(base64Image, `image-${i}.jpg`);
+            const file = base64ToFile(facilityData.images[i], `image-${i}.jpg`);
             const imageUrl = await uploadImage(file, facility.id);
             imageUrls.push(imageUrl);
-            console.log(`Uploaded image ${i + 1} for facility ${facility.name}`);
           } catch (imageError) {
-            console.error(`Error uploading image ${i + 1} for facility ${facility.name}:`, imageError);
+            console.error(`Error uploading image ${i + 1}:`, imageError);
           }
         }
 
-        // Update facility with uploaded image URLs and operating hours
         if (imageUrls.length > 0) {
           const mainImageUrl = imageUrls[facilityData.mainImageIndex] || imageUrls[0];
           
@@ -114,7 +91,6 @@ export const processPendingImages = async () => {
             main_image_url: mainImageUrl
           };
 
-          // Also update operating hours if they exist in the pending data
           if (facilityData.operatingHoursStart) {
             updateData.operating_hours_start = facilityData.operatingHoursStart;
           }
@@ -129,12 +105,9 @@ export const processPendingImages = async () => {
 
           if (updateError) {
             console.error('Error updating facility with images:', updateError);
-          } else {
-            console.log(`Updated facility ${facility.name} with ${imageUrls.length} images and operating hours`);
           }
         }
       } else {
-        // Even if no images, try to update operating hours if they exist
         const updateData: any = {};
         if (facilityData.operatingHoursStart) {
           updateData.operating_hours_start = facilityData.operatingHoursStart;
@@ -150,15 +123,12 @@ export const processPendingImages = async () => {
             .eq('id', facility.id);
 
           if (updateError) {
-            console.error('Error updating facility operating hours:', updateError);
-          } else {
-            console.log(`Updated facility ${facility.name} operating hours`);
+            console.error('Error updating facility hours:', updateError);
           }
         }
       }
     }
 
-    // Clean up localStorage after successful processing
     localStorage.removeItem('pendingFacilityImages');
     localStorage.removeItem('pendingUserEmail');
     
