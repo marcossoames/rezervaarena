@@ -373,7 +373,7 @@ const FacilityRegister = () => {
     setIsLoading(true);
 
     try {
-      console.log('Starting facility owner signup...');
+      
       
       // Prepare facilities data for metadata
       const facilitiesMetadata = facilities.map(facility => ({
