@@ -158,17 +158,12 @@ const PaymentPage = () => {
       // Send booking confirmation emails for cash bookings
       if (bookingId) {
         try {
-          console.log('Sending booking confirmation emails for cash booking:', bookingId);
           const emailResponse = await supabase.functions.invoke('send-booking-confirmation', {
             body: { bookingId: bookingId }
           });
           
-          console.log('Email response:', emailResponse);
-          
           if (emailResponse.error) {
             console.error('Error sending confirmation emails:', emailResponse.error);
-          } else {
-            console.log('Confirmation emails sent successfully for cash booking');
           }
         } catch (emailError) {
           console.error('Failed to send confirmation emails:', emailError);
