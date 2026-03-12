@@ -108,7 +108,7 @@ export const deleteUserAccount = async () => {
     // Send deletion confirmation email AFTER successful deletion
     if (profile?.email && profile?.full_name) {
       try {
-        console.log('Attempting to send deletion confirmation email to:', profile.email);
+        
         await supabase.functions.invoke('send-account-deletion-email', {
           body: {
             userId: user.id,

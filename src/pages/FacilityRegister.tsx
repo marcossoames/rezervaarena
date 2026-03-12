@@ -373,7 +373,7 @@ const FacilityRegister = () => {
     setIsLoading(true);
 
     try {
-      console.log('Starting facility owner signup...');
+      
       
       // Prepare facilities data for metadata
       const facilitiesMetadata = facilities.map(facility => ({
@@ -427,7 +427,7 @@ const FacilityRegister = () => {
         return;
       }
 
-      console.log('General services to pass to signup:', generalServices);
+      
 
       // Sign up the user with all data in metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -455,7 +455,7 @@ const FacilityRegister = () => {
         throw authError;
       }
 
-      console.log('User signed up successfully:', authData.user?.id);
+      
 
       // Show email verification dialog for all facility owners
       setUserEmail(accountData.email);

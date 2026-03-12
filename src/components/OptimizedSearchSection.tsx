@@ -1,9 +1,7 @@
 import { lazy, Suspense } from 'react';
 
-// Lazy load heavy dependencies only when needed
 const SearchSection = lazy(() => import('@/components/SearchSection'));
 
-// Lightweight fallback component
 const SearchSectionFallback = () => (
   <section className="py-12 sm:py-16 bg-muted/20">
     <div className="container mx-auto px-4 sm:px-6">

@@ -12,7 +12,6 @@ const LoadingScreen = () => {
           clearInterval(timer);
           return 95;
         }
-        // Fast initial loading, then slower
         const increment = prevProgress < 50 ? 15 : prevProgress < 80 ? 8 : 3;
         return Math.min(prevProgress + increment, 95);
       });

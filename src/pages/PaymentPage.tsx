@@ -158,17 +158,12 @@ const PaymentPage = () => {
       // Send booking confirmation emails for cash bookings
       if (bookingId) {
         try {
-          console.log('Sending booking confirmation emails for cash booking:', bookingId);
           const emailResponse = await supabase.functions.invoke('send-booking-confirmation', {
             body: { bookingId: bookingId }
           });
           
-          console.log('Email response:', emailResponse);
-          
           if (emailResponse.error) {
             console.error('Error sending confirmation emails:', emailResponse.error);
-          } else {
-            console.log('Confirmation emails sent successfully for cash booking');
           }
         } catch (emailError) {
           console.error('Failed to send confirmation emails:', emailError);
@@ -204,12 +199,6 @@ const PaymentPage = () => {
     setProcessingPayment(true);
     
     try {
-      console.log('Creating platform payment with data:', {
-        facilityId: facility.id,
-        bookingDate: selectedDate,
-        startTime,
-        endTime
-      });
 
       const { data, error } = await supabase.functions.invoke('create-platform-payment', {
         body: {
@@ -241,8 +230,6 @@ const PaymentPage = () => {
       }
 
       if (data?.url) {
-        console.log('Redirecting to Stripe checkout:', data.url);
-        // Redirect to Stripe checkout in the same tab for proper return flow
         window.location.href = data.url;
       } else {
         throw new Error('Nu s-a primit URL-ul de checkout');

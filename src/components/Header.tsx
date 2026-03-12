@@ -23,17 +23,14 @@ const Header = () => {
   useNativeNotifications();
 
   useEffect(() => {
-    // Sticky header: no body offset needed. Ensure previous flags are cleared.
     document.documentElement.classList.remove('has-header');
     document.documentElement.style.removeProperty('--header-height');
   }, []);
 
-  // Helper function to check if current route is active
   const isActiveRoute = (path: string) => {
     return location.pathname === path;
   };
 
-  // Helper function to get navigation link classes with active state
   const getNavLinkClasses = (path: string) => {
     const baseClasses = "text-base font-medium transition-smooth relative after:content-[''] after:absolute after:w-full after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 px-2 py-1";
     
@@ -44,7 +41,6 @@ const Header = () => {
     }
   };
 
-  // Helper function for mobile navigation classes
   const getMobileNavClasses = (path: string) => {
     const baseClasses = "block text-base font-medium py-2 px-2 rounded-md transition-smooth";
     
@@ -56,7 +52,6 @@ const Header = () => {
   };
 
   useEffect(() => {
-    // Get current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
@@ -64,7 +59,6 @@ const Header = () => {
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -96,7 +90,6 @@ const Header = () => {
           navigate('/complete-profile', { replace: true });
         }
       } else {
-        // No profile row yet -> force completion
         const onCompleteProfile = location.pathname === '/complete-profile';
         const onAuthRedirect = location.pathname.startsWith('/auth-redirect') || location.pathname.startsWith('/auth/');
         if (!onCompleteProfile && !onAuthRedirect) {
@@ -130,7 +123,6 @@ const Header = () => {
         navigate('/client-profile');
       }
     } else {
-      // Store current location before redirecting to login
       sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
       navigate('/client/login');
     }

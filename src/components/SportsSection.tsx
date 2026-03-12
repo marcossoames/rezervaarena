@@ -7,10 +7,6 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { supabase } from "@/integrations/supabase/client";
 import footballFieldSyntetic from "@/assets/football-field-synthetic-indoor.jpg";
 
-// Debug logging for missing images
-console.log('Checking image imports...');
-
-// Temporary placeholder until we add real images
 const footballImage = footballFieldSyntetic;
 const tennisImage = "/placeholder-tennis-modern.jpg";
 const padelImage = "/placeholder-padel.jpg";
@@ -20,7 +16,6 @@ const volleyballImage = "/placeholder-volleyball.jpg";
 const pingPongImage = "/placeholder-ping-pong.jpg";
 const footTennisImage = "/placeholder-foot-tennis.jpg";
 
-console.log('Tennis image path:', tennisImage);
 interface SportData {
   id: number;
   name: string;

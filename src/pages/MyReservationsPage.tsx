@@ -120,15 +120,12 @@ const MyReservationsPage = () => {
   };
   const loadBookings = async () => {
     try {
-      console.log('Starting to load bookings...');
       const {
         data: {
           user
         }
       } = await supabase.auth.getUser();
-      console.log('Current user:', user?.id);
       if (!user) {
-        console.log('No user found');
         toast({
           title: "Eroare",
           description: "Trebuie să fiți autentificat pentru a vedea rezervările",
@@ -195,7 +192,7 @@ const MyReservationsPage = () => {
           throw bookingsError;
         }
 
-        console.log('Facility owner/admin bookings:', userBookings);
+        
 
         if (!userBookings || userBookings.length === 0) {
           setBookings([]);
@@ -225,7 +222,7 @@ const MyReservationsPage = () => {
           clientsInfo = ownerClientsInfo || [];
         }
 
-        console.log('Clients info:', clientsInfo);
+        
 
         // Get facility details for each booking
         const completeBookings = await Promise.all(
@@ -256,7 +253,7 @@ const MyReservationsPage = () => {
               clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
             }
             
-            console.log('Client info for booking:', booking.id, clientInfo, 'isManual:', isManualBooking);
+            
 
             // Use preserved facility data if facility no longer exists (deleted)
             const facilityName = facilityDetail?.name || booking.facility_name || 'Teren nedefinit';
@@ -293,7 +290,7 @@ const MyReservationsPage = () => {
           })
         );
 
-        console.log('Complete facility bookings:', completeBookings);
+        
         setBookings(completeBookings.map(booking => ({
           ...booking,
           status: booking.status === 'pending' ? 'confirmed' : booking.status
@@ -314,7 +311,7 @@ const MyReservationsPage = () => {
           console.error('Error fetching bookings:', bookingsError);
           throw bookingsError;
         }
-        console.log('User bookings:', userBookings);
+        
         if (!userBookings || userBookings.length === 0) {
           setBookings([]);
           return;
@@ -322,7 +319,7 @@ const MyReservationsPage = () => {
 
         // Get all facility IDs from bookings
         const facilityIds = [...new Set(userBookings.map(b => b.facility_id))];
-        console.log('Facility IDs:', facilityIds);
+        
 
         // Use the same function as other pages to get complete facility data
         const {
@@ -333,16 +330,13 @@ const MyReservationsPage = () => {
           console.error('Error fetching facilities:', facilitiesError);
           throw facilitiesError;
         }
-        console.log('All facilities from RPC:', allFacilities);
 
-        // Filter only the facilities we need
         const facilities = allFacilities?.filter(f => facilityIds.includes(f.id)) || [];
-        console.log('Filtered facilities:', facilities);
 
         // Combine all data
         const completeBookings = userBookings.map(booking => {
           const facility = facilities.find(f => f.id === booking.facility_id);
-          console.log('Facility for booking:', facility);
+          
           
           // Use preserved facility data if facility no longer exists (deleted)
           const facilityName = facility?.name || booking.facility_name || 'Teren nedefinit';
@@ -364,7 +358,7 @@ const MyReservationsPage = () => {
             }
           };
         });
-        console.log('Complete bookings:', completeBookings);
+        
         setBookings(completeBookings.map(booking => ({
           ...booking,
           status: booking.status === 'pending' ? 'confirmed' : booking.status
