@@ -90,7 +90,6 @@ const Header = () => {
           navigate('/complete-profile', { replace: true });
         }
       } else {
-        // No profile row yet -> force completion
         const onCompleteProfile = location.pathname === '/complete-profile';
         const onAuthRedirect = location.pathname.startsWith('/auth-redirect') || location.pathname.startsWith('/auth/');
         if (!onCompleteProfile && !onAuthRedirect) {
