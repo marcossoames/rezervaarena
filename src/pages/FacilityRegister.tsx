@@ -455,7 +455,7 @@ const FacilityRegister = () => {
         throw authError;
       }
 
-      console.log('User signed up successfully:', authData.user?.id);
+      
 
       // Show email verification dialog for all facility owners
       setUserEmail(accountData.email);
