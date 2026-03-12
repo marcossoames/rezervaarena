@@ -120,15 +120,12 @@ const MyReservationsPage = () => {
   };
   const loadBookings = async () => {
     try {
-      console.log('Starting to load bookings...');
       const {
         data: {
           user
         }
       } = await supabase.auth.getUser();
-      console.log('Current user:', user?.id);
       if (!user) {
-        console.log('No user found');
         toast({
           title: "Eroare",
           description: "Trebuie să fiți autentificat pentru a vedea rezervările",
