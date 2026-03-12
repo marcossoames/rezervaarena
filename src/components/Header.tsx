@@ -27,12 +27,10 @@ const Header = () => {
     document.documentElement.style.removeProperty('--header-height');
   }, []);
 
-  // Helper function to check if current route is active
   const isActiveRoute = (path: string) => {
     return location.pathname === path;
   };
 
-  // Helper function to get navigation link classes with active state
   const getNavLinkClasses = (path: string) => {
     const baseClasses = "text-base font-medium transition-smooth relative after:content-[''] after:absolute after:w-full after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 px-2 py-1";
     
