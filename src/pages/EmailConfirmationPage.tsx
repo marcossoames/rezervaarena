@@ -67,10 +67,7 @@ const EmailConfirmationPage = () => {
             try { window.history.replaceState({}, document.title, window.location.origin + '/email-confirmation'); } catch {}
             
             // Process pending images if any
-            const imagesProcessed = await processPendingImages();
-            if (imagesProcessed) {
-              console.log('Pending images processed successfully');
-            }
+            await processPendingImages();
             
             // Check if this is a facility owner
             const { data: profile } = await supabase
