@@ -23,7 +23,6 @@ const Header = () => {
   useNativeNotifications();
 
   useEffect(() => {
-    // Sticky header: no body offset needed. Ensure previous flags are cleared.
     document.documentElement.classList.remove('has-header');
     document.documentElement.style.removeProperty('--header-height');
   }, []);
