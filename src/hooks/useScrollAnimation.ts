@@ -8,7 +8,6 @@ export const useScrollAnimation = (threshold = 0.1) => {
     const element = ref.current;
     if (!element) return;
 
-    // Respect reduced motion preference
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) {
       setIsVisible(true);
