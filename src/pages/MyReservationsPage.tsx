@@ -192,7 +192,7 @@ const MyReservationsPage = () => {
           throw bookingsError;
         }
 
-        console.log('Facility owner/admin bookings:', userBookings);
+        
 
         if (!userBookings || userBookings.length === 0) {
           setBookings([]);
