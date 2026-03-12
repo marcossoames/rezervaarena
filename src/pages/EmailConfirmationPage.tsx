@@ -37,10 +37,7 @@ const EmailConfirmationPage = () => {
             try { window.history.replaceState({}, document.title, window.location.origin + '/email-confirmation'); } catch {}
             
             // Process pending images if any
-            const imagesProcessed = await processPendingImages();
-            if (imagesProcessed) {
-              console.log('Pending images processed successfully');
-            }
+            await processPendingImages();
             
             const { data: profile } = await supabase
               .from('profiles')
