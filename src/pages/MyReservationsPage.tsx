@@ -253,7 +253,7 @@ const MyReservationsPage = () => {
               clientInfo = clientsInfo?.find(c => c.client_id === booking.client_id);
             }
             
-            console.log('Client info for booking:', booking.id, clientInfo, 'isManual:', isManualBooking);
+            
 
             // Use preserved facility data if facility no longer exists (deleted)
             const facilityName = facilityDetail?.name || booking.facility_name || 'Teren nedefinit';
