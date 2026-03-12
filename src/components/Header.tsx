@@ -123,7 +123,6 @@ const Header = () => {
         navigate('/client-profile');
       }
     } else {
-      // Store current location before redirecting to login
       sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
       navigate('/client/login');
     }

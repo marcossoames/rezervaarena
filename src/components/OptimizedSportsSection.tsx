@@ -1,9 +1,7 @@
 import { lazy, Suspense } from 'react';
 
-// Lazy load the full SportsSection with all dependencies
 const SportsSection = lazy(() => import('@/components/SportsSection'));
 
-// Lightweight fallback that shows the section structure
 const SportsSectionFallback = () => (
   <section className="py-12 sm:py-16 lg:py-20 bg-secondary/20">
     <div className="container mx-auto px-4 sm:px-6">
