@@ -427,7 +427,7 @@ const FacilityRegister = () => {
         return;
       }
 
-      console.log('General services to pass to signup:', generalServices);
+      
 
       // Sign up the user with all data in metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
