@@ -290,7 +290,7 @@ const MyReservationsPage = () => {
           })
         );
 
-        console.log('Complete facility bookings:', completeBookings);
+        
         setBookings(completeBookings.map(booking => ({
           ...booking,
           status: booking.status === 'pending' ? 'confirmed' : booking.status
