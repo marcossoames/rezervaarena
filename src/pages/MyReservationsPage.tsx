@@ -319,7 +319,7 @@ const MyReservationsPage = () => {
 
         // Get all facility IDs from bookings
         const facilityIds = [...new Set(userBookings.map(b => b.facility_id))];
-        console.log('Facility IDs:', facilityIds);
+        
 
         // Use the same function as other pages to get complete facility data
         const {
