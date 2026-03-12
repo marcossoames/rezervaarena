@@ -336,7 +336,7 @@ const MyReservationsPage = () => {
         // Combine all data
         const completeBookings = userBookings.map(booking => {
           const facility = facilities.find(f => f.id === booking.facility_id);
-          console.log('Facility for booking:', facility);
+          
           
           // Use preserved facility data if facility no longer exists (deleted)
           const facilityName = facility?.name || booking.facility_name || 'Teren nedefinit';
