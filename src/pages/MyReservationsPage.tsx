@@ -330,11 +330,8 @@ const MyReservationsPage = () => {
           console.error('Error fetching facilities:', facilitiesError);
           throw facilitiesError;
         }
-        console.log('All facilities from RPC:', allFacilities);
 
-        // Filter only the facilities we need
         const facilities = allFacilities?.filter(f => facilityIds.includes(f.id)) || [];
-        console.log('Filtered facilities:', facilities);
 
         // Combine all data
         const completeBookings = userBookings.map(booking => {
