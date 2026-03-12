@@ -222,7 +222,7 @@ const MyReservationsPage = () => {
           clientsInfo = ownerClientsInfo || [];
         }
 
-        console.log('Clients info:', clientsInfo);
+        
 
         // Get facility details for each booking
         const completeBookings = await Promise.all(
