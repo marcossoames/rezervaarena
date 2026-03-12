@@ -113,8 +113,6 @@ const ManageFacilitiesPage = () => {
       // Process any pending images that might not have been processed during email confirmation
       const imagesProcessed = await processPendingImages();
       if (imagesProcessed) {
-        console.log('Pending images processed successfully');
-        // Refresh the page to show updated images
         window.location.reload();
         return;
       }

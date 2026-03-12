@@ -131,10 +131,7 @@ const EmailConfirmationPage = () => {
             setStatus('success');
             
             // Process pending images if any
-            const imagesProcessed = await processPendingImages();
-            if (imagesProcessed) {
-              console.log('Pending images processed successfully');
-            }
+            await processPendingImages();
             
             toast({
               title: "Email confirmat cu succes!",
