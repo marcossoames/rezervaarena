@@ -199,12 +199,6 @@ const PaymentPage = () => {
     setProcessingPayment(true);
     
     try {
-      console.log('Creating platform payment with data:', {
-        facilityId: facility.id,
-        bookingDate: selectedDate,
-        startTime,
-        endTime
-      });
 
       const { data, error } = await supabase.functions.invoke('create-platform-payment', {
         body: {
