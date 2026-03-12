@@ -41,7 +41,6 @@ const Header = () => {
     }
   };
 
-  // Helper function for mobile navigation classes
   const getMobileNavClasses = (path: string) => {
     const baseClasses = "block text-base font-medium py-2 px-2 rounded-md transition-smooth";
     
