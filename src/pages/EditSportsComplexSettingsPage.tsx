@@ -59,7 +59,7 @@ const EditSportsComplexSettingsPage = () => {
           data: profile,
           error: profileError
         } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
-        console.log('Profile data:', profile, 'Error:', profileError);
+        
         if (profileError) {
           console.error('Profile error:', profileError);
           throw profileError;
