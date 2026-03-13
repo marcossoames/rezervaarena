@@ -43,7 +43,7 @@ const PaymentSuccessPage = () => {
           return;
         }
 
-        console.log('Payment verification result:', data);
+        
 
         if (data.status === 'success') {
           setPaymentStatus('success');

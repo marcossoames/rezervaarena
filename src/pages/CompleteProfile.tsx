@@ -55,7 +55,7 @@ const CompleteProfile = () => {
                            profile.phone.trim() !== '';
       
       if (hasValidPhone) {
-        console.log('Profile already complete, redirecting to home');
+        
         navigate('/', { replace: true });
       }
     };

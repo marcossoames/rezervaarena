@@ -129,7 +129,7 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
               cancelledBy: 'facility'
             }
           });
-          console.log('Email function response:', response);
+          
           if (response.error) {
             console.error('Email function error:', response.error);
             toast({ title: 'Avertisment', description: 'Statusul a fost actualizat, dar emailul către client a eșuat.', variant: 'destructive' });

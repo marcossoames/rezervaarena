@@ -74,7 +74,7 @@ export const saveFacilitiesForUser = async (
         throw facilityError;
       }
 
-      console.log('Facility saved successfully:', newFacility.id);
+      
     }
 
     return { success: true };

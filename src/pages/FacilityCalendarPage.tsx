@@ -1099,7 +1099,7 @@ const FacilityCalendarPage = () => {
               selectedFacility={facility?.id || 'all'}
               isFullyBlocked={isDateFullyBlocked(selectedDate)}
               onBookingClick={(bookingId) => {
-                console.log('Clicked booking:', bookingId);
+                
                 // Scroll to specific booking in the list
                 setTimeout(() => {
                   const bookingElement = document.getElementById(`booking-${bookingId}`);

@@ -192,8 +192,6 @@ const EditSportsComplexSettingsPage = () => {
         city: data.city,
         general_services: data.generalServices || []
       };
-      console.log('Saving sports complex data:', sportsComplexData);
-      console.log('General services to save:', data.generalServices);
       const {
         error: sportsComplexError
       } = await supabase.from('sports_complexes').upsert({
