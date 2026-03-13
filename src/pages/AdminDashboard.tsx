@@ -87,7 +87,7 @@ const AdminDashboard = () => {
 
   const loadStats = async () => {
     try {
-      // SECURITY: Get user counts from user_roles table (single source of truth)
+      
       const { data: allUsers } = await supabase
         .from('profiles')
         .select('user_id');
