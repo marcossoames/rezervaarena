@@ -137,7 +137,7 @@ const EditSportsComplexSettingsPage = () => {
           setValue("description", "");
           setValue("generalServices", []);
         }
-        console.log('Form values set successfully');
+        
       } catch (error) {
         console.error('Error loading data:', error);
         toast({
