@@ -108,7 +108,7 @@ const AdminDashboard = () => {
         .select('user_id')
         .in('role', ['admin', 'super_admin']);
 
-      // Get total facilities
+      
       const { count: facilitiesCount } = await supabase
         .from('facilities')
         .select('*', { count: 'exact', head: true });
