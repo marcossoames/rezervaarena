@@ -52,7 +52,7 @@ const EditSportsComplexSettingsPage = () => {
           navigate("/facility/login");
           return;
         }
-        console.log('Loading data for user:', user.id);
+        
 
         // Get user profile
         const {
