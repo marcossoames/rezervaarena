@@ -138,12 +138,11 @@ const FacilityOwnerProfilePage = () => {
   };
   const loadStats = async (userId: string) => {
     try {
-      // Get user's ACTIVE facilities
       const { data: facilities, error: facilitiesError } = await supabase
         .from("facilities")
         .select("id")
         .eq("owner_id", userId)
-        .eq("is_active", true); // Only count active facilities
+        .eq("is_active", true);
 
       if (facilitiesError) {
         throw facilitiesError;
