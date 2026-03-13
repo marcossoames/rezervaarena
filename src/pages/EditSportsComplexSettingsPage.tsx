@@ -106,7 +106,7 @@ const EditSportsComplexSettingsPage = () => {
           data: sportsComplexData,
           error: sportsComplexError
         } = await supabase.from('sports_complexes').select('*').eq('owner_id', user.id).maybeSingle();
-        console.log('Sports complex data:', sportsComplexData, 'Error:', sportsComplexError);
+        
         if (sportsComplexError) {
           console.error('Sports complex error:', sportsComplexError);
         }
