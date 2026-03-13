@@ -48,7 +48,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      // SECURITY: Check admin role from user_roles table (single source of truth)
+      
       const { data: userRoles, error } = await supabase
         .from('user_roles')
         .select('role')
