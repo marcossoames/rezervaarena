@@ -121,7 +121,7 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
       // Send cancellation email if booking was cancelled
       if (selectedStatus === 'cancelled' && booking.status !== 'cancelled') {
         try {
-          console.log('Sending cancellation email via Edge Function for booking:', booking.id);
+          
           const response = await supabase.functions.invoke('send-booking-cancellation-email', {
             body: {
               bookingIds: [booking.id],
