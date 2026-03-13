@@ -157,7 +157,6 @@ const FacilityOwnerProfilePage = () => {
         return;
       }
 
-      // Get today's date in local timezone (avoid UTC shift)
       const today = new Date();
       const todayStr = format(today, "yyyy-MM-dd");
 
