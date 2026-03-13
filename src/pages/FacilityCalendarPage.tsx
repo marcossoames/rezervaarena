@@ -222,7 +222,7 @@ const FacilityCalendarPage = () => {
           filter: `facility_id=eq.${facilityId}`
         },
         () => {
-          console.log('Blocked dates changed, refreshing...');
+          
           // Refresh blocked dates data
           supabase
             .from('blocked_dates')
@@ -246,7 +246,7 @@ const FacilityCalendarPage = () => {
           filter: `facility_id=eq.${facilityId}`
         },
         () => {
-          console.log('Recurring blocked dates changed, refreshing...');
+          
           // Refresh blocked dates data to include new recurring blocks
           supabase
             .from('blocked_dates')
@@ -1099,7 +1099,7 @@ const FacilityCalendarPage = () => {
               selectedFacility={facility?.id || 'all'}
               isFullyBlocked={isDateFullyBlocked(selectedDate)}
               onBookingClick={(bookingId) => {
-                console.log('Clicked booking:', bookingId);
+                
                 // Scroll to specific booking in the list
                 setTimeout(() => {
                   const bookingElement = document.getElementById(`booking-${bookingId}`);

@@ -138,12 +138,11 @@ const FacilityOwnerProfilePage = () => {
   };
   const loadStats = async (userId: string) => {
     try {
-      // Get user's ACTIVE facilities
       const { data: facilities, error: facilitiesError } = await supabase
         .from("facilities")
         .select("id")
         .eq("owner_id", userId)
-        .eq("is_active", true); // Only count active facilities
+        .eq("is_active", true);
 
       if (facilitiesError) {
         throw facilitiesError;
@@ -158,24 +157,14 @@ const FacilityOwnerProfilePage = () => {
         return;
       }
 
-      // Get today's date in local timezone (avoid UTC shift)
       const today = new Date();
       const todayStr = format(today, "yyyy-MM-dd");
 
-      // Get this month's start and end dates without timezone issues
       const currentYear = today.getFullYear();
-      const currentMonth = today.getMonth(); // 0-based month
+      const currentMonth = today.getMonth();
       const monthStart = format(new Date(currentYear, currentMonth, 1), "yyyy-MM-dd");
-      const monthEnd = format(new Date(currentYear, currentMonth + 1, 0), "yyyy-MM-dd"); // Last day of current month
+      const monthEnd = format(new Date(currentYear, currentMonth + 1, 0), "yyyy-MM-dd");
 
-      console.log("Date range for stats:", {
-        todayStr,
-        monthStart,
-        monthEnd,
-        facilityIds,
-      });
-
-      // Get today's bookings (confirmed and pending only)
       const { data: todayBookings, error: todayError } = await supabase
         .from("bookings")
         .select("*")
@@ -183,7 +172,6 @@ const FacilityOwnerProfilePage = () => {
         .eq("booking_date", todayStr)
         .in("status", ["confirmed", "pending"]);
 
-      // Get monthly bookings (only confirmed bookings for accurate count)
       const { data: monthlyBookings, error: monthlyError } = await supabase
         .from("bookings")
         .select("*")
@@ -191,26 +179,9 @@ const FacilityOwnerProfilePage = () => {
         .gte("booking_date", monthStart)
         .lte("booking_date", monthEnd)
         .eq("status", "confirmed");
-      console.log("Today bookings query result:", {
-        todayBookings,
-        todayError,
-      });
-      console.log("Monthly bookings query result:", {
-        monthlyBookings,
-        monthlyError,
-      });
+
       if (todayError) throw todayError;
       if (monthlyError) throw monthlyError;
-      console.log("Booking stats loaded:", {
-        todayCount: todayBookings?.length || 0,
-        monthlyCount: monthlyBookings?.length || 0,
-        activeFacilitiesCount: facilities.length,
-        debug: {
-          todayStr,
-          monthStart,
-          monthEnd,
-        },
-      });
       setStats({
         todayBookings: todayBookings?.length || 0,
         monthlyBookings: monthlyBookings?.length || 0,
@@ -223,7 +194,7 @@ const FacilityOwnerProfilePage = () => {
     }
   };
 
-  // Extracts detailed error message from Supabase Edge Function invoke errors
+  
   const parseFunctionError = (err: any): string => {
     try {
       let message = err?.message || "Eroare la salvarea datelor.";

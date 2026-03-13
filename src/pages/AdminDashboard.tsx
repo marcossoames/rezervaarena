@@ -36,7 +36,6 @@ const AdminDashboard = () => {
   }, []);
 
   useEffect(() => {
-    // Reload stats when switching tabs to ensure fresh data
     loadStats();
   }, [activeTab]);
 
@@ -49,7 +48,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      // SECURITY: Check admin role from user_roles table (single source of truth)
+      
       const { data: userRoles, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -66,7 +65,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Set role to the highest privilege role
+      
       const hasRole = userRoles.find(r => r.role === 'super_admin') ? 'super_admin' : 'admin';
       setUserRole(hasRole);
       
@@ -88,12 +87,12 @@ const AdminDashboard = () => {
 
   const loadStats = async () => {
     try {
-      // SECURITY: Get user counts from user_roles table (single source of truth)
+      
       const { data: allUsers } = await supabase
         .from('profiles')
         .select('user_id');
 
-      // Get unique user IDs for each role (un user poate avea multiple roluri)
+      
       const { data: clientRoles } = await supabase
         .from('user_roles')
         .select('user_id')
@@ -109,19 +108,19 @@ const AdminDashboard = () => {
         .select('user_id')
         .in('role', ['admin', 'super_admin']);
 
-      // Get total facilities
+      
       const { count: facilitiesCount } = await supabase
         .from('facilities')
         .select('*', { count: 'exact', head: true });
 
-      // Get today's bookings
+      
       const today = new Date().toISOString().split('T')[0];
       const { count: bookingsCount } = await supabase
         .from('bookings')
         .select('*', { count: 'exact', head: true })
         .eq('booking_date', today);
 
-      // Numără utilizatori unici pentru fiecare rol (elimină duplicatele)
+      
       const uniqueClients = new Set(clientRoles?.map(r => r.user_id) || []);
       const uniqueFacilityOwners = new Set(facilityOwnerRoles?.map(r => r.user_id) || []);
       const uniqueAdmins = new Set(adminRoles?.map(r => r.user_id) || []);

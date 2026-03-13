@@ -121,7 +121,7 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
       // Send cancellation email if booking was cancelled
       if (selectedStatus === 'cancelled' && booking.status !== 'cancelled') {
         try {
-          console.log('Sending cancellation email via Edge Function for booking:', booking.id);
+          
           const response = await supabase.functions.invoke('send-booking-cancellation-email', {
             body: {
               bookingIds: [booking.id],
@@ -129,7 +129,7 @@ const BookingStatusManager: React.FC<BookingStatusManagerProps> = ({
               cancelledBy: 'facility'
             }
           });
-          console.log('Email function response:', response);
+          
           if (response.error) {
             console.error('Email function error:', response.error);
             toast({ title: 'Avertisment', description: 'Statusul a fost actualizat, dar emailul către client a eșuat.', variant: 'destructive' });

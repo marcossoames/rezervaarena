@@ -52,14 +52,14 @@ const EditSportsComplexSettingsPage = () => {
           navigate("/facility/login");
           return;
         }
-        console.log('Loading data for user:', user.id);
+        
 
         // Get user profile
         const {
           data: profile,
           error: profileError
         } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
-        console.log('Profile data:', profile, 'Error:', profileError);
+        
         if (profileError) {
           console.error('Profile error:', profileError);
           throw profileError;
@@ -99,14 +99,14 @@ const EditSportsComplexSettingsPage = () => {
             sportsComplexName = cleanName;
           }
         }
-        console.log('Sports complex name extracted:', sportsComplexName);
+        
 
         // Get sports complex data from the new sports_complexes table
         const {
           data: sportsComplexData,
           error: sportsComplexError
         } = await supabase.from('sports_complexes').select('*').eq('owner_id', user.id).maybeSingle();
-        console.log('Sports complex data:', sportsComplexData, 'Error:', sportsComplexError);
+        
         if (sportsComplexError) {
           console.error('Sports complex error:', sportsComplexError);
         }
@@ -115,11 +115,9 @@ const EditSportsComplexSettingsPage = () => {
         const {
           data: facilitiesData
         } = await supabase.from('facilities').select('is_active, promotion_only').eq('owner_id', user.id).limit(1).maybeSingle();
-        console.log('Facilities is_active:', facilitiesData?.is_active);
-        console.log('Facilities promotion_only:', facilitiesData?.promotion_only);
 
         // Set form values with sports complex data
-        console.log('Setting form values...');
+        
         setValue("phone", profile.phone || "");
         setValue("isActive", facilitiesData?.is_active ?? true);
         setValue("promotionOnly", facilitiesData?.promotion_only ?? false);
@@ -132,14 +130,14 @@ const EditSportsComplexSettingsPage = () => {
           setValue("description", sportsComplexData.description || "");
           setValue("generalServices", sportsComplexData.general_services || []);
         } else {
-          console.log('No sports complex data found, using default values');
+          
           setValue("sportsComplexName", sportsComplexName);
           setValue("address", "");
           setValue("city", "");
           setValue("description", "");
           setValue("generalServices", []);
         }
-        console.log('Form values set successfully');
+        
       } catch (error) {
         console.error('Error loading data:', error);
         toast({
@@ -194,8 +192,6 @@ const EditSportsComplexSettingsPage = () => {
         city: data.city,
         general_services: data.generalServices || []
       };
-      console.log('Saving sports complex data:', sportsComplexData);
-      console.log('General services to save:', data.generalServices);
       const {
         error: sportsComplexError
       } = await supabase.from('sports_complexes').upsert({
