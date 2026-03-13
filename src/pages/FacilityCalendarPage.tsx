@@ -222,7 +222,7 @@ const FacilityCalendarPage = () => {
           filter: `facility_id=eq.${facilityId}`
         },
         () => {
-          console.log('Blocked dates changed, refreshing...');
+          
           // Refresh blocked dates data
           supabase
             .from('blocked_dates')
