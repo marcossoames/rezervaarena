@@ -130,7 +130,7 @@ const EditSportsComplexSettingsPage = () => {
           setValue("description", sportsComplexData.description || "");
           setValue("generalServices", sportsComplexData.general_services || []);
         } else {
-          console.log('No sports complex data found, using default values');
+          
           setValue("sportsComplexName", sportsComplexName);
           setValue("address", "");
           setValue("city", "");
