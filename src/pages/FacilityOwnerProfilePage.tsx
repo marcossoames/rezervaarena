@@ -160,11 +160,10 @@ const FacilityOwnerProfilePage = () => {
       const today = new Date();
       const todayStr = format(today, "yyyy-MM-dd");
 
-      // Get this month's start and end dates without timezone issues
       const currentYear = today.getFullYear();
-      const currentMonth = today.getMonth(); // 0-based month
+      const currentMonth = today.getMonth();
       const monthStart = format(new Date(currentYear, currentMonth, 1), "yyyy-MM-dd");
-      const monthEnd = format(new Date(currentYear, currentMonth + 1, 0), "yyyy-MM-dd"); // Last day of current month
+      const monthEnd = format(new Date(currentYear, currentMonth + 1, 0), "yyyy-MM-dd");
 
       const { data: todayBookings, error: todayError } = await supabase
         .from("bookings")
