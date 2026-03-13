@@ -117,7 +117,7 @@ const EditSportsComplexSettingsPage = () => {
         } = await supabase.from('facilities').select('is_active, promotion_only').eq('owner_id', user.id).limit(1).maybeSingle();
 
         // Set form values with sports complex data
-        console.log('Setting form values...');
+        
         setValue("phone", profile.phone || "");
         setValue("isActive", facilitiesData?.is_active ?? true);
         setValue("promotionOnly", facilitiesData?.promotion_only ?? false);
