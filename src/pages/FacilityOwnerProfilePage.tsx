@@ -168,14 +168,6 @@ const FacilityOwnerProfilePage = () => {
       const monthStart = format(new Date(currentYear, currentMonth, 1), "yyyy-MM-dd");
       const monthEnd = format(new Date(currentYear, currentMonth + 1, 0), "yyyy-MM-dd"); // Last day of current month
 
-      console.log("Date range for stats:", {
-        todayStr,
-        monthStart,
-        monthEnd,
-        facilityIds,
-      });
-
-      // Get today's bookings (confirmed and pending only)
       const { data: todayBookings, error: todayError } = await supabase
         .from("bookings")
         .select("*")
@@ -183,7 +175,6 @@ const FacilityOwnerProfilePage = () => {
         .eq("booking_date", todayStr)
         .in("status", ["confirmed", "pending"]);
 
-      // Get monthly bookings (only confirmed bookings for accurate count)
       const { data: monthlyBookings, error: monthlyError } = await supabase
         .from("bookings")
         .select("*")
@@ -191,26 +182,9 @@ const FacilityOwnerProfilePage = () => {
         .gte("booking_date", monthStart)
         .lte("booking_date", monthEnd)
         .eq("status", "confirmed");
-      console.log("Today bookings query result:", {
-        todayBookings,
-        todayError,
-      });
-      console.log("Monthly bookings query result:", {
-        monthlyBookings,
-        monthlyError,
-      });
+
       if (todayError) throw todayError;
       if (monthlyError) throw monthlyError;
-      console.log("Booking stats loaded:", {
-        todayCount: todayBookings?.length || 0,
-        monthlyCount: monthlyBookings?.length || 0,
-        activeFacilitiesCount: facilities.length,
-        debug: {
-          todayStr,
-          monthStart,
-          monthEnd,
-        },
-      });
       setStats({
         todayBookings: todayBookings?.length || 0,
         monthlyBookings: monthlyBookings?.length || 0,

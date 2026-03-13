@@ -246,7 +246,7 @@ const FacilityCalendarPage = () => {
           filter: `facility_id=eq.${facilityId}`
         },
         () => {
-          console.log('Recurring blocked dates changed, refreshing...');
+          
           // Refresh blocked dates data to include new recurring blocks
           supabase
             .from('blocked_dates')

@@ -120,7 +120,7 @@ const AdminDashboard = () => {
         .select('*', { count: 'exact', head: true })
         .eq('booking_date', today);
 
-      // Numără utilizatori unici pentru fiecare rol (elimină duplicatele)
+      
       const uniqueClients = new Set(clientRoles?.map(r => r.user_id) || []);
       const uniqueFacilityOwners = new Set(facilityOwnerRoles?.map(r => r.user_id) || []);
       const uniqueAdmins = new Set(adminRoles?.map(r => r.user_id) || []);
