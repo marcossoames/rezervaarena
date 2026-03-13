@@ -36,7 +36,6 @@ const AdminDashboard = () => {
   }, []);
 
   useEffect(() => {
-    // Reload stats when switching tabs to ensure fresh data
     loadStats();
   }, [activeTab]);
 
