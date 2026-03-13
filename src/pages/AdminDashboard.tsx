@@ -113,7 +113,7 @@ const AdminDashboard = () => {
         .from('facilities')
         .select('*', { count: 'exact', head: true });
 
-      // Get today's bookings
+      
       const today = new Date().toISOString().split('T')[0];
       const { count: bookingsCount } = await supabase
         .from('bookings')
