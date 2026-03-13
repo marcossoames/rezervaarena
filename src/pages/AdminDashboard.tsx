@@ -65,7 +65,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Set role to the highest privilege role
+      
       const hasRole = userRoles.find(r => r.role === 'super_admin') ? 'super_admin' : 'admin';
       setUserRole(hasRole);
       
