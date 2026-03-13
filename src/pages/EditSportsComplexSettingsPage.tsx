@@ -99,7 +99,7 @@ const EditSportsComplexSettingsPage = () => {
             sportsComplexName = cleanName;
           }
         }
-        console.log('Sports complex name extracted:', sportsComplexName);
+        
 
         // Get sports complex data from the new sports_complexes table
         const {
