@@ -194,7 +194,7 @@ const FacilityOwnerProfilePage = () => {
     }
   };
 
-  // Extracts detailed error message from Supabase Edge Function invoke errors
+  
   const parseFunctionError = (err: any): string => {
     try {
       let message = err?.message || "Eroare la salvarea datelor.";
