@@ -92,7 +92,7 @@ const AdminDashboard = () => {
         .from('profiles')
         .select('user_id');
 
-      // Get unique user IDs for each role (un user poate avea multiple roluri)
+      
       const { data: clientRoles } = await supabase
         .from('user_roles')
         .select('user_id')
