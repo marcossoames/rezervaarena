@@ -180,7 +180,7 @@ export default function FacilityPromotionPage() {
                   </div>
                 </div>
 
-                {/* Operating Hours */}
+                
                 <div className="flex items-start gap-2 sm:gap-3">
                   <Clock className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div>
