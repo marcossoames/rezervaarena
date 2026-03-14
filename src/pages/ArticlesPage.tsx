@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useCSSOptimization } from "@/hooks/useCSSOptimization";
+
 import ImageCarousel from "@/components/ImageCarousel";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
