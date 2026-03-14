@@ -123,7 +123,7 @@ export default function FacilityPromotionPage() {
           </CardHeader>
 
           <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
-            {/* Main Image */}
+            
             {(facility.main_image_url || facility.images?.[0]) && (
               <div className="w-full h-48 sm:h-56 md:h-64 rounded-lg overflow-hidden">
                 <img
