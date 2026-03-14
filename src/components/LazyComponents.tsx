@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 
-const OptimizedSearchSection = lazy(() => import('@/components/OptimizedSearchSection'));
-const OptimizedSportsSection = lazy(() => import('@/components/OptimizedSportsSection'));
+const SearchSection = lazy(() => import('@/components/SearchSection'));
+const SportsSection = lazy(() => import('@/components/SportsSection'));
 const FeaturesSection = lazy(() => import('@/components/FeaturesSection'));
 const Footer = lazy(() => import('@/components/Footer'));
 
@@ -16,13 +16,13 @@ const MinimalLoader = () => (
 
 export const LazySearchSection = () => (
   <Suspense fallback={<MinimalLoader />}>
-    <OptimizedSearchSection />
+    <SearchSection />
   </Suspense>
 );
 
 export const LazySportsSection = () => (
   <Suspense fallback={<MinimalLoader />}>
-    <OptimizedSportsSection />
+    <SportsSection />
   </Suspense>
 );
 
