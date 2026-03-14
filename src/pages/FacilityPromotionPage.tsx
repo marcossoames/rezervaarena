@@ -202,7 +202,7 @@ export default function FacilityPromotionPage() {
                   </div>
                 </div>
 
-                {/* Price */}
+                
                 <div className="flex items-start gap-2 sm:gap-3">
                   <div className="h-5 w-5 flex items-center justify-center text-muted-foreground mt-0.5 flex-shrink-0">
                     <span className="text-lg">💰</span>
