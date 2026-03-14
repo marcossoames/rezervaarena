@@ -161,7 +161,7 @@ export default function FacilityPromotionPage() {
               </span>
             </Button>
 
-            {/* Details Section */}
+            
             <div className="space-y-3 sm:space-y-4">
               <h3 className="text-lg sm:text-xl font-semibold">Detalii facilitate</h3>
               
