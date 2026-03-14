@@ -147,7 +147,7 @@ export default function FacilityPromotionPage() {
               </div>
             </div>
 
-            {/* Call Button - Highlighted */}
+            
             <Button
               onClick={handleCallFacility}
               size="lg"
