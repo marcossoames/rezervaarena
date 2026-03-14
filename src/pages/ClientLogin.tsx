@@ -312,8 +312,6 @@ const ClientLogin = () => {
         }
       }
       
-      // Note: redirectAfterLogin will be preserved in sessionStorage through the OAuth flow
-      // For web OAuth, don't set isLoading to false here as the page will redirect
     } catch (error: any) {
       toast({
         title: "Eroare",
