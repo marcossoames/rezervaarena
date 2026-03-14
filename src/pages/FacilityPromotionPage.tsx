@@ -166,7 +166,7 @@ export default function FacilityPromotionPage() {
               <h3 className="text-lg sm:text-xl font-semibold">Detalii facilitate</h3>
               
               <div className="grid gap-3 sm:gap-4">
-                {/* Location */}
+                
                 <div className="flex items-start gap-2 sm:gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
