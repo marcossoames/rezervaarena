@@ -208,7 +208,7 @@ const DayScheduleCalendar = ({
     });
   };
 
-  // Helper function to convert HH:MM to minutes
+  
   const timeToMinutes = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
     return hours * 60 + minutes;

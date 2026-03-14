@@ -261,7 +261,7 @@ export default function FacilityPromotionPage() {
               </div>
             )}
 
-            {/* Additional Images */}
+            
             {facility.images && facility.images.length > 1 && (
               <div className="space-y-2">
                 <h3 className="text-lg sm:text-xl font-semibold">Galerie foto</h3>

@@ -396,7 +396,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
 
             <Separator />
 
-            {/* Update Section */}
+            
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Actualizare Rezervare</h3>
               
