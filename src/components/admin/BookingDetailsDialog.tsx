@@ -238,7 +238,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
           </div>
         ) : booking && client && facility ? (
           <div className="space-y-6">
-            {/* Status Overview */}
+            
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {getStatusBadge(booking.status)}
