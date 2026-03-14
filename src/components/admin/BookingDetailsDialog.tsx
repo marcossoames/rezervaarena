@@ -257,9 +257,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
 
             <Separator />
 
-            {/* Main Details Grid */}
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Booking Details */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
