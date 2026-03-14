@@ -100,7 +100,7 @@ const FacilitiesPage = () => {
     amenities?: string[];
   } | null>(null);
 
-  // Helper functions for Google Maps
+  
   const buildLocationQuery = (address: string | undefined, city: string): string => {
     if (!address) return city;
     return `${address}, ${city}`;
