@@ -244,7 +244,7 @@ export default function FacilityPromotionPage() {
               </div>
             )}
 
-            {/* General Services */}
+            
             {facility.general_services && facility.general_services.length > 0 && (
               <div className="space-y-2">
                 <h3 className="text-lg sm:text-xl font-semibold">Servicii generale</h3>
