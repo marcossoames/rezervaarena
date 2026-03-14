@@ -15,7 +15,7 @@ const AuthRedirect = lazy(() => import("./pages/AuthRedirect"));
 const ClientLogin = lazy(() => import("./pages/ClientLogin"));
 const SportsFacilityLogin = lazy(() => import("./pages/SportsFacilityLogin"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
-const AuthDiagnosticsPage = lazy(() => import("./pages/AuthDiagnosticsPage"));
+
 const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
 const FacilitiesPage = lazy(() => import("./pages/FacilitiesPage"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
