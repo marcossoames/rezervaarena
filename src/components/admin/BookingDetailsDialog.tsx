@@ -238,7 +238,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
           </div>
         ) : booking && client && facility ? (
           <div className="space-y-6">
-            {/* Status Overview */}
+            
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {getStatusBadge(booking.status)}
@@ -257,9 +257,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
 
             <Separator />
 
-            {/* Main Details Grid */}
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Booking Details */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -318,7 +316,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
                 </CardContent>
               </Card>
 
-              {/* Client Details */}
+              
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -374,7 +372,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
               </Card>
             </div>
 
-            {/* Client Behavior Stats */}
+            
             {client && (
               <div>
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -398,7 +396,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
 
             <Separator />
 
-            {/* Update Section */}
+            
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Actualizare Rezervare</h3>
               

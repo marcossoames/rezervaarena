@@ -100,7 +100,7 @@ const FacilitiesPage = () => {
     amenities?: string[];
   } | null>(null);
 
-  // Helper functions for Google Maps
+  
   const buildLocationQuery = (address: string | undefined, city: string): string => {
     if (!address) return city;
     return `${address}, ${city}`;
@@ -882,7 +882,7 @@ applyFilters();
     }
   };
 
-  // Helper to update a single URL param while preserving others
+  
   const updateParam = (key: string, value?: string) => {
     const currentParams = Object.fromEntries(searchParams.entries());
     if (value && value.trim() !== '') {

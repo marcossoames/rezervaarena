@@ -98,7 +98,7 @@ export default function FacilityPromotionPage() {
   return (
     <div className="min-h-screen bg-background pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 sm:pt-[calc(env(safe-area-inset-top)+2rem)] sm:pb-8 px-3 sm:px-4">
       <div className="container mx-auto max-w-4xl">
-        {/* Back Button */}
+        
         <Button
           variant="outline"
           onClick={() => navigate("/facilities")}
@@ -123,7 +123,7 @@ export default function FacilityPromotionPage() {
           </CardHeader>
 
           <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
-            {/* Main Image */}
+            
             {(facility.main_image_url || facility.images?.[0]) && (
               <div className="w-full h-48 sm:h-56 md:h-64 rounded-lg overflow-hidden">
                 <img
@@ -134,7 +134,7 @@ export default function FacilityPromotionPage() {
               </div>
             )}
 
-            {/* Promotion Notice */}
+            
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
               <Info className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
               <div className="min-w-0">
@@ -147,7 +147,7 @@ export default function FacilityPromotionPage() {
               </div>
             </div>
 
-            {/* Call Button - Highlighted */}
+            
             <Button
               onClick={handleCallFacility}
               size="lg"
@@ -161,12 +161,12 @@ export default function FacilityPromotionPage() {
               </span>
             </Button>
 
-            {/* Details Section */}
+            
             <div className="space-y-3 sm:space-y-4">
               <h3 className="text-lg sm:text-xl font-semibold">Detalii facilitate</h3>
               
               <div className="grid gap-3 sm:gap-4">
-                {/* Location */}
+                
                 <div className="flex items-start gap-2 sm:gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -180,7 +180,7 @@ export default function FacilityPromotionPage() {
                   </div>
                 </div>
 
-                {/* Operating Hours */}
+                
                 <div className="flex items-start gap-2 sm:gap-3">
                   <Clock className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div>
@@ -191,7 +191,7 @@ export default function FacilityPromotionPage() {
                   </div>
                 </div>
 
-                {/* Capacity */}
+                
                 <div className="flex items-start gap-2 sm:gap-3">
                   <Users className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div>
@@ -202,7 +202,7 @@ export default function FacilityPromotionPage() {
                   </div>
                 </div>
 
-                {/* Price */}
+                
                 <div className="flex items-start gap-2 sm:gap-3">
                   <div className="h-5 w-5 flex items-center justify-center text-muted-foreground mt-0.5 flex-shrink-0">
                     <span className="text-lg">💰</span>
@@ -217,7 +217,7 @@ export default function FacilityPromotionPage() {
               </div>
             </div>
 
-            {/* Description */}
+            
             {facility.description && (
               <div className="space-y-2">
                 <h3 className="text-lg sm:text-xl font-semibold">Descriere</h3>
@@ -227,7 +227,7 @@ export default function FacilityPromotionPage() {
               </div>
             )}
 
-            {/* Amenities */}
+            
             {facility.amenities && facility.amenities.length > 0 && (
               <div className="space-y-2">
                 <h3 className="text-lg sm:text-xl font-semibold">Facilități</h3>
@@ -244,7 +244,7 @@ export default function FacilityPromotionPage() {
               </div>
             )}
 
-            {/* General Services */}
+            
             {facility.general_services && facility.general_services.length > 0 && (
               <div className="space-y-2">
                 <h3 className="text-lg sm:text-xl font-semibold">Servicii generale</h3>
@@ -261,7 +261,7 @@ export default function FacilityPromotionPage() {
               </div>
             )}
 
-            {/* Additional Images */}
+            
             {facility.images && facility.images.length > 1 && (
               <div className="space-y-2">
                 <h3 className="text-lg sm:text-xl font-semibold">Galerie foto</h3>

@@ -577,7 +577,7 @@ const MyReservationsPage = () => {
     return isFacilityOwner && booking.facilities.owner_id === userProfile.user_id;
   };
 
-  // Helper function to render booking cards
+  
   const renderBookingCards = (sortedBookings: Booking[]) => {
     return sortedBookings.map(booking => <Card key={booking.id} id={`booking-${booking.id}`} className="transition-all duration-200 hover:shadow-lg">
                 <CardHeader className="pb-4">

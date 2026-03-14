@@ -47,7 +47,7 @@ const BookingPage = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   
-  // Helper functions for Google Maps
+  
   const buildLocationQuery = (address: string, city: string): string => {
     return `${address}, ${city}`;
   };
@@ -329,7 +329,7 @@ const BookingPage = () => {
               const slotMinutes = slotHour * 60 + slotMinute;
               const endMinutes = slotMinutes + selectedDuration;
 
-              // Helper to parse 'HH:MM' or 'HH:MM:SS' into minutes
+              
               const toMinutes = (t: string) => {
                 const parts = t.split(':').map(Number);
                 const h = parts[0] || 0;
