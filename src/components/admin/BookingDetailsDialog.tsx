@@ -372,7 +372,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
               </Card>
             </div>
 
-            {/* Client Behavior Stats */}
+            
             {client && (
               <div>
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
