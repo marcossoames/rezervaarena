@@ -217,7 +217,7 @@ export default function FacilityPromotionPage() {
               </div>
             </div>
 
-            {/* Description */}
+            
             {facility.description && (
               <div className="space-y-2">
                 <h3 className="text-lg sm:text-xl font-semibold">Descriere</h3>
