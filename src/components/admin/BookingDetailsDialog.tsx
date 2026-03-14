@@ -316,7 +316,7 @@ const BookingDetailsDialog = ({ bookingId, isOpen, onClose, onUpdate }: BookingD
                 </CardContent>
               </Card>
 
-              {/* Client Details */}
+              
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
