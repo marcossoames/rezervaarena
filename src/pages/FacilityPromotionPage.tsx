@@ -227,7 +227,7 @@ export default function FacilityPromotionPage() {
               </div>
             )}
 
-            {/* Amenities */}
+            
             {facility.amenities && facility.amenities.length > 0 && (
               <div className="space-y-2">
                 <h3 className="text-lg sm:text-xl font-semibold">Facilități</h3>
