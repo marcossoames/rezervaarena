@@ -28,8 +28,6 @@ const ArticlesPage = () => {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const { toast } = useToast();
   
-  // Optimize CSS loading for this page
-  useCSSOptimization();
 
   useEffect(() => {
     loadArticles();
