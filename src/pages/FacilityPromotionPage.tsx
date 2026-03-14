@@ -134,7 +134,7 @@ export default function FacilityPromotionPage() {
               </div>
             )}
 
-            {/* Promotion Notice */}
+            
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
               <Info className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
               <div className="min-w-0">
