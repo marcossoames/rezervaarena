@@ -47,7 +47,7 @@ const BookingPage = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   
-  // Helper functions for Google Maps
+  
   const buildLocationQuery = (address: string, city: string): string => {
     return `${address}, ${city}`;
   };
