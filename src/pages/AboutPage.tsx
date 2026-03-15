@@ -37,11 +37,8 @@ const AboutPage = () => {
       <Header />
 
       <main className="w-full pt-20 pb-16">
-        {/* Hero Section with 3D */}
         <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden px-4">
-          <Suspense fallback={null}>
-            <FloatingShape />
-          </Suspense>
+          <FloatingShape />
 
           <div className="relative z-10 text-center max-w-3xl mx-auto">
             <h1 className="hero-stagger-1 text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
