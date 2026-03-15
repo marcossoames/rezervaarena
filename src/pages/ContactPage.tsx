@@ -61,7 +61,6 @@ const ContactPage = () => {
           </div>
         </section>
 
-        {/* Contact Cards */}
         <section className="py-16 px-4" ref={cardsRef}>
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

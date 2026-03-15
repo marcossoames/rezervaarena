@@ -76,7 +76,6 @@ const AboutPage = () => {
           </div>
         </section>
 
-        {/* Story Section */}
         <section className="py-16 px-4 bg-muted/30" ref={storyRef}>
           <div className="max-w-3xl mx-auto">
             <Card className={`border-0 shadow-elegant bg-card/90 backdrop-blur-sm animate-on-scroll ${storyVisible ? 'visible' : ''}`}>
