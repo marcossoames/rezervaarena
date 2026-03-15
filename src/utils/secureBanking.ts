@@ -60,39 +60,3 @@ export const deleteSecureBankDetails = async (): Promise<BankingResponse> => {
     throw error;
   }
 };
-
-export const validateBankingPermissions = async (): Promise<boolean> => {
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) throw new Error('Authentication required');
-    return true;
-  } catch (error) {
-    console.error('Banking permissions validation failed:', error);
-    return false;
-  }
-};
-
-export const checkBankingSecurityStatus = async (): Promise<{
-  isSecure: boolean;
-  warnings: string[];
-}> => {
-  const warnings: string[] = [];
-  
-  try {
-    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-      warnings.push('Conexiune nesigură detectată. Utilizați HTTPS pentru operațiuni bancare.');
-    }
-
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) {
-      warnings.push('Autentificare necesară pentru operațiuni bancare.');
-    }
-
-    return { isSecure: warnings.length === 0, warnings };
-  } catch (error) {
-    return {
-      isSecure: false,
-      warnings: ['Verificarea securității a eșuat. Vă rugăm să încercați din nou.']
-    };
-  }
-};

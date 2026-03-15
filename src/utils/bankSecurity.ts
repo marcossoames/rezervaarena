@@ -26,11 +26,3 @@ export const validateBankName = (name: string): { isValid: boolean; error?: stri
   if (sanitized.length > 100) return { isValid: false, error: "Numele băncii este prea lung" };
   return { isValid: true };
 };
-
-export const hashSensitiveData = async (data: string): Promise<string> => {
-  const encoder = new TextEncoder();
-  const dataBuffer = encoder.encode(data);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-};
