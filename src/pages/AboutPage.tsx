@@ -3,9 +3,7 @@ import Footer from "@/components/Footer";
 import { Users, Target, Award, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { lazy, Suspense } from "react";
-
-const FloatingShape = lazy(() => import("@/components/FloatingShape"));
+import FloatingShape from "@/components/FloatingShape";
 
 const values = [
   {
