@@ -4,9 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, Instagram, Youtube } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { openExternal } from "@/utils/openExternal";
-import { lazy, Suspense } from "react";
-
-const FloatingShape = lazy(() => import("@/components/FloatingShape"));
+import FloatingShape from "@/components/FloatingShape";
 
 const contactMethods = [
   {
@@ -50,11 +48,8 @@ const ContactPage = () => {
       <Header />
 
       <main className="w-full pt-20 pb-16">
-        {/* Hero Section with 3D */}
         <section className="relative min-h-[40vh] flex items-center justify-center overflow-hidden px-4">
-          <Suspense fallback={null}>
-            <FloatingShape />
-          </Suspense>
+          <FloatingShape />
 
           <div className="relative z-10 text-center max-w-3xl mx-auto">
             <h1 className="hero-stagger-1 text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
@@ -66,7 +61,6 @@ const ContactPage = () => {
           </div>
         </section>
 
-        {/* Contact Cards */}
         <section className="py-16 px-4" ref={cardsRef}>
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
