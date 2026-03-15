@@ -51,7 +51,6 @@ const AboutPage = () => {
         </section>
 
         <section className="py-16 px-4" ref={valuesRef}>
-        <section className="py-16 px-4" ref={valuesRef}>
           <div className="max-w-5xl mx-auto">
             <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-12 text-foreground animate-on-scroll ${valuesVisible ? 'visible' : ''}`}>
               Valorile <span className="text-primary">Noastre</span>
