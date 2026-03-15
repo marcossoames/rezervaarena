@@ -4,9 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, Instagram, Youtube } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { openExternal } from "@/utils/openExternal";
-import { lazy, Suspense } from "react";
-
-const FloatingShape = lazy(() => import("@/components/FloatingShape"));
+import FloatingShape from "@/components/FloatingShape";
 
 const contactMethods = [
   {
